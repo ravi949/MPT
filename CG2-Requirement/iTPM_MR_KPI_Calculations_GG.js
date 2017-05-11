@@ -6,7 +6,7 @@
 define(['N/search', 
         'N/runtime', 
         'N/record',
-        './SuiteScript/CG2-Requirement/iTPM_KPI_Module.js'],
+        './iTPM_KPI_Module.js'],
 
 function(search, runtime, record, iTPM) {
    
