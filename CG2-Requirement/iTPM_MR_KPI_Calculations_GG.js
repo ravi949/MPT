@@ -19,7 +19,7 @@ function(search, runtime, record) {
      */
     function getInputData() {
     	try{
-    		log.debug('GetInputData Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_kpisearch'}));
+    		//log.debug('GetInputData Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_kpisearch'}));
     		return {
         		type: 'search',
         		id: parseInt(runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_kpisearch'}))
@@ -37,7 +37,7 @@ function(search, runtime, record) {
      */
     function map(context) {
     	try{
-    		log.debug('MapSummary', context);
+    		//log.debug('MapSummary', context);
         	var line = JSON.parse(context.value).values;
         	log.debug('line', line);
         	var promotionID = line['internalid'].value,
@@ -56,8 +56,8 @@ function(search, runtime, record) {
         		rangeStart = 0, rangeStep = 999,
         		unitArray = [], allArray = [], estUnit = null, estTotalQty = null, estPromotedQty = null, estRate = null, estPercent = null;
         	
-        	log.debug('EstQty Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_estqtysearch'}));
-        	log.debug('Allowances Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_allowancesearch'}));
+        	//log.debug('EstQty Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_estqtysearch'}));
+        	//log.debug('Allowances Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_allowancesearch'}));
         	/**** Get Units Table for Item ****/
         	var unitsType = search.lookupFields({
         		type: search.Type.INVENTORY_ITEM,
@@ -149,27 +149,28 @@ function(search, runtime, record) {
         			rangeStart += rangeStep;
         		} while (util.isArray(allowances) && allowances.length >= rangeStep);
         		
-        		context.write({
-        			key:{kpiId : kpiID, itemId: kpiItemID},
-        			value:{
-        				pId: promotionID,
-        				pType: pTypeID, 
-        				status: pStatus,
-        				condition: pCondition,
-        				shipStart: shipStart,
-        				shipEnd: shipEnd,
-        				oStart: orderStart,
-        				oEnd: orderEnd,
-        				unit: kpiUnitID,
-        				unitArray: unitArray,
-        				estUnit: estUnit,
-        				totalQty: estTotalQty,
-        				promotedQty: estPromotedQty,
-        				rate: estRate,
-        				percent: estPercent,
-        				allowances: allArray
-        				}
-        		});
+        		if (allArray.length > 0){
+	        		context.write({
+	        			key:{kpiId : kpiID, itemId: kpiItemID},
+	        			value:{
+	        				pId: promotionID,
+	        				pType: pTypeID, 
+	        				status: pStatus,
+	        				condition: pCondition,
+	        				shipStart: shipStart,
+	        				shipEnd: shipEnd,
+	        				oStart: orderStart,
+	        				oEnd: orderEnd,
+	        				unit: kpiUnitID,
+	        				estUnit: estUnit,
+	        				totalQty: estTotalQty,
+	        				promotedQty: estPromotedQty,
+	        				rate: estRate,
+	        				percent: estPercent,
+	        				allowances: allArray
+	        				}
+	        		});
+        		}
         		
         	}
         	
@@ -185,7 +186,8 @@ function(search, runtime, record) {
      * @since 2015.1
      */
     function reduce(context) {
-    	log.debug('Reduce', context);
+    	log.debug('Reduce Key', context.key);
+    	log.debug('Reduce Values', context.values);
     }
 
 
