@@ -151,12 +151,15 @@ function(search, runtime, record) {
         		
         		if (allArray.length > 0){
 	        		context.write({
-	        			key:{kpiId : kpiID, itemId: kpiItemID},
-	        			value:{
+	        			key:{
+	        				kpiId : kpiID, 
+	        				itemId: kpiItemID,
 	        				pId: promotionID,
 	        				pType: pTypeID, 
 	        				status: pStatus,
-	        				condition: pCondition,
+	        				condition: pCondition
+	        				},
+	        			value:{
 	        				shipStart: shipStart,
 	        				shipEnd: shipEnd,
 	        				oStart: orderStart,
