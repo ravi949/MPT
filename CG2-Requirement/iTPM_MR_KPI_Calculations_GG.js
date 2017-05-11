@@ -169,21 +169,20 @@ function(search, runtime, record) {
      */
     function reduce(context) {
     	try{
-        	var key = context.key, values = context.values, unitArray = [];
+        	var key = JSON.parse(context.key), values = JSON.parse(context.values), unitArray = [];
         	log.debug('Reduce Key', key);
         	log.debug('Reduce Values', values);
         	
         	/**** Get Units Table for Item ****/
-        	log.debug('ItemId', key.item);
         	var unitsType = search.lookupFields({
         		type: search.Type.INVENTORY_ITEM,
-        		id: key.itemId,
+        		id: key.item,
         		columns: 'unitstype'
         	});
         	if (!unitsType.unitstype){
         		throw {
         			name: 'UNITS_TYPE_ERROR',
-        			message: 'Item units type search returned null. PromotionID: ' + key.pId  + '; ItemID: ' + key.itemId
+        			message: 'Item units type search returned null. PromotionID: ' + key.promotion.id  + '; ItemID: ' + key.item
         		};
         	}
         	var unitRecord = record.load({
@@ -205,7 +204,7 @@ function(search, runtime, record) {
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
         	var kpi_promoQty = key.promotedQty;
         	var kpi_actualQty = getActualQty(key.itemId, key.customerId, key.shipStart, key.shipEnd);
-        	var kpi_estimatedSpendBB = getEstimatedSpend()
+        	var kpi_estimatedSpendBB = getEstimatedSpend();
         	
     	} catch(ex) {
     		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
@@ -235,6 +234,21 @@ function(search, runtime, record) {
      * @returns {string}
      */
     function getActualQty(itemId, customerId, shipStart, shipEnd){
+    	return 0;
+    }
+    
+    /**
+     * Function to search for item fulfillments based on Item Id, Customer Id, and date range
+     * and return a decimal number
+     * 
+     * @params {string} itemId Internal ID of the Item
+     * @params {string} customerId Internal ID of the customer
+     * @params {string} shipStart  Date
+     * @params {string} shipEnd
+     * 
+     * @returns {string}
+     */
+    function getEstimatedSpend(){
     	return 0;
     }
 
