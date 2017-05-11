@@ -136,7 +136,7 @@ function(search, runtime, record) {
             		values: [pTypeValidMOP[i]]
             	}));
             	//log.debug('AllowanceSearch', allowanceSearch);
-            	//log.debug('AllowanceSearch Columns', allowanceSearch.run().columns);
+            	log.debug('AllowanceSearch Columns', allowanceSearch.run().columns);
         		do {
         			var allowances = allowanceSearch.run().getRange(rangeStart, rangeStart + rangeStep);
         			for (var j = 0; j < allowances.length; j++) {
