@@ -1,11 +1,14 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType MapReduceScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  */
-define(['N/search', 'N/runtime', 'N/record'],
+define(['N/search', 
+        'N/runtime', 
+        'N/record',
+        './SuiteScript/CG2-Requirement/iTPM_KPI_Module.js'],
 
-function(search, runtime, record) {
+function(search, runtime, record, iTPM) {
    
     /**
      * Marks the beginning of the Map/Reduce process and generates input data.
@@ -131,33 +134,32 @@ function(search, runtime, record) {
         			}
         			rangeStart += rangeStep;
         		} while (util.isArray(allowances) && allowances.length >= rangeStep);
-        		
-        		if (allArray.length > 0){
-	        		context.write({
-	        			key:{
-	        				kpi : kpiID, 
-	        				item: kpiItemID,
-	        				unit: kpiUnitID,
-	        				promotion: {
-	        					id: promotionID,
-		        				customer: customerId,
-		        				type: pTypeID, 
-		        				status: pStatus,
-		        				condition: pCondition,
-		        				shipStart: shipStart,
-		        				shipEnd: shipEnd,
-		        				orderStart: orderStart,
-		        				orderEnd: orderEnd
-		        				},
-	        				estqty: estQty
-	        				},
-	        			value:{
-	        				allowances: allArray
-	        				}
-	        		});
-        		}
-        		
         	}
+        	
+        	if (allArray.length > 0){
+        		context.write({
+        			key:{
+        				kpi : kpiID, 
+        				item: kpiItemID,
+        				unit: kpiUnitID,
+        				promotion: {
+        					id: promotionID,
+	        				customer: customerId,
+	        				type: pTypeID, 
+	        				status: pStatus,
+	        				condition: pCondition,
+	        				shipStart: shipStart,
+	        				shipEnd: shipEnd,
+	        				orderStart: orderStart,
+	        				orderEnd: orderEnd
+	        				}
+        				},
+        			value:{
+        				estqty: estQty,
+        				allowances: allArray
+        				}
+        		});
+    		}
         	
     	} catch(ex) {
     		log.error('Map', ex.name + '; ' + ex.message + '; PromotionID: ' + context.key);
@@ -174,44 +176,56 @@ function(search, runtime, record) {
     	try{
         	var key = JSON.parse(context.key);
         	var values = JSON.parse(JSON.stringify(context.values));
-        	var unitArray = [];
+        	var unitArray = iTPM.getItemUnits(key.item);
         	log.debug('Reduce Key', key);
         	log.debug('Reduce Values', values);
-        	
-        	/**** Get Units Table for Item ****/
-        	var unitsType = search.lookupFields({
-        		type: search.Type.INVENTORY_ITEM,
-        		id: key.item,
-        		columns: 'unitstype'
-        	});
-        	if (!unitsType.unitstype){
+        	log.debug('Units Array', unitArray);
+        	if (unitArray.unitArray.error){
         		throw {
         			name: 'UNITS_TYPE_ERROR',
         			message: 'Item units type search returned null. PromotionID: ' + key.promotion.id  + '; ItemID: ' + key.item
         		};
         	}
-        	var unitRecord = record.load({
-        		type: record.Type.UNITS_TYPE,
-        		id: unitsType.unitstype[0].value
-        	});
-        	var sublistLines = unitRecord.getLineCount({sublistId: 'uom'});
-        	for (var u = 0; u < sublistLines; u++){
-        		unitArray.push({
-        			id: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'internalid'}),
-        			name: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'unitname'}),
-        			isBase: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'baseunit'}),
-        			conversionRate: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'conversionrate'})
-        		});
-        	}
-        	log.debug('Units Array', unitArray);
-        	
         	/**** START CALCULATIONS ****/
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
-        	var kpi_promoQty = key.promotedQty;
-        	var kpi_actualQty = getActualQty(key.item, key.customer, key.shipStart, key.shipEnd);
-        	var estimatedSpend = getEstimatedSpend(key.estQty);
+        	var kpi_promoQty = values.estqty.promoted;
+        	var kpi_actualQty = iTPM.getActualQty(key.item, key.promotion.customer, key.promotion.shipStart, key.promotion.shipEnd);
+        	var estimatedSpend = iTPM.getEstimatedSpend(key.kpi, values.estqty.ratebb, values.estqty.rateoi, values.estqty.ratenb);
+        	var leSpend, actualSpend, expectedLiability, maxLiability;
+        	switch (key.status) {
+        		/*
+        		 * 1	DRAFT
+        		 * 2	PENDING APPROVAL
+        		 * 3	APPROVED
+        		 * 4	REJECTED
+        		 * 5	VOIDED
+        		 * 6	CLOSED
+        		 */
+			case '1':
+			case '2':
+				leSpend = estimatedSpend;
+				actualSpend = iTPM.getActualSpend({returnZero: true});//should return object zero
+				expectedLiability = iTPM.getExpectedLiability({returnZero: true});//should return object zero
+				maxLiability = iTPM.getMaxLiability({returnZero: true});//should return object zero
+				break;
+			case '4':
+			case '5':
+				leSpend = iTPM.getLESpend({returnZero: true});//should return object zero
+				actualSpend = iTPM.getActualSpend({returnZero: true});//should return object zero
+				expectedLiability = iTPM.getExpectedLiability({returnZero: true});//should return object zero
+				maxLiability = iTPM.getMaxLiability({returnZero: true});//should return object zero
+				break;
+			case '3':
+				break;
+			default:
+				break;
+			}
     	} catch(ex) {
     		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
+    		context.write({
+    			key: key,
+    			value: values
+    		});
     	}
     }
 
@@ -226,66 +240,6 @@ function(search, runtime, record) {
     	log.debug('Summarize', summary);
     }
     
-    /**
-     * Function to search for item fulfillments based on Item Id, Customer Id, and date range
-     * and return a decimal number
-     * 
-     * @params {string} itemId Internal ID of the Item
-     * @params {string} customerId Internal ID of the customer
-     * @params {string} shipStart  Date
-     * @params {string} shipEnd
-     * 
-     * @returns {string}
-     */
-    function getActualQty(itemId, customerId, shipStart, shipEnd){
-    	try{
-    		var qtySearch = search.create({
-        		type: search.Type.ITEM_FULFILLMENT,
-        		columns: [{name: 'quantity', summary:'SUM'}]
-        	});
-        	qtySearch.filters.push(search.createFilter({
-        		name: 'item',
-        		operator: search.Operator.ANYOF,
-        		values: itemId
-        	}));
-        	qtySearch.filters.push(search.createFilter({
-        		name: 'entity',
-        		operator: search.Operator.ANYOF,
-        		values: customerId
-        	}));
-        	qtySearch.filters.push(search.createFilter({
-        		name: 'trandate',
-        		operator: search.Operator.WITHIN,
-        		values: [shipStart, shipEnd]
-        	}));
-        	qtySearch.filters.push(search.createFilter({
-        		name: 'status',
-        		operator: search.Operator.ANYOF,
-        		values: 'ItemShip:C'
-        	}));
-        	var qty = qtySearch.run().getRange(0,1);
-        	return qty[0].getValue({name: 'quantity', summary:'SUM'});
-    	} catch(ex) {
-    		log.error('ACTUAL_QTY_ERROR', ex.name + '; ' + ex.message + '; item: ' + itemId +'; customer: ' + customerId +'; between: ' + shipStart + ' & ' + shipEnd);
-    		return 0;
-    	}
-    }
-    
-    /**
-     * Function to calculate the estimated spend for total, bb, oi and nb
-     * and return an object
-     * 
-     * @params {string} itemId Internal ID of the Item
-     * @params {string} customerId Internal ID of the customer
-     * @params {string} shipStart  Date
-     * @params {string} shipEnd
-     * 
-     * @returns {object}
-     */
-    function getEstimatedSpend(){
-    	return 0;
-    }
-
     return {
         getInputData: getInputData,
         map: map,
