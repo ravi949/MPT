@@ -47,6 +47,7 @@ function(search, runtime, record) {
         		shipEnd = line['custrecord_itpm_p_shipend'],
         		orderStart = line['custrecord_itpm_p_orderstart'],
         		orderEnd = line['custrecord_itpm_p_orderend'],
+        		customerId = line['custrecord_itpm_p_customer'],
         		kpiID = line['internalid.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
         		kpiItemID = line['custrecord_itpm_kpi_item.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
         		kpiUnitID = line['custrecord_itpm_kpi_uom.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
@@ -54,36 +55,11 @@ function(search, runtime, record) {
         		pTypeImpactID = line['custrecord_itpm_pt_financialimpact.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeValidMOP = line['custrecord_itpm_pt_validmop.CUSTRECORD_ITPM_P_TYPE'],
         		rangeStart = 0, rangeStep = 999,
-        		unitArray = [], allArray = [], estUnit = null, estTotalQty = null, estPromotedQty = null, estRate = null, estPercent = null;
+        		allArray = [], estUnit = null, estQty = {};
         	
         	//log.debug('EstQty Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_estqtysearch'}));
         	//log.debug('Allowances Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_allowancesearch'}));
-        	/**** Get Units Table for Item ****/
-        	var unitsType = search.lookupFields({
-        		type: search.Type.INVENTORY_ITEM,
-        		id: kpiItemID,
-        		columns: 'unitstype'
-        	});
-        	if (!unitsType.unitstype){
-        		throw {
-        			name: 'UNITS_TYPE_ERROR',
-        			message: 'Item units type search returned null. PromotionID: ' + promotionID + '; ItemID: ' + kpiItemID
-        		};
-        	}
-        	var unitRecord = record.load({
-        		type: record.Type.UNITS_TYPE,
-        		id: unitsType.unitstype[0].value
-        	});
-        	var sublistLines = unitRecord.getLineCount({sublistId: 'uom'});
-        	for (var u = 0; u < sublistLines; u++){
-        		unitArray.push({
-        			id: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'internalid'}),
-        			name: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'unitname'}),
-        			isBase: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'baseunit'}),
-        			conversionRate: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'conversionrate'})
-        		});
-        	}
-        	log.debug('Units Array', unitArray);
+        	
         	/**** Get EstQty for each KPI ****/
         	var estQtySearch = search.load({
         		id: parseInt(runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_estqtysearch'}))
@@ -105,11 +81,13 @@ function(search, runtime, record) {
     				message:'Saved search for EstQty returned more than one result. PromotionId: ' + promotionID + '; ItemID: ' + kpiItemID
     				};
     		} else {
-    			estUnit = estQuantities[0].getValue({name:'custrecord_itpm_estqty_qtyby'});
-    			estTotalQty = estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalqty'});
-    			estPromotedQty = estQuantities[0].getValue({name:'custrecord_itpm_estqty_estpromotedqty'});
-    			estRate = estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalrate'});
-    			estPercent = estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalpercent'});
+    			estQty = {
+    					unit: estQuantities[0].getValue({name:'custrecord_itpm_estqty_qtyby'}),
+    					total: estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalqty'}),
+    					promoted: estQuantities[0].getValue({name:'custrecord_itpm_estqty_estpromotedqty'}),
+    					rate: estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalrate'}),
+    					percent: estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalpercent'})
+    					}
     		}
         	
         	/**** Create a key-value pair for each MOP value ****/
@@ -154,22 +132,21 @@ function(search, runtime, record) {
 	        			key:{
 	        				kpiId : kpiID, 
 	        				itemId: kpiItemID,
-	        				pId: promotionID,
-	        				pType: pTypeID, 
-	        				status: pStatus,
-	        				condition: pCondition
+	        				unit: kpiUnitID,
+	        				promotion: {
+	        					promotionId: promotionID,
+		        				customerId: customerId,
+		        				promotionType: pTypeID, 
+		        				status: pStatus,
+		        				condition: pCondition,
+		        				shipStart: shipStart,
+		        				shipEnd: shipEnd,
+		        				orderStart: orderStart,
+		        				orderEnd: orderEnd
+		        				},
+	        				estQty: estQty
 	        				},
 	        			value:{
-	        				shipStart: shipStart,
-	        				shipEnd: shipEnd,
-	        				oStart: orderStart,
-	        				oEnd: orderEnd,
-	        				unit: kpiUnitID,
-	        				estUnit: estUnit,
-	        				totalQty: estTotalQty,
-	        				promotedQty: estPromotedQty,
-	        				rate: estRate,
-	        				percent: estPercent,
 	        				allowances: allArray
 	        				}
 	        		});
@@ -189,8 +166,47 @@ function(search, runtime, record) {
      * @since 2015.1
      */
     function reduce(context) {
-    	log.debug('Reduce Key', context.key);
-    	log.debug('Reduce Values', context.values);
+    	try{
+    		log.debug('Reduce Key', context.key);
+        	log.debug('Reduce Values', context.values);
+        	var key = context.key, values = context.values, unitArray = [];
+        	
+        	/**** Get Units Table for Item ****/
+        	var unitsType = search.lookupFields({
+        		type: search.Type.INVENTORY_ITEM,
+        		id: context.key.itemId,
+        		columns: 'unitstype'
+        	});
+        	if (!unitsType.unitstype){
+        		throw {
+        			name: 'UNITS_TYPE_ERROR',
+        			message: 'Item units type search returned null. PromotionID: ' + key.pId  + '; ItemID: ' + key.itemId
+        		};
+        	}
+        	var unitRecord = record.load({
+        		type: record.Type.UNITS_TYPE,
+        		id: unitsType.unitstype[0].value
+        	});
+        	var sublistLines = unitRecord.getLineCount({sublistId: 'uom'});
+        	for (var u = 0; u < sublistLines; u++){
+        		unitArray.push({
+        			id: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'internalid'}),
+        			name: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'unitname'}),
+        			isBase: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'baseunit'}),
+        			conversionRate: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'conversionrate'})
+        		});
+        	}
+        	log.debug('Units Array', unitArray);
+        	
+        	/**** START CALCULATIONS ****/
+        	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
+        	var kpi_promoQty = key.promotedQty;
+        	var kpi_actualQty = getActualQty(key.itemId, key.customerId, key.shipStart, key.shipEnd);
+        	var kpi_estimatedSpendBB = getEstimatedSpend()
+        	
+    	} catch(ex) {
+    		log.error('Reduce', ex.name + '; ' + ex.message + '; Key: ' + context.key);
+    	}
     }
 
 
@@ -202,6 +218,21 @@ function(search, runtime, record) {
      */
     function summarize(summary) {
     	log.debug('Summarize', summary);
+    }
+    
+    /**
+     * Function to search for item fulfillments based on Item Id, Customer Id, and date range
+     * and return a decimal number
+     * 
+     * @params {string} itemId Internal ID of the Item
+     * @params {string} customerId Internal ID of the customer
+     * @params {string} shipStart  Date
+     * @params {string} shipEnd
+     * 
+     * @returns {string}
+     */
+    function getActualQty(itemId, customerId, shipStart, shipEnd){
+    	return 0;
     }
 
     return {
