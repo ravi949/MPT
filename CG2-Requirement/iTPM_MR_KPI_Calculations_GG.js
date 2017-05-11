@@ -56,8 +56,8 @@ function(search, runtime, record) {
         		rangeStart = 0, rangeStep = 999,
         		unitArray = [], allArray = [], estUnit = null, estTotalQty = null, estPromotedQty = null, estRate = null, estPercent = null;
         	
-        	//log.debug('EstQty Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_estqtysearch'}));
-        	//log.debug('Allowances Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_allowancesearch'}));
+        	log.debug('EstQty Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_estqtysearch'}));
+        	log.debug('Allowances Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_allowancesearch'}));
         	/**** Get Units Table for Item ****/
         	var unitsType = search.lookupFields({
         		type: search.Type.INVENTORY_ITEM,
@@ -115,7 +115,6 @@ function(search, runtime, record) {
         	/**** Create a key-value pair for each MOP value ****/
         	for(var i = 0; i<pTypeValidMOP.length; i++){
         		rangeStart = 0;
-        		//log.debug('MOP Allowances', 'Running For MOP Value: ' + pTypeValidMOP[i]);
         		/**** Get Allowances for each KPI Item + Promotion + MOP ****/
             	var allowanceSearch = search.load({
             		id: parseInt(runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_allowancesearch'}))
@@ -136,20 +135,42 @@ function(search, runtime, record) {
             		values: [pTypeValidMOP[i]]
             	}));
             	//log.debug('AllowanceSearch', allowanceSearch);
-            	log.debug('AllowanceSearch Columns', allowanceSearch.run().columns);
+            	//log.debug('AllowanceSearch Columns', allowanceSearch.run().columns);
         		do {
         			var allowances = allowanceSearch.run().getRange(rangeStart, rangeStart + rangeStep);
         			for (var j = 0; j < allowances.length; j++) {
-        				
+        				allArray.push({
+        					mop: allowances[j].getValue({name:'custrecord_itpm_all_mop'}), 
+        					unit: allowances[j].getValue({name:'custrecord_itpm_all_uom'}),
+        					rate: allowances[j].getValue({name:'custrecord_itpm_all_rateperuom'}),
+        					percent: allowances[j].getValue({name:'custrecord_itpm_all_percentperuom'})
+        					});
         			}
         			rangeStart += rangeStep;
         		} while (util.isArray(allowances) && allowances.length >= rangeStep);
-        		/*
+        		
         		context.write({
-        			key:{},
-        			value:{}
+        			key:{kpiId : kpiID, itemId: kpiItemID},
+        			value:{
+        				pId: promotionID,
+        				pType: pTypeID, 
+        				status: pStatus,
+        				condition: pCondition,
+        				shipStart: shipStart,
+        				shipEnd: shipEnd,
+        				oStart: orderStart,
+        				oEnd: orderEnd,
+        				unit: kpiUnitID,
+        				unitArray: unitArray,
+        				estUnit: estUnit,
+        				totalQty: estTotalQty,
+        				promotedQty: estPromotedQty,
+        				rate: estRate,
+        				percent: estPercent,
+        				allowances: allArray
+        				}
         		});
-        		*/
+        		
         	}
         	
     	} catch(ex) {
