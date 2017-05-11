@@ -39,7 +39,7 @@ function(search, runtime, record) {
     	try{
     		//log.debug('MapSummary', context);
         	var line = JSON.parse(context.value).values;
-        	log.debug('line', line);
+        	//log.debug('line', line);
         	var promotionID = line['internalid'].value,
         		pCondition = line['custrecord_itpm_p_condition'].value,
         		pStatus = line['custrecord_itpm_p_status'].value,
@@ -172,9 +172,10 @@ function(search, runtime, record) {
         	var key = context.key, values = context.values, unitArray = [];
         	
         	/**** Get Units Table for Item ****/
+        	log.debug('ItemId', context.key.itemId);
         	var unitsType = search.lookupFields({
         		type: search.Type.INVENTORY_ITEM,
-        		id: parseInt(context.key.itemId),
+        		id: context.key.itemId,
         		columns: 'unitstype'
         	});
         	if (!unitsType.unitstype){
@@ -205,7 +206,7 @@ function(search, runtime, record) {
         	var kpi_estimatedSpendBB = getEstimatedSpend()
         	
     	} catch(ex) {
-    		log.error('Reduce', ex.name + '; ' + ex.message + '; Key: ' + context.key);
+    		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}
     }
 
