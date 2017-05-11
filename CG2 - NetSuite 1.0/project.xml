@@ -1,0 +1,15 @@
+<project info="SuiteCloud IDE generated file, do not edit." setAttributesOnUpdate="false">
+  <folder name="CG2 - NetSuite 1.0" bundleable="false">
+    <file name="Retail_Info_Dynamic_ItemField_Change_cs_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="Retail_Info_Dynamic_ItemField_ue_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="Retail_Info_SetActivity_FieldValue_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="iTPMAllowance_AllowanceUOM_SetOptions_cs_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="iTPMAllowance_Set_Account_AllowanceUOM_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="iTPMEstVol_EstVolBy_SetOptions_cs_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="iTPMEstVol_Set_EstVolBy_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="iTPMEstVolume_Dynamic_ItemFieldChange_cs_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="iTPMEstVolume_Dynamic_ItemField_ue_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="iTPMPromoDeal_SetSubsidiary_Main_FieldValue_cs_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="iTPMPromoDeal_Set_DynamicFieldValue_ToSubsidiary_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+  </folder>
+</project>

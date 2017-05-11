@@ -1,0 +1,102 @@
+<html ng-app="overlapdeals">
+
+<head>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.6/angular.min.js" type="text/javascript"></script>
+	<style>
+		th{
+		  font-size:11px;
+		  background-color:#E5E5E5 !important;
+		  font-weight:inherit !important;
+		}
+		td{
+		 font-size:13px;
+		}
+		.form-control{
+			width:11%;
+		}
+	</style>
+</head>
+
+<body ng-controller="overlapCtrl" >
+  <div  ng-show="listCount>0">
+	<div class="form-group">
+		<label for="sel1">Pagination:</label> <select class="form-control input-small" ng-model="page" ng-change="changePage()">
+			<option ng-repeat="i in listOfNumbers">{{i.label}}</option>
+		</select>
+	</div>
+  </div>
+
+	<table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>ITEM NAME</th>
+        <th>ITEM CODE</th>
+        <th>PROMOTION/DEAL NAME</th>
+        <th>START DATE</th>
+        <th>END DATE</th>
+        <th>DAYS OVERLAPPING</th>
+        <th>PROMOTION/DEAL STATUS</th>
+        <th>PROMOTION/DEAL CONDITION</th>
+        <th>PROMOTION/DEAL ID</th>
+        <th>PROMOTION TYPE</th>
+        <th>TOTAL ALLOWANCES AS %</th>
+        <th>TOTAL ALLOWANCE PER UOM</th>
+        <th>UOM</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="list in listPerPage track by $index">
+        <td>{{list.itemName}}</td>
+        <td>{{list.itemCode}}</td>
+        <td>{{list.promoDealName}}</td>
+        <td>{{list.startDate}}</td>
+        <td>{{list.endDate}}</td>
+       <td>{{list.dayOverLap}}</td>
+        <td>{{list.promoDealStatus}}</td>
+        <td>{{list.promoDealCondition}}</td>
+        <td>{{list.promoDealId}}</td>
+         <td>{{list.promoType}}</td>
+        <td>{{list.totaluom}}</td>
+        <td>{{list.totalPercent}}</td>
+        <td>{{list.uom}}</td>
+      </tr>
+      <tr ng-if="listCount == 0">
+      	<td colspan="13">There are no overlapping deals</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+<script type="text/javascript">
+	var app = angular.module("overlapdeals",[]);
+	app.controller("overlapCtrl",function($scope,$http){
+		$scope.lists = ${OVERLAP_LIST.list};
+		
+		$scope.listCount = $scope.lists.length;
+		$scope.pagination = $scope.listCount/10;
+		$scope.listPerPage = $scope.lists.slice(41,50);
+		$scope.getArray = function(){
+			$scope.listOfNumbers = [];
+			for(var i = 0 ;i<$scope.pagination;i++){
+				var start = i*10+1,end = 10*(i+1);
+				end = (i == parseInt($scope.pagination))?$scope.listCount:end;
+				$scope.listOfNumbers.push({first:start,second:end,label:start+" to "+end});
+			}
+			$scope.listPerPage = $scope.lists.slice(0,10);
+		};
+		
+		$scope.page =($scope.listCount > 10)?"1 to 10":"1 to "+$scope.listCount;
+		
+		
+		
+		$scope.getArray();
+
+		$scope.changePage = function(){
+			var pageIndex = $scope.listOfNumbers.filter(function(e){return e.label == $scope.page})[0];
+			$scope.listPerPage = $scope.lists.slice(pageIndex.first,pageIndex.second)
+		};
+		
+	})
+</script>
+
+</html>
