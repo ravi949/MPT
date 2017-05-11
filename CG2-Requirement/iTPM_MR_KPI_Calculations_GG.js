@@ -82,6 +82,7 @@ function(search, runtime, record) {
     				};
     		} else {
     			estQty = {
+    					id: estQuantities[0].getValue({name:'id'}),
     					unit: estQuantities[0].getValue({name:'custrecord_itpm_estqty_qtyby'}),
     					total: estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalqty'}),
     					promoted: estQuantities[0].getValue({name:'custrecord_itpm_estqty_estpromotedqty'}),
@@ -118,6 +119,7 @@ function(search, runtime, record) {
         			var allowances = allowanceSearch.run().getRange(rangeStart, rangeStart + rangeStep);
         			for (var j = 0; j < allowances.length; j++) {
         				allArray.push({
+        					id: allowances[j].getValue({name:'id'}),
         					mop: allowances[j].getValue({name:'custrecord_itpm_all_mop'}), 
         					unit: allowances[j].getValue({name:'custrecord_itpm_all_uom'}),
         					rate: allowances[j].getValue({name:'custrecord_itpm_all_rateperuom'}),
@@ -130,21 +132,21 @@ function(search, runtime, record) {
         		if (allArray.length > 0){
 	        		context.write({
 	        			key:{
-	        				kpiId : kpiID, 
-	        				itemId: kpiItemID,
+	        				kpi : kpiID, 
+	        				item: kpiItemID,
 	        				unit: kpiUnitID,
 	        				promotion: {
-	        					promotionId: promotionID,
-		        				customerId: customerId,
-		        				promotionType: pTypeID, 
+	        					id: promotionID,
+		        				customer: customerId,
+		        				type: pTypeID, 
 		        				status: pStatus,
 		        				condition: pCondition,
-		        				shipStart: shipStart,
-		        				shipEnd: shipEnd,
-		        				orderStart: orderStart,
-		        				orderEnd: orderEnd
+		        				shipstart: shipStart,
+		        				shipend: shipEnd,
+		        				orderstart: orderStart,
+		        				orderend: orderEnd
 		        				},
-	        				estQty: estQty
+	        				estqty: estQty
 	        				},
 	        			value:{
 	        				allowances: allArray
@@ -167,15 +169,15 @@ function(search, runtime, record) {
      */
     function reduce(context) {
     	try{
-    		log.debug('Reduce Key', context.key);
-        	log.debug('Reduce Values', context.values);
         	var key = context.key, values = context.values, unitArray = [];
+        	log.debug('Reduce Key', key);
+        	log.debug('Reduce Values', values);
         	
         	/**** Get Units Table for Item ****/
-        	log.debug('ItemId', context.key.itemId);
+        	log.debug('ItemId', key.item);
         	var unitsType = search.lookupFields({
         		type: search.Type.INVENTORY_ITEM,
-        		id: context.key.itemId,
+        		id: key.itemId,
         		columns: 'unitstype'
         	});
         	if (!unitsType.unitstype){
