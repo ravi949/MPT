@@ -174,7 +174,7 @@ function(search, runtime, record) {
         	/**** Get Units Table for Item ****/
         	var unitsType = search.lookupFields({
         		type: search.Type.INVENTORY_ITEM,
-        		id: context.key.itemId,
+        		id: parseInt(context.key.itemId),
         		columns: 'unitstype'
         	});
         	if (!unitsType.unitstype){
