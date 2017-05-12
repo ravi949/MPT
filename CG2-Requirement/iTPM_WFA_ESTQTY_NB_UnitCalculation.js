@@ -4,7 +4,7 @@
  */
 define(['N/runtime',
 	    'N/search',
-	    './iTPM_UNITS_Module'	
+	    './iTPM_UNITS_TYPE_Module'	
 ],
 
 function(runtime,search,unitModule) {
