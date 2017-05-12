@@ -29,14 +29,14 @@ function(runtime,search,unitModule) {
 		//searching for the allowances records with Promo,Item and MOP.
 		var allSearch = search.create({
 			type:'customrecord_itpm_promoallowance',
-			columns:['custrecord_itpm_all_rateperuom','custrecord_itpm_all_percentperuom','custrecord_itpm_all_uom'],
+			columns:['custrecord_itpm_all_rateperuom','custrecord_itpm_all_percentperuom','custrecord_itpm_all_uom','custrecord_itpm_all_uomprice'],
 			filters:[['custrecord_itpm_all_promotiondeal','is',estqtyPromoId],'and',
 				     ['custrecord_itpm_all_item','is',itemId],'and',
 				     ['isinactive','is',false],'and',
 				     ['custrecord_itpm_all_mop','is',2] //mop Net-bill
 			]
 		}).run(),
-		allResult = [],start = 0,end = 1000,result,allUnitId,allRate,allRatePerUnit,allPercentUnit;
+		allResult = [],start = 0,end = 1000,result,allUnitId,allRate,allRatePerUnit,allPercentUnit,allUnitPrice;
 		
 		do{
 			result = allSearch.getRange(start,end);
@@ -48,13 +48,15 @@ function(runtime,search,unitModule) {
 			allUnitId = result.getValue({name:'custrecord_itpm_all_uom'});
 			allRatePerUnit = parseFloat(result.getValue({name:'custrecord_itpm_all_rateperuom'}));
 			allPercentUnit = parseFloat(result.getValue({name:'custrecord_itpm_all_percentperuom'}));
+			allUnitPrice = parseFloat(result.getValue({name:'custrecord_itpm_all_uomprice'}));
 			if(estqtyUnitId == allUnitId){
 				ratePerUnitNB += allRatePerUnit;
 				percentRateUnitNB += allPercentUnit;
 			}else{
 				allRate = unitsList.filter(function(e){return e.id == allUnitId})[0].rate;
 				ratePerUnitNB += allRatePerUnit * (estqtyRate/allRate);
-				percentRateUnitNB += allPercentUnit * (estqtyRate/allRate);
+//				percentRateUnitNB += allPercentUnit * (estqtyRate/allRate);
+				percentRateUnitNB += (allRatePerUnit/((estqtyRate/allRate) * allUnitPrice))*100
 			}
 		})
 		
