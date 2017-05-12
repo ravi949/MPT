@@ -262,7 +262,17 @@ function(search, runtime, record, iTPM) {
         			'; expectedLiability: ' + JSON.stringify(expectedLiability) + 
         			'; maxLiability: ' + JSON.stringify(maxLiability)
         			);
-        	
+        	if (kpi_actualQty.error){
+        		throw {name: kpi_actualQty.name, message: kpi_actualQty.message};
+        	} else if (leSpend.error){
+        		throw {name: leSpend.name, message: leSpend.message};
+        	} else if (actualSpend.error){
+        		throw {name: actualSpend.name, message: actualSpend.message};
+        	} else if (expectedLiability.error){
+        		throw {name: expectedLiability.name, message: expectedLiability.message};
+        	} else if (maxLiability.error){
+        		throw {name: maxLiability.name, message: maxLiability.message};
+        	}
         	/**** SET KPI FIELD VALUES ****/
         	var kpiUpdated = record.submitFields({
         		type: 'customrecord_itpm_kpi',
