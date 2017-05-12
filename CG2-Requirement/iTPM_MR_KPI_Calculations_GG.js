@@ -291,8 +291,8 @@ function(search, runtime, record, iTPM) {
         			'custrecord_itpm_kpi_estimatedspendoi' : estimatedSpend.oi,
         			'custrecord_itpm_kpi_estimatedspendnb' : estimatedSpend.nb,
         			'custrecord_itpm_kpi_lespendbb' : leSpend.bb,
-        			'custrecord_itpm_kpi_lespendoi' : estimatedSpend.oi,
-        			'custrecord_itpm_kpi_lespendnb' : estimatedSpend.nb,
+        			'custrecord_itpm_kpi_lespendoi' : leSpend.oi,
+        			'custrecord_itpm_kpi_lespendnb' : leSpend.nb,
         			'custrecord_itpm_kpi_actualspendbb' :actualSpend.bb,
         			'custrecord_itpm_kpi_actualspendoi' :actualSpend.oi,
         			'custrecord_itpm_kpi_actualspendnb' :actualSpend.nb
