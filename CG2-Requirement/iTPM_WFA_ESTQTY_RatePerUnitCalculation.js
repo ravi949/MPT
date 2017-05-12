@@ -22,23 +22,24 @@ function(runtime,search,unitModule) {
     	try{
     		var estqtyRec = scriptContext.newRecord,
     		scriptObj = runtime.getCurrentScript(),
-    		itemId = scriptObj.getParameter({name:'custscript_itpm_estqty_itemoi'}),
-    		estqtyUnitId = scriptObj.getParameter({name:'custscript_itpm_estqty_unitoi'}),
-    		estqtyPromoId = scriptObj.getParameter({name:'custscript_itpm_estqty_promooi'}),
-    		unitsList = unitModule.getUnits(itemId),ratePerUnitOI = 0,percentRateUnitOI = 0,
+    		itemId = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_item'}),
+    		estqtyUnitId = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_unit'}),
+    		estqtyPromoId = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_promo'}),
+    		allMop = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_allmop'}),
+    		unitsList = unitModule.getUnits(itemId),ratePerUnit = 0,
     		estqtyRate = unitsList.filter(function(e){return e.id == estqtyUnitId})[0].rate;
     		log.debug('estqtyRate',estqtyRate);
     		//searching for the allowances records with Promo,Item and MOP.
     		var allSearch = search.create({
     			type:'customrecord_itpm_promoallowance',
-    			columns:['custrecord_itpm_all_rateperuom','custrecord_itpm_all_percentperuom','custrecord_itpm_all_uom'],
+    			columns:['custrecord_itpm_all_rateperuom','custrecord_itpm_all_uom'],
     			filters:[['custrecord_itpm_all_promotiondeal','is',estqtyPromoId],'and',
 					     ['custrecord_itpm_all_item','is',itemId],'and',
 					     ['isinactive','is',false],'and',
-					     ['custrecord_itpm_all_mop','is',3] //mop off-invoice
+					     ['custrecord_itpm_all_mop','is',allMop] //mop
     			]
     		}).run(),
-    		allResult = [],start = 0,end = 1000,result,allUnitId,allRate,allRatePerUnit,allPercentUnit,allUnitPrice;
+    		allResult = [],start = 0,end = 1000,result,allUnitId,allRate,allRatePerUnit,allUnitPrice;
     		
     		do{
     			result = allSearch.getRange(start,end);
@@ -49,27 +50,16 @@ function(runtime,search,unitModule) {
     		allResult.forEach(function(result){
     			allUnitId = result.getValue({name:'custrecord_itpm_all_uom'});
     			allRatePerUnit = parseFloat(result.getValue({name:'custrecord_itpm_all_rateperuom'}));
-    			allPercentUnit = parseFloat(result.getValue({name:'custrecord_itpm_all_percentperuom'}));
     			if(estqtyUnitId == allUnitId){
-    				ratePerUnitOI += allRatePerUnit;
+    				ratePerUnit += allRatePerUnit;
     			}else{
     				allRate = unitsList.filter(function(e){return e.id == allUnitId})[0].rate;
-    				ratePerUnitOI += allRatePerUnit * (estqtyRate/allRate);
+    				ratePerUnit += allRatePerUnit * (estqtyRate/allRate);
     			}
-    			percentRateUnitOI += allPercentUnit;
     		})
     		
-    		log.debug('ratePerUnitOI',ratePerUnitOI)
-    		log.debug('percentRateUnitOI',percentRateUnitOI)
-    		
-    		estqtyRec.setValue({
-    			fieldId:'custrecord_itpm_estqty_rateperunitoi',
-    			value:ratePerUnitOI
-    		}).setValue({
-    			fieldId:'custrecord_itpm_estqty_percentoi',
-    			value:percentRateUnitOI
-    		});
-        	
+    		log.debug('ratePerUnit',ratePerUnit)
+    		return ratePerUnit;
     	}catch(e){
     		log.debug('exception in estqty oi unit cal',e);
     	}
