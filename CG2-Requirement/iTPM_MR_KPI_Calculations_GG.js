@@ -57,9 +57,8 @@ function(search, runtime, record, iTPM) {
         		pTypeID = line['internalid.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeImpactID = line['custrecord_itpm_pt_financialimpact.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeValidMOP = line['custrecord_itpm_pt_validmop.CUSTRECORD_ITPM_P_TYPE'],
-        		rangeStart = 0, rangeStep = 999,
-        		allArray = [], estUnit = null, estQty = {};
-        	
+        		rangeStart = 0, rangeStep = 999, allArray = [];
+        	var estid, estunit, estTotal, estPromoted, estRate, estPercent, ratebb, rateoi, ratenb, estRedemption;
         	//log.debug('EstQty Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_estqtysearch'}));
         	//log.debug('Allowances Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_allowancesearch'}));
         	
@@ -84,20 +83,19 @@ function(search, runtime, record, iTPM) {
     				message:'Saved search for EstQty returned more than one result. PromotionId: ' + promotionID + '; ItemID: ' + kpiItemID
     				};
     		} else {
-    			estQty = {
-    					id: estQuantities[0].getValue({name:'id'}),
-    					unit: estQuantities[0].getValue({name:'custrecord_itpm_estqty_qtyby'}),
-    					total: estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalqty'}),
-    					promoted: estQuantities[0].getValue({name:'custrecord_itpm_estqty_estpromotedqty'}),
-    					rate: estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalrate'}),
-    					percent: estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalpercent'}),
-    					ratebb: estQuantities[0].getValue({name:'custrecord_itpm_estqty_rateperunitbb'}),
-    					rateoi: estQuantities[0].getValue({name:'custrecord_itpm_estqty_rateperunitoi'}),
-    					ratenb: estQuantities[0].getValue({name:'custrecord_itpm_estqty_rateperunitnb'})
-    					}
+				estid = estQuantities[0].getValue({name:'id'});
+				estUnit = estQuantities[0].getValue({name:'custrecord_itpm_estqty_qtyby'});
+				estTotal = estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalqty'});
+				estPromoted = estQuantities[0].getValue({name:'custrecord_itpm_estqty_estpromotedqty'});
+				estRate = estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalrate'});
+				estPercent = estQuantities[0].getValue({name:'custrecord_itpm_estqty_totalpercent'});
+				estRateBB = estQuantities[0].getValue({name:'custrecord_itpm_estqty_rateperunitbb'});
+				estRateOI = estQuantities[0].getValue({name:'custrecord_itpm_estqty_rateperunitoi'});
+				estRateNB = estQuantities[0].getValue({name:'custrecord_itpm_estqty_rateperunitnb'});
+				estRedemption = estQuantities[0].getValue({name:'custrecord_itpm_estqty_redemption'});
     		}
-        	
-        	/**** Create a key-value pair for each MOP value ****/
+    		
+    		/**** Get Allowances for each MOP ****/
         	for(var i = 0; i<pTypeValidMOP.length; i++){
         		rangeStart = 0;
         		/**** Get Allowances for each KPI Item + Promotion + MOP ****/
@@ -135,32 +133,37 @@ function(search, runtime, record, iTPM) {
         			rangeStart += rangeStep;
         		} while (util.isArray(allowances) && allowances.length >= rangeStep);
         	}
-        	
-        	if (allArray.length > 0){
-        		context.write({
-        			key:{
-        				kpi : kpiID, 
-        				item: kpiItemID,
-        				unit: kpiUnitID,
-        				promotion: {
-        					id: promotionID,
-	        				customer: customerId,
-	        				type: pTypeID, 
-	        				status: pStatus,
-	        				condition: pCondition,
-	        				shipStart: shipStart,
-	        				shipEnd: shipEnd,
-	        				orderStart: orderStart,
-	        				orderEnd: orderEnd
-	        				}
-        				},
-        			value:{
-        				estqty: estQty,
-        				allowances: allArray
-        				}
-        		});
+    		if (allArray.length > 0){
+	    		context.write({
+	    			key:{
+	    				kpi : kpiID, 
+	    				item: kpiItemID,
+	    				unit: kpiUnitID,
+	    				pid: promotionID,
+	        			customer: customerId,
+	        			ptype: pTypeID, 
+	        			status: pStatus,
+	        			condition: pCondition,
+	        			shipStart: shipStart,
+	        			shipEnd: shipEnd,
+	        			orderStart: orderStart,
+	        			orderEnd: orderEnd
+	    				},
+	    			value:{
+	    				estid : estid,
+	    				estUnit : estUnit,
+	    				estTotal : estTotal,
+	    				estPromoted : estPromoted,
+	    				estRate : estRate,
+	    				estPercent :estPercent,
+	    				estRateBB : estRateBB,
+	    				estRateOI : estRateOI,
+	    				estRateNB : estRateNB,
+	    				estRedemption : estRedemption,
+	    				allowances: allArray
+	    				}
+	    		});
     		}
-        	
     	} catch(ex) {
     		log.error('Map', ex.name + '; ' + ex.message + '; PromotionID: ' + context.key);
     	}
@@ -175,22 +178,26 @@ function(search, runtime, record, iTPM) {
     function reduce(context) {
     	try{
         	var key = JSON.parse(context.key);
-        	var values = JSON.parse(JSON.stringify(context.values));
+        	log.debug('Reduce_Key', context.key);
+        	//{"kpi":"3090","item":"359","unit":"6","pid":"202","customer":{"value":"1787","text":"Albertsons - FL"},"ptype":"6","status":"1","condition":"1","shipStart":"5/24/2017","shipEnd":"5/30/2017","orderStart":"5/24/2017","orderEnd":"5/30/2017"}
+        	var values = JSON.parse(context.values[0]);
+        	log.debug('Reduce_Values[0]', context.values[0]);
+        	//{"estid":"3265","estUnit":"6","estTotal":"1000","estPromoted":"1000","estRate":"95.90","estPercent":"20.0%","estRateBB":"","estRateOI":"","estRateNB":"","allowances":[{"id":"3702","mop":"1","unit":"6","rate":"95.904","percent":"20.0%"}]}
         	var unitArray = iTPM.getItemUnits(key.item);
-        	log.debug('Reduce Key', key);
-        	log.debug('Reduce Values', values);
         	log.debug('Units Array', unitArray);
-        	if (unitArray.unitArray.error){
+        	//{"error":false,"unitArray":[{"id":"1","name":"Each","isBase":true,"conversionRate":1}]}
+        	if (unitArray.error){
         		throw {
         			name: 'UNITS_TYPE_ERROR',
-        			message: 'Item units type search returned null. PromotionID: ' + key.promotion.id  + '; ItemID: ' + key.item
+        			message: 'Item units type search returned null. PromotionID: ' + key.pid  + '; ItemID: ' + key.item
         		};
         	}
+        	
         	/**** START CALCULATIONS ****/
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
-        	var kpi_promoQty = values.estqty.promoted;
-        	var kpi_actualQty = iTPM.getActualQty(key.item, key.promotion.customer, key.promotion.shipStart, key.promotion.shipEnd);
-        	var estimatedSpend = iTPM.getEstimatedSpend(key.kpi, values.estqty.ratebb, values.estqty.rateoi, values.estqty.ratenb);
+        	var kpi_promoQty = values.estPromoted;
+        	var kpi_actualQty = iTPM.getActualQty(key.item, key.customer, key.shipStart, key.shipEnd);
+        	var estimatedSpend = iTPM.getEstimatedSpend(key.kpi, values.estRateBB, values.estRateOI, values.estRateNB);
         	var leSpend, actualSpend, expectedLiability, maxLiability;
         	switch (key.status) {
         		/*
@@ -204,28 +211,59 @@ function(search, runtime, record, iTPM) {
 			case '1':
 			case '2':
 				leSpend = estimatedSpend;
-				actualSpend = iTPM.getActualSpend({returnZero: true});//should return object zero
-				expectedLiability = iTPM.getExpectedLiability({returnZero: true});//should return object zero
-				maxLiability = iTPM.getMaxLiability({returnZero: true});//should return object zero
+				actualSpend = iTPM.getSpend({returnZero: true});//should return object zero
+				expectedLiability = iTPM.getLiability({returnZero: true});//should return object zero
+				maxLiability = iTPM.getLiability({returnZero: true});//should return object zero
 				break;
 			case '4':
 			case '5':
-				leSpend = iTPM.getLESpend({returnZero: true});//should return object zero
-				actualSpend = iTPM.getActualSpend({returnZero: true});//should return object zero
-				expectedLiability = iTPM.getExpectedLiability({returnZero: true});//should return object zero
-				maxLiability = iTPM.getMaxLiability({returnZero: true});//should return object zero
+				leSpend = iTPM.getSpend({returnZero: true});//should return object zero
+				actualSpend = iTPM.getSpend({returnZero: true});//should return object zero
+				expectedLiability = iTPM.getLiability({returnZero: true});//should return object zero
+				maxLiability = iTPM.getLiability({returnZero: true});//should return object zero
 				break;
 			case '3':
+				if (key.condition == '1'){
+					//condition == Future
+					leSpend = estimatedSpend;
+					actualSpend = iTPM.getSpend({returnZero: true});//should return object zero
+					expectedLiability = iTPM.getLiability({returnZero: true});//should return object zero
+					maxLiability = iTPM.getLiability({returnZero: true});//should return object zero
+				} else if (key.condition == '2') {
+					//condition == Active
+					var leQuantity = (kpi_actualQty.error)? 0 : (parseFloat(values.estPromoted)>=parseFloat(kpi_actualQty.qty))? values.estPromoted : kpi_actualQty.qty;
+					leSpend = iTPM.getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
+					var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.qty;
+					actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
+					expectedLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: estRedemption});
+					maxLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
+				} else if (key.condition == '3') {
+					//condition == Completed
+					var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.qty;
+					leSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
+					actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
+					expectedLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: estRedemption});
+					maxLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
+				}
+				break;
+			case '6':
+				var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.qty;
+				leSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
+				actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
+				expectedLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: estRedemption});
+				maxLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
 				break;
 			default:
+				//assume same as Draft case: '1'
+				leSpend = estimatedSpend;
+				actualSpend = iTPM.getSpend({returnZero: true});//should return object zero
+				expectedLiability = iTPM.getLiability({returnZero: true});//should return object zero
+				maxLiability = iTPM.getLiability({returnZero: true});//should return object zero
 				break;
 			}
+        	log.debug('KPI_Values', 'KPI: ' + key.kpi + '; kpi_promoQty: ' + kpi_promoQty + '; kpi_actualQty: ' +kpi_actualQty + '; estimatedSpend: ' + estimatedSpend + '; leSpend: ' + leSpend + '; actualSpend: ' + actualSpend +'; expectedLiability: ' + expectedLiability + '; maxLiability: ' + maxLiability);
     	} catch(ex) {
     		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
-    		context.write({
-    			key: key,
-    			value: values
-    		});
     	}
     }
 
