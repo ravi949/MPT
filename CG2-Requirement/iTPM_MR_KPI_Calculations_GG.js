@@ -6,7 +6,7 @@
 define(['N/search', 
         'N/runtime', 
         'N/record',
-        './iTPM_KPI_Module.js'],
+        './iTPM_Module.js'],
 
 function(search, runtime, record, iTPM) {
    
@@ -197,71 +197,98 @@ function(search, runtime, record, iTPM) {
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
         	var kpi_promoQty = values.estPromoted;
         	var kpi_actualQty = iTPM.getActualQty(key.item, key.customer, key.shipStart, key.shipEnd);
-        	var estimatedSpend = iTPM.getEstimatedSpend(key.kpi, values.estRateBB, values.estRateOI, values.estRateNB);
+        	var estimatedSpend = iTPM.getSpend({returnZero: false, quantity: values.estPromoted, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
         	var leSpend, actualSpend, expectedLiability, maxLiability;
         	switch (key.status) {
-        		/*
-        		 * 1	DRAFT
-        		 * 2	PENDING APPROVAL
-        		 * 3	APPROVED
-        		 * 4	REJECTED
-        		 * 5	VOIDED
-        		 * 6	CLOSED
-        		 */
-			case '1':
-			case '2':
-				leSpend = estimatedSpend;
-				actualSpend = iTPM.getSpend({returnZero: true});//should return object zero
-				expectedLiability = iTPM.getLiability({returnZero: true});//should return object zero
-				maxLiability = iTPM.getLiability({returnZero: true});//should return object zero
-				break;
-			case '4':
-			case '5':
-				leSpend = iTPM.getSpend({returnZero: true});//should return object zero
-				actualSpend = iTPM.getSpend({returnZero: true});//should return object zero
-				expectedLiability = iTPM.getLiability({returnZero: true});//should return object zero
-				maxLiability = iTPM.getLiability({returnZero: true});//should return object zero
-				break;
-			case '3':
-				if (key.condition == '1'){
-					//condition == Future
+				case '1':	//DRAFT
+				case '2':	//PENDING APPROVAL
 					leSpend = estimatedSpend;
-					actualSpend = iTPM.getSpend({returnZero: true});//should return object zero
-					expectedLiability = iTPM.getLiability({returnZero: true});//should return object zero
-					maxLiability = iTPM.getLiability({returnZero: true});//should return object zero
-				} else if (key.condition == '2') {
-					//condition == Active
-					var leQuantity = (kpi_actualQty.error)? 0 : (parseFloat(values.estPromoted)>=parseFloat(kpi_actualQty.qty))? values.estPromoted : kpi_actualQty.qty;
-					leSpend = iTPM.getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
-					var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.qty;
-					actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
-					expectedLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: estRedemption});
-					maxLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
-				} else if (key.condition == '3') {
-					//condition == Completed
+					actualSpend = iTPM.getSpend({returnZero: true});			//should return object zero
+					expectedLiability = iTPM.getLiability({returnZero: true});	//should return object zero
+					maxLiability = iTPM.getLiability({returnZero: true});		//should return object zero
+					break;
+				case '4':	//REJECTED
+				case '5':	//VOIDED
+					leSpend = iTPM.getSpend({returnZero: true});				//should return object zero
+					actualSpend = iTPM.getSpend({returnZero: true});			//should return object zero
+					expectedLiability = iTPM.getLiability({returnZero: true});	//should return object zero
+					maxLiability = iTPM.getLiability({returnZero: true});		//should return object zero
+					break;
+				case '3':	//APPROVED
+					if (key.condition == '1'){
+						//condition == Future
+						leSpend = estimatedSpend;
+						actualSpend = iTPM.getSpend({returnZero: true});			//should return object zero
+						expectedLiability = iTPM.getLiability({returnZero: true});	//should return object zero
+						maxLiability = iTPM.getLiability({returnZero: true});		//should return object zero
+					} else if (key.condition == '2') {
+						//condition == Active
+						var leQuantity = (kpi_actualQty.error)? 0 : (parseFloat(values.estPromoted)>=parseFloat(kpi_actualQty.qty))? values.estPromoted : kpi_actualQty.qty;
+						leSpend = iTPM.getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
+						var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.qty;
+						actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
+						expectedLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: estRedemption});
+						maxLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
+					} else if (key.condition == '3') {
+						//condition == Completed
+						var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.qty;
+						leSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
+						actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
+						expectedLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: estRedemption});
+						maxLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
+					}
+					break;
+				case '6':	//CLOSED
 					var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.qty;
 					leSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
 					actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
 					expectedLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: estRedemption});
 					maxLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
-				}
-				break;
-			case '6':
-				var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.qty;
-				leSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
-				actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
-				expectedLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: estRedemption});
-				maxLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
-				break;
-			default:
-				//assume same as Draft case: '1'
-				leSpend = estimatedSpend;
-				actualSpend = iTPM.getSpend({returnZero: true});//should return object zero
-				expectedLiability = iTPM.getLiability({returnZero: true});//should return object zero
-				maxLiability = iTPM.getLiability({returnZero: true});//should return object zero
-				break;
+					break;
+				default:
+					leSpend = estimatedSpend;
+					actualSpend = iTPM.getSpend({returnZero: true});			//should return object zero
+					expectedLiability = iTPM.getLiability({returnZero: true});	//should return object zero
+					maxLiability = iTPM.getLiability({returnZero: true});		//should return object zero
+					break;
 			}
-        	log.debug('KPI_Values', 'KPI: ' + key.kpi + '; kpi_promoQty: ' + kpi_promoQty + '; kpi_actualQty: ' +kpi_actualQty + '; estimatedSpend: ' + estimatedSpend + '; leSpend: ' + leSpend + '; actualSpend: ' + actualSpend +'; expectedLiability: ' + expectedLiability + '; maxLiability: ' + maxLiability);
+        	log.debug('KPI_Values', 
+        			'KPI: ' + key.kpi + 
+        			'; kpi_promoQty: ' + kpi_promoQty + 
+        			'; kpi_actualQty: ' + JSON.stringify(kpi_actualQty) + 
+        			'; estimatedSpend: ' + JSON.stringify(estimatedSpend) + 
+        			'; leSpend: ' + JSON.stringify(leSpend) + 
+        			'; actualSpend: ' + JSON.stringify(actualSpend) + 
+        			'; expectedLiability: ' + JSON.stringify(expectedLiability) + 
+        			'; maxLiability: ' + JSON.stringify(maxLiability)
+        			);
+        	
+        	/**** SET KPI FIELD VALUES ****/
+        	var kpiUpdated = record.submitFields({
+        		type: 'customrecord_itpm_kpi',
+        		id: key.kpi,
+        		values: {
+        			'custrecord_itpm_kpi_esttotalqty' : kpi_promoQty,
+        			'custrecord_itpm_kpi_actualtotalqty' : kpi_actualQty.quantity,
+        			'custrecord_itpm_kpi_maximumliabilitybb' : maxLiability.bb,
+        			'custrecord_itpm_kpi_maximumliabilityoi' : maxLiability.oi,
+        			'custrecord_itpm_kpi_maximumliabilitynb' : maxLiability.nb,
+        			'custrecord_itpm_kpi_expectedliabilitybb' : expectedLiability.bb,
+        			'custrecord_itpm_kpi_expectedliabilityoi' : expectedLiability.oi,
+        			'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb,
+        			'custrecord_itpm_kpi_estimatedspendbb' : estimatedSpend.bb,
+        			'custrecord_itpm_kpi_estimatedspendoi' : estimatedSpend.oi,
+        			'custrecord_itpm_kpi_estimatedspendnb' : estimatedSpend.nb,
+        			'custrecord_itpm_kpi_lespendbb' : leSpend.bb,
+        			'custrecord_itpm_kpi_lespendoi' : estimatedSpend.oi,
+        			'custrecord_itpm_kpi_lespendnb' : estimatedSpend.nb,
+        			'custrecord_itpm_kpi_actualspendbb' :actualSpend.bb,
+        			'custrecord_itpm_kpi_actualspendoi' :actualSpend.oi,
+        			'custrecord_itpm_kpi_actualspendnb' :actualSpend.nb
+        		},
+        		options: {enablesourcing: true, ignoreMandatoryFields: true}
+        	});
+        	log.debug('KPI Updated', kpiUpdated);
     	} catch(ex) {
     		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}
