@@ -39,7 +39,7 @@ define(['N/record', 'N/search'],
 				          filters: [["custrecord_itpm_p_copiedfrom","noneof","@NONE@"], 'and' ,["custrecord_itpm_p_copy","is","T"]]  
 			})
 		}catch(e){
-			log.debug('Exception',e.message)
+			log.error('Exception',e.message)
 		}		 
 	}
 
@@ -130,7 +130,7 @@ define(['N/record', 'N/search'],
         	})
 		
 		}catch(e){
-			log.debug('Exception',e.message)
+			log.error('Exception',e.message)
 		}		
 	}
 
@@ -144,7 +144,7 @@ define(['N/record', 'N/search'],
 		try{
 			
 			var keyObj = JSON.parse(context.key);
-			log.debug('keyObh',keyObj)
+//			log.debug('keyObh',keyObj)
 			switch(keyObj.type){
 		/********* Copying Promotion/Deal Allowances and Saving them into Copied Promotion/Deal Allowances **********/
 			case 'all':
@@ -206,11 +206,11 @@ define(['N/record', 'N/search'],
 				        ignoreMandatoryFields : true
 				    }
 				});
-				log.debug('id',id);
+//				log.debug('id',id);
 			}
 			
 		}catch (e) {
-			log.debug('Exception occures',e)
+			log.error('Exception occures',e)
 		}
 	}
 
@@ -222,7 +222,7 @@ define(['N/record', 'N/search'],
 	 * @since 2015.1
 	 */
 	function summarize(summary) {
-		log.debug('summary',summary)
+		log.error('summary',summary)
 	}
 
 	return {
