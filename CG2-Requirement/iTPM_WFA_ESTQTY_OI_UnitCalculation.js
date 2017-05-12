@@ -62,10 +62,13 @@ function(runtime,search,unitModule) {
     		log.debug('ratePerUnitOI',ratePerUnitOI)
     		log.debug('percentRateUnitOI',percentRateUnitOI)
     		
-//    		estqtyRec.setValue({
-//    			fieldId:'custrecord_itpm_estqty_rateperunitoi',
-//    			value:ratePerUnitOI
-//    		})
+    		estqtyRec.setValue({
+    			fieldId:'custrecord_itpm_estqty_rateperunitoi',
+    			value:ratePerUnitOI
+    		}).setValue({
+    			fieldId:'custrecord_itpm_estqty_percentoi',
+    			value:percentRateUnitOI
+    		});
         	
     	}catch(e){
     		log.debug('exception in estqty oi unit cal',e);

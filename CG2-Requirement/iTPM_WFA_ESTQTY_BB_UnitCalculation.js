@@ -61,6 +61,14 @@ function(runtime,search,unitModule) {
 		
 		log.debug('ratePerUnitBB',ratePerUnitBB)
 		log.debug('percentRateUnitBB',percentRateUnitBB)
+		
+		estqtyRec.setValue({
+			fieldId:'custrecord_itpm_estqty_rateperunitbb',
+			value:ratePerUnitBB
+		}).setValue({
+			fieldId:'custrecord_itpm_estqty_percentbb',
+			value:percentRateUnitBB
+		});
     }
 
     return {
