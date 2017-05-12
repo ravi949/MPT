@@ -15,7 +15,7 @@ function(search, record, util) {
      */
     function getSpend(objParameter) {
     	try{
-    		if(objParameter.returnZero) return {error: false, spend: 0};
+    		if(objParameter.returnZero) return {error: false, spend: 0, bb: 0, oi: 0, nb: 0};
     		var qty = parseFloat(objParameter.quantity),
 			rateBB = (objParameter.rateBB == '' || objParameter.rateBB == null || !objParameter.rateBB)? 0 : parseFloat(objParameter.rateBB),
 			rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
@@ -36,7 +36,7 @@ function(search, record, util) {
      */
     function getLiability(objParameter) {
     	try{
-    		if(objParameter.returnZero) return {error: false, liability: 0};
+    		if(objParameter.returnZero) return {error: false, liability: 0, bb: 0, oi: 0, nb: 0};
     		var qty = parseFloat(objParameter.quantity),
 			rateBB = (objParameter.rateBB == '' || objParameter.rateBB == null || !objParameter.rateBB)? 0 : parseFloat(objParameter.rateBB),
 			rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
@@ -127,7 +127,9 @@ function(search, record, util) {
         		values: 'ItemShip:C'
         	}));
         	var qty = qtySearch.run().getRange(0,1);
-        	return {error:false, qty: qty[0].getValue({name: 'quantity', summary:'SUM'})};
+        	qty = qty[0].getValue({name: 'quantity', summary:'SUM'});
+        	qty = (qty == '' || qty == null || !qty)? 0 : parseFloat(qty);
+        	return {error:false, quantity: qty};
     	} catch(ex) {
     		return {error: true, name: 'ACTUAL_QTY_MODULE', message: ex.name + '; ' + ex.message + '; item: ' + itemId +'; customer: ' + customerId +'; between: ' + shipStart + ' & ' + shipEnd};
     	}

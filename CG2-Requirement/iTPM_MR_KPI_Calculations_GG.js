@@ -178,21 +178,22 @@ function(search, runtime, record, iTPM) {
     function reduce(context) {
     	try{
         	var key = JSON.parse(context.key);
-        	log.debug('Reduce_Key', context.key);
+        	//log.debug('Reduce_Key', context.key);
         	//{"kpi":"3090","item":"359","unit":"6","pid":"202","customer":{"value":"1787","text":"Albertsons - FL"},"ptype":"6","status":"1","condition":"1","shipStart":"5/24/2017","shipEnd":"5/30/2017","orderStart":"5/24/2017","orderEnd":"5/30/2017"}
         	var values = JSON.parse(context.values[0]);
-        	log.debug('Reduce_Values[0]', context.values[0]);
+        	//log.debug('Reduce_Values[0]', context.values[0]);
         	//{"estid":"3265","estUnit":"6","estTotal":"1000","estPromoted":"1000","estRate":"95.90","estPercent":"20.0%","estRateBB":"","estRateOI":"","estRateNB":"","allowances":[{"id":"3702","mop":"1","unit":"6","rate":"95.904","percent":"20.0%"}]}
-        	var unitArray = iTPM.getItemUnits(key.item);
-        	log.debug('Units Array', unitArray);
+        	//var unitArray = iTPM.getItemUnits(key.item);
+        	//log.debug('Units Array', unitArray);
         	//{"error":false,"unitArray":[{"id":"1","name":"Each","isBase":true,"conversionRate":1}]}
+        	/*
         	if (unitArray.error){
         		throw {
         			name: 'UNITS_TYPE_ERROR',
         			message: 'Item units type search returned null. PromotionID: ' + key.pid  + '; ItemID: ' + key.item
         		};
         	}
-        	
+        	*/
         	/**** START CALCULATIONS ****/
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
         	var kpi_promoQty = values.estPromoted;
@@ -253,14 +254,14 @@ function(search, runtime, record, iTPM) {
 					break;
 			}
         	log.debug('KPI_Values', 
-        			'KPI: ' + key.kpi + 
-        			'; kpi_promoQty: ' + kpi_promoQty + 
-        			'; kpi_actualQty: ' + JSON.stringify(kpi_actualQty) + 
-        			'; estimatedSpend: ' + JSON.stringify(estimatedSpend) + 
-        			'; leSpend: ' + JSON.stringify(leSpend) + 
-        			'; actualSpend: ' + JSON.stringify(actualSpend) + 
-        			'; expectedLiability: ' + JSON.stringify(expectedLiability) + 
-        			'; maxLiability: ' + JSON.stringify(maxLiability)
+        			'"KPI": ' + key.kpi + 
+        			',"kpi_promoQty": ' + kpi_promoQty + 
+        			',"kpi_actualQty": ' + JSON.stringify(kpi_actualQty) + 
+        			',"estimatedSpend": ' + JSON.stringify(estimatedSpend) + 
+        			',"leSpend": ' + JSON.stringify(leSpend) + 
+        			',"actualSpend": ' + JSON.stringify(actualSpend) + 
+        			',"expectedLiability": ' + JSON.stringify(expectedLiability) + 
+        			',"maxLiability": ' + JSON.stringify(maxLiability)
         			);
         	if (kpi_actualQty.error){
         		throw {name: kpi_actualQty.name, message: kpi_actualQty.message};
@@ -296,7 +297,7 @@ function(search, runtime, record, iTPM) {
         			'custrecord_itpm_kpi_actualspendoi' :actualSpend.oi,
         			'custrecord_itpm_kpi_actualspendnb' :actualSpend.nb
         		},
-        		options: {enablesourcing: true, ignoreMandatoryFields: true}
+        		options: {enablesourcing: false, ignoreMandatoryFields: true}
         	});
         	log.debug('KPI Updated', kpiUpdated);
     	} catch(ex) {
