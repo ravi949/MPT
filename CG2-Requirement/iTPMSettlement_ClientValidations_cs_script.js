@@ -125,13 +125,15 @@ function(record, search, url) {
      * @since 2015.2
      */
     function saveRecord(scriptContext){
-    	var currentRecord = scriptContext.currentRecord;
-    	if(currentRecord.getValue('custom_itpm_st_reql') > 0 ){
+    	var currentRecord = scriptContext.currentRecord,
+    	settReq = parseFloat(currentRecord.getValue('custom_itpm_st_reql'));
+    	console.log(settReq)
+    	if(settReq > 0 ){
     		if(currentRecord.getValue('custom_itpm_st_ddn_openbal') < currentRecord.getValue('custom_itpm_st_reql')){
         		alert('The Settlement Request CANNOT be GREATER THAN the Open Balance on the Deduction');
         		return false
         	}
-    	}else{
+    	}else if(settReq <= 0){
     		alert('The Settlement Request CANNOT be Zero');
     		return false
     	}
