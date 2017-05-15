@@ -5,7 +5,7 @@
 define([
 	'N/runtime',
 	'N/search',
-	'./iTPM_UNITS_TYPE_Module'
+	'./iTPM_Module'
 	],
 
 function(runtime,search,unitModule) {
@@ -26,7 +26,7 @@ function(runtime,search,unitModule) {
     		estqtyUnitId = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_unit'}),
     		estqtyPromoId = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_promo'}),
     		allMop = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_allmop'}),
-    		unitsList = unitModule.getUnits(itemId),ratePerUnit = 0,
+    		unitsList = unitModule.getItemUnits(itemId).unitArray,ratePerUnit = 0,
     		estqtyRate = unitsList.filter(function(e){return e.id == estqtyUnitId})[0].rate;
     		log.debug('estqtyRate',estqtyRate);
     		//searching for the allowances records with Promo,Item and MOP.
