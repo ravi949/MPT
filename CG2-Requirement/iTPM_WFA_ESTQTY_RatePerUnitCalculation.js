@@ -27,7 +27,7 @@ function(runtime,search,unitModule) {
     		estqtyPromoId = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_promo'}),
     		allMop = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_allmop'}),
     		unitsList = unitModule.getItemUnits(itemId).unitArray,ratePerUnit = 0,
-    		estqtyRate = unitsList.filter(function(e){return e.id == estqtyUnitId})[0].rate;
+    		estqtyRate = unitsList.filter(function(e){return e.id == estqtyUnitId})[0].conversionRate;
     		log.debug('estqtyRate',estqtyRate);
     		//searching for the allowances records with Promo,Item and MOP.
     		var allSearch = search.create({
@@ -53,7 +53,7 @@ function(runtime,search,unitModule) {
     			if(estqtyUnitId == allUnitId){
     				ratePerUnit += allRatePerUnit;
     			}else{
-    				allRate = unitsList.filter(function(e){return e.id == allUnitId})[0].rate;
+    				allRate = unitsList.filter(function(e){return e.id == allUnitId})[0].conversionRate;
     				ratePerUnit += allRatePerUnit * (estqtyRate/allRate);
     			}
     		})
@@ -61,7 +61,7 @@ function(runtime,search,unitModule) {
     		log.debug('ratePerUnit',ratePerUnit)
     		return ratePerUnit;
     	}catch(e){
-    		log.debug('exception in estqty oi unit cal',e);
+    		log.debug('exception in rate per unit',e);
     	}
     }
 
