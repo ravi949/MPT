@@ -71,9 +71,11 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		var promoDealRec = search.lookupFields({
         		type:'customrecord_itpm_promotiondeal',
         		id:pid,
-        		columns:['internalid','name','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_subsidiary','custrecord_itpm_p_currency','custrecord_itpm_p_customer','custrecord_itepm_p_incurredpromotionalle']
+        		columns:['internalid','name','custrecord_itpm_p_lumpsum','custrecord_itpm_p_type.custrecord_itpm_pt_validmop','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_subsidiary','custrecord_itpm_p_currency','custrecord_itpm_p_customer','custrecord_itepm_p_incurredpromotionalle']
     		}),
         	netPromotionLiablty = promoDealRec['custrecord_itpm_p_netpromotionalle'],
+        	promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']),
+        	promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
         	subsid = promoDealRec['custrecord_itpm_p_subsidiary'][0].value,
         	subsText = promoDealRec['custrecord_itpm_p_subsidiary'][0].text,
         	currencyId = promoDealRec['custrecord_itpm_p_currency'][0].value,
@@ -388,10 +390,41 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		type:serverWidget.FieldType.CURRENCY,
     		label:'Settlement Request',
     		container:'custom_detailedinfo_group'
+    	}).updateDisplayType({
+			displayType : serverWidget.FieldDisplayType.INLINE
     	});
 	    
     	settlementReqField.defaultValue = settlementReqValue;
-	    settlementReqField.isMandatory = true;
+    	
+    	//st:Lum Sum
+    	settlementForm.addField({
+    		id:'custpage_lumsum_setreq',
+    		type:serverWidget.FieldType.CURRENCY,
+    		label:'SETTLEMENT REQUEST : LUMP SUM',
+    		container:'custom_detailedinfo_group'
+    	}).updateDisplayType({
+			displayType : (promoLumSum != 0 && promoLumSum != '')?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+    	}).defaultValue = 0;
+    	
+    	//st:Bill-Back
+    	settlementForm.addField({
+    		id : 'custpage_billback_setreq',
+    		type : serverWidget.FieldType.CURRENCY,
+    		label : 'Settlement request : Bill back',
+    		container:'custom_detailedinfo_group'
+    	}).updateDisplayType({
+			displayType : (promoTypeMOP.some(function(e){return e.value == 1}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+    	}).defaultValue = 0;
+    	
+    	//st:Off-Invoice
+    	settlementForm.addField({
+    		id : 'custpage_offinvoice_setreq',
+    		type : serverWidget.FieldType.CURRENCY,
+    		label : 'Settlement request : Missed off-invoice',
+    		container:'custom_detailedinfo_group'
+    	}).updateDisplayType({
+			displayType : (promoTypeMOP.some(function(e){return e.value == 3}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+    	}).defaultValue = 0;
     	
 	    //reason code
 	    settlementForm.addField({
@@ -414,6 +447,8 @@ function(serverWidget,search,record,redirect,config,format,url) {
 		    value:new Date(),
 		    type: format.Type.DATE
 		});
+	    
+	    settlementForm.clientScriptModulePath = './iTPMSettlement_ClientValidations_cs_script.js'
     }
     
     
@@ -661,6 +696,15 @@ function(serverWidget,search,record,redirect,config,format,url) {
     	newSettlementRecord.setValue({
     		fieldId:'custbody_itpm_set_amount',
     		value:params['custom_itpm_st_reql']
+    	}).setValue({
+    		fieldId:'custbody_itpm_set_reqls',
+    		value:params['custpage_lumsum_setreq']
+    	}).setValue({
+    		fieldId:'custbody_itpm_set_reqoi',
+    		value:params['custpage_billback_setreq']
+    	}).setValue({
+    		fieldId:'custbody_itpm_set_reqbb',
+    		value:params['custpage_offinvoice_setreq']
     	});
     	//Reason code
     	newSettlementRecord.setValue({

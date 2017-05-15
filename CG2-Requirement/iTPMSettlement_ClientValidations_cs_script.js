@@ -104,7 +104,7 @@ function(record, search, url) {
     			fieldId: 'custpage_promotion_liability',
     			value:(promoId == ' ')?'':promoLookup["custrecord_itpm_p_netpromotionalle"]
     		}); 
-    		
+
     		document.getElementById('promolink').text = (promoId != ' ')?currentRecord.getText('custpage_promotion'):'';
     		document.getElementById('promolink').href = (promoId != ' ')?url.resolveRecord({recordType:'customrecord_itpm_promotiondeal',recordId:promoId}):''; 
     	}
@@ -126,10 +126,16 @@ function(record, search, url) {
      */
     function saveRecord(scriptContext){
     	var currentRecord = scriptContext.currentRecord;
-    	if(currentRecord.getValue('custom_itpm_st_ddn_openbal') < currentRecord.getValue('custom_itpm_st_reql')){
-    		alert('The Settlement Request CANNOT be GREATER THAN the Open Balance on the Deduction');
+    	if(currentRecord.getValue('custom_itpm_st_reql') > 0 ){
+    		if(currentRecord.getValue('custom_itpm_st_ddn_openbal') < currentRecord.getValue('custom_itpm_st_reql')){
+        		alert('The Settlement Request CANNOT be GREATER THAN the Open Balance on the Deduction');
+        		return false
+        	}
+    	}else{
+    		alert('The Settlement Request CANNOT be Zero');
     		return false
     	}
+    	
     	return true
     }
     

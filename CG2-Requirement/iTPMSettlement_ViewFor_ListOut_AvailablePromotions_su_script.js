@@ -49,7 +49,7 @@ function(serverWidget,redirect,search,record) {
 		    	
 				form.addField({
 					id : 'custpage_promotion_liability',
-					type : serverWidget.FieldType.INTEGER,
+					type : serverWidget.FieldType.CURRENCY,
 					label : 'Net Promotional Liability'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE

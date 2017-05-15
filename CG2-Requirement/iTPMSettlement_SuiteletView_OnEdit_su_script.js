@@ -443,7 +443,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 
 				form.clientScriptModulePath = './iTPMSettlement_ClientValidations_cs_script.js'
 
-					response.writePage(form)
+			    response.writePage(form)
 			}
 
 
