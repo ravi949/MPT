@@ -22,13 +22,13 @@ define(['N/record','N/search'],
 			var request = context.request,response = context.response;
 			if(request.method == 'GET'){
 				var params = request.parameters;
-
+			 
 				allowanceItemId = params.itemid,priceValue = '',
 				itemBasePrice = params.baseprice,
 				promoDealLookup = search.lookupFields({
 					type:'customrecord_itpm_promotiondeal',
 					id:params.pid,
-					columns:['custrecord_itpm_p_type','custrecord_itpm_p_incomepricingtype','custrecord_itpm_p_expensepricingtype','custrecord_itpm_p_subsidiary','custrecord_itpm_p_vendor','custrecord_itpm_p_customer']
+					columns:['custrecord_itpm_p_type','custrecord_itpm_p_incomepricingtype','custrecord_itpm_p_itempricelevel','custrecord_itpm_p_subsidiary','custrecord_itpm_p_vendor','custrecord_itpm_p_customer']
 				}),
 				promoTypeRec = record.load({type:'customrecord_itpm_promotiontype',id:promoDealLookup['custrecord_itpm_p_type'][0].value}),
 				promoDealImpact = promoTypeRec.getValue('custrecord_itpm_pt_financialimpact'),
@@ -43,40 +43,40 @@ define(['N/record','N/search'],
 					priceValue = (priceValue)?priceValue:itemBasePrice;
 					break;
 				case "13":
-					var expensePricingTypeText = promoDealLookup['custrecord_itpm_p_expensepricingtype'][0].value;
+//					var expensePricingTypeText = promoDealLookup['custrecord_itpm_p_expensepricingtype'][0].value;
 
-					if(expensePricingTypeText != ''){
-						if(expensePricingTypeText != 'Customer Price'){
-							if(expensePricingTypeText == 'Price Level'){
+//					if(expensePricingTypeText != ''){
+//						if(expensePricingTypeText != 'Customer Price'){
+//							if(expensePricingTypeText == 'Price Level'){
 								var allowancePriceLevel = params.pricelevel;
-							}
-							priceValue = setPriceValue(expensePricingTypeText,(allowancePriceLevel =='')?undefined:allowancePriceLevel,allowanceItemId);
-						}else{
-							log.debug('price not customer',priceValue)
-							//setting the price value from customer record if expensePricingTypeText is Customer Price 
-							var customerRec = record.load({
-								type:record.Type.CUSTOMER,
-								id:promoDealLookup['custrecord_itpm_p_customer'][0].value
-							});
-
-							var itemPricingCount = customerRec.getLineCount('itempricing');
-
-							for(var i = 0; i< itemPricingCount;i++){
-								var itemPriceItemId = customerRec.getSublistValue({sublistId:'itempricing',fieldId:'item',line:i});
-								if(itemPriceItemId == allowanceItemId){
-									var customerItemPriceLevel  = customerRec.getSublistValue({sublistId:'itempricing',fieldId:'level',line:i});
-									if(customerItemPriceLevel == -1){
-										priceValue = customerRec.getSublistValue({sublistId:'itempricing',fieldId:'price',line:i});
-										break;
-									}else{
-										var priceResult = getItemPriceValue(['pricing.pricelevel','pricing.unitprice'],['pricing.pricelevel','is',customerItemPriceLevel],itemPriceItemId);
-										priceValue = priceResult[0].getValue({name:'unitprice',join:'pricing'});
-										break;
-									}
-								}
-							}
-						}
-					}
+//							}
+							priceValue = setPriceValue((allowancePriceLevel =='')?undefined:allowancePriceLevel,allowanceItemId);
+//						}else{
+//							log.debug('price not customer',priceValue)
+//							//setting the price value from customer record if expensePricingTypeText is Customer Price 
+//							var customerRec = record.load({
+//								type:record.Type.CUSTOMER,
+//								id:promoDealLookup['custrecord_itpm_p_customer'][0].value
+//							});
+//
+//							var itemPricingCount = customerRec.getLineCount('itempricing');
+//
+//							for(var i = 0; i< itemPricingCount;i++){
+//								var itemPriceItemId = customerRec.getSublistValue({sublistId:'itempricing',fieldId:'item',line:i});
+//								if(itemPriceItemId == allowanceItemId){
+//									var customerItemPriceLevel  = customerRec.getSublistValue({sublistId:'itempricing',fieldId:'level',line:i});
+//									if(customerItemPriceLevel == -1){
+//										priceValue = customerRec.getSublistValue({sublistId:'itempricing',fieldId:'price',line:i});
+//										break;
+//									}else{
+//										var priceResult = getItemPriceValue(['pricing.pricelevel','pricing.unitprice'],['pricing.pricelevel','is',customerItemPriceLevel],itemPriceItemId);
+//										priceValue = priceResult[0].getValue({name:'unitprice',join:'pricing'});
+//										break;
+//									}
+//								}
+//							}
+//						}
+//					}
 					priceValue = (isNaN(priceValue))?itemBasePrice:priceValue;
 					break;
 				}  
@@ -84,7 +84,7 @@ define(['N/record','N/search'],
 				response.write(JSON.stringify({success:true,price:priceValue}));
 			}
 		}catch(e){
-			log.debug('exception',e)
+			log.error('exception',e)
 			response.write(JSON.stringify({success:false}));
 		}
 	}
@@ -92,13 +92,17 @@ define(['N/record','N/search'],
 
 
 	//setting the Price Value in allowance record.
-	function setPriceValue(pricingTypeText,priceLevel,itemId){
+	function setPriceValue(priceLevel,itemId){
 		var priceValue = undefined,itemResult;
-		if(pricingTypeText == 'Base Price' || pricingTypeText =='Price Level'){
-			priceLevel = (pricingTypeText == 'Base Price')?1:priceLevel;
+//		if(pricingTypeText == 'Base Price' || pricingTypeText =='Price Level'){
+//			priceLevel = (pricingTypeText == 'Base Price')?1:priceLevel;
 			itemResult = getItemPriceValue(['pricing.pricelevel','pricing.unitprice'],['pricing.pricelevel','is',priceLevel],itemId);
+
+//			log.debug('itemId ',itemId);
+//			log.debug('itemResult ',itemResult);
 			priceValue = itemResult[0].getValue({name:'unitprice',join:'pricing'});
-		}
+//			log.debug('priceValue ',priceValue);
+//		}
 		return priceValue;
 	}
 
