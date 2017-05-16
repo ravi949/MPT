@@ -2,9 +2,9 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/record'],
+define(['N/record','N/runtime'],
 
-		function(record) {
+function(record,runtime) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -19,21 +19,15 @@ define(['N/record'],
 			//for any context except UI, if the prmotion type's "PLAN INCREMENTAL SEPARATE FROM TOTAL?" is checked,
 			//return an error before record submit if the Incremental Volume field is empty
 			var estVolumeRec = scriptContext.newRecord,
-			incrementalQty = estVolumeRec.getValue('custrecord_itpm_estqty_incrementalqty'),
-			promoDealId = estVolumeRec.getValue('custrecord_itpm_estqty_promodeal'),
-			promoDealRec = record.load({
-				type:'customrecord_itpm_promotiondeal',
-				id:promoDealId
-			}),
+			scriptObj = runtime.getCurrentScript();
+			
 			promoTypeRec = record.load({
 				type:'customrecord_itpm_promotiontype',
-				id:promoDealRec.getValue('custrecord_itpm_p_type')
+				id:scriptObj.getParameter({name:'custscript_itpm_estqty_planinc_promotype'})
 			});
 
-			if(promoTypeRec.getValue('custrecord_itpm_pt_incrementalseparate'))
-				return (incrementalQty == '' && incrementalQty != 0).toString();
-			else
-				return false.toString();
+			return promoTypeRec.getValue('custrecord_itpm_pt_incrementalseparate')?'T':'F';
+			
 		}catch(e){
 			log.debug('exception in planincremental seperate vaildation',e);
 		}
