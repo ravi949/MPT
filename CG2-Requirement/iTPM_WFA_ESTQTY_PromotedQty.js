@@ -3,9 +3,9 @@
  * @NScriptType workflowactionscript
  * calculating the Estimated Promoted Quantity
  */
-define(['N/search'],
+define(['N/search','N/runtime'],
 
-		function(search) {
+function(search,runtime) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -18,9 +18,10 @@ define(['N/search'],
 	function onAction(scriptContext) {
 		try{
 			var estVolumeRec = scriptContext.newRecord,
-			totalEstQty = estVolumeRec.getValue('custrecord_itpm_estqty_totalqty'), //ESTIMATED TOTAL QUANTITY
-			promoDealId  = estVolumeRec.getValue('custrecord_itpm_estqty_promodeal'),
-			itemId = estVolumeRec.getValue('custrecord_itpm_estqty_item');
+			scriptObj = runtime.getCurrentScript(),
+			totalEstQty = scriptObj.getParameter({name:'custscript_itpm_estqty_promotedqty_ttqty'}),//ESTIMATED TOTAL QUANTITY
+			promoDealId  = scriptObj.getParameter({name:'custscript_itpm_estqty_promotedqty_promo'}),
+			itemId = scriptObj.getParameter({name:'custscript_item_estqty_promotedqty_item'});
 
 			if(promoDealId != '' && itemId != '' && totalEstQty != ''){
 				var sortOnRedemptionFactor = search.createColumn({
@@ -36,11 +37,11 @@ define(['N/search'],
 
 				//calculating the Estimated Promoted Quantity
 				var promotedQty = parseInt(totalEstQty) * (parseInt(allowanceResult[0].getValue('custrecord_itpm_all_redemptionfactor'))/100);
-
-				estVolumeRec.setValue({
-					fieldId:'custrecord_itpm_estqty_estpromotedqty',
-					value:parseInt(promotedQty)
-				});
+				
+				return parseInt(promotedQty);
+				
+			}else{
+				return 0;
 			}
 		}catch(e){
 			log.debug('exception in promoted qty',e);
