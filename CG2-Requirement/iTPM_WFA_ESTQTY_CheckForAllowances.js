@@ -25,7 +25,8 @@ define(['N/search'],
 				type:'customrecord_itpm_promotiondeal',
 				columns:['custrecord_itpm_all_promotiondeal.internalid'],
 				filters:[['internalid','is',promoDeal],'and',['isinactive','is',false],'and',
-					['custrecord_itpm_all_promotiondeal.isinactive','is',false]]
+					     ['custrecord_itpm_all_promotiondeal.isinactive','is',false]
+				]
 			});
 
 			promoDealAllowanceSearch.run().each(function(result){
@@ -34,7 +35,8 @@ define(['N/search'],
 					return false;	   
 			})
 
-			return allowancesPresent.toString();
+			return allowancesPresent?'T':'F';
+			
 		}catch(e){
 			log.debug('exception in check allowances are exist or not',e);
 		}
