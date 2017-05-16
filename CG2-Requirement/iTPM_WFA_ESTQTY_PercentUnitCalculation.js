@@ -3,11 +3,10 @@
  * @NScriptType workflowactionscript
  */
 define(['N/runtime',
-	    'N/search',
-	    './iTPM_Module'	
+	    'N/search'	
 ],
 
-function(runtime,search,unitModule) {
+function(runtime,search) {
    
     /**
      * Definition of the Suitelet script trigger point.
