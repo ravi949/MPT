@@ -17,41 +17,42 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 	 */
 	function onRequest(context) {
 		try{
+			
 			var request = context.request,response = context.response;
 			if(request.method == 'GET'){
+				log.debug('context',request.parameters.fid);
+				var deductionRec = record.load({
+					type:'customtransaction_itpm_deduction',
+					id: request.parameters.fid
+				});
+				log.debug('ddnRec',deductionRec);
+				
+				var deductnNo = deductionRec.getValue('tranid'),
+				invoiceId = deductionRec.getValue('custbody_itpm_ddn_invoice'),
+				invoiceText = deductionRec.getText('custbody_itpm_ddn_invoice'),
+				subsid = deductionRec.getValue('subsidiary'), //subsidiary from original dedution
+				subsidiaryText = deductionRec.getText('subsidiary'), //subsidiary from original dedution
+				customerId = deductionRec.getValue('custbody_itpm_ddn_customer'), //customer from original dedution
+				customerEntity = deductionRec.getText('custbody_itpm_ddn_customer'), //customer from original dedution
+				invAmount = deductionRec.getValue('custbody_itpm_ddn_amount'),
+				invclass = deductionRec.getValue('class'), //class from original dedution
+				invdept = deductionRec.getValue('department'), //dept from original dedution
+				invlocation = deductionRec.getValue('location'), //location from original dedution
+				currencyId = deductionRec.getValue('currency'), //currency from original dedution
+				currencyText = deductionRec.getText('currency'), //currency from original dedution
+				currentUserId = runtime.getCurrentUser().id,
+				totalSettlements = 0,
+				customerRec = record.load({
+					type:record.Type.CUSTOMER,
+					id:customerId
+				}),
+				defaultRecvAccnt = customerRec.getValue('receivablesaccount'),
+				customerParentId = customerRec.getValue('parent');
+				
+				
 				var ddnForm = serverWidget.createForm({
 					title: '- ITPM Deduction'
 				});
-
-				/*-------------------Set the Parent Deduction value----------*/
-				ddnForm.addField({
-					id : 'custom_parent_recid',
-					type : serverWidget.FieldType.TEXT,
-					label:'Parent Record id'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.HIDDEN
-				});  
-
-				ddnForm.addField({
-					id : 'custom_cfrom',
-					type : serverWidget.FieldType.TEXT,
-					label:'Created From'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.HIDDEN
-				});
-
-				/*-----------------------------end--------------------------*/
-
-				/*--------------Default Account Recivable------------------*/
-				ddnForm.addField({
-					id : 'custom_def_accnt_recv',
-					type : serverWidget.FieldType.TEXT,
-					label:'Date'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.HIDDEN
-				})
-				/*-------------------------End-------------------------------*/
-
 
 				/*------primary info start-----*/
 
@@ -67,47 +68,56 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					container:'custom_primry_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
-				})
+				}).defaultValue = deductnNo;
 
 				var originnoField = ddnForm.addField({
 					id : 'custom_itpm_ddn_originalddn',
 					type : serverWidget.FieldType.SELECT,
-					label:'Original Number',
+					label:'Original Deduction',
 					container:'custom_primry_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
+				}).addSelectOption({
+					value: deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_originalddn'}),
+					text: deductionRec.getText({ fieldId: 'custbody_itpm_ddn_originalddn'})
+				})	
 
 				ddnForm.addField({
 					id : 'custom_itpm_ddn_otherrefcode',
 					type : serverWidget.FieldType.TEXT,
 					label:'OTHER REFERENCE CODE',
 					container:'custom_primry_information'
-				}).updateBreakType({
-					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'custbody_itpm_ddn_otherrefcode'});
 
-				var customerParent = ddnForm.addField({
-					id : 'custom_parent',
-					type : serverWidget.FieldType.SELECT,
-					label:'Parent',
-					container:'custom_primry_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
-
+				if(customerParentId != ''){
+					var customerParent = ddnForm.addField({
+						id : 'custom_parent',
+						type : serverWidget.FieldType.SELECT,
+						label:'Parent',
+						container:'custom_primry_information'
+					}).updateDisplayType({
+						displayType : serverWidget.FieldDisplayType.DISABLED
+					}).updateBreakType({
+						breakType : serverWidget.FieldBreakType.STARTCOL
+					}).addSelectOption({
+						value : customerParentId,
+						text : customerRec.getText('parent'),
+						isSelected:true
+					});
+				}
 				ddnForm.addField({
 					id : 'custom_trandate',
 					type : serverWidget.FieldType.DATE,
 					label:'Date',
 					container:'custom_primry_information'
-				});
+				});//.defaultValue = ddnRec.getValue({ fieldId:'trandate'});
+//				log.debug('date',ddnRec.getValue({ fieldId:'trandate'}));
 				ddnForm.addField({
 					id : 'custom_postingperiod',
 					type : serverWidget.FieldType.DATE,
 					label:'POSTING PERIOD',
 					container:'custom_primry_information'
-				});
+				});//.defaultValue = ddnRec.getValue({ fieldId: 'postingperiod'});
 				var invoice = ddnForm.addField({
 					id : 'custom_itpm_ddn_invoice',
 					type : serverWidget.FieldType.SELECT,
@@ -118,6 +128,11 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
 				});
+				invoice.addSelectOption({
+					value : invoiceId,
+					text : invoiceText,
+					isSelected:true
+				});
 
 				var customer = ddnForm.addField({
 					id : 'custom_customer',
@@ -126,8 +141,12 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					container:'custom_primry_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'custbody_itpm_ddn_customer'})
+				customer.addSelectOption({
+					text:customerEntity,
+					value:customerId,
+					isSelected:true
 				})
-
 				/*-----primary info end-----*/
 
 				/*------Classification start ------*/
@@ -141,12 +160,21 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					type : serverWidget.FieldType.SELECT,
 					label:'Class',
 					container:'custom_classification'
-				})
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'class'})
 
 				classField.addSelectOption({
 					value :' ',
 					text : ' '
 				});
+
+				getList(subsid,'class').run().each(function(e){
+					classField.addSelectOption({
+						value :e.getValue('internalid'),
+						text : e.getValue('name'),
+						isSelected:(invclass == e.getValue('internalid'))
+					});
+					return true;
+				})
 
 				var location = ddnForm.addField({
 					id : 'custom_location',
@@ -155,11 +183,19 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					container:'custom_classification'
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
+				})///.defaultValue = ddnRec.getValue({ fieldId: 'location'});
 
 				location.addSelectOption({
 					value:' ',
 					text:' '
+				})
+				getList(subsid,'location').run().each(function(e){
+					location.addSelectOption({
+						value:e.getValue('internalid'),
+						text:e.getValue('name'),
+						isSelected:(invlocation == e.getValue('internalid'))
+					})
+					return true;
 				})
 				var dept = ddnForm.addField({
 					id : 'custom_department',
@@ -168,13 +204,20 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					container:'custom_classification'
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'department'});
 
 				dept.addSelectOption({
 					value:' ',
 					text:' '
 				})
-
+				getList(subsid,'dept').run().each(function(e){
+					dept.addSelectOption({
+						value:e.getValue('internalid'),
+						text:e.getValue('name'),
+						isSelected:(invdept == e.getValue('internalid'))
+					})
+					return true;
+				})
 				/*------Classification end --------*/	
 
 				/*------- Detail info start --------*/
@@ -192,7 +235,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					container:'custom_detail_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'subsidiary'});
 
 
 				//setting the CURRENCY value
@@ -203,7 +246,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					container:'custom_detail_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'currency'});
 
 
 				//setting the TOTAL SETTLEMENT value
@@ -214,7 +257,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					container:'custom_detail_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'custbody_itpm_ddn_totsett'});
 
 				//setting the Disputed value
 				ddnForm.addField({
@@ -222,7 +265,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					type : serverWidget.FieldType.CHECKBOX,
 					label:'DISPUTED?',
 					container:'custom_detail_information'
-				})
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'custbody_itpm_ddn_disputed'})
 
 				//setting the OPEN BALANCE value
 				ddnForm.addField({
@@ -234,7 +277,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					displayType : serverWidget.FieldDisplayType.DISABLED
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'custbody_itpm_ddn_openbal'});
 
 				//setting the AMOUNT
 				var amountField = ddnForm.addField({
@@ -244,7 +287,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					container:'custom_detail_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'custbody_itpm_ddn_amount'});
 
 				amountField.isMandatory = true;
 
@@ -254,7 +297,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					type : serverWidget.FieldType.TEXT,
 					label:'Memo',
 					container:'custom_detail_information'
-				});
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'memo'});
 
 				//setting the employees list to this select field
 				var assignto = ddnForm.addField({
@@ -264,7 +307,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					container:'custom_detail_information'
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'custbody_itpm_ddn_assignedto'});
 
 				assignto.isMandatory = true;
 
@@ -274,7 +317,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					type : serverWidget.FieldType.SELECT,
 					label:'Status',
 					container:'custom_detail_information'
-				});
+				})//.defaultValue = ddnRec.getValue({ fieldId: 'transtatus'});
 				status.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
 				});
@@ -293,14 +336,15 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					type : serverWidget.FieldType.DATE,
 					label:'Due Date / Follow Up',
 					container:'custom_detail_information'
-				});
-				followupDate.isMandatory = true;
-				followupDate.defaultValue = format.format({
-					value:twoWeekDate,
-					type: format.Type.DATE
-				});
+				})//.defaultValue = ddnRec.getValue({ fieldId: ''});
+//				followupDate.isMandatory = true;
+//				followupDate.defaultValue = format.format({
+//					value:twoWeekDate,
+//					type: format.Type.DATE
+//				});
 				/*------- Detail info end --------*/  
-
+				  //getting the Class,Department and Location list based on subsidiary.
+			  
 
 				ddnForm.addSubmitButton({label:'Submit'});
 				ddnForm.addButton({label:'Cancel',id : 'custom_itpm_cancelbtn',functionName:"redirectToBack"})
@@ -311,7 +355,25 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 			log.debug('Error Occures',e);
 		}    	
 	}
+	function getList(subid,rectype){
+		switch(rectype){
+		case 'class':
+			rectype = search.Type.CLASSIFICATION;
+			break;
+		case 'dept':
+			rectype = search.Type.DEPARTMENT;
+			break;
+		case 'location':
+			rectype = search.Type.LOCATION;
+			break;
+		}
 
+		return search.create({
+			type:rectype,
+			columns:['internalid','name'],
+			filters:['subsidiary','is',subid]
+		});
+	}
 	return {
 		onRequest: onRequest
 	};
