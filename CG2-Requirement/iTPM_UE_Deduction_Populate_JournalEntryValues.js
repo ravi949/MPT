@@ -37,6 +37,9 @@ function(record, search) {
         		}).setValue({
         			fieldId:'memo',
         			value:'Expense for Deduction # '+ddnRec.getValue('tranid')
+        		}).setValue({
+        			fieldId:'custbody_itpm_set_deduction',
+        			value:parameters.ddn
         		});
         		
 //        		JERec.setValue({
