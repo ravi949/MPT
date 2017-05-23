@@ -2,9 +2,9 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/search'],
+define(['N/search','N/runtime'],
 
-		function(search) {
+function(search,runtime) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -16,21 +16,21 @@ define(['N/search'],
 	 */
 	function checkPromoDealAllowances(scriptContext) {  
 		try{
-			var promoDeal = scriptContext.newRecord.getValue('custrecord_itpm_estqty_promodeal'),
+			var promoDeal = runtime.getCurrentScript().getParameter({name:'custscript_itpm_estqty_checkallpromotion'}),
 			allowancesPresent = false; 
 
 			//before load searching the promoDeal have any allowances or not.
 			//if not we are return the error
+			log.debug('promoDeal',promoDeal)
 			var promoDealAllowanceSearch = search.create({
-				type:'customrecord_itpm_promotiondeal',
-				columns:['custrecord_itpm_all_promotiondeal.internalid'],
-				filters:[['internalid','is',promoDeal],'and',['isinactive','is',false],'and',
+				type:'customrecord_itpm_promoallowance',
+				columns:['internalid'],
+				filters:[['custrecord_itpm_all_promotiondeal','is',promoDeal],'and',['isinactive','is',false],'and',
 					     ['custrecord_itpm_all_promotiondeal.isinactive','is',false]
 				]
 			});
 
 			promoDealAllowanceSearch.run().each(function(result){
-				if(result.getValue({name:'internalid',join:'custrecord_itpm_all_promotiondeal'}) !='')
 					allowancesPresent = true
 					return false;	   
 			})
