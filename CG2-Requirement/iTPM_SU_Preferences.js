@@ -121,11 +121,13 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 				form.addSubmitButton({
 					label: 'Submit'
 				});
+				
 				var prefSearchRes = search.create({
 					type:'customrecord_itpm_preferences',
 					columns:['internalid'],
 					filters: [ ]
 				}).run().getRange(0,1);
+				//if The user have Preferences then showing his Preferences 
 				if(prefSearchRes.length > 0){
 					var prefSearchResId = prefSearchRes[0].getValue('internalid');
 					var preferanceRecord = record.load({
@@ -154,6 +156,13 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 
 					radioBtn.defaultValue = (matchls == true)?'custpage_ls':'custpage_bb';
 				}
+				//adding a button to redirecting to the previous form
+				form.addButton({
+					label:'Cancel',
+					id : 'custpage_itpm_cancelbtn',
+					functionName:"redirectToBack"
+				});
+				form.clientScriptModulePath =  './iTPM_CS_Preferences_ClientMethods.js';
 				context.response.writePage(form);
 			}
 			catch(e){
