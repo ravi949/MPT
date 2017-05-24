@@ -94,7 +94,7 @@ function(serverWidget,redirect,search,record) {
 
 				//adding the submit and cancel button to the form
 				form.addSubmitButton({
-					label: 'Submit'
+					label: 'Next'
 				});
 
 				form.addButton({
