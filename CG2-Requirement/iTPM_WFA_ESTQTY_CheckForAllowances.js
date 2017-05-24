@@ -18,7 +18,7 @@ function(search,runtime) {
 		try{
 			var promoDeal = runtime.getCurrentScript().getParameter({name:'custscript_itpm_estqty_checkallpromotion'}),
 			allowancesPresent = false; 
-
+			log.debug('promoDeal',promoDeal)
 			//before load searching the promoDeal have any allowances or not.
 			//if not we are return the error
 			log.debug('promoDeal',promoDeal)

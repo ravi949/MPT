@@ -17,8 +17,8 @@ define(['N/search','N/runtime'],
 	 */
 	function onAction(scriptContext) {
 		try{
-			var iTPMAllowanceId = scriptContext.newRecord.id,
-			allowDuplicates = runtime.getCurrentScript().getParameter({name:'custscript_itpm_allowadditionaldiscounts'}),    
+			var iTPMAllowanceId = scriptContext.newRecord.id,estimatedQtyId = 0,
+//			allowDuplicates = runtime.getCurrentScript().getParameter({name:'custscript_itpm_allowadditionaldiscounts'}),    
 			allowanceFilter =[['custrecord_itpm_all_promotiondeal','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_promotion'})],'and',
 				['custrecord_itpm_all_item','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_item'})],'and',
 				['custrecord_itpm_all_type','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_allowancetype'})],'and',
@@ -28,15 +28,24 @@ define(['N/search','N/runtime'],
 				allowanceFilter.push('and',['internalid','noneof',iTPMAllowanceId]);
 			}
 
-			//searching the for the allowance which have the duplicates
-			var duplicateAllFound = search.create({
+			//searching the for the allowance which have the duplicates 
+			var allowancesSearch = search.create({
 				type:'customrecord_itpm_promoallowance',
-				columns:['internalid'],
+				columns:['internalid','custrecord_itpm_all_allowaddnaldiscounts','custrecord_itpm_all_estqty'],
 				filters:allowanceFilter
-			}).run().getRange(0,1).length>0
+			}).run();
+
+			allowancesSearch.each(function(e){
+				if(e.getValue('custrecord_itpm_all_allowaddnaldiscounts')){
+					estimatedQtyId = e.getValue('custrecord_itpm_all_estqty')
+				}
+				return false;
+			})
 			//if allowDuplicates false and allowanceFound length (allowances found) 
 			//than restricting the allowance to create duplicates
-			return (!allowDuplicates && duplicateAllFound)?'T':'F';
+			estimatedQtyId = allowancesSearch.getRange(0,2).length <= 0?-1:estimatedQtyId;
+			return estimatedQtyId;
+
 		}catch(e){
 			log.debug('exception',e.message);
 		}
