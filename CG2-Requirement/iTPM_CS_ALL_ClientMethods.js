@@ -51,19 +51,26 @@ function(search,dialog) {
     		if((mode == 'create'|| mode == 'edit' || mode == 'copy') && scriptContext.fieldId == 'custrecord_itpm_all_item'){
     			var item = scriptContext.currentRecord.getValue('custrecord_itpm_all_item');
     			if(item != ""){
-    				var disableADD = checkForAllowaceDuplicates(scriptContext.currentRecord);
-    				if(disableADD != 0){
-    					dialog.confirm({title:'Confirm',message:'You selected an item that is already being used on another allowance on this promotion. Are you sure?'})
-    					.then(function(result){
-    						var checkBoxField = scriptContext.currentRecord.getField('custrecord_itpm_all_allowaddnaldiscounts');
-    						if(!result){
-    							disableADD = false;
-    							scriptContext.currentRecord.setValue('custrecord_itpm_all_item','')
-    							.setValue({fieldId:'custrecord_itpm_all_allowaddnaldiscounts',value:false});
-    						}
-    						checkBoxField.isDisabled = disableADD;
-    					})
-    					.catch(function(){return false});
+    				var disableADD = checkForAllowaceDuplicates(scriptContext.currentRecord),
+    				checkBoxField = scriptContext.currentRecord.getField('custrecord_itpm_all_allowaddnaldiscounts');
+    				if(disableADD != -1){
+    					checkBoxField.isDisabled = true;
+    					//if previous allowane ADD checked than we showing the popup for other allowances
+    					if(disableADD){
+    						dialog.confirm({title:'Confirm',message:'You selected an item that is already being used on another allowance on this promotion. Are you sure?'})
+        					.then(function(result){
+        						if(!result){
+        							disableADD = false;
+        							scriptContext.currentRecord.setValue('custrecord_itpm_all_item','')
+        							.setValue({fieldId:'custrecord_itpm_all_allowaddnaldiscounts',value:false});
+        						}
+        						checkBoxField.isDisabled = disableADD;
+        					})
+        					.catch(function(){return false});
+    					}
+    					
+    				}else{
+    					checkBoxField.isDisabled = false; 
     				}
     			}
     		}
@@ -86,7 +93,7 @@ function(search,dialog) {
     }
     
     function checkForAllowaceDuplicates(allRec){
-    	var allAddChecked = 0,
+    	var allAddChecked = -1,
 		item = allRec.getValue('custrecord_itpm_all_item'),promo = allRec.getValue('custrecord_itpm_all_promotiondeal');
 
     	search.create({
@@ -101,7 +108,7 @@ function(search,dialog) {
     		return false;
     	});
     	
-    	return allAddChecked == 0 ?0:allAddChecked;
+    	return allAddChecked;
     }
 
     return {
