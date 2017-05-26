@@ -118,7 +118,7 @@ function(serverWidget,redirect,search,record) {
 						['custrecord_itpm_p_condition','is', 3],'and', //completed
 						['custrecord_itpm_p_customer','is', deductionRec.custbody_itpm_ddn_customer[0].value],'and',
 						['custrecord_itpm_p_type.custrecord_itpm_pt_validmop','is',1],'and',  //mop is bill-back
-//						['custrecord_itpm_p_netpromotionalle','GREATERTHAN', 0],'and',  //custrecord_itpm_p_netpromotionalle
+						['custrecord_itpm_p_netpromotionalle','GREATERTHAN', 0],'and',  //custrecord_itpm_p_netpromotionalle
 						['isinactive','is',false]]	    		
 				}).run().each(function(k){ 
 					promotionField.addSelectOption({

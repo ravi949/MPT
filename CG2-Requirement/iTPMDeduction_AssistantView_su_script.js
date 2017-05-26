@@ -768,7 +768,15 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				});
 			}
 		}catch(e){
-			throw Error(e.message);
+			log.debug('exception in deduction creation',e.message);
+			
+			if(e.message == 'invoice'){
+				throw Error('you cannot make a deduction from this invoice');
+			}else if(e.message == 'deduction'){
+				throw Error('you cannot make a deduction from this deduction');
+			}else if(e.message == 'invalid'){
+				throw Error('invalid parameters');
+			}
 		}
 	}
 
@@ -836,7 +844,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
     			if(invConditionsMet && invoiceDeductionsAreEmpty)
     				return {success:true}
     			else
-    				return {success:false,errormessage:'you cannot make a deduction from this invoice'}
+    				return {success:false,errormessage:'invoice'}
 
     		}else if(from == 'ddn'){
     			
@@ -844,12 +852,12 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
     				type:'customtransaction_itpm_deduction',
     				id:id
     			});
-    			return (loadedRec.getValue('transtatus') == 'A')?{success:true}:{success:false,errormessage:'you cannot make a deduction from this deduction'};
+    			return (loadedRec.getValue('transtatus') == 'A')?{success:true}:{success:false,errormessage:'deduction'};
 
     		}
     		return {success:true}   		
     	}catch(e){
-    		return {success:false,errormessage:'Invalid parameters'}
+    		return {success:false,errormessage:'invalid'}
     	}
     }
     
