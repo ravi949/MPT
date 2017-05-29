@@ -73,7 +73,7 @@ function(serverWidget,search,record,redirect,config,format,url) {
         		id:pid,
         		columns:['internalid','name','custrecord_itpm_p_lumpsum','custrecord_itpm_p_type.custrecord_itpm_pt_validmop','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_subsidiary','custrecord_itpm_p_currency','custrecord_itpm_p_customer','custrecord_itepm_p_incurredpromotionalle']
     		}),
-        	netPromotionLiablty = promoDealRec['custrecord_itpm_p_netpromotionalle'],
+        	netPromotionLiablty = (promoDealRec['custrecord_itpm_p_netpromotionalle'] == '' || promoDealRec['custrecord_itpm_p_netpromotionalle'] == 'ERROR: Invalid Expression')?0:promoDealRec['custrecord_itpm_p_netpromotionalle'],
         	promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']),
         	promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
         	subsid = promoDealRec['custrecord_itpm_p_subsidiary'][0].value,
@@ -312,7 +312,7 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({
 			displayType : serverWidget.FieldDisplayType.DISABLED
-		}).defaultValue = promoDealRec['custrecord_itpm_p_netpromotionalle'];
+		}).defaultValue = netPromotionLiablty;
 	    
 	  //INCURRED PROMOTIONAL LIABILITY
 	    settlementForm.addField({
@@ -497,7 +497,7 @@ function(serverWidget,search,record,redirect,config,format,url) {
     	promoNetBBLiablty = loadedPromoRec['custrecord_itpm_p_netbillbackle'],
     	promoLS = loadedPromoRec['custrecord_itpm_p_lumpsum'],
     	netPromoLSLiablty = loadedPromoRec['custrecord_itpm_p_netlsle'],
-    	netPromotionLiablty = (loadedPromoRec['custrecord_itpm_p_netpromotionalle'] == '')?0:loadedPromoRec['custrecord_itpm_p_netpromotionalle'],
+    	netPromotionLiablty = (loadedPromoRec['custrecord_itpm_p_netpromotionalle'] == '' || loadedPromoRec['custrecord_itpm_p_netpromotionalle'] == 'ERROR: Invalid Expression')?0:loadedPromoRec['custrecord_itpm_p_netpromotionalle'],
     	promoTypeDefaultAccnt = loadedPromoRec['custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount'][0].value,
     	promoDealLumsumAccnt = loadedPromoRec['custrecord_itpm_p_account'].length >0 ?loadedPromoRec['custrecord_itpm_p_account'][0].value:promoTypeDefaultAccnt,
     	customerRec = record.load({type:record.Type.CUSTOMER,id:params.custom_itpm_st_cust}),
@@ -676,7 +676,7 @@ function(serverWidget,search,record,redirect,config,format,url) {
     	});
     	//net promotion liability
     	if(params['custom_itpm_st_net_promolbty'] != ''){
-        	newSettlementRecord.setValue({
+        	newSettlementRecord.setValue({ 
         		fieldId:'custbody_itpm_set_netliability',
         		value:params['custom_itpm_st_net_promolbty']
         	});
@@ -689,7 +689,7 @@ function(serverWidget,search,record,redirect,config,format,url) {
     	//end date
     	newSettlementRecord.setValue({
     		fieldId:'custom_itpm_st_shp_endate',
-    		value:new Date(params['custom_itpm_st_net_promolbty'])
+    		value:new Date(params['custom_itpm_st_shp_endate'])
        	});
     	//settlement request 
     	log.debug('params[custom_itpm_st_reql]',params['custom_itpm_st_reql']);   	

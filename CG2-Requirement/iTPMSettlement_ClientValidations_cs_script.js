@@ -88,7 +88,9 @@ function(record, search, url) {
         			type:'customrecord_itpm_promotiondeal',
         			id:currentRecord.getValue('custpage_promotion'),
         			columns:['custrecord_itpm_p_customer','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_netpromotionalle']
-        		});
+        		}),
+        		netPromoLblty = promoLookup['custrecord_itpm_p_netpromotionalle'],
+        		netPromoLblty = (netPromoLblty == '' || netPromoLblty == 'ERROR: Invalid Expression')?0:netPromoLblty;
     		}
     		
     		currentRecord.setValue({
@@ -102,7 +104,7 @@ function(record, search, url) {
     			value:(promoId == ' ')?'':promoLookup["custrecord_itpm_p_shipend"]
     		}).setValue({
     			fieldId: 'custpage_promotion_liability',
-    			value:(promoId == ' ')?'':promoLookup["custrecord_itpm_p_netpromotionalle"]
+    			value:(promoId == ' ')?'':netPromoLblty
     		}); 
 
     		document.getElementById('promolink').text = (promoId != ' ')?currentRecord.getText('custpage_promotion'):'';
