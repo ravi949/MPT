@@ -148,9 +148,21 @@ define(['N/record', 'N/search'],
 			switch(keyObj.type){
 		/********* Copying Promotion/Deal Allowances and Saving them into Copied Promotion/Deal Allowances **********/
 			case 'all':
+				var allRec = record.load({
+					type: 'customrecord_itpm_promoallowance',
+					id:keyObj.recId
+				});
 				var copyRecord = record.copy({
 					type: 'customrecord_itpm_promoallowance',
 					id:keyObj.recId
+				}).setValue({
+					fieldId: 'custrecord_itpm_all_account',
+					value:  allRec.getValue({fieldId: 'custrecord_itpm_all_account'}),
+					ignoreFieldChange: true
+				}).setValue({
+					fieldId: 'custrecord_itpm_all_mop',
+					value:  allRec.getValue({fieldId: 'custrecord_itpm_all_mop'}),
+					ignoreFieldChange: true
 				}).setValue({
 					fieldId: 'custrecord_itpm_all_promotiondeal',
 					value: keyObj.promoID,
