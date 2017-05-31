@@ -43,7 +43,7 @@ define(['N/url','N/record','N/search'],
 						type:recordType,
 						id:parentDedutionRecId
 					});
-
+					
 					parentDeductionRec.setValue({
 						fieldId:'transtatus',
 						value:'C'  //changed the parent status to Resolved

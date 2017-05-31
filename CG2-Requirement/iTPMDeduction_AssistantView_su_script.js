@@ -480,7 +480,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				subsidiaryno = params['custom_subsidiary'],
 				currencyno = params['custom_currency'],
 				assignto = params['custom_itpm_ddn_assignedto'],
-				amount = params['custom_itpm_ddn_amount'],
+				amount = params['custom_itpm_ddn_amount'].replace(/,/g,''),
 				totalsettlement = params['custom_total_settlements'],
 				disputed = params['custom_itpm_ddn_disputed'],
 				openbal = params['custom_itpm_ddn_openbal'],
@@ -738,6 +738,12 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						fieldId:'memo',
 						value:'Deduction '+deductionCreatedRec.getValue('tranid')+' applied to Invoice '+invoiceLookup.tranid
 					});
+					
+					deductionId = deductionCreatedRec.setValue({
+						fieldId:'custbody_itpm_ddn_originalddn',
+						value:deductionId
+					}).save({enableSourcing:false,ignoreMandatoryFields:true});
+					
 
 					for(var v =0; v < transFormRecLineCount;v++){
 						var ddId = invTransformRec.getSublistValue({
@@ -761,6 +767,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						}
 					}
 				}
+				
 				redirect.toRecord({
 					id : deductionId,
 					type : 'customtransaction_itpm_deduction', 

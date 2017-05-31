@@ -44,6 +44,7 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		}
 
     		if(request.method == 'POST'){
+    			//log.debug('parameters',request.parameters)
     			saveTheSettlement(request.parameters);
     		}
     	}catch(e){
@@ -423,7 +424,7 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		label : 'Settlement request : Missed off-invoice',
     		container:'custom_detailedinfo_group'
     	}).updateDisplayType({
-			displayType : (promoTypeMOP.some(function(e){return e.value == 3}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+			displayType : (promoTypeMOP.some(function(e){return e.value == 3 || e.value == 2 }))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
     	}).defaultValue = 0;
     	
 	    //reason code
@@ -507,44 +508,6 @@ function(serverWidget,search,record,redirect,config,format,url) {
 		}).getValue('ARACCOUNT');
 		
 		
-    	var lineVlaues = [{
-    		lineType:'ls',
-    		id:'1',
-    		account:promoDealLumsumAccnt,
-    		type:'debit',
-    		isDebit:true
-    	},{
-    		lineType:'ls',
-    		id:'1',
-    		account:(createdFromDDN)?dednExpAccnt:creditAccnt,
-    		type:'credit',
-    		isDebit:false
-    	},{
-    		lineType:'bb',
-    		id:'2',
-    		account:promoTypeDefaultAccnt,
-    		type:'debit',
-    		isDebit:true
-    	},{
-    		lineType:'bb',
-    		id:'2',
-    		account:(createdFromDDN)?dednExpAccnt:creditAccnt,
-    		type:'credit',
-    		isDebit:false
-    	},{
-    		lineType:'inv',
-    		id:'3',
-    		account:promoTypeDefaultAccnt,
-    		type:'debit',
-    		isDebit:true
-    	},{
-    		lineType:'inv',
-    		id:'3',
-    		account:(createdFromDDN)?dednExpAccnt:creditAccnt,
-    		type:'credit',
-    		isDebit:false
-    	}];
-		
     	var newSettlementRecord = record.create({
     		type:'customtransaction_itpm_settlement',
     		isDynamic:true
@@ -574,7 +537,10 @@ function(serverWidget,search,record,redirect,config,format,url) {
     	//Scenario 2: Preference set to Match Bill Back (this means overpay is posted on Lump Sum by default)
     	//If Promotion HAS Lump Sum then Bill Back Request = LESSER OF [Net Bill Back Liability OR Settlement Request] AND Lump Sum Request = Settlement Request - Bill Back Request
     	//If Promotion DOES NOT HAVE Lump Sum, then Bill Back Request = Settlement Request
-    	var lumsumSetReq = 0,billbackSetReq = 0;
+    	var lumsumSetReq = params['custpage_lumsum_setreq'].replace(/,/g,''),billbackSetReq = params['custpage_billback_setreq'].replace(/,/g,''),
+    	offinvoiceSetReq = params['custpage_offinvoice_setreq'].replace(/,/g,''), 
+    	setReqAmount = params['custom_itpm_st_reql'].replace(/,/g,'');
+    	
     	if(createdFromDDN){
     		newSettlementRecord.setValue({
         		fieldId:'transtatus',
@@ -586,36 +552,84 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		
     		if(parseFloat(promoLS)>0){
         		if(perferenceLS){
-        			lumsumSetReq = (netPromoLSLiablty > parseFloat(params['custom_itpm_st_reql']))?params['custom_itpm_st_reql']:netPromoLSLiablty;
-        			billbackSetReq = parseFloat(params['custom_itpm_st_reql']) - lumsumSetReq;
+        			lumsumSetReq = (netPromoLSLiablty > parseFloat(setReqAmount))?setReqAmount:netPromoLSLiablty;
+        			billbackSetReq = parseFloat(setReqAmount) - lumsumSetReq;
         		}
         		
         		if(perferenceBB){
-        			billbackSetReq = (promoNetBBLiablty > parseFloat(params['custom_itpm_st_reql']))?params['custom_itpm_st_reql']:promoNetBBLiablty;
-        			lumsumSetReq = parseFloat(params['custom_itpm_st_reql']) - billbackSetReq;
+        			billbackSetReq = (promoNetBBLiablty > parseFloat(setReqAmount))?setReqAmount:promoNetBBLiablty;
+        			lumsumSetReq = parseFloat(setReqAmount) - billbackSetReq;
         		}
     		}else{
-    			billbackSetReq = params['custom_itpm_st_reql'];
+    			billbackSetReq = setReqAmount;
     		}
     		
-    		lumsumSetReq = (lumsumSetReq >0)?lumsumSetReq:0;
-    		billbackSetReq = (billbackSetReq>0)?billbackSetReq:0;
+    		lumsumSetReq = (parseFloat(lumsumSetReq) >0)?lumsumSetReq:0;
+    		billbackSetReq = (parseFloat(billbackSetReq) > 0)?billbackSetReq:0;
+    		offinvoiceSetReq = (parseFloat(offinvoiceSetReq) > 0)?offinvoiceSetReq:0;
     	}
     	
     	
     	//Set the following fields to zero:-Lump Sum Settlement Request,Bill-Back Settlement Request,Missed Off-Invoice Settlement Request
-    	newSettlementRecord.setValue({
-    		fieldId:'custbody_itpm_set_reqls',
-//    		value:lumsumSetReq
-    		value:0
-    	}).setValue({
-    		fieldId:'custbody_itpm_set_reqbb',
-//    		value:billbackSetReq
-    		value:0
-    	}).setValue({
-    		fieldId:'custbody_itpm_set_reqoi',
-    		value:0
-    	});
+//    	newSettlementRecord.setValue({
+//    		fieldId:'custbody_itpm_set_reqls',
+////    		value:lumsumSetReq
+//    		value:0
+//    	}).setValue({
+//    		fieldId:'custbody_itpm_set_reqbb',
+////    		value:billbackSetReq
+//    		value:0
+//    	}).setValue({
+//    		fieldId:'custbody_itpm_set_reqoi',
+//    		value:0
+//    	});
+    	
+    	
+    	var lineVlaues = [{
+    		lineType:'ls',
+    		id:'1',
+    		account:promoDealLumsumAccnt,
+    		type:'debit',
+    		isDebit:true,
+    		amount:lumsumSetReq
+    	},{
+    		lineType:'ls',
+    		id:'1',
+    		account:(createdFromDDN)?dednExpAccnt:creditAccnt,
+    		type:'credit',
+    		isDebit:false,
+    		amount:lumsumSetReq
+    	},{
+    		lineType:'bb',
+    		id:'2',
+    		account:promoTypeDefaultAccnt,
+    		type:'debit',
+    		isDebit:true,
+    		amount:billbackSetReq
+    	},{
+    		lineType:'bb',
+    		id:'2',
+    		account:(createdFromDDN)?dednExpAccnt:creditAccnt,
+    		type:'credit',
+    		isDebit:false,
+    		amount:billbackSetReq
+    	},{
+    		lineType:'inv',
+    		id:'3',
+    		account:promoTypeDefaultAccnt,
+    		type:'debit',
+    		isDebit:true,
+    		amount:offinvoiceSetReq
+    	},{
+    		lineType:'inv',
+    		id:'3',
+    		account:(createdFromDDN)?dednExpAccnt:creditAccnt,
+    		type:'credit',
+    		isDebit:false,
+    		amount:offinvoiceSetReq
+    	}];
+    	
+    	
     	
     	if(params['custom_itpm_st_incrd_promolbty'] != ''){
         	newSettlementRecord.setValue({
@@ -695,16 +709,16 @@ function(serverWidget,search,record,redirect,config,format,url) {
     	log.debug('params[custom_itpm_st_reql]',params['custom_itpm_st_reql']);   	
     	newSettlementRecord.setValue({
     		fieldId:'custbody_itpm_set_amount',
-    		value:params['custom_itpm_st_reql']
+    		value:setReqAmount
     	}).setValue({
     		fieldId:'custbody_itpm_set_reqls',
-    		value:params['custpage_lumsum_setreq']
+    		value:lumsumSetReq
     	}).setValue({
     		fieldId:'custbody_itpm_set_reqoi',
-    		value:params['custpage_billback_setreq']
+    		value:offinvoiceSetReq
     	}).setValue({
     		fieldId:'custbody_itpm_set_reqbb',
-    		value:params['custpage_offinvoice_setreq']
+    		value:billbackSetReq
     	});
     	//Reason code
     	newSettlementRecord.setValue({
@@ -725,19 +739,19 @@ function(serverWidget,search,record,redirect,config,format,url) {
     			value:e.account
     		});
     		//if off-invoice value is present then what happens here
-    		/*if(createdFromDDN && (e.lineType == 'ls' || e.lineType == 'bb') ){
+//    		if(createdFromDDN && (e.lineType == 'ls' || e.lineType == 'bb') ){
+//    			newSettlementRecord.setCurrentSublistValue({
+//        			sublistId:'line',
+//        			fieldId:e.type,
+//        			value:(e.lineType == 'ls')?lumsumSetReq:billbackSetReq
+//        		});
+//    		}else{
     			newSettlementRecord.setCurrentSublistValue({
         			sublistId:'line',
         			fieldId:e.type,
-        			value:(e.lineType == 'ls')?lumsumSetReq:billbackSetReq
+        			value:e.amount
         		});
-    		}else{*/
-    			newSettlementRecord.setCurrentSublistValue({
-        			sublistId:'line',
-        			fieldId:e.type,
-        			value:0
-        		});
-    		//}
+//    		}
     		
     		newSettlementRecord.setCurrentSublistValue({
     			sublistId:'line',
@@ -750,7 +764,8 @@ function(serverWidget,search,record,redirect,config,format,url) {
     			fieldId:'custcol_itpm_set_isdebit',
     			value:e.isDebit
     		});
-    		
+
+    	    		
     		newSettlementRecord.setCurrentSublistValue({
     			sublistId:'line',
     			fieldId:'memo',
@@ -794,7 +809,7 @@ function(serverWidget,search,record,redirect,config,format,url) {
     	return search.create({
     		type:rectype,
     		columns:['internalid','name'],
-    		filters:['subsidiary','is',subid]
+    		filters:[['isinactive','is',false],'and',['subsidiary','is',subid]]
     	});
     }
     
