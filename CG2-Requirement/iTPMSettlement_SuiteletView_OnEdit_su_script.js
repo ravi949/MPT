@@ -81,7 +81,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 					container:'custom_primaryinfo_group'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
-				});
+				}).defaultValue = settlementRec.getValue('tranid')
 
 				//editable fields
 				var otherRefCodeField = form.addField({
@@ -92,15 +92,6 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 				});
 
 				otherRefCodeField.defaultValue = settlementRec.getValue('custbody_itpm_set_otherrefcode');
-
-				form.addField({
-					id:'custpage_settlementno',
-					type:serverWidget.FieldType.TEXT,
-					label:'SETTLEMENT NUMBER',
-					container:'custom_primaryinfo_group'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				}).defaultValue = settlementRec.getValue('tranid')
 
 				form.addField({
 					id:'custpage_customer',
