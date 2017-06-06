@@ -24,7 +24,9 @@ function(redirect,search,record) {
     			columns:['custrecord_itpm_pref_ddnaccount','custrecord_pref_expenseaccount'],
     			filters:[]
     		}).run(),
-    		DeductionRec = scriptContext.newRecord;
+    		DeductionRec = scriptContext.newRecord,
+    		memo = 'Expense for Deduction # '+DeductionRec.getValue('tranid'),
+    		JERecId;
     		
     		iTPMPrefSearch.each(function(e){
     			
@@ -38,6 +40,12 @@ function(redirect,search,record) {
     			}).setValue({
     				fieldId:'currency',
     				value:DeductionRec.getValue('currency')
+    			}).setValue({
+    				fieldId:'custbody_itpm_set_deduction',
+    				value:DeductionRec.id
+    			}).setValue({
+    				fieldId:'memo',
+    				value:memo
     			}).setSublistValue({
     				sublistId:'line',
     				fieldId:'account',
@@ -56,7 +64,7 @@ function(redirect,search,record) {
     			}).setSublistValue({
     				sublistId:'line',
     				fieldId:'memo',
-    				value:'Expense for Deduction # '+DeductionRec.getValue('tranid'),
+    				value:memo,
     				line:0
     			})
     			
@@ -78,21 +86,30 @@ function(redirect,search,record) {
     			}).setSublistValue({
     				sublistId:'line',
     				fieldId:'memo',
-    				value:'Expense for Deduction # '+DeductionRec.getValue('tranid'),
+    				value:memo,
     				line:1
     			})
     			
-    			var JERecId = JERec.save({enableSourcing:false,ignoreMandatoryFields:true})
+    			JERecId = JERec.save({enableSourcing:false,ignoreMandatoryFields:true});
     			
-    			log.debug('id',JERecId);
+    			//changing the status of the deduction record to resolved
+    			if(JERecId){
+    				record.load({
+        				type:'customtransaction_itpm_deduction',
+        				id:DeductionRec.id
+        			}).setValue({
+        				fieldId:'transtatus',
+        				value:'C'
+        			}).save({enableSourcing:false,ignoreMandatoryFields:true});
+    			}
     			
     			redirect.toRecord({
     				type:record.Type.JOURNAL_ENTRY,
     				id:JERecId
-    			});
-    			
+    			})
     			return false
-    		})
+    		});
+    		
     	}catch(e){
     		log.debug('excrption while redirect',e)
     	}
