@@ -4,13 +4,13 @@
  * @NModuleScope SameAccount
  * It shows the preferences record.If user have no preferences then user can creates the preferences.
  */
-define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
+define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search','N/runtime'],
 		/**
 		 * @param {record} record
 		 * @param {redirect} redirect
 		 * @param {serverWidget} serverWidget
 		 */
-		function(record, redirect, serverWidget, search) {
+		function(record, redirect, serverWidget, search, runtime) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -29,7 +29,8 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 				var expenseResult = search.create({
 					type: search.Type.ACCOUNT,
 					columns: ['internalid','name'],
-					filters: [ ['type','is','Expense']
+					filters: [ ['type','is','Expense'],'and',
+							   ['isinactive','is',false]
 					]
 				}).run();
 				//getting the total number of records in Accounts of type Expense
@@ -47,7 +48,7 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 				var accountResult = search.create({
 					type: search.Type.ACCOUNT,
 					columns: ['internalid','name'],
-					filters: [ 	]
+					filters: [['isinactive','is',false]]
 				}).run();
 				//getting the total number of records in Accounts
 				var totalAccRecCount = 0,
@@ -85,7 +86,7 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 				var selectExpense = form.addField({
 					id: 'custpage_itpm_pref_ddnaccount',
 					type: serverWidget.FieldType.SELECT,
-					label: 'Deduction Expense Account',
+					label: 'Deduction Account',
 					container:'custpage_setup_preference'
 				});
 				//add Default items to select field
@@ -93,13 +94,23 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 					value : ' ',
 					text : ' '
 				});
-				//add items of type Expense in Account records to select field
-				finalExpenseResult.forEach(function(e){
-					selectExpense.addSelectOption({
-						value : e.getValue('internalid'),
-						text : e.getValue('name')
-					});
+
+				//Expense account field which is mandatory
+				var expenseAccntField = form.addField({
+					id: 'custpage_itpm_pref_expenseaccount',
+					type: serverWidget.FieldType.SELECT,
+					label: 'Expense Account',
+					container:'custpage_setup_preference'
+				}).updateLayoutType({
+				    layoutType : serverWidget.FieldLayoutType.ENDROW
 				});
+				expenseAccntField.isMandatory = true;
+				//add Default items to select field
+				expenseAccntField.addSelectOption({
+					value : ' ',
+					text : ' '
+				});
+				
 				var selectAccountRecords = form.addField({
 					id: 'custpage_itpm_pref_overpayaccount',
 					type: serverWidget.FieldType.SELECT,
@@ -111,13 +122,7 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 					value : ' ',
 					text : ' '
 				});
-				//add items of type Account records to select field
-				finalAccountResult.forEach(function(e){
-					selectAccountRecords.addSelectOption({
-						value : e.getValue('internalid'),
-						text : e.getValue('name')
-					});
-				});
+
 				form.addSubmitButton({
 					label: 'Submit'
 				});
@@ -125,7 +130,7 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 				var prefSearchRes = search.create({
 					type:'customrecord_itpm_preferences',
 					columns:['internalid'],
-					filters: [ ]
+					filters: []
 				}).run().getRange(0,1);
 				//if The user have Preferences then showing his Preferences 
 				if(prefSearchRes.length > 0){
@@ -136,7 +141,8 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 					    isDynamic: true,
 					});
 					var AccountRecordId = preferanceRecord.getValue('custrecord_itpm_pref_overpayaccount'),
-					ExpenseId = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount'),
+					DdnExpenseId = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount'),
+					ExpenseId = preferanceRecord.getValue('custrecord_pref_expenseaccount'),
 					matchls= preferanceRecord.getValue('custrecord_itpm_pref_matchls'),
 					matchbb= preferanceRecord.getValue('custrecord_itpm_pref_matchbb');
 					finalAccountResult.forEach(function(e){
@@ -150,11 +156,33 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 							selectExpense.addSelectOption({
 								value : e.getValue('internalid'),
 								text : e.getValue('name'),
-								isSelected : e.getValue('internalid') == ExpenseId
+								isSelected : e.getValue('internalid') == DdnExpenseId
 							});
+					});
+					log.debug('ExpenseId',ExpenseId)
+					//add items of type Expense in Account records to select field
+					finalExpenseResult.forEach(function(e){
+						expenseAccntField.addSelectOption({
+							value : e.getValue('internalid'),
+							text : e.getValue('name'),
+							isSelected : e.getValue('internalid') == ExpenseId
+						});
 					});
 
 					radioBtn.defaultValue = (matchls == true)?'custpage_ls':'custpage_bb';
+				}else{
+					finalAccountResult.forEach(function(e){
+						selectAccountRecords.addSelectOption({
+							value : e.getValue('internalid'),
+							text : e.getValue('name')
+						});					
+					});
+					finalExpenseResult.forEach(function(e){
+						selectExpense.addSelectOption({
+							value : e.getValue('internalid'),
+							text : e.getValue('name')
+						});
+					});
 				}
 				//adding a button to redirecting to the previous form
 				form.addButton({
@@ -171,50 +199,20 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 		}
 		if(request.method == 'POST'){
 			try{
-				var deductionAccount = request.parameters.custpage_itpm_pref_ddnaccount,
-				overpayAccount = request.parameters.custpage_itpm_pref_overpayaccount,
-				settlementsType = request.parameters.custpage_matc,
+				var scriptObj = runtime.getCurrentScript(), 
 				prefSearchRes = search.create({
 					type:'customrecord_itpm_preferences',
 					columns:['internalid'],
-					filters: [ ]
+					filters: []
 				}).run().getRange(0,1);
 				//if preferences record is new then creates a preferences record 
 				if(prefSearchRes.length == 0){					
-					
+					log.debug('expenseAccount',expenseAccount)
 					var preferanceRecord = record.create({
 						 type: 'customrecord_itpm_preferences',
 						 isDynamic: true
 					});
-					
-					preferanceRecord.setValue({
-					    fieldId: 'custrecord_itpm_pref_ddnaccount',
-					    value: deductionAccount,
-					    ignoreFieldChange: true
-					});
-					preferanceRecord.setValue({
-					    fieldId: 'custrecord_itpm_pref_overpayaccount',
-					    value: overpayAccount,
-					    ignoreFieldChange: true
-					});
-					if(settlementsType == 'custpage_ls'){
-						preferanceRecord.setValue({
-						    fieldId: 'custrecord_itpm_pref_matchls',
-						    value: true,
-						    ignoreFieldChange: true
-						});
-					}
-					if(settlementsType == 'custpage_bb'){
-						preferanceRecord.setValue({
-						    fieldId: 'custrecord_itpm_pref_matchbb',
-						    value: true,
-						    ignoreFieldChange: true
-						});
-					}
-					preferanceRecord.save({
-					    enableSourcing: true,
-					    ignoreMandatoryFields: true
-					});
+					savePreferenceRecord(preferanceRecord,request)
 				}
 				//if preferences record is available then updates the preferences record 
 				if(prefSearchRes.length > 0){
@@ -224,56 +222,72 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search'],
 					    id: prefSearchResId,
 					    isDynamic: true,
 					});
-					preferanceRecord.setValue({
-					    fieldId: 'custrecord_itpm_pref_ddnaccount',
-					    value: deductionAccount,
-					    ignoreFieldChange: true
-					});
-					preferanceRecord.setValue({
-					    fieldId: 'custrecord_itpm_pref_overpayaccount',
-					    value: overpayAccount,
-					    ignoreFieldChange: true
-					});
-					if(settlementsType == 'custpage_ls'){
-						preferanceRecord.setValue({
-						    fieldId: 'custrecord_itpm_pref_matchls',
-						    value: true,
-						    ignoreFieldChange: true
-						});
-					}else{
-						preferanceRecord.setValue({
-						    fieldId: 'custrecord_itpm_pref_matchls',
-						    value: false,
-						    ignoreFieldChange: true
-						});
-					}
-					if(settlementsType == 'custpage_bb'){
-						preferanceRecord.setValue({
-						    fieldId: 'custrecord_itpm_pref_matchbb',
-						    value: true,
-						    ignoreFieldChange: true
-						});
-					}else{
-						preferanceRecord.setValue({
-						    fieldId: 'custrecord_itpm_pref_matchbb',
-						    value: false,
-						    ignoreFieldChange: true
-						});
-					}
-					preferanceRecord.save({
-					    enableSourcing: true,
-					    ignoreMandatoryFields: true
-					});
-					redirect.toSuitelet({
-					    scriptId: 'customscript_itpm_preference',
-					    deploymentId: 'customdeploy_itpm_preference'
-					});
+					savePreferenceRecord(preferanceRecord,request)
 				}
+				
+				redirect.toSuitelet({
+				    scriptId: scriptObj.id,
+				    deploymentId: scriptObj.deploymentId
+				});
+				
 			}catch(e){
 				log.debug('Exeception',e);
 			}			
 		}
 
+	}
+	
+	function savePreferenceRecord(preferanceRecord,request){
+		var deductionAccount = request.parameters.custpage_itpm_pref_ddnaccount,
+		overpayAccount = request.parameters.custpage_itpm_pref_overpayaccount,
+		expenseAccount = request.parameters.custpage_itpm_pref_expenseaccount,
+		settlementsType = request.parameters.custpage_matc;
+		
+		preferanceRecord.setValue({
+		    fieldId: 'custrecord_itpm_pref_ddnaccount',
+		    value: deductionAccount,
+		    ignoreFieldChange: true
+		}).setValue({
+		    fieldId: 'custrecord_itpm_pref_overpayaccount',
+		    value: overpayAccount,
+		    ignoreFieldChange: true
+		}).setValue({
+		    fieldId: 'custrecord_pref_expenseaccount',
+		    value: expenseAccount,
+		    ignoreFieldChange: true
+		});
+		
+		
+		if(settlementsType == 'custpage_ls'){
+			preferanceRecord.setValue({
+			    fieldId: 'custrecord_itpm_pref_matchls',
+			    value: true,
+			    ignoreFieldChange: true
+			});
+		}else{
+			preferanceRecord.setValue({
+			    fieldId: 'custrecord_itpm_pref_matchls',
+			    value: false,
+			    ignoreFieldChange: true
+			});
+		}
+		if(settlementsType == 'custpage_bb'){
+			preferanceRecord.setValue({
+			    fieldId: 'custrecord_itpm_pref_matchbb',
+			    value: true,
+			    ignoreFieldChange: true
+			});
+		}else{
+			preferanceRecord.setValue({
+			    fieldId: 'custrecord_itpm_pref_matchbb',
+			    value: false,
+			    ignoreFieldChange: true
+			});
+		}
+		preferanceRecord.save({
+		    enableSourcing: true,
+		    ignoreMandatoryFields: true
+		});
 	}
 
 	return {
