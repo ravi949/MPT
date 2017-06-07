@@ -18,8 +18,9 @@ function(serverWidget) {
      */
     function beforeLoad(scriptContext) {
     	var type = scriptContext.type,
-    	copyInProgress = scriptContext.newRecord.getValue('custrecord_itpm_p_copyinprogress');
-    	if(type == 'view' && copyInProgress){
+    	copyInProgress = scriptContext.newRecord.getValue('custrecord_itpm_p_copyinprogress'),
+    	copyRelatedRecords = scriptContext.newRecord.getValue('custrecord_itpm_p_copy')
+    	if(type == 'view' && copyInProgress && copyRelatedRecords){
     		var msgText = "This Promotion is queued for copying and cannot be edited until the linked records (Allowances, Estimated Quantities, and Retail Info) are copied over from the original promotion, Please be patient."
     		scriptContext.form.addField({
     			id:'custpage_copyinprg_message',

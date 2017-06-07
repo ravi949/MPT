@@ -91,43 +91,62 @@ define(['N/record', 'N/search'],
 			var result,resultLength,
         	count = 0, pageSize = 1000,
         	currentIndex = 0, arrayofRecs =[];
-        	do{
-        		result = loadedSearch.getRange(currentIndex, currentIndex + pageSize);
-        		arrayofRecs = arrayofRecs.concat(result);
-        		count = result.length;
-        		currentIndex += pageSize;
-        	}while(count == pageSize);
-        	//Deducting the duplicates, and removing them and pushing those results into array
-        	arrayofRecs.forEach(function(e){
-        			if(e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'}) != ""){
-        				contextObj = {type:'estqty',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'})}
-        				if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
-            				executeResultSet.push({id:contextObj.recId,type:contextObj.type});
-            			}
-        			}
-        			if(e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'}) != ""){
-        				contextObj = {type:'retail',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'})}
-        				if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
-            				executeResultSet.push({id:contextObj.recId,type:contextObj.type});
-            			}
-        			}
-        			if(e.getValue({join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',name:'internalid'}) != ""){
-        				contextObj = {promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',name:'internalid'}),type:'all'};
-        				if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
-            				executeResultSet.push({id:contextObj.recId,type:contextObj.type});
-            			}
-        			}
-        	})
-        	
-        	//Write the data into the context.
-        	var resultLength = executeResultSet.length-1;
-        	executeResultSet.forEach(function(e,index){
-        		if(e.type == 'all'){
-        			context.write({promoID:promoID,copyPromoId:copyPromoId,recId:e.id,type:e.type,lastResult:resultLength == index})
-        		}else{
-        			context.write({type:e.type,promoID:promoID,copyPromoId:copyPromoId,recId:e.id,lastResult:resultLength == index});
-        		}
-        	})
+				
+				do{
+					result = loadedSearch.getRange(currentIndex, currentIndex + pageSize);
+					arrayofRecs = arrayofRecs.concat(result);
+					count = result.length;
+					currentIndex += pageSize;
+				}while(count == pageSize);
+				log.debug('arrayofRecs',copyPromoId)
+
+
+				//Deducting the duplicates, and removing them and pushing those results into array
+				arrayofRecs.forEach(function(e){
+					if(e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'}) != ""){
+						contextObj = {type:'estqty',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'})}
+						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
+							executeResultSet.push({id:contextObj.recId,type:contextObj.type});
+						}
+					}
+					if(e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'}) != ""){
+						contextObj = {type:'retail',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'})}
+						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
+							executeResultSet.push({id:contextObj.recId,type:contextObj.type});
+						}
+					}
+					if(e.getValue({join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',name:'internalid'}) != ""){
+						contextObj = {promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',name:'internalid'}),type:'all'};
+						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
+							executeResultSet.push({id:contextObj.recId,type:contextObj.type});
+						}
+					}
+				})
+
+				//Write the data into the context.
+				var resultLength = executeResultSet.length-1;
+				executeResultSet.forEach(function(e,index){
+					if(e.type == 'all'){
+						context.write({promoID:promoID,copyPromoId:copyPromoId,recId:e.id,type:e.type,lastResult:resultLength == index})
+					}else{
+						context.write({type:e.type,promoID:promoID,copyPromoId:copyPromoId,recId:e.id,lastResult:resultLength == index});
+					}
+				})
+
+				if(executeResultSet.length <= 0){
+					record.submitFields({
+						type: 'customrecord_itpm_promotiondeal',
+						id: promoID,
+						values: {
+							custrecord_itpm_p_copy: false,
+							custrecord_itpm_p_copyinprogress:false
+						},
+						options: {
+							enableSourcing: false,
+							ignoreMandatoryFields : true
+						}
+					});
+				}
 		
 		}catch(e){
 			log.error('Exception',e.message)
