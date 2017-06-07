@@ -131,7 +131,8 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search','N/runtime'],
 					type:'customrecord_itpm_preferences',
 					columns:['internalid'],
 					filters: []
-				}).run().getRange(0,1);
+				}).run().getRange(0,1),
+				AccountRecordId,DdnExpenseId,ExpenseId,matchls,matchbb;
 				//if The user have Preferences then showing his Preferences 
 				if(prefSearchRes.length > 0){
 					var prefSearchResId = prefSearchRes[0].getValue('internalid');
@@ -140,50 +141,42 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search','N/runtime'],
 					    id: prefSearchResId,
 					    isDynamic: true,
 					});
-					var AccountRecordId = preferanceRecord.getValue('custrecord_itpm_pref_overpayaccount'),
+					
+					AccountRecordId = preferanceRecord.getValue('custrecord_itpm_pref_overpayaccount'),
 					DdnExpenseId = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount'),
 					ExpenseId = preferanceRecord.getValue('custrecord_pref_expenseaccount'),
-					matchls= preferanceRecord.getValue('custrecord_itpm_pref_matchls'),
-					matchbb= preferanceRecord.getValue('custrecord_itpm_pref_matchbb');
-					finalAccountResult.forEach(function(e){
-							selectAccountRecords.addSelectOption({
-								value : e.getValue('internalid'),
-								text : e.getValue('name'),
-								isSelected : e.getValue('internalid') == AccountRecordId
-							});					
-					});
-					finalExpenseResult.forEach(function(e){
-							selectExpense.addSelectOption({
-								value : e.getValue('internalid'),
-								text : e.getValue('name'),
-								isSelected : e.getValue('internalid') == DdnExpenseId
-							});
-					});
-					log.debug('ExpenseId',ExpenseId)
-					//add items of type Expense in Account records to select field
-					finalExpenseResult.forEach(function(e){
-						expenseAccntField.addSelectOption({
-							value : e.getValue('internalid'),
-							text : e.getValue('name'),
-							isSelected : e.getValue('internalid') == ExpenseId
-						});
-					});
-
+					matchls = preferanceRecord.getValue('custrecord_itpm_pref_matchls'),
+					matchbb = preferanceRecord.getValue('custrecord_itpm_pref_matchbb');
 					radioBtn.defaultValue = (matchls == true)?'custpage_ls':'custpage_bb';
-				}else{
-					finalAccountResult.forEach(function(e){
-						selectAccountRecords.addSelectOption({
-							value : e.getValue('internalid'),
-							text : e.getValue('name')
-						});					
-					});
-					finalExpenseResult.forEach(function(e){
-						selectExpense.addSelectOption({
-							value : e.getValue('internalid'),
-							text : e.getValue('name')
-						});
-					});
 				}
+				
+				//setting the accounts values into the fields
+				finalAccountResult.forEach(function(e){
+					selectAccountRecords.addSelectOption({
+						value : e.getValue('internalid'),
+						text : e.getValue('name'),
+						isSelected : e.getValue('internalid') == AccountRecordId
+					});					
+				});
+				finalExpenseResult.forEach(function(e){
+					selectExpense.addSelectOption({
+						value : e.getValue('internalid'),
+						text : e.getValue('name'),
+						isSelected : e.getValue('internalid') == DdnExpenseId
+					});
+				});
+				log.debug('ExpenseId',ExpenseId)
+				//add items of type Expense in Account records to select field
+				finalExpenseResult.forEach(function(e){
+					expenseAccntField.addSelectOption({
+						value : e.getValue('internalid'),
+						text : e.getValue('name'),
+						isSelected : e.getValue('internalid') == ExpenseId
+					});
+				});
+				
+				
+				
 				//adding a button to redirecting to the previous form
 				form.addButton({
 					label:'Cancel',
