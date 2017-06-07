@@ -21,7 +21,7 @@ define(['N/search','N/runtime'],
 //			allowDuplicates = runtime.getCurrentScript().getParameter({name:'custscript_itpm_allowadditionaldiscounts'}),    
 			allowanceFilter =[['custrecord_itpm_all_promotiondeal','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_promotion'})],'and',
 				['custrecord_itpm_all_item','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_item'})],'and',
-				['custrecord_itpm_all_type','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_allowancetype'})],'and',
+//				['custrecord_itpm_all_type','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_allowancetype'})],'and',
 				['isinactive','is',false]];
 
 			if(iTPMAllowanceId){
