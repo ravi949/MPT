@@ -24,70 +24,12 @@ define(['N/record', 'N/search','N/ui/serverWidget','N/runtime','N/config','N/red
 		try{
 			var request = context.request,response = context.response,parameters = request.parameters;
 
-/*			if(request.method == 'GET')
-			{
-				var form = serverWidget.createForm({
-					title : 'List Of deductions'
-				});    		
-
-				//getting the settlement request amount from the settlement record.
-				var settlementRec = record.load({
-					type:'customtransaction_itpm_settlement',
-					id:parameters.sid
-				})
-
-				var SettlementId = form.addField({
-					id : 'custpage_settlementid',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Settlement'
-				});
-				SettlementId.defaultValue = parameters.sid;
-				SettlementId.updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.HIDDEN
-				});
-
-				var Deduction = form.addField({
-					id : 'custpage_status',
-					type : serverWidget.FieldType.SELECT,
-					label : 'Deductions'
-				});
-				Deduction.isMandatory = true;
-				Deduction.addSelectOption({
-					value:' ',
-					text:' '
-				})					
-
-				var DeductionRecord = search.create({
-					type:'customtransaction_itpm_deduction',
-					columns:['internalid','tranid','custbody_itpm_ddn_openbal','statusRef'],
-					filters:[
-						['custbody_itpm_ddn_openbal','GREATERTHAN', 0],'and',
-						['mainline','is','T'],'and',
-						['custbody_itpm_ddn_openbal','greaterthanorequalto',settlementRec.getValue('custbody_itpm_set_amount')],'and',
-						['custbody_itpm_ddn_customer','is',settlementRec.getValue('custbody_itpm_set_customer')]
-						]		    		
-				}).run().each(function(k){
-					if(k.getValue('statusRef') == 'statusA'){					 
-						Deduction.addSelectOption({
-							value:k.getValue('internalid'),
-							text:k.getValue('tranid')		
-						}); 
-					}
-					return true;
-				})	
-
-				form.addSubmitButton({
-					label: 'Submit'
-				});
-				response.writePage(form);	
-			}*/
-
-			
 			var output = url.resolveScript({
 			    scriptId: 'customscript_itpm_settlement_applyto_ddn',
 			    deploymentId: 'customdeploy_itpm_settlement_applyto_ddn',
 			    returnExternalUrl: false
 			});
+
 			if(request.method == 'GET' && parameters.submit == 'true')
 			{
 				var deductionRec = record.load({

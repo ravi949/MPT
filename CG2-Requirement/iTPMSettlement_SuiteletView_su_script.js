@@ -567,6 +567,11 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		lumsumSetReq = (parseFloat(lumsumSetReq) >0)?lumsumSetReq:0;
     		billbackSetReq = (parseFloat(billbackSetReq) > 0)?billbackSetReq:0;
     		offinvoiceSetReq = (parseFloat(offinvoiceSetReq) > 0)?offinvoiceSetReq:0;
+    	}else{
+    		newSettlementRecord.setValue({
+        		fieldId:'transtatus',
+        		value:'A'
+    		})
     	}
     	
     	
