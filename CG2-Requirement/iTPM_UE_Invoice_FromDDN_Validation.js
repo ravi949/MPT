@@ -24,16 +24,30 @@ function(record) {
     		if(sc.type == 'create'){
     			var ddnId = sc.request.parameters.recId;
     			if(ddnId){
-    				var InvRec = sc.newRecord;
-//            		log.debug('InvRec',InvRec);
+    				var ddnRec = record.load({
+    		    		type:'customtransaction_itpm_deduction',
+    		    		id:ddnId
+    		    	}),InvRec = sc.newRecord;
+//            		log.debug('InvRec',InvRec );
             		InvRec.setValue({
             		    fieldId: 'custbody_itpm_deduction',
             		    value: ddnId,
             		    ignoreFieldChange: true
+            		}).setValue({
+            		    fieldId: 'entity',
+            		    value: ddnRec.getValue({fieldId:'custbody_itpm_ddn_customer'}),
+            		    ignoreFieldChange: true
+            		}).setSublistValue({
+            		    sublistId: 'item',
+            		    fieldId: 'item',
+            		    line: 0,
+            		    value: 1015
+            		}).commitLine({
+            		    sublistId: 'item'
             		});
     			}
     		}
-//        	log.debug('sc  custbody_itpm_deduction',sc.type);
+//        	log.debug('sc  custbody_itpm_deduction',sc.type amount);
 //        	log.debug('sc',ddnId);
         	
     	}catch(e){
