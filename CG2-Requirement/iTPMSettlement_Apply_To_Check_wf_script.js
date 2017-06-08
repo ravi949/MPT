@@ -326,7 +326,7 @@ function(record, redirect, search, task) {
     		});
     	}catch(e){
     		log.debug('e',e);
-    		throw 'The settlement not have enough data to create check';
+    		throw e.message;
     	}
     }
 

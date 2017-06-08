@@ -75,28 +75,28 @@ function(redirect,runtime,search,record) {
     			promoTypeMOPNetBill = promoTypeMOP.some(function(b){return b == 2}),
     			promoTypeMOPOffInvoice = promoTypeMOP.some(function(b){return b == 3});
     			
-    			//If the promotion type does not allow Off-Invoice or Net Bill, do not allow record to be submitted with a positive value in off-invoice request.
+    			//If the promotion type does not allow Off-Invoice and Net Bill, do not allow record to be submitted with a positive value in off-invoice request.
     			//If the promotion type does not allow Bill Back, do not allow record to be submitted with a positive value in bill back request.
     			//If the promotion record does not have a lump sum, do not allow record to be submitted with a positive value in lump sum request.
-    			if(!promoTypeMOPOffInvoice || !promoTypeMOPNetBill){
+    			if(!promoTypeMOPOffInvoice && !promoTypeMOPNetBill){
     				if(settlementRec.getValue('custbody_itpm_set_reqoi') > 0){
-    					throw Error('Off invoice request value should be negative');
+    					throw Error('Off invoice request value should be zero');
     				}
     			}
     			
     			if(!promoTypeMOPBillBack){
     				if(settlementRec.getValue('custbody_itpm_set_reqbb')>0){
-    					throw Error('Bill back request value should be negative');
+    					throw Error('Bill back request value should be zero');
     				}
     			}
     			
     			if(e.getValue('custrecord_itpm_p_lumpsum') <= 0){
     				if(settlementRec.getValue('custbody_itpm_set_reqls')>0){
-    					throw Error('Lum sum request value should be negative');
+    					throw Error('Lum sum request value should be zero');
     				}
     			}
     			
-    			if(!promoTypeMOPOffInvoice){
+    			if(!promoTypeMOPOffInvoice && !promoTypeMOPNetBill){
     				if((lumsumSetReq+billbackSetReq) != settlementReq){
     					throw Error('The sum of bill back and lump sum settlement requests must be equal to the settlement request')
     				}

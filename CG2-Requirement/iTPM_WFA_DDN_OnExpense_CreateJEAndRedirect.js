@@ -98,6 +98,9 @@ function(redirect,search,record) {
         				type:'customtransaction_itpm_deduction',
         				id:DeductionRec.id
         			}).setValue({
+        				fieldId:'custbody_itpm_ddn_openbal',
+        				value:0
+        			}).setValue({
         				fieldId:'transtatus',
         				value:'C'
         			}).save({enableSourcing:false,ignoreMandatoryFields:true});

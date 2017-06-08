@@ -74,6 +74,7 @@ function(serverWidget,search,record,redirect,config,format,url) {
         		id:pid,
         		columns:['internalid','name','custrecord_itpm_p_lumpsum','custrecord_itpm_p_type.custrecord_itpm_pt_validmop','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_subsidiary','custrecord_itpm_p_currency','custrecord_itpm_p_customer','custrecord_itepm_p_incurredpromotionalle']
     		}),
+    		incrdPromotionLiablty = (promoDealRec['custrecord_itepm_p_incurredpromotionalle'] == '' || promoDealRec['custrecord_itepm_p_incurredpromotionalle'] == 'ERROR: Invalid Expression')?0:promoDealRec['custrecord_itpm_p_netpromotionalle'],
         	netPromotionLiablty = (promoDealRec['custrecord_itpm_p_netpromotionalle'] == '' || promoDealRec['custrecord_itpm_p_netpromotionalle'] == 'ERROR: Invalid Expression')?0:promoDealRec['custrecord_itpm_p_netpromotionalle'],
         	promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']),
         	promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
@@ -323,7 +324,7 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({
 			displayType : serverWidget.FieldDisplayType.DISABLED
-		}).defaultValue = promoDealRec['custrecord_itepm_p_incurredpromotionalle'];
+		}).defaultValue = incrdPromotionLiablty;
 	    
 		//setting the deduction id for post method
 	    if(createdFromDDN){
