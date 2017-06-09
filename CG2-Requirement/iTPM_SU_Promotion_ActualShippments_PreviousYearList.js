@@ -4,9 +4,9 @@
  * @NModuleScope SameAccount
  *  Displays the Actual Shipments record in that shows item fulfillments as line items and added pagination to it
  */
-define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
+define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 
-		function(serverWidget,search,record,runtime) {
+		function(serverWidget,search,record,runtime,format) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -129,12 +129,28 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 					id: request.parameters.pid,
 					columns: ['internalid','name','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_customer']
 				});
+				
+				//for previous year List
+				var startDate = new Date(promoDealRecord['custrecord_itpm_p_shipstart']),
+				endDate = new Date(promoDealRecord['custrecord_itpm_p_shipend']);
+				startDate.setFullYear(startDate.getFullYear()-1);
+				endDate.setFullYear(endDate.getFullYear()-1);
+				var startDateMinusOneYear = format.format({
+				    value: startDate,
+				    type: format.Type.DATE
+				}),
+				endDateMinusOneYear = format.format({
+				    value: endDate,
+				    type: format.Type.DATE
+				});
 
 				promotionField.defaultValue=promoDealRecord.internalid[0].value;
 				promotionRefernece.defaultValue = promoDealRecord["name"];
 				promotionDesc.defaultValue = promoDealRecord["custrecord_itpm_p_description"]
-				promotionStdate.defaultValue = promoDealRecord["custrecord_itpm_p_shipstart"]
-				promotionEndate.defaultValue = promoDealRecord["custrecord_itpm_p_shipend"]
+//				promotionStdate.defaultValue = promoDealRecord["custrecord_itpm_p_shipstart"]
+//				promotionEndate.defaultValue = promoDealRecord["custrecord_itpm_p_shipend"]
+				promotionStdate.defaultValue = startDateMinusOneYear
+				promotionEndate.defaultValue = endDateMinusOneYear
 				
 				var CustId = promoDealRecord['custrecord_itpm_p_customer'][0].value,
 
@@ -163,7 +179,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 						columns:['internalid','item','item.description','quantity','unit'],
 						filters:[['item','anyof',estVolumeItems],'and',
 							['entity','is', customerRecord.getValue('entityid')],'and',
-							['trandate','within',promoDealRecord['custrecord_itpm_p_shipstart'],promoDealRecord['custrecord_itpm_p_shipend']],'and',
+							['trandate','within',startDateMinusOneYear,endDateMinusOneYear],'and',
 							['taxline','is',false],'and',
 							['cogs','is',false],'and',
 							['shipping','is',false],'and',
@@ -261,7 +277,8 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 
 		}catch(ex)
 		{
-			log.debug('Exception', ex);
+			log.error('Exception', ex);
+//			throw Error(e.message)
 		}
 
 	}

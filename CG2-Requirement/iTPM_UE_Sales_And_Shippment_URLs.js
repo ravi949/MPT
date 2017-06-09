@@ -74,6 +74,12 @@ define(['N/url','N/record'],
 				}).setValue({
 					fieldId:'custrecord_itpm_p_actualshippments', //Actual Shippments
 					value:actualShippmentsURL
+				}).setValue({
+					fieldId:'custrecord_itpm_p_actualsalespreviousyr', //Actual Sales Previous Year
+					value:actualSalesURLPreviousYear
+				}).setValue({
+					fieldId:'custrecord_itpm_p_actualshippreviousyear', //Actual Shippments Previous Year
+					value:actualShippmentsURLPreviousYear
 				}).save({
 					enableSourcing:false,
 					ignoreMandatoryFields:true

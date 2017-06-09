@@ -261,7 +261,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 
 		}catch(ex)
 		{
-			log.debug('Exception', ex);
+			log.error('Exception', ex);
 		}
 
 	}

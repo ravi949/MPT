@@ -286,8 +286,8 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 			}
 
 		}catch(e){
-			log.debug('exception in actual sales',e);
-			throw Error(e.message)
+			log.error('exception in actual sales',e);
+//			throw Error(e.message)
 		}
 
 	}
