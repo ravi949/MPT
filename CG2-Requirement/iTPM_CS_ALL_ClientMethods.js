@@ -23,7 +23,7 @@ function(search,dialog) {
     	try{
     		mode = scriptContext.mode;
     		if(mode == 'edit'){
-    			var disableADD = checkForAllowaceDuplicates(scriptContext.currentRecord);
+    			var disableADD = checkForAllowaceDuplicates(mode,scriptContext.currentRecord);
     			if(disableADD != 0){
     				var checkBoxField = scriptContext.currentRecord.getField('custrecord_itpm_all_allowaddnaldiscounts');
     				checkBoxField.isDisabled = disableADD;
@@ -51,7 +51,7 @@ function(search,dialog) {
     		if((mode == 'create'|| mode == 'edit' || mode == 'copy') && scriptContext.fieldId == 'custrecord_itpm_all_item'){
     			var item = scriptContext.currentRecord.getValue('custrecord_itpm_all_item');
     			if(item != ""){
-    				var disableADD = checkForAllowaceDuplicates(scriptContext.currentRecord),
+    				var disableADD = checkForAllowaceDuplicates(mode,scriptContext.currentRecord),
     				checkBoxField = scriptContext.currentRecord.getField('custrecord_itpm_all_allowaddnaldiscounts');
     				if(disableADD != -1){
     					checkBoxField.isDisabled = true;
@@ -92,16 +92,21 @@ function(search,dialog) {
     	return true
     }
     
-    function checkForAllowaceDuplicates(allRec){
+    function checkForAllowaceDuplicates(mode,allRec){
     	var allAddChecked = -1,
-		item = allRec.getValue('custrecord_itpm_all_item'),promo = allRec.getValue('custrecord_itpm_all_promotiondeal');
+		item = allRec.getValue('custrecord_itpm_all_item'),promo = allRec.getValue('custrecord_itpm_all_promotiondeal'),
+		allFilter = [['custrecord_itpm_all_promotiondeal','is',promo],'and',
+			['custrecord_itpm_all_item','is',item],'and',
+			['isinactive','is',false]];
+    	
+    	if(mode == 'edit'){
+    		allFilter.push('and',['internalid','noneof',allRec.id]);
+    	}
 
     	search.create({
     		type:'customrecord_itpm_promoallowance',
     		columns:['internalid','custrecord_itpm_all_allowaddnaldiscounts'],
-    		filters:[['custrecord_itpm_all_promotiondeal','is',promo],'and',
-    			['custrecord_itpm_all_item','is',item],'and',
-    			['isinactive','is',false]]
+    		filters:allFilter
     	}).run().each(function(e){
     		allRec.setValue({fieldId:'custrecord_itpm_all_allowaddnaldiscounts',value:e.getValue({name:'custrecord_itpm_all_allowaddnaldiscounts'})})
     		allAddChecked = e.getValue({name:'custrecord_itpm_all_allowaddnaldiscounts'});
