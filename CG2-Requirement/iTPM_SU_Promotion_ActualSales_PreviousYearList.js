@@ -25,7 +25,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 				var startno = request.parameters.st,
 				endno = parseInt(startno)+20,
 				form = serverWidget.createForm({
-					title : 'Actual Sales'
+					title : 'Actual Sales (Previous Year)'
 				}),
 				promotionField=form.addField({
 					id : 'custpage_promotion',
