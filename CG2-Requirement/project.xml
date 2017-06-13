@@ -52,7 +52,6 @@
     <file name="iTPM_CS_ESTQTY_ItemAndUnitOptions.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_MP_Kpi_FieldCalculations.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_MR_Copy_Promotion.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
-    <file name="iTPM_MR_KPI_Calculations_GG.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_SU_Allowance_BackendUOM_Service.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_SU_GetItemUnits.js" bundleable="true" hideInBundle="false" isOnline="false" textFileEncoding="_utf8">
       <description>Suitelet to return units based on item, or conversion rate based on unit and item.</description>
