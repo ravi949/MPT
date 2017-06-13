@@ -118,7 +118,7 @@ function(serverWidget,redirect,search,record) {
 					    [
 					    	[['custrecord_itpm_p_type.custrecord_itpm_pt_settlewhenpromoactive','is','T'],'and',
 					    	['custrecord_itpm_p_condition','is',2]],'or', //active if promotion type allow for settlemen in active
-					    	['custrecord_itpm_p_condition','is', 3] //completed
+					    	['custrecord_itpm_p_condition','is', 3]   //completed
 					    ],'and',
 //					    ['custrecord_itpm_p_condition','is', 3],'and', //completed
 						['custrecord_itpm_p_customer','is', deductionRec.custbody_itpm_ddn_customer[0].value],'and',
