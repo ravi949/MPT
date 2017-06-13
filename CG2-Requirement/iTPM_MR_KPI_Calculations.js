@@ -185,6 +185,7 @@ function(search, runtime, record, iTPM) {
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
         	var kpi_promoQty = values.estPromoted;
         	var kpi_actualQty = iTPM.getActualQty(key.item, key.customer, key.shipStart, key.shipEnd);
+        	kpi_actualQty = (kpi_actualQty.error || !(util.isNumber(kpi_actualQty)))? kpi_actualQty : 0;
         	var estimatedSpend = iTPM.getSpend({returnZero: false, quantity: values.estPromoted, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
         	var leSpend, actualSpend, expectedLiability, maxLiability;
         	switch (key.status) {
@@ -219,7 +220,7 @@ function(search, runtime, record, iTPM) {
 						maxLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
 					} else if (key.condition == '3') {
 						//condition == Completed
-						var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.qty;
+						var actQty = (kpi_actualQty.error) ? 0 : kpi_actualQty.qty;
 						leSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
 						actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
 						expectedLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: values.estRedemption});
