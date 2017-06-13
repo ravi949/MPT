@@ -115,7 +115,12 @@ function(serverWidget,redirect,search,record) {
 					columns:['internalid','name','custrecord_itpm_p_status','custrecord_itpm_p_condition','custrecord_itpm_p_customer','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
 					filters:[
 					    ['custrecord_itpm_p_status','is', 3],'and', //approved
-						['custrecord_itpm_p_condition','is', 3],'and', //completed
+					    [
+					    	[['custrecord_itpm_p_type.custrecord_itpm_pt_settlewhenpromoactive','is','T'],'and',
+					    	['custrecord_itpm_p_condition','is',2]],'or', //active if promotion type allow for settlemen in active
+					    	['custrecord_itpm_p_condition','is', 3] //completed
+					    ],'and',
+//					    ['custrecord_itpm_p_condition','is', 3],'and', //completed
 						['custrecord_itpm_p_customer','is', deductionRec.custbody_itpm_ddn_customer[0].value],'and',
 						['custrecord_itpm_p_type.custrecord_itpm_pt_validmop','is',1],'and',  //mop is bill-back
 //						['custrecord_itpm_p_netpromotionalle','GREATERTHAN', 0],'and',  //custrecord_itpm_p_netpromotionalle

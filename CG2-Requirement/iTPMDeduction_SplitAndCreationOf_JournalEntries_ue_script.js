@@ -71,6 +71,9 @@ define(['N/url','N/record','N/search'],
 						});
 
 						copiedDeductionRec.setValue({
+							fieldId:'custbody_itpm_ddn_disputed',
+							value:false //when split the deduction if first one checked second set to false
+						}).setValue({
 							fieldId:'custbody_itpm_ddn_amount',
 							value:remainingAmount  //setting the remaining the amount value to the Amount field
 						}).setValue({

@@ -308,7 +308,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					type : serverWidget.FieldType.CHECKBOX,
 					label:'DISPUTED?',
 					container:'custom_detail_information'
-				})//.defaultValue = ddnRec.getValue({ fieldId: 'custbody_itpm_ddn_disputed'})
+				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_disputed'})?'T':'F';
 
 				//setting the OPEN BALANCE value
 				ddnForm.addField({
@@ -513,7 +513,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 			}
 		}catch(e){
 			log.debug('Error Occures',e);
-			throw "Amount not matched to the original Amount";
+//			throw "Amount not matched to the original Amount";
 		}    	
 	}
 	function getList(subid,rectype){
