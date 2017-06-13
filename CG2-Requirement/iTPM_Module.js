@@ -15,11 +15,13 @@ function(search, record, util) {
      */
     function getSpend(objParameter) {
     	try{
+    		log.debug('getSpend', objParameter);
     		if(objParameter.returnZero) return {error: false, spend: 0, bb: 0, oi: 0, nb: 0};
     		var qty = parseFloat(objParameter.quantity),
 			rateBB = (objParameter.rateBB == '' || objParameter.rateBB == null || !objParameter.rateBB)? 0 : parseFloat(objParameter.rateBB),
 			rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
 			rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB);
+    		log.debug('getSpend_Values', 'qty: ' + qty + ', rateBB: ' + rateBB + ', rateOI: ' + rateOI + ', rateNB: ' + rateNB);
 		var eSpendBB = qty * rateOI, eSpendOI = qty * rateOI, eSpendNB = qty * rateNB;
 		return {error: false, spend: eSpendBB + eSpendOI + eSpendNB, bb: eSpendBB, oi: eSpendOI, nb: eSpendNB};
     	} catch(ex) {
@@ -36,6 +38,7 @@ function(search, record, util) {
      */
     function getLiability(objParameter) {
     	try{
+    		log.debug('getLiability', objParameter);
     		if(objParameter.returnZero) return {error: false, liability: 0, bb: 0, oi: 0, nb: 0};
     		var qty = parseFloat(objParameter.quantity),
 			rateBB = (objParameter.rateBB == '' || objParameter.rateBB == null || !objParameter.rateBB)? 0 : parseFloat(objParameter.rateBB),
@@ -43,6 +46,7 @@ function(search, record, util) {
 			rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB),
 			rFactor = (objParameter.redemption == '' || objParameter.redemption == null || !objParameter.redemption)? 0 : parseFloat(objParameter.redemption);
     		rFactor /= 100;
+    		log.debug('getLiability_Values', 'qty: ' + qty + ', rateBB: ' + rateBB + ', rateOI: ' + rateOI + ', rateNB: ' + rateNB + ', rFactor: ' + rFactor);
 		var expBB = qty * rateBB * rFactor, expOI = qty * rateOI, expNB = qty * rateNB;
 		return {error: false, liability: expBB + expOI + expNB, bb: expBB, oi: expOI, nb: expNB};
     	} catch(ex) {
