@@ -185,7 +185,9 @@ function(search, runtime, record, iTPM) {
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
         	var kpi_promoQty = values.estPromoted;
         	var kpi_actualQty = iTPM.getActualQty(key.item, key.customer, key.shipStart, key.shipEnd);
+        	log.debug('kpi_actualQty', 'IsNumber: ' + util.IsNumber(kpi_actualQty));
         	kpi_actualQty = (kpi_actualQty.error || !(util.isNumber(kpi_actualQty)))? kpi_actualQty : 0;
+        	log.debug('kpi_actualQty', kpi_actualQty);
         	var estimatedSpend = iTPM.getSpend({returnZero: false, quantity: values.estPromoted, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
         	var leSpend, actualSpend, expectedLiability, maxLiability;
         	switch (key.status) {
@@ -213,6 +215,7 @@ function(search, runtime, record, iTPM) {
 					} else if (key.condition == '2') {
 						//condition == Active
 						var leQuantity = (kpi_actualQty.error)? 0 : (parseFloat(values.estPromoted)>=parseFloat(kpi_actualQty.qty))? values.estPromoted : kpi_actualQty.qty;
+						log.debug('leQuantity', leQuantity);
 						leSpend = iTPM.getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
 						var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.qty;
 						actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
@@ -221,6 +224,7 @@ function(search, runtime, record, iTPM) {
 					} else if (key.condition == '3') {
 						//condition == Completed
 						var actQty = (kpi_actualQty.error) ? 0 : kpi_actualQty.qty;
+						log.debug('actQty', actQty);
 						leSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
 						actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
 						expectedLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: values.estRedemption});
