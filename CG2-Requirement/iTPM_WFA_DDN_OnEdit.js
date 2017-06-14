@@ -25,7 +25,7 @@ function(record, redirect, search) {
 				scriptId:'customscript_itpm_deduction_editview',
 				deploymentId:'customdeploy_itpm_deduction_editview',
 				returnExternalUrl: false,
-				parameters:{fid:deductionRec.id,form:'edit'}
+				parameters:{fid:deductionRec.id,from:'edit'}
 			}); 
 		}catch(e){
 			log.debug('Exception redirect to Deduction edit mode ',e);

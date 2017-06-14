@@ -507,13 +507,15 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 						isEditMode:false
 					});
 				}else{
-					throw "Amount not matched";
+					throw Error("invalid amount");
 				}
 				
 			}
 		}catch(e){
 			log.debug('Error Occures',e);
-//			throw "Amount not matched to the original Amount";
+			if(e.message == "invalid amount"){
+				throw "Amount not matched to the original Amount";
+			}
 		}    	
 	}
 	function getList(subid,rectype){
