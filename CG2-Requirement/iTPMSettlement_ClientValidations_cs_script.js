@@ -97,10 +97,10 @@ function(record, search, url) {
     			value:(promoId == ' ')?'':promotionRec.getText({fieldId:"custrecord_itpm_p_customer"})
     		}).setValue({
     			fieldId:'custpage_promotion_ship_startdate',
-    			value:(promoId == ' ')?'':promotionRec.getValue({fieldId:"custrecord_itpm_p_shipstart"})
+    			value:(promoId == ' ')?'':promotionRec.getText({fieldId:"custrecord_itpm_p_shipstart"})
     		}).setValue({
     			fieldId:'custpage_promotion_ship_enddate',
-    			value:(promoId == ' ')?'':promotionRec.getValue({fieldId:"custrecord_itpm_p_shipend"})
+    			value:(promoId == ' ')?'':promotionRec.getText({fieldId:"custrecord_itpm_p_shipend"})
     		}).setValue({
     			fieldId: 'custpage_promotion_liability',
     			value:(promoId == ' ')?'':netPromoLblty
