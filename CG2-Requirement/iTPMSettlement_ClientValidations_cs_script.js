@@ -84,24 +84,23 @@ function(record, search, url) {
     		var promoId = currentRecord.getValue('custpage_promotion');
     		console.log(promoId == ' ')
     		if(promoId != ' '){
-        		var promoLookup = search.lookupFields({
-        			type:'customrecord_itpm_promotiondeal',
-        			id:currentRecord.getValue('custpage_promotion'),
-        			columns:['custrecord_itpm_p_customer','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_netpromotionalle']
-        		}),
-        		netPromoLblty = promoLookup['custrecord_itpm_p_netpromotionalle'],
-        		netPromoLblty = (netPromoLblty == '' || netPromoLblty == 'ERROR: Invalid Expression')?0:netPromoLblty;
+    			var promotionRec = record.load({
+    				type:'customrecord_itpm_promotiondeal',
+    				id:promoId
+    			}),
+    			netPromoLblty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'});
+    			netPromoLblty = (netPromoLblty == '' || netPromoLblty == 'ERROR: Invalid Expression')?0:netPromoLblty;
     		}
-    		
+
     		currentRecord.setValue({
     			fieldId:'custpage_promotion_customer',
-    			value:(promoId == ' ')?'':promoLookup["custrecord_itpm_p_customer"][0].text
+    			value:(promoId == ' ')?'':promotionRec.getText({fieldId:"custrecord_itpm_p_customer"})
     		}).setValue({
     			fieldId:'custpage_promotion_ship_startdate',
-    			value:(promoId == ' ')?'':promoLookup["custrecord_itpm_p_shipstart"]
+    			value:(promoId == ' ')?'':promotionRec.getValue({fieldId:"custrecord_itpm_p_shipstart"})
     		}).setValue({
     			fieldId:'custpage_promotion_ship_enddate',
-    			value:(promoId == ' ')?'':promoLookup["custrecord_itpm_p_shipend"]
+    			value:(promoId == ' ')?'':promotionRec.getValue({fieldId:"custrecord_itpm_p_shipend"})
     		}).setValue({
     			fieldId: 'custpage_promotion_liability',
     			value:(promoId == ' ')?'':netPromoLblty
