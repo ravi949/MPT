@@ -21,7 +21,7 @@ function(redirect,search,record) {
     		
     		var iTPMPrefSearch = search.create({
     			type:'customrecord_itpm_preferences',
-    			columns:['custrecord_itpm_pref_ddnaccount','custrecord_pref_expenseaccount'],
+    			columns:['custrecord_itpm_pref_ddnaccount','custrecord_itpm_pref_expenseaccount'],
     			filters:[]
     		}).run(),
     		DeductionRec = scriptContext.newRecord,
@@ -71,7 +71,7 @@ function(redirect,search,record) {
     			JERec.setSublistValue({
     				sublistId:'line',
     				fieldId:'account',
-    				value:e.getValue('custrecord_pref_expenseaccount'),
+    				value:e.getValue('custrecord_itpm_pref_expenseaccount'),
     				line:1
     			}).setSublistValue({
     				sublistId:'line',

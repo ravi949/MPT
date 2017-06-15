@@ -144,7 +144,7 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search','N/runtime'],
 					
 					AccountRecordId = preferanceRecord.getValue('custrecord_itpm_pref_overpayaccount'),
 					DdnExpenseId = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount'),
-					ExpenseId = preferanceRecord.getValue('custrecord_pref_expenseaccount'),
+					ExpenseId = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount'),
 					matchls = preferanceRecord.getValue('custrecord_itpm_pref_matchls'),
 					matchbb = preferanceRecord.getValue('custrecord_itpm_pref_matchbb');
 					radioBtn.defaultValue = (matchls == true)?'custpage_ls':'custpage_bb';
@@ -245,7 +245,7 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search','N/runtime'],
 		    value: overpayAccount,
 		    ignoreFieldChange: true
 		}).setValue({
-		    fieldId: 'custrecord_pref_expenseaccount',
+		    fieldId: 'custrecord_itpm_pref_expenseaccount',
 		    value: expenseAccount,
 		    ignoreFieldChange: true
 		});

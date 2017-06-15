@@ -3,9 +3,9 @@
  * @NScriptType ClientScript
  * @NModuleScope TargetAccount
  */
-define(['N/url', 'N/https'],
+define(['N/url', 'N/https','N/search'],
 
-		function(url, https) {
+		function(url, https, search) {
 
 	/**
 	 * Function to call a Suitelet and return an array of key:value pairs of units
@@ -118,6 +118,12 @@ define(['N/url', 'N/https'],
 					});
 				}
 			} else if(fieldId == 'custrecord_itpm_all_item'){
+				allowance.setValue({
+					fieldId:'custrecord_itpm_all_uom',value:''
+				}).setValue({
+					fieldId:'custrecord_itpm_all_uomprice',value:''
+				});
+				
 				var objResponse = getUnits(allowance.getValue({fieldId: 'custrecord_itpm_all_item'}));
 				var unitField = allowance.getField({fieldId: 'custpage_itpm_all_unit'});
 				if (!(objResponse.error)){
@@ -137,42 +143,40 @@ define(['N/url', 'N/https'],
 				} else {
 					log.error('Response Object', 'Error returned in compiling the list of applicable units.')
 				}
-			} else if (fieldId == 'custrecord_itpm_all_impactprice'){
-				var unitId = allowance.getValue({fieldId: 'custrecord_itpm_all_uom'}),
-				itemId = allowance.getValue({fieldId: 'custrecord_itpm_all_item'}),
-				dynUnit = allowance.getValue({fieldId: 'custpage_itpm_all_unit'});
-				var objResponse = getConversionRate(itemId, unitId);
-				if (!(objResponse.error)){
-					var rate = (dynUnit)? parseFloat(objResponse.unitsList[0].rate) : 0;
-					allowance.setValue({
-						fieldId: 'custrecord_itpm_all_uomprice',
-						value: rate * parseFloat(allowance.getValue({fieldId: 'custrecord_itpm_all_impactprice'})),
-						ignoreFieldChange: true
-					});
-				} else {
-					log.error('Response Object', 'Error returned in conversion rate.')
-				}
 			}else if(fieldId == 'custrecord_itpm_all_uom'){
-				var unitId = allowance.getValue({fieldId: 'custrecord_itpm_all_uom'}),
-				itemId = allowance.getValue({fieldId: 'custrecord_itpm_all_item'}),
-				dynUnit = allowance.getValue({fieldId: 'custpage_itpm_all_unit'});
-				var objResponse = getConversionRate(itemId, unitId);
-				if (!(objResponse.error)){
-					var rate = (dynUnit)? parseFloat(objResponse.unitsList[0].rate) : 0;
+				var unitId = allowance.getValue({fieldId: 'custrecord_itpm_all_uom'});
+				if(unitId > 0){
+					var itemId = allowance.getValue({fieldId: 'custrecord_itpm_all_item'}),
+					dynUnit = allowance.getValue({fieldId: 'custpage_itpm_all_unit'}),
+					itemSaleUnit = search.lookupFields({type:search.Type.ITEM,id:itemId,columns:['saleunit']})['saleunit'][0].value;
+					var itemUnitRate = parseFloat(getConversionRate(itemId, itemSaleUnit).unitsList[0].rate);
+					var objResponse = getConversionRate(itemId, unitId);
+					if (!(objResponse.error)){
+						var rate = (dynUnit)? parseFloat(objResponse.unitsList[0].rate) : 0;
+						allowance.setValue({
+							fieldId: 'custrecord_itpm_all_uomprice',
+//							value: rate * parseFloat(allowance.getValue({fieldId: 'custrecord_itpm_all_impactprice'})),
+							value: parseFloat(allowance.getValue({fieldId: 'custrecord_itpm_all_impactprice'}))*(rate/itemUnitRate),
+							ignoreFieldChange: true
+						});
+					} else {
+						log.error('Response Object', 'Error returned in conversion rate.')
+					}
+				}else{
 					allowance.setValue({
 						fieldId: 'custrecord_itpm_all_uomprice',
-						value: rate * parseFloat(allowance.getValue({fieldId: 'custrecord_itpm_all_impactprice'})),
+						value: '',
 						ignoreFieldChange: true
 					});
-				} else {
-					log.error('Response Object', 'Error returned in conversion rate.')
 				}
+				
 			}
 		} catch(ex) {
+			console.log(ex)
 			log.error(ex.name, ex.message);
 		}
 	}
-
+	
 	return {
 		pageInit:pageInit,
 		fieldChanged: fieldChanged
