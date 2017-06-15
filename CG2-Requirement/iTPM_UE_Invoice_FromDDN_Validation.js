@@ -1,13 +1,13 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType UserEventScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  */
-define(['N/record'],
+define(['N/record', 'N/runtime', 'N/search'],
 /**
  * @param {record} record
  */
-function(record) {
+function(record, runtime, search) {
    
     /**
      * Function definition to be triggered before record is loaded.
@@ -21,35 +21,68 @@ function(record) {
     function beforeLoad(sc) {
     	
     	try{
+    		var ddnId = sc.request.parameters.ddn;
+    		if (!ddnId) return;
+    		var ddnSearchId = runtime.getCurrentScript().getParameter({name:'custscript_itpm_reinvoiceddnsearch'});
+    		if (!ddnSearchId) throw {name:'UE_BeforeLoad', message:'DDN Search ID Parameter empty.'};
+    		var ddnSearch = search.load({id: ddnSearchId});
+    		ddnSearch.filters.push(search.createFilter({
+    			name: 'internalid',
+    			operator: search.Operator.ANYOF,
+    			values: [ddnId]
+    		}));
+    		var ddnResult = ddnSearch.run().getRange(0,1);
+    		if (ddnResult.length != 1) throw {name:'UE_BeforeLoad', message:'DDN Search Result empty'};
+    		var ddnCustomer = ddnResult[0].getValue({name:'entity'}),
+    			ddnBalance = ddnResult[0].getValue({name:'custbody_itpm_ddn_openbal'}),
+    			ddnNumber = ddnResult[0].getValue({name: 'tranid'}),
+    			ddnInvoice = ddnResult[0].getText({name: 'custbody_itpm_ddn_invoice'});
     		if(sc.type == 'create'){
-    			var ddnId = sc.request.parameters.recId;
-    			if(ddnId){
-    				var ddnRec = record.load({
-    		    		type:'customtransaction_itpm_deduction',
-    		    		id:ddnId
-    		    	}),InvRec = sc.newRecord;
-//            		log.debug('InvRec',InvRec );
-            		InvRec.setValue({
+    				invoice = sc.newRecord;
+            		invoice.setValue({
             		    fieldId: 'custbody_itpm_deduction',
             		    value: ddnId,
             		    ignoreFieldChange: true
-            		}).setValue({
+            		});
+            		invoice.setValue({
             		    fieldId: 'entity',
-            		    value: ddnRec.getValue({fieldId:'custbody_itpm_ddn_customer'}),
+            		    value: ddnCustomer,
             		    ignoreFieldChange: true
-            		}).setSublistValue({
+            		});
+            		invoice.selectNewLine({
+            			sublistId: 'item'
+            		});
+            		invoice.setCurrentSublistValue({
+            			sublistId:'item',
+            			fieldId: 'item',
+            			value: '1016',
+            			ignoreFieldChange: false
+            		});
+            		invoice.setCurrentSublistValue({
+            			sublistId:'item',
+            			fieldId: 'item',
+            			value: '1016',
+            			ignoreFieldChange: false
+            		});
+            		invoice.setSublistValue({
             		    sublistId: 'item',
-            		    fieldId: 'item',
-            		    line: 0,
-            		    value: 1015
-            		}).commitLine({
+            		    fieldId: 'rate',
+            		    value: ddnBalance
+            		});
+            		invoice.setSublistValue({
+            			sublistId: 'item',
+            			fieldId: 'price',
+            			value: '-1'
+            		});
+            		invoice.setSublistValue({
+            			sublistId: 'item',
+            			fieldId: 'description',
+            			value: invoice.getCurrentSublistValue({sublistId: 'item', fieldId:'description'}) + '; For Deduction #' + ddnNumber +'; Originally from Invoice #' + ddnInvoice
+            		});
+            		invoice.commitLine({
             		    sublistId: 'item'
             		});
-    			}
     		}
-//        	log.debug('sc  custbody_itpm_deduction',sc.type amount);
-//        	log.debug('sc',ddnId);
-        	
     	}catch(e){
     		log.error('Error Occures',e);
     	}
@@ -67,16 +100,16 @@ function(record) {
      */
     function beforeSubmit(sc) {
     	if(sc.type == 'create'){
-			var invRec = sc.newRecord,
-	    	invHaveddn = invRec.getValue({fieldId:'custbody_itpm_deduction'});
+			var invoice = sc.newRecord,
+	    	invHaveddn = invoice.getValue({fieldId:'custbody_itpm_deduction'});
 			if(invHaveddn){
 				var ddnRec = record.load({
 		    		type:'customtransaction_itpm_deduction',
 		    		id:invHaveddn
 		    	}),
 		    	ddnAmount = ddnRec.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
-		    	invAmount = invRec.getValue({fieldId:'total'});
-//				log.debug('InvRec',invRec)		
+		    	invAmount = invoice.getValue({fieldId:'total'});
+//				log.debug('invoice',invoice)		
 //		    	log.debug('ddnRec',ddnRec);
 		    	log.debug('ddnAmount',ddnAmount);		
 		    	log.debug('invAmount',invAmount);

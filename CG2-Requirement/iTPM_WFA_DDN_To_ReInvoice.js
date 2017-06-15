@@ -1,6 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
+ * @NModuleScope TargetAccount
  */
 define(['N/record', 'N/redirect', 'N/runtime'],
 /**
@@ -19,14 +20,14 @@ function(record, redirect, runtime) {
      * @Since 2016.1
      */
     function onAction(scriptContext) {
-    	var DeductionRec = scriptContext.newRecord;
-    	log.debug('DeductionRec',DeductionRec.id);
-    	log.debug('DeductionRec',DeductionRec.getValue({fieldId:'custbody_itpm_ddn_disputed' }));
+    	var ddn = scriptContext.newRecord;
+    	log.debug('ddn',ddn.id);
+    	log.debug('ddn',ddn.getValue({fieldId:'custbody_itpm_ddn_disputed' }));
     	redirect.toTaskLink({
     		id:'EDIT_TRAN_CUSTINVC',
-    		parameters:{recId:DeductionRec.id}
+    		parameters:{ddn:ddn.id}
     		});
-//    	return DeductionRec.getValue({fieldId:'custbody_itpm_ddn_disputed' })
+//    	return ddn.getValue({fieldId:'custbody_itpm_ddn_disputed' })
     }
 
     return {
