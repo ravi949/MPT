@@ -102,7 +102,7 @@ function(record, runtime, search) {
     function beforeSubmit(sc) {
     	if(sc.type == 'create'){
 			var invoice = sc.newRecord,
-	    	invHaveddn = invoice.getValue({fieldId:'custbody_itpm_deduction'});
+	    	invHaveddn = invoice.getValue({fieldId:'custbody_itpm_set_deduction'});
 			if(invHaveddn){
 				var ddnRec = record.load({
 		    		type:'customtransaction_itpm_deduction',
@@ -116,17 +116,6 @@ function(record, runtime, search) {
 		    	log.debug('invAmount',invAmount);
 				if(ddnAmount != invAmount){
 					  throw 'Amount on Invoice MUST BE EQUAL To deduction open balance.'					
-				}else if(ddnAmount == invAmount){
-					ddnRec.setValue({
-					    fieldId: 'transtatus',
-					    value: 'C',
-					    ignoreFieldChange: true
-					});
-					var recordId = ddnRec.save({
-					    enableSourcing: true,
-					    ignoreMandatoryFields: true
-					});
-					log.debug('recordId ',recordId );
 				}
 			}
 		}
@@ -144,13 +133,38 @@ function(record, runtime, search) {
      * @Since 2015.2
      */
     function afterSubmit(sc) {
-
+    	if(sc.type == 'create'){
+			var invoice = sc.newRecord,
+				invHaveddn = invoice.getValue({fieldId:'custbody_itpm_set_deduction'});
+			if(invHaveddn){
+				var ddnRec = record.load({
+		    		type:'customtransaction_itpm_deduction',
+		    		id:invHaveddn
+		    	}),
+		    	ddnAmount = ddnRec.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
+		    	invAmount = invoice.getValue({fieldId:'total'});
+				if(ddnAmount == invAmount){
+					ddnRec.setValue({
+					    fieldId: 'transtatus',
+					    value: 'C',
+					    ignoreFieldChange: true
+					});
+					var recordId = ddnRec.save({
+					    enableSourcing: true,
+					    ignoreMandatoryFields: true
+					});
+					log.debug('recordId ',recordId );
+				} else {
+					throw {name:'UE_AfterSubmit', message:'DDN Amount does not match Invoice Amount.'};
+				}
+				}
+			}
     }
 
     return {
         beforeLoad: beforeLoad,
-        beforeSubmit: beforeSubmit
-//        afterSubmit: afterSubmit
+        beforeSubmit: beforeSubmit,
+        afterSubmit: afterSubmit
     };
     
 });
