@@ -74,8 +74,15 @@ function(serverWidget,search,record,redirect,config,format,url) {
         		id:pid,
         		columns:['internalid','name','custrecord_itpm_p_lumpsum','custrecord_itpm_p_type.custrecord_itpm_pt_validmop','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_subsidiary','custrecord_itpm_p_currency','custrecord_itpm_p_customer','custrecord_itepm_p_incurredpromotionalle']
     		}),
-    		incrdPromotionLiablty = (promoDealRec['custrecord_itepm_p_incurredpromotionalle'] == '' || promoDealRec['custrecord_itepm_p_incurredpromotionalle'] == 'ERROR: Invalid Expression')?0:promoDealRec['custrecord_itpm_p_netpromotionalle'],
-        	netPromotionLiablty = (promoDealRec['custrecord_itpm_p_netpromotionalle'] == '' || promoDealRec['custrecord_itpm_p_netpromotionalle'] == 'ERROR: Invalid Expression')?0:promoDealRec['custrecord_itpm_p_netpromotionalle'],
+    		//loading the record for NET PROMOTIONAL LIABLIITY, INCURRED PROMOTIONAL LIABILITY fields(These are did not return a value in lookupFields method)
+    		promotionRec = record.load({
+				type:'customrecord_itpm_promotiondeal',
+				id:pid
+			}),
+//    		incrdPromotionLiablty = (promoDealRec['custrecord_itepm_p_incurredpromotionalle'] == '' || promoDealRec['custrecord_itepm_p_incurredpromotionalle'] == 'ERROR: Invalid Expression')?0:promoDealRec['custrecord_itepm_p_incurredpromotionalle'],
+//        	netPromotionLiablty = (promoDealRec['custrecord_itpm_p_netpromotionalle'] == '' || promoDealRec['custrecord_itpm_p_netpromotionalle'] == 'ERROR: Invalid Expression')?0:promoDealRec['custrecord_itpm_p_netpromotionalle'],
+			incrdPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itepm_p_incurredpromotionalle'}),
+			netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'}),
         	promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']),
         	promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
         	subsid = promoDealRec['custrecord_itpm_p_subsidiary'][0].value,
@@ -495,11 +502,18 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		id:params['custom_itpm_st_promotion_no'],
     		columns:['custrecord_itpm_p_lumpsum','custrecord_itpm_p_netbillbackle','custrecord_itpm_p_netlsle','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_account','custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount']
     	}),
+    	//loading the record for NET PROMOTIONAL LIABLIITY, INCURRED PROMOTIONAL LIABILITY fields(These are did not return a value in lookupFields method)
+		promotionRec = record.load({
+			type:'customrecord_itpm_promotiondeal',
+			id:params['custom_itpm_st_promotion_no']
+		}),//
     	promoRectypeId = record.create({type:'customrecord_itpm_promotiondeal'}).getValue('rectype'),
     	promoNetBBLiablty = loadedPromoRec['custrecord_itpm_p_netbillbackle'],
     	promoLS = loadedPromoRec['custrecord_itpm_p_lumpsum'],
-    	netPromoLSLiablty = loadedPromoRec['custrecord_itpm_p_netlsle'],
-    	netPromotionLiablty = (loadedPromoRec['custrecord_itpm_p_netpromotionalle'] == '' || loadedPromoRec['custrecord_itpm_p_netpromotionalle'] == 'ERROR: Invalid Expression')?0:loadedPromoRec['custrecord_itpm_p_netpromotionalle'],
+//    	netPromoLSLiablty = loadedPromoRec['custrecord_itpm_p_netlsle'],
+    	netPromoLSLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netlsle'}),
+//    	netPromotionLiablty = (loadedPromoRec['custrecord_itpm_p_netpromotionalle'] == '' || loadedPromoRec['custrecord_itpm_p_netpromotionalle'] == 'ERROR: Invalid Expression')?0:loadedPromoRec['custrecord_itpm_p_netpromotionalle'],
+    	netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'}),
     	promoTypeDefaultAccnt = loadedPromoRec['custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount'][0].value,
     	promoDealLumsumAccnt = loadedPromoRec['custrecord_itpm_p_account'].length >0 ?loadedPromoRec['custrecord_itpm_p_account'][0].value:promoTypeDefaultAccnt,
     	customerRec = record.load({type:record.Type.CUSTOMER,id:params.custom_itpm_st_cust}),
@@ -575,7 +589,6 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		})
     	}
     	
-    	
     	//Set the following fields to zero:-Lump Sum Settlement Request,Bill-Back Settlement Request,Missed Off-Invoice Settlement Request
 //    	newSettlementRecord.setValue({
 //    		fieldId:'custbody_itpm_set_reqls',
@@ -635,8 +648,6 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		amount:offinvoiceSetReq
     	}];
     	
-    	
-    	
     	if(params['custom_itpm_st_incrd_promolbty'] != ''){
         	newSettlementRecord.setValue({
         		fieldId:'custbody_itpm_set_incrd_promoliability',
@@ -669,7 +680,7 @@ function(serverWidget,search,record,redirect,config,format,url) {
     		fieldId:'class',
     		value:params['custom_itpm_st_class']
     	});
-    	//dept
+    	//department
     	newSettlementRecord.setValue({
     		fieldId:'department',
     		value:params['custom_itpm_st_department']
