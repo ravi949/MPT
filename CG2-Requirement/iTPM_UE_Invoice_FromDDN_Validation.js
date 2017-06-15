@@ -45,42 +45,43 @@ function(record, runtime, search) {
             		    ignoreFieldChange: true
             		});
             		invoice.setValue({
+            		    fieldId: 'custbody_itpm_set_deduction',
+            		    value: ddnId,
+            		    ignoreFieldChange: true
+            		});
+            		invoice.setValue({
             		    fieldId: 'entity',
             		    value: ddnCustomer,
             		    ignoreFieldChange: true
             		});
-            		invoice.selectNewLine({
-            			sublistId: 'item'
+            		var items = sc.form.getSublist({id: 'item'});
+            		// CHANGE BLOCK BELOW AFTER MODIFYING THE ITPM PREFERENCES
+            		// REMOVE HARDOCDING VALUE
+            		items.setSublistValue({
+            			id: 'item',
+            			line: 0,
+            			value: 1016
             		});
-            		invoice.setCurrentSublistValue({
-            			sublistId:'item',
-            			fieldId: 'item',
-            			value: '1016',
-            			ignoreFieldChange: false
+            		// END CHANGE 
+            		items.setSublistValue({
+            			line: 0,
+            			id: 'rate',
+            			value: ddnBalance
             		});
-            		invoice.setCurrentSublistValue({
-            			sublistId:'item',
-            			fieldId: 'item',
-            			value: '1016',
-            			ignoreFieldChange: false
-            		});
-            		invoice.setSublistValue({
-            		    sublistId: 'item',
-            		    fieldId: 'rate',
-            		    value: ddnBalance
-            		});
-            		invoice.setSublistValue({
-            			sublistId: 'item',
-            			fieldId: 'price',
+            		items.setSublistValue({
+            			line: 0,
+            			id: 'price',
             			value: '-1'
             		});
-            		invoice.setSublistValue({
-            			sublistId: 'item',
-            			fieldId: 'description',
-            			value: invoice.getCurrentSublistValue({sublistId: 'item', fieldId:'description'}) + '; For Deduction #' + ddnNumber +'; Originally from Invoice #' + ddnInvoice
+            		items.setSublistValue({
+            			line: 0,
+            			id: 'description',
+            			value: 'Disputed amount for shortpay (deduction #' + ddnNumber +') on Invoice #' + ddnInvoice
             		});
-            		invoice.commitLine({
-            		    sublistId: 'item'
+            		items.setSublistValue({
+            			line: 0,
+            			id: 'amount',
+            			value: ddnBalance
             		});
     		}
     	}catch(e){
