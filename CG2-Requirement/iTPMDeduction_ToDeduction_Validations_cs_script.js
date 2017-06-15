@@ -17,7 +17,7 @@ function() {
      * @since 2015.2
      */
 
-	function pageInit(scriptContext){	
+	function pageInit(scriptContext){
 	}
 
     /**
@@ -30,10 +30,13 @@ function() {
      * @since 2015.2
      */
     function saveRecord(scriptContext) {
+    	var isFromEdit = window.location.href.search('&from=edit');
     	var deductionAsstRec = scriptContext.currentRecord;
-    	if(deductionAsstRec.getValue('custom_itpm_ddn_openbal') < deductionAsstRec.getValue('custom_itpm_ddn_amount')){
-    	    alert('Amount must be less than or equal to Parent Deduction Amount');
-    	    return false
+    	if(isFromEdit == -1){
+    		if(deductionAsstRec.getValue('custom_itpm_ddn_openbal') < deductionAsstRec.getValue('custom_itpm_ddn_amount')){
+        	    alert('Amount must be less than or equal to Parent Deduction Amount');
+        	    return false
+        	}
     	}
     	return true
     }

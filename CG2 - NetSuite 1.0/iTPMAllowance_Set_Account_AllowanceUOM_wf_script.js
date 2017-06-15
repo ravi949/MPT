@@ -72,7 +72,8 @@ function setAccountAndAllowanceUOM() {
 			nlapiSetFieldValue('custrecord_itpm_all_uomprice',(itemBasePrice)*(allowanceUOMRate/saleUnitList[0].rate))
 		}
 
-		var itemPrice = nlapiGetFieldValue('custrecord_itpm_all_impactprice'),
+//		var itemPrice = nlapiGetFieldValue('custrecord_itpm_all_impactprice'),
+		var itemPrice = nlapiGetFieldValue('custrecord_itpm_all_uomprice'),
 		allowanceType = nlapiGetFieldValue('custrecord_itpm_all_type'),
 		redemptionFactor = parseFloat(nlapiGetFieldValue('custrecord_itpm_all_redemptionfactor'))/100;
 
