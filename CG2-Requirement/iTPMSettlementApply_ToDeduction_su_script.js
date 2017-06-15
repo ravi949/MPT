@@ -181,7 +181,7 @@ define(['N/record', 'N/search','N/ui/serverWidget','N/runtime','N/config','N/red
 			}else if(request.method == 'GET') {
 			
 				var list = serverWidget.createList({
-				    title : 'Simple List'
+				    title : 'Deductions List'
 				});
 				var listcolumn=list.addColumn({
 					id : 'custpage_ddnid',
@@ -235,6 +235,8 @@ define(['N/record', 'N/search','N/ui/serverWidget','N/runtime','N/config','N/red
 				    param : 'sid',
 				    value : parameters.sid
 				})
+				list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'})
+				list.clientScriptModulePath = './iTPMSettlement_ClientValidations_cs_script.js'
 				
 				//getting the settlement request amount from the settlement record.
 				var settlementRec = record.load({
