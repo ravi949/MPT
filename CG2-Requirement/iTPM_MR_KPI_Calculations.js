@@ -94,11 +94,10 @@ function(search, runtime, record, iTPM) {
 				estRateNB = estQuantities[0].getValue({name:'custrecord_itpm_estqty_rateperunitnb'});
 				estRedemption = estQuantities[0].getValue({name:'custrecord_itpm_estqty_redemption'});
     		}
-    		
     		/**** Get Allowances for each MOP ****/
+        	/*
         	for(var i = 0; i<pTypeValidMOP.length; i++){
         		rangeStart = 0;
-        		/**** Get Allowances for each KPI Item + Promotion + MOP ****/
             	var allowanceSearch = search.load({
             		id: parseInt(runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_allowancesearch'}))
             	});
@@ -133,7 +132,8 @@ function(search, runtime, record, iTPM) {
         			rangeStart += rangeStep;
         		} while (util.isArray(allowances) && allowances.length >= rangeStep);
         	}
-    		if (allArray.length > 0){
+        	*/
+    		//if (allArray.length > 0){
 	    		context.write({
 	    			key:{
 	    				kpi : kpiID, 
@@ -159,11 +159,11 @@ function(search, runtime, record, iTPM) {
 	    				estRateBB : estRateBB,
 	    				estRateOI : estRateOI,
 	    				estRateNB : estRateNB,
-	    				estRedemption : estRedemption,
-	    				allowances: allArray
+	    				estRedemption : estRedemption
+	    				//allowances: allArray
 	    				}
 	    		});
-    		}
+    		//}
     	} catch(ex) {
     		log.error('Map', ex.name + '; ' + ex.message + '; PromotionID: ' + context.key);
     	}
@@ -178,9 +178,9 @@ function(search, runtime, record, iTPM) {
     function reduce(context) {
     	try{
         	var key = JSON.parse(context.key);
-        	log.audit('Reduce_Key', key);
+        	//log.audit('Reduce_Key', key);
         	var values = JSON.parse(context.values[0]);
-        	log.audit('Reduce_Values', values);
+        	//log.audit('Reduce_Values', values);
         	/**** START CALCULATIONS ****/
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
         	var kpi_promoQty = values.estPromoted;
@@ -189,6 +189,7 @@ function(search, runtime, record, iTPM) {
         	kpi_actualQty.quantity = (util.isNumber(kpi_actualQty.quantity))? kpi_actualQty.quantity : 0; 
         	log.debug('kpi_actualQty', kpi_actualQty.quantity);
         	var estimatedSpend = iTPM.getSpend({returnZero: false, quantity: values.estPromoted, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
+        	log.debug('estimatedSpend', estimatedSpend);
         	var leSpend, actualSpend, expectedLiability, maxLiability;
         	switch (key.status) {
 				case '1':	//DRAFT
@@ -291,7 +292,7 @@ function(search, runtime, record, iTPM) {
         			'custrecord_itpm_kpi_actualspendoi' :actualSpend.oi,
         			'custrecord_itpm_kpi_actualspendnb' :actualSpend.nb
         		},
-        		options: {enablesourcing: false, ignoreMandatoryFields: true}
+        		options: {enablesourcing: true, ignoreMandatoryFields: true}
         	});
         	log.debug('KPI Updated', kpiUpdated);
     	} catch(ex) {
