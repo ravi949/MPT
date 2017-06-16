@@ -18,13 +18,18 @@ function(message,url,https) {
 	 */
 
 	function pageInit(sc){
-		//clear the allowance type field value when get the error duplicate
-		if(sc.currentRecord.id==''){
-			sc.currentRecord.setValue({
-				fieldId:'custrecord_itpm_all_type',
-				value:''
-			});
+		try{
+			//clear the allowance type field value when get the error duplicate
+			if(sc.currentRecord.id==''){
+				sc.currentRecord.setValue({
+					fieldId:'custrecord_itpm_all_type',
+					value:''
+				});
+			}
+		}catch(ex){
+			log.error(ex.name,ex.message);
 		}
+		
 	}
 
     /**
