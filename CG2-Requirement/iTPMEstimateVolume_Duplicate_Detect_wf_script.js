@@ -40,8 +40,8 @@ define(['N/search'],
 			else
 				return false.toString();
 		}catch(e){
-			log.debug('estqty duplicated deduction',e);
-			throw Error(e.message)
+			log.error('estqty duplicated deduction',e);
+//			throw Error(e.message)
 		}
 
 	}

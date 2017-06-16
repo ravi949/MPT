@@ -114,7 +114,7 @@ function(redirect,search,record) {
     		});
     		
     	}catch(e){
-    		log.debug('excrption while redirect',e)
+    		log.error('excrption while redirect',e)
     	}
     }
 

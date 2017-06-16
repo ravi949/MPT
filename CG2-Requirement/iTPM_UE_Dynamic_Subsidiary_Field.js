@@ -6,7 +6,7 @@
  */
 define(['N/record','N/search','N/ui/serverWidget','N/runtime','N/url'],
 
-		function(record,search,serverWidget,runtime,url) {
+function(record,search,serverWidget,runtime,url) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -74,7 +74,7 @@ define(['N/record','N/search','N/ui/serverWidget','N/runtime','N/url'],
 				}
 			}
 		}catch(e){
-			log.debug('exception',e.message);
+			log.error('exception',e.message);
 		}
 	}
 

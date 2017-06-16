@@ -26,7 +26,7 @@ function(record, redirect, runtime) {
     	redirect.toTaskLink({
     		id:'EDIT_TRAN_CUSTINVC',
     		parameters:{ddn:ddn.id}
-    		});
+    	});
 //    	return ddn.getValue({fieldId:'custbody_itpm_ddn_disputed' })
     }
 

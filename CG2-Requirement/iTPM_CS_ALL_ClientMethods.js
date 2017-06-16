@@ -30,7 +30,7 @@ function(search,dialog) {
     			}
     		}
     	}catch(e){
-    		log.debug('exception in pageint allowance',e)
+    		log.error('exception in pageint allowance',e)
     	}
     }
 
@@ -75,7 +75,7 @@ function(search,dialog) {
     			}
     		}
     	}catch(e){
-    		log.debug('exception in field change item in allowance',e);
+    		log.error('exception in field change item in allowance',e);
     	}
     }
     

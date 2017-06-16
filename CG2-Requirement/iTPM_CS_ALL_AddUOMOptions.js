@@ -71,25 +71,29 @@ define(['N/url', 'N/https','N/search'],
 	 */
 
 	function pageInit(sc){
-		if(sc.mode == 'edit' || sc.mode =='copy'){
-			var objResponse = getUnits(sc.currentRecord.getValue({fieldId: 'custrecord_itpm_all_item'}));
-			var unitField = sc.currentRecord.getField({fieldId: 'custpage_itpm_all_unit'});
-			if (!(objResponse.error)){
-				unitField.removeSelectOption({value:null});
-				var unitsList = objResponse.unitsList;
-				unitField.insertSelectOption({
-					value: 0,
-					text: " ",
-					isSelected: true
-				});
-				for (x in unitsList){
+		try{
+			if(sc.mode == 'edit' || sc.mode =='copy'){
+				var objResponse = getUnits(sc.currentRecord.getValue({fieldId: 'custrecord_itpm_all_item'}));
+				var unitField = sc.currentRecord.getField({fieldId: 'custpage_itpm_all_unit'});
+				if (!(objResponse.error)){
+					unitField.removeSelectOption({value:null});
+					var unitsList = objResponse.unitsList;
 					unitField.insertSelectOption({
-						value: unitsList[x].internalId,
-						text: unitsList[x].name,
-						isSelected:sc.currentRecord.getValue('custrecord_itpm_all_uom') == unitsList[x].internalId
+						value: 0,
+						text: " ",
+						isSelected: true
 					});
+					for (x in unitsList){
+						unitField.insertSelectOption({
+							value: unitsList[x].internalId,
+							text: unitsList[x].name,
+							isSelected:sc.currentRecord.getValue('custrecord_itpm_all_uom') == unitsList[x].internalId
+						});
+					}
 				}
 			}
+		}catch(ex){
+			log.error(ex.name,ex.message);
 		}
 	}
 

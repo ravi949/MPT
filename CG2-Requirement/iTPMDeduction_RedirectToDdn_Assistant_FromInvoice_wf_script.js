@@ -24,7 +24,7 @@ define(['N/redirect'],
 				parameters:{fid:scriptContext.newRecord.id,from:'inv'}
 			});
 		}catch(e){
-			log.debug('e',e);
+			log.error('e',e);
 		}
 	}
 

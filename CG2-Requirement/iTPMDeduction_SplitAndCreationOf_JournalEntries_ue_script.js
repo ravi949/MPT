@@ -108,7 +108,7 @@ define(['N/url','N/record','N/search'],
 				}
 			}
 		}catch(e){
-			log.debug('exception create journal entries',e.message)
+			log.error('exception create journal entries',e.message)
 		}
 	}
 

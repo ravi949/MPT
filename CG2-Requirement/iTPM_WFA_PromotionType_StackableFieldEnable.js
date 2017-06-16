@@ -21,7 +21,7 @@ define(['N/search','N/runtime'],
 			isSubsidiaryExist = runtime.isFeatureInEffect('SUBSIDIARIES');
 			return getPromotionTypeRecords(scriptContext.newRecord,isSubsidiaryExist).toString();
 		}catch(e){
-			log.debug('exception',e.message)
+			log.error('exception',e.message)
 		}
 	}
 

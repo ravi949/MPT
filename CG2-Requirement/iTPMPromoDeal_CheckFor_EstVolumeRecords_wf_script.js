@@ -58,7 +58,7 @@ define(['N/search','N/record'],
 
 			return estimatedQtyFound.toString();
 		}catch(e){
-			log.debug('exception estqty records existance',e);
+			log.error('exception estqty records existance',e);
 		}
 	}
 

@@ -38,7 +38,7 @@ function(search,runtime) {
 			return allowancesPresent?'T':'F';
 			
 		}catch(e){
-			log.debug('exception in check allowances are exist or not',e);
+			log.error('exception in check allowances are exist or not',e);
 		}
 	}
 

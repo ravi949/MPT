@@ -35,7 +35,7 @@ function(search,record,runtime) {
 			return (promoDealAllowanceSearch.run().getRange(0,10).length > 0)?'T':'F';
 			
 		}catch(e){
-			log.debug('exception in allowance duplicated detection',e)
+			log.error('exception in allowance duplicated detection',e)
 		}
 	}
 

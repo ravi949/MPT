@@ -82,7 +82,7 @@ define(['N/runtime','N/record'],
 				return monthDiff(new Date(e.getFullYear(),e.getDate(),e.getMonth()),today) == true;
 			}).toString();
 		}catch(e){
-			log.debug('exception in date validation',e);
+			log.error('exception in date validation',e);
 		}
 	}
 

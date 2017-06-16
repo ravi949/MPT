@@ -27,7 +27,7 @@ define(['N/record'],
 			});
 			return (MOPCondition)?'T':'F';
 		}catch(e){
-			log.debug('exception',e)
+			log.error('exception',e)
 		}
 	}
 
