@@ -111,7 +111,7 @@ define(['N/record', 'N/search'],
 			else
 				return true.toString();
 		}catch(e){
-			log.debug('Exception occurs',e);
+			log.error('Exception occurs',e);
 		}
 	}
 	return {

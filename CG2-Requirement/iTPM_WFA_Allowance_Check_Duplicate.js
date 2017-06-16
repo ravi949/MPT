@@ -47,7 +47,7 @@ define(['N/search','N/runtime'],
 			return estimatedQtyId;
 
 		}catch(e){
-			log.debug('exception',e.message);
+			log.error('exception',e.message);
 		}
 	}
 

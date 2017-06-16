@@ -52,7 +52,7 @@ function(search,record,runtime,iTPM_Module) {
     		return sumOfAllowancePerUOM;  		
 			
     	}catch(e){
-    		log.debug('exception in estqty total rate cal',e);
+    		log.error('exception in estqty total rate cal',e);
     	}
     }
 

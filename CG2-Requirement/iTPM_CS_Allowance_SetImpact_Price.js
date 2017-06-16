@@ -80,6 +80,7 @@ function(message,url,https) {
 	    		}
 	    	}
     	} catch(ex) {
+    		log.error(ex.name,ex.message);
     		console.log(ex)
     	}
     }

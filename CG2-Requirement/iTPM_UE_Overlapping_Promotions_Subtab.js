@@ -6,7 +6,7 @@
  */
 define(['N/search','N/runtime','N/ui/serverWidget','N/url'],
 
-		function(search,runtime,serverWidget,url) {
+function(search,runtime,serverWidget,url) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -47,7 +47,7 @@ define(['N/search','N/runtime','N/ui/serverWidget','N/url'],
 				promoDealRec.setValue({fieldId:'custrecord_itpm_p_overlappingpromotions',value:'<iframe id="boxnet_widget_frame" src="'+overlapDealViewUrl+'" align="center" style="width: 100%; height:600px; margin:0; border:0; padding:0" frameborder="0"></iframe>'});
 			}
 		}catch(e){
-			log.debug('exception',e.message);
+			log.error('exception',e.message);
 		}
 	}
 

@@ -5,7 +5,7 @@
  */
 define(['N/redirect','N/runtime'],
 
-		function(redirect,runtime) {
+function(redirect,runtime) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -24,8 +24,8 @@ define(['N/redirect','N/runtime'],
 				parameters:{pid:scriptContext.newRecord.id,from:'promo'}
 			});
 		}catch(e){
-			log.debug('exception',e);
-			throw Error(e.message)
+			log.error('exception in redirection to settlement',e);
+//			throw Error(e.message)
 		}
 	}
 

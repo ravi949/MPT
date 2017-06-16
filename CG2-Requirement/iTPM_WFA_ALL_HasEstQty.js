@@ -33,7 +33,7 @@ function(search,runtime) {
     		
     		return estqtyPresent?'T':'F';
     	}catch(e){
-    		log.debug('exception has estqty',e)
+    		log.error('exception has estqty',e)
     	}
     }
 

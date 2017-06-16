@@ -25,7 +25,7 @@ function(runtime, record) {
 	    		return 'F';
 	    	}
     	} catch(ex){
-    		log.debug(ex.name, ex.message + '; ' + sc.newRecord.id + '; ' + sc.newRecord.type);
+    		log.error(ex.name, ex.message + '; ' + sc.newRecord.id + '; ' + sc.newRecord.type);
     	}
     }
 

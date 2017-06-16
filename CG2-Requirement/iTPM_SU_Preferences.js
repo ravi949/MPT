@@ -5,12 +5,12 @@
  * It shows the preferences record.If user have no preferences then user can creates the preferences.
  */
 define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search','N/runtime'],
-		/**
-		 * @param {record} record
-		 * @param {redirect} redirect
-		 * @param {serverWidget} serverWidget
-		 */
-		function(record, redirect, serverWidget, search, runtime) {
+/**
+ * @param {record} record
+ * @param {redirect} redirect
+ * @param {serverWidget} serverWidget
+ */
+function(record, redirect, serverWidget, search, runtime) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -224,7 +224,7 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search','N/runtime'],
 				});
 				
 			}catch(e){
-				log.debug('Exeception',e);
+				log.error('Exeception',e);
 			}			
 		}
 

@@ -775,7 +775,6 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				});
 			}
 		}catch(e){
-			log.debug('exception in deduction creation',e.message);
 			
 			if(e.message == 'invoice'){
 				throw Error('you cannot make a deduction from this invoice');
@@ -783,6 +782,8 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				throw Error('you cannot make a deduction from this deduction');
 			}else if(e.message == 'invalid'){
 				throw Error('invalid parameters');
+			}else{
+				log.error('exception in deduction creation',e.message);
 			}
 		}
 	}

@@ -17,16 +17,20 @@ function(serverWidget) {
      * @Since 2015.2
      */
     function beforeLoad(scriptContext) {
-    	var type = scriptContext.type,
-    	copyInProgress = scriptContext.newRecord.getValue('custrecord_itpm_p_copyinprogress'),
-    	copyRelatedRecords = scriptContext.newRecord.getValue('custrecord_itpm_p_copy')
-    	if(type == 'view' && copyInProgress && copyRelatedRecords){
-    		var msgText = "This Promotion is queued for copying and cannot be edited until the linked records (Allowances, Estimated Quantities, and Retail Info) are copied over from the original promotion, Please be patient."
-    		scriptContext.form.addField({
-    			id:'custpage_copyinprg_message',
-    			type:serverWidget.FieldType.INLINEHTML,
-    			label:'script'
-    		}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Copy In Progress",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+    	try{
+    		var type = scriptContext.type,
+    		copyInProgress = scriptContext.newRecord.getValue('custrecord_itpm_p_copyinprogress'),
+    		copyRelatedRecords = scriptContext.newRecord.getValue('custrecord_itpm_p_copy')
+    		if(type == 'view' && copyInProgress && copyRelatedRecords){
+    			var msgText = "This Promotion is queued for copying and cannot be edited until the linked records (Allowances, Estimated Quantities, and Retail Info) are copied over from the original promotion, Please be patient."
+    				scriptContext.form.addField({
+    					id:'custpage_copyinprg_message',
+    					type:serverWidget.FieldType.INLINEHTML,
+    					label:'script'
+    				}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Copy In Progress",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+    		}
+    	}catch(ex){
+    		log.error(ex.name,ex.message);
     	}
     }
 

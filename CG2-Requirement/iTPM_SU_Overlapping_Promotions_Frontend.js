@@ -7,7 +7,7 @@
 
 define(['N/render','N/search'],
 
-		function(render,search) {
+function(render,search) {
 	function onRequest(context){
 		try{
 			var request = context.request,response = context.response;
@@ -83,8 +83,8 @@ define(['N/render','N/search'],
 				response.write(output);
 			}
 		}catch(e){
-			log.debug('exception',e);
-			throw Error(e.message);
+			log.error('exception',e);
+//			throw Error(e.message);
 		}
 	}
 

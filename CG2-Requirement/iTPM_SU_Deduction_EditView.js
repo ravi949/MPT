@@ -512,7 +512,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				
 			}
 		}catch(e){
-			log.debug('Error Occures',e);
+			log.error('Error Occures',e);
 			if(e.message == "invalid amount"){
 				throw "Amount not matched to the original Amount";
 			}

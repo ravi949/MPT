@@ -16,20 +16,20 @@ function(runtime,iTPM_Module) {
      */
     function onAction(scriptContext) {
     	try{
-    	//for any context except UI, before record submit, check whether the Estimate Volume By value is one of the applicable units based on the Units Type of the Item.
-    	//IF not, return an error - "Estimate Volume By units are not applicable to the Item selected" and prevent record save.
-    	
-    	var estVolumeByRec = scriptContext.newRecord,recordType,
-    	scriptObj = runtime.getCurrentScript();
-    	var estVolumeBy = scriptObj.getParameter({name:'custscript_itpm_estqty_validateunit_unit'});
-    	var itemId = scriptObj.getParameter({name:'custscript_itpm_estqty_validateunit_item'});
-    	
-    	var unitsList = iTPM_Module.getItemUnits(itemId).unitArray;
-    	
-    	return unitsList.some(function(e){return e.id == estVolumeBy})?'T':'F';
-    	
+    		//for any context except UI, before record submit, check whether the Estimate Volume By value is one of the applicable units based on the Units Type of the Item.
+    		//IF not, return an error - "Estimate Volume By units are not applicable to the Item selected" and prevent record save.
+
+    		var estVolumeByRec = scriptContext.newRecord,recordType,
+    		scriptObj = runtime.getCurrentScript();
+    		var estVolumeBy = scriptObj.getParameter({name:'custscript_itpm_estqty_validateunit_unit'});
+    		var itemId = scriptObj.getParameter({name:'custscript_itpm_estqty_validateunit_item'});
+
+    		var unitsList = iTPM_Module.getItemUnits(itemId).unitArray;
+
+    		return unitsList.some(function(e){return e.id == estVolumeBy})?'T':'F';
+
     	}catch(e){
-    		log.debug('exception in validate item before estqty is going to save',e);
+    		log.error('exception in validate item before estqty is going to save',e);
     	}
     }
 

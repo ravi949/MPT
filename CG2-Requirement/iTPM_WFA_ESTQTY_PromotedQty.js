@@ -44,7 +44,7 @@ function(search,runtime) {
 				return 0;
 			}
 		}catch(e){
-			log.debug('exception in promoted qty',e);
+			log.error('exception in promoted qty',e);
 		}
 	}
 

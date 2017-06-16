@@ -86,7 +86,7 @@ define(['N/url','N/record'],
 				});
 			}
 		}catch(e){
-			log.debug('exception',e.message)
+			log.error('exception',e.message)
 		}
 	}
 

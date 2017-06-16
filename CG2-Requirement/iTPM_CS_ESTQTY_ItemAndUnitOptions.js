@@ -125,7 +125,7 @@ function(https, url) {
     		}
     		
     	} catch(ex) {
-    		
+    		log.error(ex.name,ex.message);
     	}
     }
 

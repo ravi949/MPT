@@ -44,6 +44,7 @@ function(record, redirect, search, task) {
     			          filters: [ ['internalid','is',settlementRec.getValue('custbody_itpm_set_promo')]
     			          ]
     		}).run().getRange(0,1);
+    		log.debug('currne',promotionRecSer[0].getValue('custrecord_itpm_p_currency'))
     		//creating the check record
     		var checkRecord = record.create({
     			type: record.Type.CHECK 
@@ -137,7 +138,7 @@ function(record, redirect, search, task) {
         				sublistId: 'expense',
         				fieldId: 'account',
         				line: expenseLineCount,
-        				value: promotionRecSer.getValue('custrecord_itpm_p_account')
+        				value: promotionRecSer[0].getValue('custrecord_itpm_p_account')
         			});
     			} else {
     				checkRecord.setSublistValue({
@@ -325,8 +326,8 @@ function(record, redirect, search, task) {
     			id : checkRecordId 
     		});
     	}catch(e){
-    		log.debug('e',e);
-    		throw e.message;
+    		log.error('e',e);
+//    		throw e.message;
     	}
     }
 

@@ -40,7 +40,7 @@ function(search,runtime) {
     		log.debug('sumOfAllowancePercentPerUOM',sumOfAllowancePercentPerUOM);
     		return sumOfAllowancePercentPerUOM
     	}catch(e){
-    		log.debug('exception in estqty total percent cal',e)
+    		log.error('exception in estqty total percent cal',e)
     	}
     }
 

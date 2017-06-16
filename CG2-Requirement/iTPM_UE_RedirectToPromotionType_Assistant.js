@@ -29,8 +29,8 @@ function(search,redirect,serverWidget,runtime) {
     			});  
     		}	
     	}catch(e){
-    		log.debug('exception',e);
-    		throw Error(e.message)
+    		log.error('exception',e);
+//    		throw Error(e.message)
     	}
     }
 
