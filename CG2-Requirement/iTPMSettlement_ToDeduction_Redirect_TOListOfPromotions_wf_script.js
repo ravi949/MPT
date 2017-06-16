@@ -16,13 +16,17 @@ function(redirect) {
      * @Since 2016.1
      */
     function onAction(scriptContext) {
-    	var deductionRec = scriptContext.newRecord;
-    	redirect.toSuitelet({
-    		scriptId:'customscript_itpm_settlemnt_listpromotns',
-     	    deploymentId:'customdeploy_itpm_settlemnt_listpromotns',
-     	   	returnExternalUrl: false,
-     	    parameters:{ddn:deductionRec.id}
-    	});    
+    	try{
+    		var deductionRec = scriptContext.newRecord;
+    		redirect.toSuitelet({
+    			scriptId:'customscript_itpm_settlemnt_listpromotns',
+    			deploymentId:'customdeploy_itpm_settlemnt_listpromotns',
+    			returnExternalUrl: false,
+    			parameters:{ddn:deductionRec.id}
+    		});
+    	}catch (e) {
+    		log.error(e.name,e.message);
+    	}
     }
 
     return {

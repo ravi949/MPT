@@ -16,12 +16,16 @@ function(redirect) {
      * @Since 2016.1
      */
     function onAction(scriptContext) {
-    	redirect.toSuitelet({
-    		scriptId:'customscript_itpm_settlement_applyto_ddn',
-     	    deploymentId:'customdeploy_itpm_settlement_applyto_ddn',
-     	   	returnExternalUrl: false,
-     	    parameters:{sid:scriptContext.newRecord.id}
-    	});   
+    	try{
+    		redirect.toSuitelet({
+    			scriptId:'customscript_itpm_settlement_applyto_ddn',
+    			deploymentId:'customdeploy_itpm_settlement_applyto_ddn',
+    			returnExternalUrl: false,
+    			parameters:{sid:scriptContext.newRecord.id}
+    		});  
+    	}catch (e) {
+    		log.error(e.name,e.message);
+    	}
     }
 
     return {

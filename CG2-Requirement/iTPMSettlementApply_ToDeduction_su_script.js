@@ -312,10 +312,9 @@ define(['N/record', 'N/search','N/ui/serverWidget','N/runtime','N/config','N/red
 				
 				response.writePage(list); 
 			}
-		}catch(ex)
-		{
-			log.debug('Exception',ex);
-		}
+		}catch (e) {
+    		log.error(e.name,e.message);
+    	}
 	}
 	return {
 		onRequest: onRequest

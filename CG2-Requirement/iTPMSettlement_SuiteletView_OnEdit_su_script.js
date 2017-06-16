@@ -481,15 +481,15 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 					});
 
 				}catch(e){
-					log.debug('eerrror',e);
-					throw Error(e.message);
+					log.error('eerrror',e.message);
+//					throw Error(e.message);
 				}
 
 			}
 
 		}catch(e){
-			log.debug('excetpion in settlement on edit',e);
-			throw Error(e.message)
+			log.error('excetpion in settlement on edit',e.message);
+//			throw Error(e.message)
 		}
 
 	}
