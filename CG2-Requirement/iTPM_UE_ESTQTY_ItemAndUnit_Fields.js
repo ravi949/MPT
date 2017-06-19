@@ -78,26 +78,26 @@ function(record, search, serverWidget, runtime, url, https) {
 				}));
 				
 				//filtering the already existed estimated quantity items from the list
-//				var estExistedItems = [];
-//				if(sc.type == 'create'||sc.type=='copy'){
-//					search.create({
-//						  type:'customrecord_itpm_estquantity',
-//						  columns:['internalid'],
-//						  filters:[['custrecord_itpm_estqty_promodeal','is',promotionId],'and',['isinactive','is',false]]
-//					  }).run().each(function(e){
-//						  estExistedItems.push(e.getValue('internalid'));
-//						  return true
-//					  });
-//					log.debug('estExistedItems',estExistedItems)
-//					if(estExistedItems.length>0){
-//						itemSearch.filters.push(search.createFilter({
-//							name: 'custrecord_itpm_all_item',
-//							operator: search.Operator.NONEOF,
-//							values:estExistedItems
-//						}));
-//					}
-//
-//				}
+				var estExistedItems = [];
+				if(sc.type == 'create'||sc.type=='copy'){
+					search.create({
+						  type:'customrecord_itpm_estquantity',
+						  columns:['internalid','custrecord_itpm_estqty_item'],
+						  filters:[['custrecord_itpm_estqty_promodeal','is',promotionId],'and',['isinactive','is',false]]
+					  }).run().each(function(e){
+						  estExistedItems.push(e.getValue('custrecord_itpm_estqty_item'));
+						  return true
+					  });
+					log.debug('estExistedItems',estExistedItems)
+					if(estExistedItems.length>0){
+						itemSearch.filters.push(search.createFilter({
+							name: 'custrecord_itpm_all_item',
+							operator: search.Operator.NONEOF,
+							values:estExistedItems
+						}));
+					}
+
+				}
 				//end
 				
 				do{
