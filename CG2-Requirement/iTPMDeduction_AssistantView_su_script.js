@@ -632,7 +632,8 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				}
 
 				//getting the line value for the deduction
-				var expenseId,defaultRecvAccnt,lineMemo,createdFrom = params['custom_cfrom'];
+				var expenseId,lineMemo,createdFrom = params['custom_cfrom'],
+				receivbaleAccntsList;
 				if(createdFrom == 'inv'){
 					var recieveableAccnts = search.create({
 						type:search.Type.INVOICE,
@@ -663,29 +664,36 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						defaultRecvAccnt = configObj.getValue('ARACCOUNT');	
 						defaultRecvAccnt = (defaultRecvAccnt == '')?recievableAccntId:defaultRecvAccnt;
 					}
+				
+					receivbaleAccntsList = [{accountId:defaultRecvAccnt,amount:amount,fid:'credit',memo:lineMemo,recievable:true},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo,recievable:false}];
+		
 				}else if(createdFrom == 'ddn'){
 					var dedRec = record.load({
 						type:'customtransaction_itpm_deduction',
 						id:originalno
-					}),lineCount = dedRec.getLineCount('line');
-					for(var i = 0;i<lineCount;i++){
-						lineMemo = 'Deduction split from Deduction #'+dedRec.getText({fieldId:'tranid'});
-						if(i == 0)
-							defaultRecvAccnt = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:i});
-						else
-							expenseId = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:i});
-					}
+					});
+//					,lineCount = dedRec.getLineCount('line');
+//					for(var i = 0;i<lineCount;i++){
+//						lineMemo = 'Deduction split from Deduction #'+dedRec.getText({fieldId:'tranid'});
+//						if(i == 0)
+//							defaultRecvAccnt = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:i});
+//						else
+//							expenseId = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:i});
+//					}
+					
+					lineMemo = 'Deduction split from Deduction #'+dedRec.getText({fieldId:'tranid'});
+					expenseId = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:1});
+
+					receivbaleAccntsList = [{accountId:expenseId,amount:amount,fid:'credit',memo:lineMemo,recievable:false},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo,recievable:false}];
 				}
 
 				//adding the memo value in deduction record
 				deductionRec.setValue({
 					fieldId:'memo',
 					value:(memo!='')?memo:lineMemo,
-							ignoreFieldChange:true
+					ignoreFieldChange:true
 				})
 
-
-				var receivbaleAccntsList = [{accountId:defaultRecvAccnt,amount:amount,fid:'credit',memo:lineMemo},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo}];
 				log.debug('receivableAccntsList',receivbaleAccntsList)
 				receivbaleAccntsList.forEach(function(e){
 					deductionRec.selectNewLine({sublistId: 'line'});
@@ -701,11 +709,15 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						sublistId:'line',
 						fieldId:'memo',
 						value:e.memo
-					}).setCurrentSublistValue({
-						sublistId:'line',
-						fieldId:'entity',
-						value:customerno
-					}).commitLine({
+					})
+					if(e.recievable){
+						deductionRec.setCurrentSublistValue({
+							sublistId:'line',
+							fieldId:'entity',
+							value:customerno
+						})
+					}
+					deductionRec.commitLine({
 						sublistId: 'line'
 					});
 

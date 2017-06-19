@@ -57,9 +57,9 @@ define(['N/url','N/record','N/search'],
 					//applying the reversable GL impact to the parent deduction
 					var parentBalIsGreaterThanChild = (parentDedOpenBal > childDedAmount);
 
-					if(childDedAmount == parentDedOpenBal || parentBalIsGreaterThanChild){
-						createReversalJournalEntry(parentDedutionRecId,childDedAmount,parentDedOpenBal,childDedEntryNo);
-					}
+//					if(childDedAmount == parentDedOpenBal || parentBalIsGreaterThanChild){
+//						createReversalJournalEntry(parentDedutionRecId,childDedAmount,parentDedOpenBal,childDedEntryNo);
+//					}
 
 					if(parentBalIsGreaterThanChild){
 
@@ -87,8 +87,8 @@ define(['N/url','N/record','N/search'],
 							copiedDeductionRec.setSublistValue({
 								sublistId:'line',
 								fieldId:(i==0)?'credit':'debit',
-										value:remainingAmount,
-										line:i
+								value:remainingAmount,
+								line:i
 							});
 						}
 
@@ -103,8 +103,23 @@ define(['N/url','N/record','N/search'],
 						}).tranid;
 
 						//again creating the Journal entry for new child deduction record
-						createReversalJournalEntry(parentDedutionRecId,remainingAmount,remainingAmount,childDedEntryNo);
+//						createReversalJournalEntry(parentDedutionRecId,remainingAmount,remainingAmount,childDedEntryNo);
 					}
+					
+					//loading the parent record again why because parentDeductionRec already save 
+					//thats why we are loading the record newly					
+					record.submitFields({
+					    type: 'customtransaction_itpm_deduction',
+					    id: parentDedutionRecId,
+					    values: {
+					    	custbody_itpm_ddn_openbal: 0
+					    },
+					    options: {
+					        enableSourcing: false,
+					        ignoreMandatoryFields : true
+					    }
+					});
+					
 				}
 			}
 		}catch(e){

@@ -61,6 +61,26 @@ function(record, redirect, serverWidget, search, runtime) {
 					accRecCurrentIndex += accRecMax;
 					totalAccRecCount += accRecCount;
 				}while(accRecCount == accRecMax);
+				
+				
+				var accountPayResult = search.create({
+					type: search.Type.ACCOUNT,
+					columns: ['internalid','name'],
+					filters: [['type','is','AcctPay'],'and',['isinactive','is',false]]
+				}).run();
+				
+				//getting the account payables list
+				var totalAccRecCount = 0,
+				accRecCount = 0, accRecMax = 1000,
+				accRecCurrentIndex = 0, accountPaysbles=[]
+				do{
+					var res = accountPayResult.getRange(accRecCurrentIndex, accRecCurrentIndex + accRecMax);
+					accountPaysbles=accountPaysbles.concat(res);
+					accRecCount = res.length;
+					accRecCurrentIndex += accRecMax;
+					totalAccRecCount += accRecCount;
+				}while(accRecCount == accRecMax);
+				
 
 				var form = serverWidget.createForm({
 					title: 'iTPM Preferences'
@@ -83,26 +103,15 @@ function(record, redirect, serverWidget, search, runtime) {
 					source:'custpage_bb',
 					container:'custpage_setup_preference'
 				});
-				var selectExpense = form.addField({
-					id: 'custpage_itpm_pref_ddnaccount',
-					type: serverWidget.FieldType.SELECT,
-					label: 'Deduction Account',
-					container:'custpage_setup_preference'
-				});
-				//add Default items to select field
-				selectExpense.addSelectOption({
-					value : ' ',
-					text : ' '
-				});
-
+				
 				//Expense account field which is mandatory
 				var expenseAccntField = form.addField({
 					id: 'custpage_itpm_pref_expenseaccount',
 					type: serverWidget.FieldType.SELECT,
 					label: 'Expense Account',
 					container:'custpage_setup_preference'
-				}).updateLayoutType({
-				    layoutType : serverWidget.FieldLayoutType.ENDROW
+				}).updateBreakType({
+				    breakType : serverWidget.FieldBreakType.STARTCOL
 				});
 				expenseAccntField.isMandatory = true;
 				//add Default items to select field
@@ -111,18 +120,47 @@ function(record, redirect, serverWidget, search, runtime) {
 					text : ' '
 				});
 				
+				var selectExpense = form.addField({
+					id: 'custpage_itpm_pref_ddnaccount',
+					type: serverWidget.FieldType.SELECT,
+					label: 'Deduction Account',
+					container:'custpage_setup_preference'
+				})
+				//add Default items to select field
+				selectExpense.addSelectOption({
+					value : ' ',
+					text : ' '
+				});
+
+				//Accounts Payable account field
+				var accountPayableField = form.addField({
+					id: 'custpage_itpm_pref_accountpayable',
+					type: serverWidget.FieldType.SELECT,
+					label: 'Accounts Payable',
+					container:'custpage_setup_preference'
+				}).updateBreakType({
+				    breakType : serverWidget.FieldBreakType.STARTCOL
+				});
+				accountPayableField.isMandatory = true;
+				//add Default items to select field
+				accountPayableField.addSelectOption({
+					value : ' ',
+					text : ' '
+				});
+				
+				//Over pay account field
 				var selectAccountRecords = form.addField({
 					id: 'custpage_itpm_pref_overpayaccount',
 					type: serverWidget.FieldType.SELECT,
 					label: 'Overpay Account',
 					container:'custpage_setup_preference'
-				});
+				})
 				//add Default items to select field
 				selectAccountRecords.addSelectOption({
 					value : ' ',
 					text : ' '
 				});
-
+				
 				form.addSubmitButton({
 					label: 'Submit'
 				});
@@ -145,6 +183,7 @@ function(record, redirect, serverWidget, search, runtime) {
 					AccountRecordId = preferanceRecord.getValue('custrecord_itpm_pref_overpayaccount'),
 					DdnExpenseId = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount'),
 					ExpenseId = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount'),
+					accountPayableId =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount'),
 					matchls = preferanceRecord.getValue('custrecord_itpm_pref_matchls'),
 					matchbb = preferanceRecord.getValue('custrecord_itpm_pref_matchbb');
 					radioBtn.defaultValue = (matchls == true)?'custpage_ls':'custpage_bb';
@@ -165,7 +204,7 @@ function(record, redirect, serverWidget, search, runtime) {
 						isSelected : e.getValue('internalid') == DdnExpenseId
 					});
 				});
-				log.debug('ExpenseId',ExpenseId)
+				
 				//add items of type Expense in Account records to select field
 				finalExpenseResult.forEach(function(e){
 					expenseAccntField.addSelectOption({
@@ -175,6 +214,14 @@ function(record, redirect, serverWidget, search, runtime) {
 					});
 				});
 				
+				//add items of type Account Payable in Account records to select field
+				accountPaysbles.forEach(function(e){
+					accountPayableField.addSelectOption({
+						value : e.getValue('internalid'),
+						text : e.getValue('name'),
+						isSelected : e.getValue('internalid') == accountPayableId
+					})
+				})
 				
 				
 				//adding a button to redirecting to the previous form
@@ -234,7 +281,8 @@ function(record, redirect, serverWidget, search, runtime) {
 		var deductionAccount = request.parameters.custpage_itpm_pref_ddnaccount,
 		overpayAccount = request.parameters.custpage_itpm_pref_overpayaccount,
 		expenseAccount = request.parameters.custpage_itpm_pref_expenseaccount,
-		settlementsType = request.parameters.custpage_matc;
+		settlementsType = request.parameters.custpage_matc,
+		accountPayableId = request.parameters.custpage_itpm_pref_accountpayable;
 		
 		preferanceRecord.setValue({
 		    fieldId: 'custrecord_itpm_pref_ddnaccount',
@@ -248,7 +296,11 @@ function(record, redirect, serverWidget, search, runtime) {
 		    fieldId: 'custrecord_itpm_pref_expenseaccount',
 		    value: expenseAccount,
 		    ignoreFieldChange: true
-		});
+		}).setValue({
+			fieldId:'custrecord_itpm_pref_settlementsaccount',
+			value:accountPayableId,
+			ignoreFieldChange:true
+		})
 		
 		
 		if(settlementsType == 'custpage_ls'){
