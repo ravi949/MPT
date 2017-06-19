@@ -32,7 +32,7 @@ define(['N/search'],
 
 			return (allowanceResult.length ==0).toString();
 		}catch(e){
-			log.debug('exception in before creation of kpi check for allownaces',e);
+			log.error('exception in before creation of kpi check for allownaces',e);
 		}
 	}
 

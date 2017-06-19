@@ -28,7 +28,7 @@ function(record, redirect, search) {
 				parameters:{fid:deductionRec.id,from:'edit'}
 			}); 
 		}catch(e){
-			log.debug('Exception redirect to Deduction edit mode ',e);
+			log.error('Exception redirect to Deduction edit mode ',e);
 		}
     }
 

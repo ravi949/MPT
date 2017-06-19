@@ -146,10 +146,9 @@ function(serverWidget,redirect,search,record) {
 					parameters:{pid:params.custpage_promotion,ddn:params.custpage_ddn_id,from:'ddn'}
 				});
 			}
-		}catch(ex)
-		{
-			log.debug('Exception',ex);
-		}
+		}catch (e) {
+    		log.error(e.name,e.message);
+    	}
 	}
 	return {
 		onRequest: onRequest

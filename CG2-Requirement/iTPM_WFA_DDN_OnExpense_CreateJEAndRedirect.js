@@ -58,11 +58,6 @@ function(redirect,search,record) {
     				line:0
     			}).setSublistValue({
     				sublistId:'line',
-    				fieldId:'entity',
-    				value:DeductionRec.getValue('custbody_itpm_ddn_customer'),
-    				line:0
-    			}).setSublistValue({
-    				sublistId:'line',
     				fieldId:'memo',
     				value:memo,
     				line:0
@@ -80,11 +75,6 @@ function(redirect,search,record) {
     				line:1
     			}).setSublistValue({
     				sublistId:'line',
-    				fieldId:'entity',
-    				value:DeductionRec.getValue('custbody_itpm_ddn_customer'),
-    				line:1
-    			}).setSublistValue({
-    				sublistId:'line',
     				fieldId:'memo',
     				value:memo,
     				line:1
@@ -94,27 +84,33 @@ function(redirect,search,record) {
     			
     			//changing the status of the deduction record to resolved
     			if(JERecId){
-    				record.load({
-        				type:'customtransaction_itpm_deduction',
-        				id:DeductionRec.id
-        			}).setValue({
-        				fieldId:'custbody_itpm_ddn_openbal',
-        				value:0
-        			}).setValue({
-        				fieldId:'transtatus',
-        				value:'C'
-        			}).save({enableSourcing:false,ignoreMandatoryFields:true});
+//					    values: {
+//					    	custbody_itpm_ddn_openbal: 0,
+//					    	transtatus:'C'
+//					    }
+    				
+    				record.submitFields({
+					    type: 'customtransaction_itpm_deduction',
+					    id: DeductionRec.id,
+					    values: {
+					    	custbody_itpm_ddn_openbal: 0
+					    },
+					    options: {
+					        enableSourcing: false,
+					        ignoreMandatoryFields : true
+					    }
+					});
     			}
     			
-    			redirect.toRecord({
-    				type:record.Type.JOURNAL_ENTRY,
-    				id:JERecId
-    			})
+//    			redirect.toRecord({
+//    				type:record.Type.JOURNAL_ENTRY,
+//    				id:JERecId
+//    			})
     			return false
     		});
     		
     	}catch(e){
-    		log.debug('excrption while redirect',e)
+    		log.error('excrption while redirect',e)
     	}
     }
 

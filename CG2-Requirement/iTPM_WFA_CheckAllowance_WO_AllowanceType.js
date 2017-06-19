@@ -40,7 +40,7 @@ function(search,runtime) {
     		
     		return estimatedQtyId;
     	}catch(e){
-    		log.debug('exception in wo allowance type',e)
+    		log.error('exception in wo allowance type',e)
     	}
     
     }

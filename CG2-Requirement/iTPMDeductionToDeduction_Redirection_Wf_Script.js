@@ -30,7 +30,7 @@ define(['N/redirect'],
 				parameters:{fid:deductionRec.id,from:'ddn'}
 			}); 
 		}catch(e){
-			log.debug('exception redirect to deduction',e);
+			log.error('exception redirect to deduction',e);
 		}
 	}
 

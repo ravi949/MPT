@@ -247,7 +247,7 @@ function(serverWidget,search,redirect,record,runtime) {
     			validAccountField.isMandatory = true;
 
     			//checking the subsidiaries feature is enabled or not
-    			var validAccountFilter = [['type','is',finanImpact.charAt(0).toUpperCase()+finanImpact.slice(1)]];
+    			var validAccountFilter = [['type','is',finanImpact.charAt(0).toUpperCase()+finanImpact.slice(1)],'and',['isinactive','is',false]];
     			(isSubsidiaryExist)? validAccountFilter.push('and',['subsidiary','is',subsidiaryId]):'';
 
     			//search all accounts using above filter and added the accounts list to the VALID ACCOUNTS FIELD.
@@ -286,7 +286,7 @@ function(serverWidget,search,redirect,record,runtime) {
     			search.create({
     				type:search.Type.ACCOUNT,
     				columns:['internalid','name'],
-    				filters:[['internalid','is',validAccounts]]
+    				filters:[['internalid','is',validAccounts],'and',['isinactive','is',false]]
     			}).run().each(function(e){
     				defaultAccountField.addSelectOption({
     					value:e.getValue('internalid'),
@@ -310,8 +310,8 @@ function(serverWidget,search,redirect,record,runtime) {
 
     		response.writePage(assistant);
     	}catch(e){
-    		log.debug('exception',e)
-    		throw Error(e.message);
+    		log.error('exception',e)
+//    		throw Error(e.message);
     	}
     }
 

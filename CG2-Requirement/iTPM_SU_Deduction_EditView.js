@@ -39,7 +39,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				invlocation = deductionRec.getValue('location'), //location from original dedution
 				currencyId = deductionRec.getValue('currency'), //currency from original dedution
 				currencyText = deductionRec.getText('currency'), //currency from original dedution
-				currentUserId = runtime.getCurrentUser().id,
+				currentUserId = deductionRec.getValue('custbody_itpm_ddn_assignedto'),
 				totalSettlements = 0,
 				customerRec = record.load({
 					type:record.Type.CUSTOMER,
@@ -512,7 +512,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				
 			}
 		}catch(e){
-			log.debug('Error Occures',e);
+			log.error('Error Occures',e);
 			if(e.message == "invalid amount"){
 				throw "Amount not matched to the original Amount";
 			}
@@ -533,7 +533,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 		return search.create({
 			type:rectype,
 			columns:['internalid','name'],
-			filters:['subsidiary','is',subid]
+			filters:[['subsidiary','is',subid],'and',['isinactive','is',false]]
 		});
 	}
 	  //getting the Employees list based on subsidiary.
@@ -541,7 +541,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
     	return search.create({
     		type:search.Type.EMPLOYEE,
     		columns:['internalid','entityid'],
-    		filters:['subsidiary','is',subid]
+    		filters:[['subsidiary','is',subid],'and',['isinactive','is',false]]
     	});
     }
 	return {

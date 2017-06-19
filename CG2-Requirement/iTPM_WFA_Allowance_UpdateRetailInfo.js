@@ -42,7 +42,7 @@ define(['N/record', 'N/search'],
 				});
 			}
 		}catch(e){
-			log.debug('exception',e.message);
+			log.error('exception',e.message);
 		}
 	}
 

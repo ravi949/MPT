@@ -18,17 +18,20 @@ function(redirect,runtime,search,record) {
      * @Since 2015.2
      */
     function beforeLoad(scriptContext) {
-    	var eventType = scriptContext.type,contextType = runtime.executionContext
-    	if(contextType == 'USERINTERFACE' && eventType == 'edit'){
-    		var settlementRec = scriptContext.newRecord;
-        	redirect.toSuitelet({
-        		scriptId:'customscript_itpm_set_suview_onedit',
-         	    deploymentId:'customdeploy_itpm_set_suview_onedit',
-         	   	returnExternalUrl: false,
-         	    parameters:{sid:settlementRec.id}
-        	});   
+    	try{
+    		var eventType = scriptContext.type,contextType = runtime.executionContext
+    		if(contextType == 'USERINTERFACE' && eventType == 'edit'){
+    			var settlementRec = scriptContext.newRecord;
+    			redirect.toSuitelet({
+    				scriptId:'customscript_itpm_set_suview_onedit',
+    				deploymentId:'customdeploy_itpm_set_suview_onedit',
+    				returnExternalUrl: false,
+    				parameters:{sid:settlementRec.id}
+    			});   
+    		}
+    	}catch (e) {
+    		log.error(e.name,e.message);
     	}
-    	
     }
 
     /**

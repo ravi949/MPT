@@ -45,8 +45,8 @@ define(['N/record'],
 				ignoreMandatoryFields: true
 			});
 		}catch(e){
-			log.debug('exception in kpi creation',e);
-			throw Error(e.message)
+			log.error('exception in kpi creation',e);
+//			throw Error(e.message)
 		}
 
 	}

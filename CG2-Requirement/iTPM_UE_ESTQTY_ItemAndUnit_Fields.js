@@ -77,6 +77,29 @@ function(record, search, serverWidget, runtime, url, https) {
 					values: [promotionId]
 				}));
 				
+				//filtering the already existed estimated quantity items from the list
+				var estExistedItems = [];
+				if(sc.type == 'create'||sc.type=='copy'){
+					search.create({
+						  type:'customrecord_itpm_estquantity',
+						  columns:['internalid','custrecord_itpm_estqty_item'],
+						  filters:[['custrecord_itpm_estqty_promodeal','is',promotionId],'and',['isinactive','is',false]]
+					  }).run().each(function(e){
+						  estExistedItems.push(e.getValue('custrecord_itpm_estqty_item'));
+						  return true
+					  });
+					log.debug('estExistedItems',estExistedItems)
+					if(estExistedItems.length>0){
+						itemSearch.filters.push(search.createFilter({
+							name: 'custrecord_itpm_all_item',
+							operator: search.Operator.NONEOF,
+							values:estExistedItems
+						}));
+					}
+
+				}
+				//end
+				
 				do{
 					var items = itemSearch.run().getRange(rangeStart, rangeStart + rangeStep);
 					for (var x = 0; x < items.length; x++){
@@ -119,7 +142,8 @@ function(record, search, serverWidget, runtime, url, https) {
 				}
 			}
 		}catch(e){
-			throw Error(e.message)
+			log.error(e.name,e.message);
+//			throw Error(e.message)
 		}
 	}
 	

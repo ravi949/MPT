@@ -40,7 +40,7 @@ define(['N/search'],
 
 			return fixedAmountNotZero.toString();
 		}catch(e){
-			log.debug('exception in fixed amount validation',e);
+			log.error('exception in fixed amount validation',e);
 		}
 	}
 

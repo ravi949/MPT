@@ -38,6 +38,7 @@ function(record, search, url) {
      */
     function fieldChanged(scriptContext) 
     {
+      try{
     	var currentRecord = scriptContext.currentRecord;
 		var fieldName = scriptContext.fieldId,
 		settlementReq = currentRecord.getValue('custom_itpm_st_reql'),
@@ -97,10 +98,10 @@ function(record, search, url) {
     			value:(promoId == ' ')?'':promotionRec.getText({fieldId:"custrecord_itpm_p_customer"})
     		}).setValue({
     			fieldId:'custpage_promotion_ship_startdate',
-    			value:(promoId == ' ')?'':promotionRec.getValue({fieldId:"custrecord_itpm_p_shipstart"})
+    			value:(promoId == ' ')?'':promotionRec.getText({fieldId:"custrecord_itpm_p_shipstart"})
     		}).setValue({
     			fieldId:'custpage_promotion_ship_enddate',
-    			value:(promoId == ' ')?'':promotionRec.getValue({fieldId:"custrecord_itpm_p_shipend"})
+    			value:(promoId == ' ')?'':promotionRec.getText({fieldId:"custrecord_itpm_p_shipend"})
     		}).setValue({
     			fieldId: 'custpage_promotion_liability',
     			value:(promoId == ' ')?'':netPromoLblty
@@ -108,6 +109,11 @@ function(record, search, url) {
 
     		document.getElementById('promolink').text = (promoId != ' ')?currentRecord.getText('custpage_promotion'):'';
     		document.getElementById('promolink').href = (promoId != ' ')?url.resolveRecord({recordType:'customrecord_itpm_promotiondeal',recordId:promoId}):''; 
+    	}
+    	
+    	}catch(e){
+    		log.error(e.name,e.message);
+    		console.log(e.message);
     	}
     }
 

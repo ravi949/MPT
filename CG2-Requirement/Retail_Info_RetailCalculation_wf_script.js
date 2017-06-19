@@ -81,7 +81,7 @@ define(['N/search','N/record'],
 				}  
 			}
 		}catch(e){
-			log.debug('exception in retail calculation',e);
+			log.error('exception in retail calculation',e);
 		}
 	}
 

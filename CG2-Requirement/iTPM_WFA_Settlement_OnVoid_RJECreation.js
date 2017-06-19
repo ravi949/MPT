@@ -95,7 +95,7 @@ function(record,redirect) {
 			})
 			
     	}catch(e){
-    		log.debug('exception',e)
+    		log.error('exception',e)
     	}
     }
 

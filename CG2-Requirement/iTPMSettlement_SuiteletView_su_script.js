@@ -48,8 +48,8 @@ function(serverWidget,search,record,redirect,config,format,url) {
     			saveTheSettlement(request.parameters);
     		}
     	}catch(e){
-    		log.debug('exception in settlemet suitlet',e);
-    		throw Error(e.message)
+    		log.error('exception in settlemet suitlet',e);
+//    		throw Error(e.message)
     	}
     }
     

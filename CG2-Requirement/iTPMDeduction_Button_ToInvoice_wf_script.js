@@ -40,7 +40,7 @@ define(['N/search'],
 
 			return (invConditionsMet && invoiceDeductionsAreEmpty).toString();
 		}catch(e){
-			log.debug('exception',e)
+			log.error('exception',e)
 		}
 	}
 

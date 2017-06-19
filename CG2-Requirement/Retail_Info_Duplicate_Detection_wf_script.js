@@ -16,26 +16,29 @@ function(search) {
      * @Since 2016.1
      */
     function onAction(scriptContext) {
-    	var reatailRec = scriptContext.newRecord;
-    	var promoDeal = reatailRec.getValue('custrecord_itpm_rei_promotiondeal');
-    	var item = reatailRec.getValue('custrecord_itpm_rei_item');
-    	
-    	var reatailFilter = [['custrecord_itpm_rei_promotiondeal','is',promoDeal],'and',
-    	    		         ['custrecord_itpm_rei_item','is',item],'and',
-    	    		         ['isinactive','is',false]];
-    	
-    	
-    	if(reatailRec.id){
-    		reatailFilter.push('and',['internalid','noneof',reatailRec.id]);
+    	try{    	
+    		var reatailRec = scriptContext.newRecord;
+    		var promoDeal = reatailRec.getValue('custrecord_itpm_rei_promotiondeal');
+    		var item = reatailRec.getValue('custrecord_itpm_rei_item');
+
+    		var reatailFilter = [['custrecord_itpm_rei_promotiondeal','is',promoDeal],'and',
+    		                     ['custrecord_itpm_rei_item','is',item],'and',
+    		                     ['isinactive','is',false]];
+
+    		if(reatailRec.id){
+    			reatailFilter.push('and',['internalid','noneof',reatailRec.id]);
+    		}
+
+    		var duplicateDetected = search.create({
+    			type:'customrecord_itpm_promoretailevent',
+    			columns:['internalid'],
+    			filters:reatailFilter
+    		}).run().getRange(0,2).length > 0;
+
+    		return duplicateDetected.toString();	
+    	}catch (e) {
+    		log.error(e.name,e.message);
     	}
-    	
-    	var duplicateDetected = search.create({
-    		type:'customrecord_itpm_promoretailevent',
-    		columns:['internalid'],
-    		filters:reatailFilter
-    	}).run().getRange(0,2).length > 0;
-    
-    	return duplicateDetected.toString();
     	
     }
 

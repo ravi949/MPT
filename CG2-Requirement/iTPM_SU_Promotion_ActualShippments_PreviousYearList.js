@@ -6,7 +6,7 @@
  */
 define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 
-		function(serverWidget,search,record,runtime,format) {
+function(serverWidget,search,record,runtime,format) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.

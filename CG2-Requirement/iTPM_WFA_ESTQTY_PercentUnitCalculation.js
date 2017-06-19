@@ -50,7 +50,7 @@ function(runtime,search) {
     		log.debug('percentRateUnit',percentRateUnit)
     		return percentRateUnit;
     	}catch(e){
-    		log.debug('exception in percent per unit',e);
+    		log.error('exception in percent per unit',e);
     	}
     }
 

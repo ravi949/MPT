@@ -16,25 +16,29 @@ function(search) {
      * @Since 2016.1
      */
     function onAction(scriptContext) {
-    	 var promoDeal = scriptContext.newRecord.getValue('custrecord_itpm_rei_promotiondeal');
-         var notHaveAllowances = false;
-         
-         //before load searching the promoDeal have any allowances or not.
-         //if not we are return the error
-         var promoDealAllowanceSearch = search.create({
-      	      type:'customrecord_itpm_promotiondeal',
-      	      columns:['custrecord_itpm_all_promotiondeal.internalid'],
-      	      filters:[['internalid','is',promoDeal],'and',['isinactive','is',false],'and',
-      	               ['custrecord_itpm_all_promotiondeal.isinactive','is',false]]
-      	  });
+    	try{
+    		var promoDeal = scriptContext.newRecord.getValue('custrecord_itpm_rei_promotiondeal');
+    		var notHaveAllowances = false;
 
-         promoDealAllowanceSearch.run().each(function(result){
-      	   if(result.getValue({name:'internalid',join:'custrecord_itpm_all_promotiondeal'}) =='')
-      		   notHaveAllowances = true
-      	   return false;	   
-         })
-         
-         return notHaveAllowances.toString();
+    		//before load searching the promoDeal have any allowances or not.
+    		//if not we are return the error
+    		var promoDealAllowanceSearch = search.create({
+    			type:'customrecord_itpm_promotiondeal',
+    			columns:['custrecord_itpm_all_promotiondeal.internalid'],
+    			filters:[['internalid','is',promoDeal],'and',['isinactive','is',false],'and',
+    			         ['custrecord_itpm_all_promotiondeal.isinactive','is',false]]
+    		});
+
+    		promoDealAllowanceSearch.run().each(function(result){
+    			if(result.getValue({name:'internalid',join:'custrecord_itpm_all_promotiondeal'}) =='')
+    				notHaveAllowances = true
+    				return false;	   
+    		})
+
+    		return notHaveAllowances.toString();
+    	}catch (e) {
+    		log.error(e.name,e.message);
+    	}
     }
 
     return {
