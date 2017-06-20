@@ -52,11 +52,11 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.HIDDEN
 				}).defaultValue = request.parameters.fid; 
-				/*------primary info start-----*/
+				/*------PRIMARY INFORMATION start-----*/
 
 				ddnForm.addFieldGroup({
 					id:'custom_primry_information',
-					label:'Primary Information'
+					label:'PRIMARY INFORMATION'
 				});
 
 				ddnForm.addField({
@@ -217,12 +217,12 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 						});
 					}
 				
-				/*-----primary info end-----*/
+				/*-----PRIMARY INFORMATION end-----*/
 
-				/*------Classification start ------*/
+				/*------CLASSIFICATION start ------*/
 				ddnForm.addFieldGroup({
 					id : 'custom_classification',
-					label : 'Classification'
+					label : 'CLASSIFICATION'
 				});
 
 				//setting the SUBSIDIARY Value
@@ -325,7 +325,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					return true;
 				})
 				 
-				/*------Classification end --------*/	
+				/*------CLASSIFICATION end --------*/	
 
 				/*------- TASK DETAIL start --------*/
 				
