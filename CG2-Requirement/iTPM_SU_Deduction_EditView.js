@@ -27,29 +27,19 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				});
 //				log.debug('ddnRec',deductionRec);
 				
-				var invoiceId = deductionRec.getValue('custbody_itpm_ddn_invoice'),
-				invoiceText = deductionRec.getText('custbody_itpm_ddn_invoice'),
-				subsid = deductionRec.getValue('subsidiary'), //subsidiary from original dedution
-				subsidiaryText = deductionRec.getText('subsidiary'), //subsidiary from original dedution
+				var subsid = deductionRec.getValue('subsidiary'), //subsidiary from original dedution
 				customerId = deductionRec.getValue('custbody_itpm_ddn_customer'), //customer from original dedution
-				customerEntity = deductionRec.getText('custbody_itpm_ddn_customer'), //customer from original dedution
-				invAmount = deductionRec.getValue('custbody_itpm_ddn_amount'),
-				invclass = deductionRec.getValue('class'), //class from original dedution
-				invdept = deductionRec.getValue('department'), //dept from original dedution
-				invlocation = deductionRec.getValue('location'), //location from original dedution
-				currencyId = deductionRec.getValue('currency'), //currency from original dedution
-				currencyText = deductionRec.getText('currency'), //currency from original dedution
+				ddnclass = deductionRec.getValue('class'), //class from original dedution
+				ddndept = deductionRec.getValue('department'), //dept from original dedution
+				ddnlocation = deductionRec.getValue('location'), //location from original dedution
 				currentUserId = deductionRec.getValue('custbody_itpm_ddn_assignedto'),
-				totalSettlements = 0,
 				customerRec = record.load({
 					type:record.Type.CUSTOMER,
 					id:customerId
 				}),
-				defaultRecvAccnt = customerRec.getValue('receivablesaccount'),
 				customerParentId = customerRec.getValue('parent'),
 				originalDdnValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_originalddn'}),
 				originalDdnText = deductionRec.getText({ fieldId: 'custbody_itpm_ddn_originalddn'});
-				
 				
 				var ddnForm = serverWidget.createForm({
 					title: '- ITPM Deduction'
@@ -90,6 +80,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					value:(originalDdnValue =='')?' ':originalDdnValue,
 					text:(originalDdnText =='')?' ':originalDdnText
 				})
+
 				ddnForm.addField({
 					id : 'custom_itpm_ddn_otherrefcode',
 					type : serverWidget.FieldType.TEXT,
@@ -97,6 +88,21 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					container:'custom_primry_information'
 				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_otherrefcode'});
 
+				var invoice = ddnForm.addField({
+					id : 'custom_itpm_ddn_invoice',
+					type : serverWidget.FieldType.SELECT,
+					label:'Invoice',
+					container:'custom_primry_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
+				});
+				invoice.addSelectOption({
+					value : deductionRec.getValue('custbody_itpm_ddn_invoice'),
+					text : deductionRec.getText('custbody_itpm_ddn_invoice'),
+					isSelected:true
+				});
 				if(customerParentId != ''){
 					var customerParent = ddnForm.addField({
 						id : 'custom_parent',
@@ -105,8 +111,6 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 						container:'custom_primry_information'
 					}).updateDisplayType({
 						displayType : serverWidget.FieldDisplayType.DISABLED
-					}).updateBreakType({
-						breakType : serverWidget.FieldBreakType.STARTCOL
 					}).addSelectOption({
 						value : customerParentId,
 						text : customerRec.getText('parent'),
@@ -118,15 +122,49 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					type : serverWidget.FieldType.DATE,
 					label:'Date',
 					container:'custom_primry_information'
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
 				}).defaultValue = format.format({
 					value: deductionRec.getValue({ fieldId:'trandate'}),
 					type: format.Type.DATE
 				});
+				
+				var status = ddnForm.addField({
+					id : 'custom_status',
+					type : serverWidget.FieldType.SELECT,
+					label:'Status',
+					container:'custom_primry_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				});
+
+				status.addSelectOption({
+					value : deductionRec.getValue({ fieldId: 'transtatus'}),
+					text : deductionRec.getText({ fieldId: 'transtatus'}),
+					isSelected:true
+				});
+
+				var customer = ddnForm.addField({
+					id : 'custom_customer',
+					type : serverWidget.FieldType.SELECT,
+					label:'Customer',
+					container:'custom_primry_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				});
+				customer.addSelectOption({
+					text:deductionRec.getText('custbody_itpm_ddn_customer'),
+					value:customerId,
+					isSelected:true
+				})
+				 
 				var postPeriod = ddnForm.addField({
 					id : 'custom_postingperiod',
 					type : serverWidget.FieldType.SELECT,
 					label:'POSTING PERIOD',
 					container:'custom_primry_information'
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
 				}),
 				ppid = deductionRec.getValue({ fieldId:'postingperiod'});
 				postPeriod.addSelectOption({
@@ -145,43 +183,40 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 						});
 						return true;
 					})
-				/*getAccountingPeriodList(subsid,'class').run().each(function(e){
-					postPeriod.addSelectOption({
-						value :e.getValue('internalid'),
-						text : e.getValue('name'),
-						isSelected:(invclass == e.getValue('internalid'))
-					});
-					return true;
-				})*/
-				var invoice = ddnForm.addField({
-					id : 'custom_itpm_ddn_invoice',
-					type : serverWidget.FieldType.SELECT,
-					label:'Invoice',
+					
+					//setting the Disputed value
+				ddnForm.addField({
+					id : 'custom_itpm_ddn_disputed',
+					type : serverWidget.FieldType.CHECKBOX,
+					label:'DISPUTED?',
 					container:'custom_primry_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
-				invoice.addSelectOption({
-					value : invoiceId,
-					text : invoiceText,
-					isSelected:true
-				});
-
-				var customer = ddnForm.addField({
-					id : 'custom_customer',
-					type : serverWidget.FieldType.SELECT,
-					label:'Customer',
-					container:'custom_primry_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
-				customer.addSelectOption({
-					text:customerEntity,
-					value:customerId,
-					isSelected:true
-				})
+				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_disputed'})?'T':'F';
+				
+				//iTPM Applied To Transaction field 				
+					var aplydToTrans = ddnForm.addField({
+						id : 'custom_itpm_ddn_appliedto',
+						type : serverWidget.FieldType.SELECT,
+						label:'Applied To',
+						container:'custom_primry_information'
+					}).updateDisplayType({
+						displayType : serverWidget.FieldDisplayType.DISABLED
+					});
+					if(deductionRec.getValue('custbody_itpm_set_deduction')){
+						aplydToTrans.addSelectOption({
+							text:deductionRec.getText('custbody_itpm_set_deduction'),
+							value:deductionRec.getValue('custbody_itpm_set_deduction'),
+							isSelected:true
+						});
+					}else{
+						aplydToTrans.addSelectOption({
+							text:' ',
+							value:' ',
+							isSelected:true
+						});
+					}
+				
 				/*-----primary info end-----*/
 
 				/*------Classification start ------*/
@@ -190,27 +225,38 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					label : 'Classification'
 				});
 
-				var classField = ddnForm.addField({
-					id : 'custom_class',
+				//setting the SUBSIDIARY Value
+				var subsidiary = ddnForm.addField({
+					id : 'custom_subsidiary',
 					type : serverWidget.FieldType.SELECT,
-					label:'Class',
+					label:'Subsidiary',
 					container:'custom_classification'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
 				});
 
-				classField.addSelectOption({
-					value :' ',
-					text : ' '
+				subsidiary.addSelectOption({
+					value : subsid,
+					text : deductionRec.getText('subsidiary'),
+					isSelected:true
 				});
-
-				getList(subsid,'class').run().each(function(e){
-					classField.addSelectOption({
-						value :e.getValue('internalid'),
-						text : e.getValue('name'),
-						isSelected:(invclass == e.getValue('internalid'))
-					});
-					return true;
-				})
-
+				
+				//setting the CURRENCY value
+				var currency = ddnForm.addField({
+					id : 'custom_currency',
+					type : serverWidget.FieldType.SELECT,
+					label:'Currency',
+					container:'custom_classification'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				});
+				currency.addSelectOption({
+					value : deductionRec.getValue('currency'),
+					text : deductionRec.getText('currency'),
+					isSelected:true
+				});
+				
+				//Location field
 				var location = ddnForm.addField({
 					id : 'custom_location',
 					type : serverWidget.FieldType.SELECT,
@@ -228,10 +274,11 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					location.addSelectOption({
 						value:e.getValue('internalid'),
 						text:e.getValue('name'),
-						isSelected:(invlocation == e.getValue('internalid'))
+						isSelected:(ddnlocation == e.getValue('internalid'))
 					})
 					return true;
 				})
+				//Department field
 				var dept = ddnForm.addField({
 					id : 'custom_department',
 					type : serverWidget.FieldType.SELECT,
@@ -249,105 +296,50 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					dept.addSelectOption({
 						value:e.getValue('internalid'),
 						text:e.getValue('name'),
-						isSelected:(invdept == e.getValue('internalid'))
+						isSelected:(ddndept == e.getValue('internalid'))
 					})
 					return true;
 				})
-				/*------Classification end --------*/	
-
-				/*------- Detail info start --------*/
-
-				ddnForm.addFieldGroup({
-					id : 'custom_detail_information',
-					label : 'Detailed Information'
-				});
-
-				//setting the SUBSIDIARY Value
-				var subsidiary = ddnForm.addField({
-					id : 'custom_subsidiary',
+				
+				//Class field
+				var classField = ddnForm.addField({
+					id : 'custom_class',
 					type : serverWidget.FieldType.SELECT,
-					label:'Subsidiary',
-					container:'custom_detail_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
-
-				subsidiary.addSelectOption({
-					value : subsid,
-					text : subsidiaryText,
-					isSelected:true
-				});
-				//setting the CURRENCY value
-				var currency = ddnForm.addField({
-					id : 'custom_currency',
-					type : serverWidget.FieldType.SELECT,
-					label:'Currency',
-					container:'custom_detail_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
-				currency.addSelectOption({
-					value : currencyId,
-					text : currencyText,
-					isSelected:true
-				});
-
-				//setting the TOTAL SETTLEMENT value
-				ddnForm.addField({
-					id : 'custom_total_settlements',
-					type : serverWidget.FieldType.INTEGER,
-					label:'Total Settlements',
-					container:'custom_detail_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_totsett'});
-
-				//setting the Disputed value
-				ddnForm.addField({
-					id : 'custom_itpm_ddn_disputed',
-					type : serverWidget.FieldType.CHECKBOX,
-					label:'DISPUTED?',
-					container:'custom_detail_information'
-				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_disputed'})?'T':'F';
-
-				//setting the OPEN BALANCE value
-				ddnForm.addField({
-					id : 'custom_itpm_ddn_openbal',
-					type : serverWidget.FieldType.CURRENCY,
-					label:'Open Balance',
-					container:'custom_detail_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
+					label:'Class',
+					container:'custom_classification'
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
-				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_openbal'});
+				});
 
-				//setting the AMOUNT
-				var amountField = ddnForm.addField({
-					id : 'custom_itpm_ddn_amount',
-					type : serverWidget.FieldType.CURRENCY,
-					label:'Amount',
-					container:'custom_detail_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				}).defaultValue = invAmount
+				classField.addSelectOption({
+					value :' ',
+					text : ' '
+				});
 
-				//setting the MEMO
-				ddnForm.addField({
-					id : 'custom_memo',
-					type : serverWidget.FieldType.TEXT,
-					label:'Memo',
-					container:'custom_detail_information'
-				}).defaultValue = deductionRec.getValue({ fieldId: 'memo'});
+				getList(subsid,'class').run().each(function(e){
+					classField.addSelectOption({
+						value :e.getValue('internalid'),
+						text : e.getValue('name'),
+						isSelected:(ddnclass == e.getValue('internalid'))
+					});
+					return true;
+				})
+				 
+				/*------Classification end --------*/	
 
+				/*------- TASK DETAIL start --------*/
+				
+				ddnForm.addFieldGroup({
+					id : 'custom_itpm_ddn_taskdetails',
+					label : 'TASK DETAIL'
+				});
+				 
 				//setting the employees list to this select field
 				var assignto = ddnForm.addField({
 					id : 'custom_itpm_ddn_assignedto',
 					type : serverWidget.FieldType.SELECT,
 					label:'Assigned To',
-					container:'custom_detail_information'
-				}).updateBreakType({
-					breakType : serverWidget.FieldBreakType.STARTCOL
+					container:'custom_itpm_ddn_taskdetails'
 				});
 				assignto.isMandatory = true;
 				getEmployees(subsid).run().each(function(e){
@@ -359,45 +351,83 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					return true;
 				});
 				assignto.isMandatory = true;
-
-				//setting the STATUS to open
-				var status = ddnForm.addField({
-					id : 'custom_status',
-					type : serverWidget.FieldType.SELECT,
-					label:'Status',
-					container:'custom_detail_information'
-				})//.defaultValue = ddnRec.getValue({ fieldId: 'transtatus'});
-				status.updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
-
-				status.addSelectOption({
-					value : 'A',
-					text : 'Open',
-					isSelected:true
-				});
-
+				 
 				//setting the DUE DATE/FOLLOW UP
 				//setting the 2 week date from today
-//				var twoWeekDate = new Date(new Date().setDate(new Date().getDate()+14));
 				var followupDate = ddnForm.addField({
 					id : 'custom_itpm_ddn_nextaction',
 					type : serverWidget.FieldType.DATE,
-					label:'Due Date / Follow Up',
-					container:'custom_detail_information'
+					label:'Due Date',
+					container:'custom_itpm_ddn_taskdetails'
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
 				}).defaultValue = format.format({
 					value: deductionRec.getValue({ fieldId:'custbody_itpm_ddn_nextaction'}),
 					type: format.Type.DATE
-				});//.defaultValue = ddnRec.getValue({ fieldId: ''});
-//				followupDate.isMandatory = true;
-//				followupDate.defaultValue = format.format({
-//					value:twoWeekDate,
-//					type: format.Type.DATE
-//				});
-				/*------- Detail info end --------*/  
-				  //getting the Class,Department and Location list based on subsidiary.
-			  
+				});
+				 
+				//setting the MEMO
+				ddnForm.addField({
+					id : 'custom_memo',
+					type : serverWidget.FieldType.TEXT,
+					label:'Memo',
+					container:'custom_itpm_ddn_taskdetails'
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
+				}).defaultValue = deductionRec.getValue({ fieldId: 'memo'});
+				
+				/*------- TASK DETAIL End --------*/
 
+				/*------- TRANSACTION DETAIL start --------*/
+				
+				ddnForm.addFieldGroup({
+					id : 'custom_itpm_ddn_transdetails',
+					label : 'TRANSACTION DETAIL'
+				});
+
+				//setting the AMOUNT
+				var amountField = ddnForm.addField({
+					id : 'custom_itpm_ddn_amount',
+					type : serverWidget.FieldType.CURRENCY,
+					label:'Amount',
+					container:'custom_itpm_ddn_transdetails'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				}).defaultValue = deductionRec.getValue('custbody_itpm_ddn_amount')
+
+				//setting the TOTAL SETTLEMENT value
+				ddnForm.addField({
+					id : 'custom_total_settlements',
+					type : serverWidget.FieldType.INTEGER,
+					label:'TOTAL SETTLEMENT',
+					container:'custom_itpm_ddn_transdetails'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_totsett'});
+				
+				//setting the OPEN BALANCE value
+				ddnForm.addField({
+					id : 'custom_itpm_ddn_openbal',
+					type : serverWidget.FieldType.CURRENCY,
+					label:'Open Balance',
+					container:'custom_itpm_ddn_transdetails'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
+				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_openbal'});
+				//setting the TOTAL EXPENSES value
+				ddnForm.addField({
+					id : 'custom_itpm_ddn_totalexpense',
+					type : serverWidget.FieldType.CURRENCY,
+					label:'TOTAL EXPENSES',
+					container:'custom_itpm_ddn_transdetails'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_totexp'});
+				
+				/*------- TRANSACTION DETAIL End --------*/
+				
 				ddnForm.addSubmitButton({label:'Submit'});
 				ddnForm.addButton({label:'Cancel',id : 'custom_itpm_cancelbtn',functionName:"redirectToBack"})
 				ddnForm.clientScriptModulePath =  './iTPMDeduction_ToDeduction_Validations_cs_script.js';
@@ -405,19 +435,18 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				
 			}else if(request.method == 'POST'){
 //				log.debug('request',request); 
-				var otherrefno = request.parameters['custom_itpm_ddn_otherrefcode'],				
-				classno = request.parameters['custom_class'],
-				deptno = request.parameters['custom_department'],
-				locationno = request.parameters['custom_location'],  
-				assignto = request.parameters['custom_itpm_ddn_assignedto'],
-				amount = request.parameters['custom_itpm_ddn_amount'], 
-				disputed = request.parameters['custom_itpm_ddn_disputed'],
-				openbal = request.parameters['custom_itpm_ddn_openbal'],
-				followup = request.parameters['custom_itpm_ddn_nextaction'],
-				memo = request.parameters['custom_memo'],
+				var otherrefno = request.parameters['custom_itpm_ddn_otherrefcode'],//Other Reference Code				
+				classno = request.parameters['custom_class'],//Class
+				deptno = request.parameters['custom_department'],//Department
+				locationno = request.parameters['custom_location'],  //Location
+				assignto = request.parameters['custom_itpm_ddn_assignedto'],//Assigned To
+				amount = request.parameters['custom_itpm_ddn_amount'], //For validating
+				disputed = request.parameters['custom_itpm_ddn_disputed'],//Disputed
+				followup = request.parameters['custom_itpm_ddn_nextaction'],//Due Date
+				memo = request.parameters['custom_memo'],//Memo
 				ddnId = request.parameters['custom_recid'],
-				date = request.parameters['custom_trandate'],
-				ppValue = request.parameters['custom_postingperiod'];
+				date = request.parameters['custom_trandate'],//Date
+				ppValue = request.parameters['custom_postingperiod'];//Posting Period
 //				log.debug('ppValue in post',ppValue);
 //				log.debug('disputed',disputed); 				
 //				log.debug('openbal',openbal); 
