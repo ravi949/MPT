@@ -139,11 +139,36 @@ function(search, record, util) {
     	}
     }
     
+    
+	//get the iTPM preference record values
+	function getPrefrenceValues(){
+		try{
+			var prefObj = {}
+			search.create({
+				type:'customrecord_itpm_preferences',
+				columns:['custrecord_itpm_pref_ddnaccount','custrecord_itpm_pref_matchls','custrecord_itpm_pref_matchbb','custrecord_itpm_pref_settlementsaccount'],
+				filters:[]
+			}).run().each(function(e){
+				prefObj = {
+						perferenceLS : e.getValue('custrecord_itpm_pref_matchls'),
+						perferenceBB : e.getValue('custrecord_itpm_pref_matchbb'),
+						dednExpAccnt : e.getValue('custrecord_itpm_pref_ddnaccount'),
+						accountPayable : e.getValue('custrecord_itpm_pref_settlementsaccount')
+				}
+			})
+			return prefObj;
+		}catch(e){
+			return{error:true,name:'Preference error',message:e.message};
+		}
+	}
+    
+    
     return {
     	getItemUnits : getItemUnits,
     	getActualQty : getActualQty,
     	getLiability : getLiability,
-    	getSpend : getSpend
+    	getSpend : getSpend,
+    	getPrefrenceValues:getPrefrenceValues
     };
     
 });

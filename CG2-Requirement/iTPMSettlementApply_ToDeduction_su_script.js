@@ -180,6 +180,7 @@ function(record, search, serverWidget,runtime,config,redirect,url,ST_Module) {
 //					enableSourcing: true,
 //					ignoreMandatoryFields: true
 //				});
+				
 				redirect.toRecord({
 					type : 'customtransaction_itpm_settlement',
 					id : SettlementRecId					

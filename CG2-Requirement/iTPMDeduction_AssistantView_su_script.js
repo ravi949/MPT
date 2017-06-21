@@ -130,7 +130,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 
 				ddnForm.addFieldGroup({
 					id:'custom_primry_information',
-					label:'PRIMARY INFORMATION'
+					label:'Primary Information'
 				});
 
 				//setting the Entry no value
@@ -265,7 +265,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				/*------CLASSIFICATION start ------*/
 				ddnForm.addFieldGroup({
 					id : 'custom_classification',
-					label : 'CLASSIFICATION'
+					label : 'Classification'
 				});
 
 				//setting the SUBSIDIARY Value
@@ -379,7 +379,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				
 				ddnForm.addFieldGroup({
 					id : 'custom_itpm_ddn_taskdetails',
-					label : 'TASK DETAIL'
+					label : 'Task Detail'
 				});
 
 				//setting the employees list to this select field
@@ -433,7 +433,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				
 				ddnForm.addFieldGroup({
 					id : 'custom_itpm_ddn_transdetails',
-					label : 'TRANSACTION DETAIL'
+					label : 'Transaction Detail'
 				});
 				
 				//setting the AMOUNT

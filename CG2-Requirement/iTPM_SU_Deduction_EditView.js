@@ -56,7 +56,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 
 				ddnForm.addFieldGroup({
 					id:'custom_primry_information',
-					label:'PRIMARY INFORMATION'
+					label:'Primary Information'
 				});
 
 				ddnForm.addField({
@@ -222,7 +222,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				/*------CLASSIFICATION start ------*/
 				ddnForm.addFieldGroup({
 					id : 'custom_classification',
-					label : 'CLASSIFICATION'
+					label : 'Classification'
 				});
 
 				//setting the SUBSIDIARY Value
@@ -331,7 +331,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				
 				ddnForm.addFieldGroup({
 					id : 'custom_itpm_ddn_taskdetails',
-					label : 'TASK DETAIL'
+					label : 'Task Detail'
 				});
 				 
 				//setting the employees list to this select field
@@ -382,7 +382,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				
 				ddnForm.addFieldGroup({
 					id : 'custom_itpm_ddn_transdetails',
-					label : 'TRANSACTION DETAIL'
+					label : 'Transaction Detail'
 				});
 
 				//setting the AMOUNT

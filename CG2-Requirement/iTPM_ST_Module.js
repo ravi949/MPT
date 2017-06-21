@@ -1,10 +1,10 @@
-define(['N/config', 'N/record', 'N/search'],
+define(['N/config', 'N/record', 'N/search','./iTPM_Module.js'],
 /**
  * @param {config} config
  * @param {record} record
  * @param {search} search
  */
-function(config, record, search) {
+function(config, record, search, iTPM_Module) {
    
 	//create the settlement record.
 	function createSettlement(params){
@@ -20,7 +20,7 @@ function(config, record, search) {
 		}
 	
 		//iTPM prefernce record values.
-		var prefObj = getPrefrenceValues();
+		var prefObj = iTPM_Module.getPrefrenceValues();
 		var perferenceLS = prefObj.perferenceLS,
 		perferenceBB = prefObj.perferenceBB,
 		dednExpAccnt = prefObj.dednExpAccnt,
@@ -373,7 +373,7 @@ function(config, record, search) {
 		var DeductionId = deductionRec.getValue('id');
 		var DeductionNum = deductionRec.getValue('tranid');
 		
-		var prefObj = getPrefrenceValues();
+		var prefObj = iTPM_Module.getPrefrenceValues();
 		var dednExpAccnt = prefObj.dednExpAccnt,
 		accountPayable = prefObj.accountPayable;
 		
@@ -451,64 +451,74 @@ function(config, record, search) {
 		}),
 		JEAmount = parseFloat(lumsum)+parseFloat(bB)+parseFloat(oI);
 
-		var journalRecord = record.create({
-			type: record.Type.JOURNAL_ENTRY		
-		});
+		var memo = 'Applying Settlement #'+SettlementRec.getValue('tranid')+' to Deduction #'+DeductionNum;
+		
+//		var journalRecord = record.create({
+//			type: record.Type.JOURNAL_ENTRY		
+//		});
+//
+//		journalRecord.setValue({
+//			fieldId: 'subsidiary',
+//			value: deductionRec.getValue('subsidiary')
+//		}).setValue({
+//			fieldId:'memo',
+//			value:memo
+//		}).setValue({
+//			fieldId:'custbody_itpm_set_deduction',
+//			value:parameters.sid
+//		});
+		
+		var JELines = [
+			{account:dednExpAccnt,memo:memo,type:'credit',amount:JEAmount},
+			{account:accountPayable,memo:memo,type:'debit',amount:JEAmount}
+			];
+		
+		var JournalId = setJELines(parameters.sid,deductionRec.getValue('subsidiary'),JELines);
 
-		journalRecord.setValue({
-			fieldId: 'subsidiary',
-			value: deductionRec.getValue('subsidiary')
-		}).setValue({
-			fieldId:'memo',
-			value:'Applying Settlement #'+SettlementRec.getValue('tranid')+' to Deduction #'+DeductionNum
-		}).setValue({
-			fieldId:'custbody_itpm_set_deduction',
-			value:parameters.sid
-		});				
+//		journalRecord.setSublistValue({
+//			sublistId: 'line',
+//			fieldId: 'account',
+//			line: 0,
+//			value: dednExpAccnt
+//		});		
+//		journalRecord.setSublistValue({
+//			sublistId:'line',
+//			fieldId:'memo',
+//			line: 0,
+//			value:'Applying Settlement #'+SettlementRec.getValue('tranid')+' to Deduction #'+DeductionNum
+//		});
+//		journalRecord.setSublistValue({
+//			sublistId: 'line',
+//			fieldId: 'credit',
+//			line: 0,
+//			value: JEAmount
+//		});	
+//
+//		journalRecord.setSublistValue({
+//			sublistId: 'line',
+//			fieldId: 'account',
+//			line: 1,
+//			value: accountPayable
+//		});
+//		journalRecord.setSublistValue({
+//			sublistId:'line',
+//			fieldId:'memo',
+//			line: 1,
+//			value:'Applying Settlement #'+SettlementRec.getValue('tranid')+' to Deduction #'+DeductionNum
+//		});
+//
+//		journalRecord.setSublistValue({
+//			sublistId: 'line',
+//			fieldId: 'debit',
+//			line: 1,
+//			value: JEAmount
+//		});
 
-		journalRecord.setSublistValue({
-			sublistId: 'line',
-			fieldId: 'account',
-			line: 0,
-			value: dednExpAccnt
-		});		
-		journalRecord.setSublistValue({
-			sublistId:'line',
-			fieldId:'memo',
-			line: 0,
-			value:'Applying Settlement #'+SettlementRec.getValue('tranid')+' to Deduction #'+DeductionNum
-		});
-		journalRecord.setSublistValue({
-			sublistId: 'line',
-			fieldId: 'credit',
-			line: 0,
-			value: JEAmount
-		});	
-
-		journalRecord.setSublistValue({
-			sublistId: 'line',
-			fieldId: 'account',
-			line: 1,
-			value: accountPayable
-		});
-		journalRecord.setSublistValue({
-			sublistId:'line',
-			fieldId:'memo',
-			line: 1,
-			value:'Applying Settlement #'+SettlementRec.getValue('tranid')+' to Deduction #'+DeductionNum
-		});
-
-		journalRecord.setSublistValue({
-			sublistId: 'line',
-			fieldId: 'debit',
-			line: 1,
-			value: JEAmount
-		});
-
-		var JournalId = journalRecord.save({
-			enableSourcing: true,
-			ignoreMandatoryFields: true
-		});	
+//		var JournalId = journalRecord.save({
+//			enableSourcing: true,
+//			ignoreMandatoryFields: true
+//		});	
+		
 		log.debug('JournalId',JournalId);
 		
 		if(JournalId){	
@@ -531,29 +541,77 @@ function(config, record, search) {
 		
 	}
 	
-	//get the iTPM preference record values.
-	function getPrefrenceValues(){
-		var prefObj = {}
-		search.create({
-			type:'customrecord_itpm_preferences',
-			columns:['custrecord_itpm_pref_ddnaccount','custrecord_itpm_pref_matchls','custrecord_itpm_pref_matchbb','custrecord_itpm_pref_settlementsaccount'],
-			filters:[]
-		}).run().each(function(e){
-			prefObj = {
-					perferenceLS : e.getValue('custrecord_itpm_pref_matchls'),
-					perferenceBB : e.getValue('custrecord_itpm_pref_matchbb'),
-					dednExpAccnt : e.getValue('custrecord_itpm_pref_ddnaccount'),
-					accountPayable : e.getValue('custrecord_itpm_pref_settlementsaccount')
-			}
-		})
-		
-		return prefObj;
+	//create the Reverse JE for settlement
+	function createReverseJE(settlementRec){
+		var lineCount = settlementRec.getLineCount('line'),JELines = [];
+		for(var i=0;i<lineCount;i++){
+			var credit = settlementRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i}),
+			    debit = settlementRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i}); 
+			JELines.push({
+				account:settlementRec.getSublistValue({sublistId:'line',fieldId:'account',line:i}),
+			    type:(parseFloat(credit) > 0 || credit != "")?'debit':'credit',
+			    amount:(parseFloat(credit) > 0 || credit != "")?credit:debit,
+			    memo:'Reverse Journal For Settlement #'+settlementRec.getValue('tranid')
+			});
+		}
+		var JERecId = setJELines(settlementRec.id,settlementRec.getValue('subsidiary'),JELines);
+		return JERecId;
 	}
+	
+	//setting the JE lines values
+	function setJELines(setId,subsId,JELines){
+		var journalRecord = record.create({
+			type: record.Type.JOURNAL_ENTRY		
+		});
+		
+		journalRecord.setValue({
+			fieldId: 'subsidiary',
+			value:subsId
+		}).setValue({
+			fieldId:'memo',
+			value:JELines[0].memo
+		}).setValue({
+			fieldId:'custbody_itpm_set_deduction',
+			value:setId
+		});
+		
+		var linesCount = JELines.length;
+		log.debug('JELines',JELines)
+		for(var i=0;i<linesCount;i++){
+			journalRecord.setSublistValue({
+				sublistId: 'line',
+				fieldId: 'account',
+				line: i,
+				value: JELines[i].account
+			});
+			journalRecord.setSublistValue({
+				sublistId:'line',
+				fieldId:'memo',
+				line: i,
+				value:JELines[i].memo
+			});
+
+			journalRecord.setSublistValue({
+				sublistId: 'line',
+				fieldId:JELines[i].type,
+				line: i,
+				value: JELines[i].amount
+			});
+		}
+		
+		
+		return journalRecord.save({
+			enableSourcing: true,
+			ignoreMandatoryFields: true
+		});	
+	}
+
 	
 	
     return {
         createSettlement:createSettlement,
-        applyToSettlement:applyToSettlement
+        applyToSettlement:applyToSettlement,
+        createReverseJE:createReverseJE
     };
     
 });
