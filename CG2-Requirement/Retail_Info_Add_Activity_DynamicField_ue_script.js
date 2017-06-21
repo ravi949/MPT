@@ -34,8 +34,6 @@ function(search,serverWidget,runtime) {
     				displayType : serverWidget.FieldDisplayType.HIDDEN
     			});
 
-
-
     			//creating the dynamic field for ACTIVITY field.
     			var activityField = retailInfoForm.addField({
     				id : 'custpage_itpm_activity_field',
