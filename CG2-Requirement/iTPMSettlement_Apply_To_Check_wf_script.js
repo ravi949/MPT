@@ -323,7 +323,7 @@ function(record, redirect, search, ST_Module) {
         		    enableSourcing: true,
         		    ignoreMandatoryFields: true
         		});
-        		//after saving the records show the check record
+        		//after saving the records show the check record.
         		redirect.toRecord({
         			type : record.Type.CHECK, 
         			id : checkRecordId 

@@ -109,7 +109,7 @@ function(redirect,runtime,search,record) {
     				}
     			}
     			
-    			//All settlement request values MUST be greater than zero. (Do NOT allow Lump Sum AND Bill Back to be zero during submit, on EDIT. Either of the fields can individually be zero, but not both.)
+    			// All settlement request values MUST be greater than zero. (Do NOT allow Lump Sum AND Bill Back to be zero during submit, on EDIT. Either of the fields can individually be zero, but not both.)
 				if(lumsumSetReq <= 0 && billbackSetReq <= 0){
 					throw Error('Lump Sum AND Bill Back Either of the fields can individually be zero, but not both');
 				}else if(settlementReq <= 0 && offInvSetReq <= 0){

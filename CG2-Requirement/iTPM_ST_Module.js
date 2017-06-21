@@ -518,6 +518,7 @@ function(config, record, search, iTPM_Module) {
 //			enableSourcing: true,
 //			ignoreMandatoryFields: true
 //		});	
+		
 		log.debug('JournalId',JournalId);
 		
 		if(JournalId){	

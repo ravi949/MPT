@@ -140,7 +140,7 @@ function(search, record, util) {
     }
     
     
-	//get the iTPM preference record values.
+	//get the iTPM preference record values
 	function getPrefrenceValues(){
 		try{
 			var prefObj = {}
