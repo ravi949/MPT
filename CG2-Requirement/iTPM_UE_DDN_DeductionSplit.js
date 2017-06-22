@@ -5,20 +5,69 @@
  * if parent deduction amount is less than new deduction amount then.
  * split the deduction into two and creating the two journal entries for each deduction and changed the parent deduction status to resolved.
  */
-define(['N/url','N/record','N/search'],
+define(['N/url','N/record','N/search', 'N/ui/serverWidget', 'N/runtime', 'N/redirect'],
 
-function(url,record,search) {
+function(url,record,search, widget, runtime, redirect) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
 	 *
-	 * @param {Object} scriptContext
-	 * @param {Record} scriptContext.newRecord - New record
-	 * @param {string} scriptContext.type - Trigger type
-	 * @param {Form} scriptContext.form - Current form
+	 * @param {Object} sc
+	 * @param {Record} sc.newRecord - New record
+	 * @param {string} sc.type - Trigger type
+	 * @param {Form} sc.form - Current form
 	 * @Since 2015.2
 	 */
-	function beforeLoad(scriptContext) {}
+	function beforeLoad(sc) {
+		try{
+			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
+				status = sc.newRecord.getValue({fieldId:'transtatus'}),
+				clientScriptPath = runtime.getCurrentScript().getParameter({name:'custscript_itpm_ue_ddn_cspath'}),
+				eventType = sc.type,
+				runtimeContext = runtime.executionContext; 
+			log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
+			if(
+				eventType == sc.UserEventType.VIEW && 
+				runtimeContext == runtime.ContextType.USER_INTERFACE &&
+				openBalance != 0 &&
+				status == 'A' && 
+				clientScriptPath
+					){
+				log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
+				sc.form.clientScriptModulePath = clientScriptPath;
+				var btn_split = sc.form.addButton({
+					id: 'custpage_itpm_split',
+					label: 'Split',
+					functionName: 'itpm_split(' + sc.newRecord.id + ')'
+				});
+				var btn_settlement = sc.form.addButton({
+					id: 'custpage_itpm_settlement',
+					label: 'Settlement',
+					functionName: 'itpm_settlement(' + sc.newRecord.id + ')'
+				});
+				var btn_expense = sc.form.addButton({
+					id: 'custpage_itpm_expense',
+					label: 'Expense',
+					functionName: 'itpm_expense(' + sc.newRecord.id + ')'
+				});
+				var btn_invoice = sc.form.addButton({
+					id: 'custpage_itpm_invoice',
+					label: 'Re-Invoice',
+					functionName: 'itpm_invoice(' + sc.newRecord.id + ')'
+				});
+			} else if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
+				redirect.toSuitelet({
+					scriptId:'customscript_itpm_deduction_editview',
+					deploymentId:'customdeploy_itpm_deduction_editview',
+					returnExternalUrl: false,
+					parameters:{fid:sc.newRecord.id,from:'edit'}
+				}); 
+			}
+		} catch(ex) {
+			log.error('DDN_UE_BeforeLoad', ex.name + '; message: ' + ex.message +'; Id:' + sc.newRecord.id);
+			throw ex;
+		}
+	}
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -199,7 +248,7 @@ function(url,record,search) {
 
 
 	return {
-		//beforeLoad: beforeLoad,
+		beforeLoad: beforeLoad,
 		afterSubmit:afterSubmit
 	};
 
