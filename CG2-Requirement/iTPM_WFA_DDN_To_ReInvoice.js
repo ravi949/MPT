@@ -105,17 +105,16 @@ function(record, redirect, search, config) {
     		log.error('je record',JERecId);
     		//changing the status of the deduction record to resolved
     		if(JERecId){
-    			record.submitFields({
-    				type: 'customtransaction_itpm_deduction',
-    				id: DeductionRec.id,
-    				values: {
-    					custbody_itpm_ddn_openbal: 0
-    				},
-    				options: {
-    					enableSourcing: false,
-    					ignoreMandatoryFields : true
-    				}
-    			});
+    			record.load({
+    				type:'customtransaction_itpm_deduction',
+    				id:DeductionRec.id
+    			}).setValue({
+        			fieldId:'custbody_itpm_ddn_openbal',
+        			value: 0
+        		}).save({
+        			enableSourcing: false,
+					ignoreMandatoryFields : true
+        		});
     		}
 
 
