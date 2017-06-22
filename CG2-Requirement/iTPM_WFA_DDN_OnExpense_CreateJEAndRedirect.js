@@ -2,11 +2,11 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/redirect','N/search','N/record'],
+define(['N/redirect','N/search','N/record','./iTPM_Module'],
 /**
  * @param {redirect} redirect
  */
-function(redirect,search,record) {
+function(redirect,search,record,iTPM_Module) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -18,17 +18,13 @@ function(redirect,search,record) {
      */
     function onAction(scriptContext) {
     	try{
-    		
-    		var iTPMPrefSearch = search.create({
-    			type:'customrecord_itpm_preferences',
-    			columns:['custrecord_itpm_pref_ddnaccount','custrecord_itpm_pref_expenseaccount'],
-    			filters:[]
-    		}).run(),
+    		var iTPMPrefObj = iTPM_Module.getPrefrenceValues(),
+    		ddnAccnt = iTPMPrefObj.dednExpAccnt,
+    		expenseAccnt = iTPMPrefObj.expenseAccnt,
     		DeductionRec = scriptContext.newRecord,
     		memo = 'Expense for Deduction # '+DeductionRec.getValue('tranid'),
     		JERecId;
-    		
-    		iTPMPrefSearch.each(function(e){
+
     			
     			var JERec = record.create({
     				type:record.Type.JOURNAL_ENTRY
@@ -49,7 +45,7 @@ function(redirect,search,record) {
     			}).setSublistValue({
     				sublistId:'line',
     				fieldId:'account',
-    				value:e.getValue('custrecord_itpm_pref_ddnaccount'),
+    				value:ddnAccnt,
     				line:0
     			}).setSublistValue({
     				sublistId:'line',
@@ -66,7 +62,7 @@ function(redirect,search,record) {
     			JERec.setSublistValue({
     				sublistId:'line',
     				fieldId:'account',
-    				value:e.getValue('custrecord_itpm_pref_expenseaccount'),
+    				value:expenseAccnt,
     				line:1
     			}).setSublistValue({
     				sublistId:'line',
@@ -84,30 +80,22 @@ function(redirect,search,record) {
     			
     			//changing the status of the deduction record to resolved
     			if(JERecId){
-//					    values: {
-//					    	custbody_itpm_ddn_openbal: 0,
-//					    	transtatus:'C'
-//					    }
-    				
-    				record.submitFields({
-					    type: 'customtransaction_itpm_deduction',
-					    id: DeductionRec.id,
-					    values: {
-					    	custbody_itpm_ddn_openbal: 0
-					    },
-					    options: {
-					        enableSourcing: false,
-					        ignoreMandatoryFields : true
-					    }
-					});
+    				record.load({
+    					type: 'customtransaction_itpm_deduction',
+  					    id: DeductionRec.id
+    				}).setValue({
+    					fieldId:'custbody_itpm_ddn_openbal',
+    					value:0 
+    				}).save({
+    					enableSourcing: false,
+				        ignoreMandatoryFields : true
+    				});
     			}
     			
 //    			redirect.toRecord({
 //    				type:record.Type.JOURNAL_ENTRY,
 //    				id:JERecId
 //    			})
-    			return false
-    		});
     		
     	}catch(e){
     		log.error('excrption while redirect',e)
