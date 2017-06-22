@@ -33,11 +33,6 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				ddndept = deductionRec.getValue('department'), //dept from original dedution
 				ddnlocation = deductionRec.getValue('location'), //location from original dedution
 				currentUserId = deductionRec.getValue('custbody_itpm_ddn_assignedto'),
-				customerRec = record.load({
-					type:record.Type.CUSTOMER,
-					id:customerId
-				}),
-				customerParentId = customerRec.getValue('parent'),
 				originalDdnValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_originalddn'}),
 				originalDdnText = deductionRec.getText({ fieldId: 'custbody_itpm_ddn_originalddn'});
 				
@@ -68,6 +63,20 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					displayType : serverWidget.FieldDisplayType.DISABLED
 				}).defaultValue = deductionRec.getValue('tranid');
 
+				var invoice = ddnForm.addField({
+					id : 'custom_itpm_ddn_invoice',
+					type : serverWidget.FieldType.SELECT,
+					label:'Invoice',
+					container:'custom_primry_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				});
+				invoice.addSelectOption({
+					value : deductionRec.getValue('custbody_itpm_ddn_invoice'),
+					text : deductionRec.getText('custbody_itpm_ddn_invoice'),
+					isSelected:true
+				});
+				
 				var originnoField = ddnForm.addField({
 					id : 'custom_itpm_ddn_originalddn',
 					type : serverWidget.FieldType.SELECT,
@@ -81,6 +90,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					text:(originalDdnText =='')?' ':originalDdnText
 				})
 
+				//OTHER REFERENCE CODE Field
 				ddnForm.addField({
 					id : 'custom_itpm_ddn_otherrefcode',
 					type : serverWidget.FieldType.TEXT,
@@ -88,35 +98,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					container:'custom_primry_information'
 				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_otherrefcode'});
 
-				var invoice = ddnForm.addField({
-					id : 'custom_itpm_ddn_invoice',
-					type : serverWidget.FieldType.SELECT,
-					label:'Invoice',
-					container:'custom_primry_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				}).updateBreakType({
-					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
-				invoice.addSelectOption({
-					value : deductionRec.getValue('custbody_itpm_ddn_invoice'),
-					text : deductionRec.getText('custbody_itpm_ddn_invoice'),
-					isSelected:true
-				});
-				if(customerParentId != ''){
-					var customerParent = ddnForm.addField({
-						id : 'custom_parent',
-						type : serverWidget.FieldType.SELECT,
-						label:'Parent',
-						container:'custom_primry_information'
-					}).updateDisplayType({
-						displayType : serverWidget.FieldDisplayType.DISABLED
-					}).addSelectOption({
-						value : customerParentId,
-						text : customerRec.getText('parent'),
-						isSelected:true
-					});
-				}
+				//Date field
 				ddnForm.addField({
 					id : 'custom_trandate',
 					type : serverWidget.FieldType.DATE,
@@ -128,43 +110,13 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					value: deductionRec.getValue({ fieldId:'trandate'}),
 					type: format.Type.DATE
 				});
-				
-				var status = ddnForm.addField({
-					id : 'custom_status',
-					type : serverWidget.FieldType.SELECT,
-					label:'Status',
-					container:'custom_primry_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
 
-				status.addSelectOption({
-					value : deductionRec.getValue({ fieldId: 'transtatus'}),
-					text : deductionRec.getText({ fieldId: 'transtatus'}),
-					isSelected:true
-				});
-
-				var customer = ddnForm.addField({
-					id : 'custom_customer',
-					type : serverWidget.FieldType.SELECT,
-					label:'Customer',
-					container:'custom_primry_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
-				customer.addSelectOption({
-					text:deductionRec.getText('custbody_itpm_ddn_customer'),
-					value:customerId,
-					isSelected:true
-				})
-				 
+				//Posting Period field
 				var postPeriod = ddnForm.addField({
 					id : 'custom_postingperiod',
 					type : serverWidget.FieldType.SELECT,
 					label:'POSTING PERIOD',
 					container:'custom_primry_information'
-				}).updateBreakType({
-					breakType : serverWidget.FieldBreakType.STARTCOL
 				}),
 				ppid = deductionRec.getValue({ fieldId:'postingperiod'});
 				postPeriod.addSelectOption({
@@ -182,9 +134,40 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 							isSelected:(ppid == e.id)
 						});
 						return true;
-					})
-					
-					//setting the Disputed value
+					});
+				
+				//Status field
+				var status = ddnForm.addField({
+					id : 'custom_status',
+					type : serverWidget.FieldType.SELECT,
+					label:'Status',
+					container:'custom_primry_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				});
+
+				status.addSelectOption({
+					value : deductionRec.getValue({ fieldId: 'transtatus'}),
+					text : deductionRec.getText({ fieldId: 'transtatus'}),
+					isSelected:true
+				});
+
+				//Customer field
+				var customer = ddnForm.addField({
+					id : 'custom_customer',
+					type : serverWidget.FieldType.SELECT,
+					label:'Customer',
+					container:'custom_primry_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				});
+				customer.addSelectOption({
+					text:deductionRec.getText('custbody_itpm_ddn_customer'),
+					value:customerId,
+					isSelected:true
+				});
+				 
+				//setting the Disputed value
 				ddnForm.addField({
 					id : 'custom_itpm_ddn_disputed',
 					type : serverWidget.FieldType.CHECKBOX,
@@ -195,27 +178,27 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_disputed'})?'T':'F';
 				
 				//iTPM Applied To Transaction field 				
-					var aplydToTrans = ddnForm.addField({
-						id : 'custom_itpm_ddn_appliedto',
-						type : serverWidget.FieldType.SELECT,
-						label:'Applied To',
-						container:'custom_primry_information'
-					}).updateDisplayType({
-						displayType : serverWidget.FieldDisplayType.DISABLED
+				var aplydToTrans = ddnForm.addField({
+					id : 'custom_itpm_ddn_appliedto',
+					type : serverWidget.FieldType.SELECT,
+					label:'Applied To',
+					container:'custom_primry_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				});
+				if(deductionRec.getValue('custbody_itpm_set_deduction')){
+					aplydToTrans.addSelectOption({
+						text:deductionRec.getText('custbody_itpm_set_deduction'),
+						value:deductionRec.getValue('custbody_itpm_set_deduction'),
+						isSelected:true
 					});
-					if(deductionRec.getValue('custbody_itpm_set_deduction')){
-						aplydToTrans.addSelectOption({
-							text:deductionRec.getText('custbody_itpm_set_deduction'),
-							value:deductionRec.getValue('custbody_itpm_set_deduction'),
-							isSelected:true
-						});
-					}else{
-						aplydToTrans.addSelectOption({
-							text:' ',
-							value:' ',
-							isSelected:true
-						});
-					}
+				}else{
+					aplydToTrans.addSelectOption({
+						text:' ',
+						value:' ',
+						isSelected:true
+					});
+				}
 				
 				/*-----PRIMARY INFORMATION end-----*/
 
@@ -399,7 +382,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				ddnForm.addField({
 					id : 'custom_total_settlements',
 					type : serverWidget.FieldType.INTEGER,
-					label:'TOTAL SETTLEMENT',
+					label:'TOTAL SETTLEMENTS',
 					container:'custom_itpm_ddn_transdetails'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
