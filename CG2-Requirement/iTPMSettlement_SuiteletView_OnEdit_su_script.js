@@ -42,11 +42,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 					title : '- iTPM Settlement'
 				});
 
-				form.addFieldGroup({
-					id : 'custom_primaryinfo_group',
-					label : 'Primary Information'
-				});
-
+				//HIDDEN fields
 				//if settlement record created from deduction
 				var applyToDeduction = settlementRec.getValue('custbody_itpm_set_deduction');
 				if(applyToDeduction != ''){
@@ -61,7 +57,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 						label:'Deduction open balance'
 					}).updateDisplayType({
 						displayType : serverWidget.FieldDisplayType.HIDDEN
-					}).defaultValue = deductionRec.getValue('custbody_itpm_ddn_openbal')
+					}).defaultValue = settlementRec.getValue('custbody_itpm_ddn_openbal')
 				}
 
 				form.addField({
@@ -72,27 +68,32 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 					displayType : serverWidget.FieldDisplayType.HIDDEN
 				}).defaultValue = params.sid
 
+				/*  PRIMARY INFORMATION Start  */
+				form.addFieldGroup({
+					id : 'custom_primaryinfo_group',
+					label : 'Primary Information'
+				});
 
-				//primary informatin fields
+				//ENTRY NO. field
 				form.addField({
 					id:'custpage_settlementno',
 					type:serverWidget.FieldType.TEXT,
-					label:'SETTLEMENT NUMBER',
+					label:'ENTRY NO.',
 					container:'custom_primaryinfo_group'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				}).defaultValue = settlementRec.getValue('tranid')
 
-				//editable fields
+				//Other Reference Code field
 				var otherRefCodeField = form.addField({
 					id : 'custpage_otherref_code',
 					type : serverWidget.FieldType.TEXT,
-					label : 'Other Reference Code',
+					label : 'OTHER REFERENCE CODE',
 					container:'custom_primaryinfo_group'
 				});
-
 				otherRefCodeField.defaultValue = settlementRec.getValue('custbody_itpm_set_otherrefcode');
-
+				
+				//CUSTOMER field
 				form.addField({
 					id:'custpage_customer',
 					type:serverWidget.FieldType.TEXT,
@@ -101,6 +102,54 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				}).defaultValue = settlementRec.getText('custbody_itpm_set_customer')
+
+				//Date field
+				form.addField({
+					id:'custpage_date',
+					type:serverWidget.FieldType.TEXT,
+					label:'DATE',
+					container:'custom_primaryinfo_group'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.INLINE
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
+				}).defaultValue = settlementRec.getText('trandate')
+
+				//STATUS field 
+				form.addField({
+					id:'custpage_status',
+					type:serverWidget.FieldType.TEXT,
+					label:'STATUS',
+					container:'custom_primaryinfo_group'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.INLINE
+				}).defaultValue = settlementRec.getText('transtatus')
+
+				/*//APPLIED TO field
+				//iTPM Applied To Transaction field 				
+				var aplydToTrans = ddnForm.addField({
+					id : 'custom_itpm_ddn_appliedto',
+					type : serverWidget.FieldType.SELECT,
+					label:'Applied To',
+					container:'custom_primry_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				});*/
+				
+				/*  PRIMARY INFORMATION End  */
+				
+				/*  CLASSIFICATION Start  */
+				
+				/*  CLASSIFICATION End  */
+				
+				/*  PROMOTION INFORMATION Start  */
+				
+				/*  PROMOTION INFORMATION End  */
+				
+				/*  TRANSACTION DETAIL Start  */
+				
+				/*  TRANSACTION DETAIL End  */
+				
 
 				form.addField({
 					id:'custpage_subsidiary',
@@ -111,24 +160,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 					displayType : serverWidget.FieldDisplayType.INLINE
 				}).defaultValue = settlementRec.getText('subsidiary')
 
-				form.addField({
-					id:'custpage_status',
-					type:serverWidget.FieldType.TEXT,
-					label:'STATUS',
-					container:'custom_primaryinfo_group'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				}).defaultValue = settlementRec.getText('transtatus')
-
-				form.addField({
-					id:'custpage_date',
-					type:serverWidget.FieldType.TEXT,
-					label:'Date',
-					container:'custom_primaryinfo_group'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				}).defaultValue = settlementRec.getText('trandate')
-
+				
 
 				//promotion information
 				form.addFieldGroup({
