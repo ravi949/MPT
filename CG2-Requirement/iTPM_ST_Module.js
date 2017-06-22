@@ -102,6 +102,9 @@ function(config, record, search, iTPM_Module) {
 			newSettlementRecord.setValue({
 				fieldId:'custbody_itpm_set_deduction',
 				value:params.custom_itpm_st_ddn_id
+			}).setValue({
+				fieldId:'custbody_itpm_ddn_openbal',
+				value:params.custom_itpm_ddn_openbal
 			});
 		}
 		
