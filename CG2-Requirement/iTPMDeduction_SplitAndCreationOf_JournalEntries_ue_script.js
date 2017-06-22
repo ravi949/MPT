@@ -7,7 +7,7 @@
  */
 define(['N/url','N/record','N/search'],
 
-		function(url,record,search) {
+function(url,record,search) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -43,11 +43,6 @@ define(['N/url','N/record','N/search'],
 						type:recordType,
 						id:parentDedutionRecId
 					});
-					
-					parentDeductionRec.setValue({
-						fieldId:'transtatus',
-						value:'C'  //changed the parent status to Resolved
-					}).save({enableSourcing:false,ignoreMandatoryFields:true});
 
 					var childDedAmount = deductionRec.getValue('custbody_itpm_ddn_amount'),
 					parentDedOpenBal = parentDeductionRec.getValue('custbody_itpm_ddn_openbal'),
@@ -107,19 +102,17 @@ define(['N/url','N/record','N/search'],
 					}
 					
 					//loading the parent record again why because parentDeductionRec already save 
-					//thats why we are loading the record newly					
-					record.submitFields({
-					    type: 'customtransaction_itpm_deduction',
-					    id: parentDedutionRecId,
-					    values: {
-					    	custbody_itpm_ddn_openbal: 0
-					    },
-					    options: {
-					        enableSourcing: false,
-					        ignoreMandatoryFields : true
-					    }
+					//thats why we are loading the record newly	
+					parentDeductionRec.setValue({
+						fieldId:'custbody_itpm_ddn_openbal',
+						value:0 
+					}).setValue({
+						fieldId:'transtatus',
+						value:'C'  //changed the parent status to Resolved
+					}).save({
+						enableSourcing: false,
+						ignoreMandatoryFields : true
 					});
-					
 				}
 			}
 		}catch(e){

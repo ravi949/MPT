@@ -146,13 +146,14 @@ function(search, record, util) {
 			var prefObj = {}
 			search.create({
 				type:'customrecord_itpm_preferences',
-				columns:['custrecord_itpm_pref_ddnaccount','custrecord_itpm_pref_matchls','custrecord_itpm_pref_matchbb','custrecord_itpm_pref_settlementsaccount'],
+				columns:['custrecord_itpm_pref_ddnaccount','custrecord_itpm_pref_matchls','custrecord_itpm_pref_matchbb','custrecord_itpm_pref_settlementsaccount','custrecord_itpm_pref_expenseaccount'],
 				filters:[]
 			}).run().each(function(e){
 				prefObj = {
 						perferenceLS : e.getValue('custrecord_itpm_pref_matchls'),
 						perferenceBB : e.getValue('custrecord_itpm_pref_matchbb'),
 						dednExpAccnt : e.getValue('custrecord_itpm_pref_ddnaccount'),
+						expenseAccnt : e.getValue('custrecord_itpm_pref_expenseaccount'),
 						accountPayable : e.getValue('custrecord_itpm_pref_settlementsaccount')
 				}
 			})
