@@ -225,16 +225,51 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
 		}).defaultValue = 'A';
 
 	    //APPLIED TO
+
+		//setting the deduction id for post method
+	    if(createdFromDDN){
+	    	settlementForm.addField({
+	    		id:'custom_itpm_st_ddn_id',
+	    		type:serverWidget.FieldType.SELECT,
+	    		label:'APPLIED TO'
+	    	}).updateDisplayType({
+				displayType : serverWidget.FieldDisplayType.HIDDEN
+			}).defaultValue = params.ddn;
+	    	
+	    	settlementForm.addField({
+	    		id:'custom_itpm_st_ddn_idlink',
+	    		type:serverWidget.FieldType.INLINEHTML,
+	    		label:'Applied To',
+	    		container:'custom_primaryinfo_group'
+	    	}).updateBreakType({
+				breakType : serverWidget.FieldBreakType.STARTCOL
+			}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text" style="margin-top:5px"><span id="custom_itpm_st_promotion_desc_fs_lbl" class="smallgraytextnolink uir-label" style="">'+
+	    	'<a class="smallgraytextnolink">APPLIED TO</a></span>'+
+	    	'<span class="uir-field"><span style="white-space: nowrap" id="custom_itpm_st_promotion_desc_fs" class="effectStatic" data-fieldtype="" data-helperbutton-count="0">'+
+	    	'<a href="'+deductionURL+'" class="dottedlink">'+'- iTPM Deduction #'+deductionRec.getValue('tranid')+'</a></span></span></div></td></tr>';
+	    }else{
+	    	settlementForm.addField({
+		    	id : 'custpage_applyto_deduction',
+		    	type : serverWidget.FieldType.TEXT,
+		    	label : 'APPLIED TO',
+		    	container:'custom_primaryinfo_group'
+		    }).updateDisplayType({
+		    	displayType : serverWidget.FieldDisplayType.DISABLED
+		    }).updateBreakType({
+				breakType : serverWidget.FieldBreakType.STARTCOL
+			});
+	    }
+	    
+	  //memo field
 	    settlementForm.addField({
-	    	id : 'custpage_applyto_deduction',
-	    	type : serverWidget.FieldType.TEXT,
-	    	label : 'APPLIED TO',
-	    	container:'custom_primaryinfo_group'
-	    }).updateDisplayType({
+			id : 'custpage_memo',
+			type : serverWidget.FieldType.TEXT,
+			label : 'Memo',
+			container:'custom_primaryinfo_group'
+		}).updateDisplayType({
 	    	displayType : serverWidget.FieldDisplayType.DISABLED
-	    }).updateBreakType({
-			breakType : serverWidget.FieldBreakType.STARTCOL
-		});
+	    });
+
 	    /*  PRIMARY INFORMATION End  */
 	    
 	    /*  CLASSIFICATION Start  */
@@ -411,26 +446,6 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
 		}).defaultValue = netPromotionLiablty;
 	    
 	  
-		//setting the deduction id for post method
-	    if(createdFromDDN){
-	    	settlementForm.addField({
-	    		id:'custom_itpm_st_ddn_id',
-	    		type:serverWidget.FieldType.SELECT,
-	    		label:'Apply To Deduction'
-	    	}).updateDisplayType({
-				displayType : serverWidget.FieldDisplayType.HIDDEN
-			}).defaultValue = params.ddn;
-	    	
-	    	settlementForm.addField({
-	    		id:'custom_itpm_st_ddn_idlink',
-	    		type:serverWidget.FieldType.INLINEHTML,
-	    		label:'Apply To Deduction',
-	    		container:'custom_promotioninfo_group'
-	    	}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text" style="margin-top:5px"><span id="custom_itpm_st_promotion_desc_fs_lbl" class="smallgraytextnolink uir-label" style="">'+
-	    	'<a class="smallgraytextnolink">Apply To Deduction</a></span>'+
-	    	'<span class="uir-field"><span style="white-space: nowrap" id="custom_itpm_st_promotion_desc_fs" class="effectStatic" data-fieldtype="" data-helperbutton-count="0">'+
-	    	'<a href="'+deductionURL+'" class="dottedlink">'+deductionRec.getValue('tranid')+'</a></span></span></div></td></tr>';
-	    }
 
 	    //ship start date
 	    settlementForm.addField({
@@ -454,18 +469,6 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
 			displayType : serverWidget.FieldDisplayType.DISABLED
 		}).defaultValue = promoDealRec['custrecord_itpm_p_shipend'];
 	    
-	    if(createdFromDDN){
-	    	//deduction open balance value for reference 
-		    settlementForm.addField({
-	    		id:'custom_itpm_ddn_openbal',
-	    		type:serverWidget.FieldType.CURRENCY,
-	    		label:'Deduction Open Balance',
-	    		container:'custom_promotioninfo_group'
-	    	}).updateDisplayType({
-				displayType : serverWidget.FieldDisplayType.DISABLED
-			}).defaultValue = ddnOpenBal;
-	    }
-	    
 	    /*  PROMOTION INFORMATION End  */
 	    
 	    /*  TRANSACTION DETAIL Start  */
@@ -475,6 +478,17 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
 		    label : 'Transaction Detail'
 		});
 	    
+	    if(createdFromDDN){
+	    	//deduction open balance value for reference 
+		    settlementForm.addField({
+	    		id:'custom_itpm_ddn_openbal',
+	    		type:serverWidget.FieldType.CURRENCY,
+	    		label:'Deduction Open Balance',
+	    		container:'custom_transdetail_group'
+	    	}).updateDisplayType({
+				displayType : serverWidget.FieldDisplayType.DISABLED
+			}).defaultValue = ddnOpenBal;
+	    }
 	    //settlement request
 	    var settlementReqValue = (createdFromDDN)?(ddnOpenBal>netPromotionLiablty)?netPromotionLiablty:ddnOpenBal:0;
 	    var settlementReqField = settlementForm.addField({

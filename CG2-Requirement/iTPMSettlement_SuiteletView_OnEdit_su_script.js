@@ -24,9 +24,8 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 				var settlementRec = record.load({
 					type:'customtransaction_itpm_settlement',
 					id:params.sid
-				});
-
-				var promotDealSearch = search.create({
+				}),
+				promotDealSearch = search.create({
 					type:'customrecord_itpm_promotiondeal',
 					columns:['custrecord_itpm_p_lumpsum','custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
 					filters:[['internalid','is',settlementRec.getValue('custbody_itpm_set_promo')]]
@@ -44,11 +43,11 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 
 				//HIDDEN fields
 				//if settlement record created from deduction
-				var applyToDeduction = settlementRec.getValue('custbody_itpm_set_deduction');
-				if(applyToDeduction != ''){
+				var deductionID = settlementRec.getValue('custbody_itpm_set_deduction');
+				if(deductionID != ''){
 					var deductionRec = record.load({
 						type:'customtransaction_itpm_deduction',
-						id:parseInt(settlementRec.getValue('custbody_itpm_set_deduction'))
+						id:parseInt(deductionID)
 					});
 
 					form.addField({
@@ -126,8 +125,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 				}).defaultValue = settlementRec.getText('transtatus')
 
 				//APPLIED TO field
-				var deductionID = settlementRec.getValue('custbody_itpm_set_deduction'),
-				checkID = settlementRec.getValue('custbody_itpm_set_check');
+				var checkID = settlementRec.getValue('custbody_itpm_set_check');
 				if(deductionID != ''){
 					form.addField({
 						id : 'custpage_applyto_deduction',
@@ -200,6 +198,15 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 						breakType : serverWidget.FieldBreakType.STARTCOL
 					});
 				}
+
+				//memo field
+				form.addField({
+					id : 'custpage_memo',
+					type : serverWidget.FieldType.TEXT,
+					label : 'Memo',
+					container:'custom_primaryinfo_group'
+				}).defaultValue = settlementRec.getValue('memo')
+
 				
 				/*  PRIMARY INFORMATION End  */
 				
@@ -332,7 +339,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 				form.addField({
 					id:'custpage_promo_deal',
 					type:serverWidget.FieldType.TEXT,
-					label:'PROMOTION / DEAL'
+					label:'PROMOTION'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.HIDDEN
 				}).defaultValue = settlementRec.getText('custbody_itpm_set_promo');
@@ -341,10 +348,10 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 				form.addField({
 					id:'custpage_promo_deallink',
 					type:serverWidget.FieldType.INLINEHTML,
-					label:'PROMOTION / DEAL',
+					label:'PROMOTION',
 					container:'custom_promoinfo_group'
 				}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text"><span id="custpage_promo_deal_fs_lbl_uir_label" class="smallgraytextnolink uir-label ">'+
-				'<span id="custpage_promo_deal_fs_lbl" class="smallgraytextnolink" style=""><a class="smallgraytextnolink">PROMOTION / DEAL</a></span>'+
+				'<span id="custpage_promo_deal_fs_lbl" class="smallgraytextnolink" style=""><a class="smallgraytextnolink">PROMOTION</a></span>'+
 				'</span><span class="uir-field inputreadonly">'+
 				'<a href="'+promoDealURL+'" class="dottedlink">'+settlementRec.getText('custbody_itpm_set_promo')+'</a></span></div></td></tr>'
 				
@@ -356,8 +363,31 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 					container:'custom_promoinfo_group'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
-				}).defaultValue = settlementRec.getValue('custbody_itpm_set_promodesc')
+				}).defaultValue = settlementRec.getValue('custbody_itpm_set_promodesc');
 
+				//INCURRED PROMOTIONAL LIABILITY
+				form.addField({
+					id:'custom_itpm_st_incrd_promolbty',
+					type:serverWidget.FieldType.CURRENCY,
+					label:'MAXIMUM PROMOTION LIABILITY',
+					container:'custom_promoinfo_group'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.INLINE
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
+				}).defaultValue = settlementRec.getValue('custbody_itpm_set_incrd_promoliability');;
+	    
+				//Net Promotional Liabliity
+				var netPromotionLiabltyField = form.addField({
+					id : 'custpage_netpromo_liablty',
+					type : serverWidget.FieldType.CURRENCY,
+					label : 'Net Promotional Liabliity',
+					container:'custom_promoinfo_group'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.INLINE
+				});
+
+				netPromotionLiabltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliability');
 				//Ship start date field
 				form.addField({
 					id:'custpage_shstart_date',
@@ -388,140 +418,45 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 					id : 'custom_transdetail_group',
 					label : 'Transaction Detail'
 				});
-				//Amount Field
+				//Settlement Request Field
 				var settlementReqField = form.addField({
 					id : 'custom_itpm_st_reql',
 					type : serverWidget.FieldType.CURRENCY,
-					label : 'Settlement Request',
+					label : 'AMOUNT',
 					container:'custom_transdetail_group'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
 				
-				//lump sum fields
-				/*var netLumSumLbltyField = form.addField({
-					id : 'custpage_netlumsum_liablty',
-					type : serverWidget.FieldType.CURRENCY,
-					label : 'Net Liability : Lump Sum',
-					container:'custom_transdetail_group'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				});
-				netLumSumLbltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliabilityls');*/
-
-				//editable field
+				//Settlement Request : Lump Sum field
 				var lumsumSetField = form.addField({
 					id : 'custpage_lumsum_setreq',
 					type : serverWidget.FieldType.CURRENCY,
-					label : 'Settlement Request : Lump Sum',
+					label : 'AMOUNT : Lump Sum',
 					container:'custom_transdetail_group'
 				});
 
-
-				/*var lumsumOverPayField = form.addField({
-					id : 'custpage_lumsum_overpay',
-					type : serverWidget.FieldType.CURRENCY,
-					label : 'UNDER (OVER) PAID : LUMP SUM',
-					container:'custom_transdetail_group'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				})
-
-				lumsumOverPayField.defaultValue = settlementRec.getValue('custbody_itpm_set_paidls');*/
-				
-				//off-invoice fields
-			/*	var netOffInvLiabltyField = form.addField({
-					id : 'custpage_netoffinvoice_liablty',
-					type : serverWidget.FieldType.CURRENCY,
-					label : 'Net Liability : Off-Invoice',
-					container:'custom_transdetail_group'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				})
-				netOffInvLiabltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliabilityoi');
-*/
-				//editable field
+				//Settlement request : Missed off-invoice field
 				var offinvSetReqField = form.addField({
 					id : 'custpage_offinvoice_setreq',
 					type : serverWidget.FieldType.CURRENCY,
-					label : 'Settlement request : Missed off-invoice',
+					label : 'AMOUNT : Missed off-invoice',
 					container:'custom_transdetail_group'
-				})
-
+				});
 				var reqoiValue = settlementRec.getValue('custbody_itpm_set_reqoi');
 				offinvSetReqField.defaultValue = reqoiValue>0?reqoiValue:0;
-				/*var offinvOverPayField = form.addField({
-					id : 'custpage_offinv_overpay',
-					type : serverWidget.FieldType.CURRENCY,
-					label : ' UNDER (OVER) PAID : Off-Invoice',
-					container:'custom_transdetail_group'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				})
-
-				offinvOverPayField.defaultValue = settlementRec.getValue('custbody_itpm_set_paidoi');*/
-
-				//bill-back fields
-				/*var netBillLiabltyField = form.addField({
-					id : 'custpage_netbillback_liablty',
-					type : serverWidget.FieldType.CURRENCY,
-					label : 'Net Liability : Bill-back',
-					container:'custom_transdetail_group'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				})
-				netBillLiabltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliabilitybb');*/
-
-				//editable field
+				
+				//Settlement request : Bill back field
 				var netbillBackSetReqField = form.addField({
 					id : 'custpage_billback_setreq',
 					type : serverWidget.FieldType.CURRENCY,
-					label : 'Settlement request : Bill back',
+					label : 'AMOUNT : Bill back',
 					container:'custom_transdetail_group'
-				})
-
-				/*var billbackOverPayField = form.addField({
-					id : 'custpage_billback_overpay',
-					type : serverWidget.FieldType.CURRENCY,
-					label : 'UNDER (OVER) PAID : BILL-BACK',
-					container:'custom_transdetail_group'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				})
-
-				billbackOverPayField.defaultValue = settlementRec.getValue('custbody_itpm_set_paidbb');*/
-
-
+				});
+				
 				/*  TRANSACTION DETAIL End  */
 				
-
-
-				//promotion information
-				form.addFieldGroup({
-					id : 'custom_promotion_information',
-					label : 'Promotion Information'
-				});
-
-				var netPromotionLiabltyField = form.addField({
-					id : 'custpage_netpromo_liablty',
-					type : serverWidget.FieldType.CURRENCY,
-					label : 'Net Promotional Liabliity',
-					container:'custom_promotion_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				});
-
-				netPromotionLiabltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliability');
-
 				
-				form.addField({
-					id : 'custpage_memo',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Memo',
-					container:'custom_detailed_information'
-				}).defaultValue = settlementRec.getValue('memo')
-
-
 				promotDealSearch.each(function(e){
 					var promoTypeMOP = e.getValue({name:'custrecord_itpm_pt_validmop',join:'custrecord_itpm_p_type'})
 					promoTypeMOP = promoTypeMOP.split(','),
@@ -618,13 +553,11 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 
 
 			if(request.method == 'POST'){
-				log.debug('params',params)
-				log.debug('otherref',params.custpage_otherref_code);
+				/*log.debug('params',params);
 				log.debug('st_reql',params.custom_itpm_st_reql);
 				log.debug('lumsum',params.custpage_lumsum_setreq);
 				log.debug('billback',params.custpage_billback_setreq);
-				log.debug('offinvoice',params.custpage_offinvoice_setreq);
-				log.debug('memo',params.custpage_memo);
+				log.debug('offinvoice',params.custpage_offinvoice_setreq);*/
 
 				try{
 					var loadedSettlementRec = record.load({
@@ -649,6 +582,15 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 					}).setValue({
 						fieldId:'memo',
 						value:params.custpage_memo
+					}).setValue({
+						fieldId:'location',
+						value:params.custom_itpm_st_location
+					}).setValue({
+						fieldId:'class',
+						value:params.custom_itpm_st_class
+					}).setValue({
+						fieldId:'department',
+						value:params.custom_itpm_st_department
 					});
 
 
