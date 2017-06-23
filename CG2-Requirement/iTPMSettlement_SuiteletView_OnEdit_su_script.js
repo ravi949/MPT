@@ -125,124 +125,15 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 					displayType : serverWidget.FieldDisplayType.INLINE
 				}).defaultValue = settlementRec.getText('transtatus')
 
-				/*//APPLIED TO field
-				//iTPM Applied To Transaction field 				
-				var aplydToTrans = ddnForm.addField({
-					id : 'custom_itpm_ddn_appliedto',
-					type : serverWidget.FieldType.SELECT,
-					label:'Applied To',
-					container:'custom_primry_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				});*/
-				
-				/*  PRIMARY INFORMATION End  */
-				
-				/*  CLASSIFICATION Start  */
-				
-				/*  CLASSIFICATION End  */
-				
-				/*  PROMOTION INFORMATION Start  */
-				
-				/*  PROMOTION INFORMATION End  */
-				
-				/*  TRANSACTION DETAIL Start  */
-				
-				/*  TRANSACTION DETAIL End  */
-				
-
-				form.addField({
-					id:'custpage_subsidiary',
-					type:serverWidget.FieldType.TEXT,
-					label:'subsidiary',
-					container:'custom_primaryinfo_group'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				}).defaultValue = settlementRec.getText('subsidiary')
-
-				
-
-				//promotion information
-				form.addFieldGroup({
-					id : 'custom_promotion_information',
-					label : 'Promotion Information'
-				});
-
-
-				form.addField({
-					id:'custpage_promono',
-					type:serverWidget.FieldType.TEXT,
-					label:'PROMOTION NUMBER',
-					container:'custom_promotion_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				}).defaultValue = String(settlementRec.getValue('custbody_itpm_set_promonum'));
-
-				//promotion/deal field to get the value in post
-				form.addField({
-					id:'custpage_promo_deal',
-					type:serverWidget.FieldType.TEXT,
-					label:'PROMOTION / DEAL'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.HIDDEN
-				}).defaultValue = settlementRec.getText('custbody_itpm_set_promo');
-
-				form.addField({
-					id:'custpage_promo_deallink',
-					type:serverWidget.FieldType.INLINEHTML,
-					label:'PROMOTION / DEAL',
-					container:'custom_promotion_information'
-				}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text"><span id="custpage_promo_deal_fs_lbl_uir_label" class="smallgraytextnolink uir-label ">'+
-				'<span id="custpage_promo_deal_fs_lbl" class="smallgraytextnolink" style=""><a class="smallgraytextnolink">PROMOTION / DEAL</a></span>'+
-				'</span><span class="uir-field inputreadonly">'+
-				'<a href="'+promoDealURL+'" class="dottedlink">'+settlementRec.getText('custbody_itpm_set_promo')+'</a></span></div></td></tr>'
-
-
-				form.addField({
-					id:'custpage_promo_desc',
-					type:serverWidget.FieldType.TEXT,
-					label:'PROMOTION DESCRIPTION',
-					container:'custom_promotion_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				}).defaultValue = settlementRec.getValue('custbody_itpm_set_promodesc')
-
-				form.addField({
-					id:'custpage_shstart_date',
-					type:serverWidget.FieldType.TEXT,
-					label:'Ship start Date',
-					container:'custom_promotion_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				}).defaultValue = settlementRec.getText('custbody_itpm_set_promoshipstart')
-
-				form.addField({
-					id:'custpage_shpend_date',
-					type:serverWidget.FieldType.TEXT,
-					label:'Ship end Date',
-					container:'custom_promotion_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				}).defaultValue = settlementRec.getText('custbody_itpm_set_promoshipend')
-
-				var netPromotionLiabltyField = form.addField({
-					id : 'custpage_netpromo_liablty',
-					type : serverWidget.FieldType.CURRENCY,
-					label : 'Net Promotional Liabliity',
-					container:'custom_promotion_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				});
-
-				netPromotionLiabltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliability');
-
-				var deductionID = settlementRec.getValue('custbody_itpm_set_deduction')
+				//APPLIED TO field
+				var deductionID = settlementRec.getValue('custbody_itpm_set_deduction'),
+				checkID = settlementRec.getValue('custbody_itpm_set_check');
 				if(deductionID != ''){
 					form.addField({
 						id : 'custpage_applyto_deduction',
 						type : serverWidget.FieldType.TEXT,
-						label : 'Apply To Deduction',
-						container:'custom_detailed_information'
+						label : 'Apply To',
+						container:'custom_primaryinfo_group'
 					}).updateDisplayType({
 						displayType : serverWidget.FieldDisplayType.HIDDEN
 					}).defaultValue = settlementRec.getText('custbody_itpm_set_deduction')
@@ -257,116 +148,372 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 					form.addField({
 						id:'custpage_applyto_deductionlink',
 						type:serverWidget.FieldType.INLINEHTML,
-						label:'Apply To Deduction',
-						container:'custom_detailed_information'
+						label:'Applied To',
+						container:'custom_primaryinfo_group'
+					}).updateBreakType({
+						breakType : serverWidget.FieldBreakType.STARTCOL
 					}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text" style="margin-top:5px"><span id="custom_itpm_st_promotion_desc_fs_lbl" class="smallgraytextnolink uir-label" style="">'+
-					'<a class="smallgraytextnolink">Apply To Deduction</a></span>'+
+					'<a class="smallgraytextnolink">Applied To</a></span>'+
 					'<span class="uir-field"><span style="white-space: nowrap" id="custom_itpm_st_promotion_desc_fs" class="effectStatic" data-fieldtype="" data-helperbutton-count="0">'+
-					'<a href="'+deductionURL+'" class="dottedlink">'+deductionRec.getValue('tranid')+'</a></span></span></div></td></tr>';
-				}
+					'<a href="'+deductionURL+'" class="dottedlink">'+'- iTPM Deduction #'+deductionRec.getValue('tranid')+'</a></span></span></div></td></tr>';
+				}else if(checkID != ''){
+					form.addField({
+						id : 'custpage_applyto_check',
+						type : serverWidget.FieldType.TEXT,
+						label : 'Applied To',
+						container:'custom_primaryinfo_group'
+					}).updateDisplayType({
+						displayType : serverWidget.FieldDisplayType.HIDDEN
+					}).defaultValue = settlementRec.getText('custbody_itpm_set_deduction')
 
+					var checkURL = url.resolveRecord({
+						recordType: 'check',
+						recordId: checkID,
+						isEditMode: false
+					}),
+					checkRec = record.load({
+						type: record.Type.CHECK,
+						id: checkID
+					});
+
+					//apply to deduction field display as link
+					form.addField({
+						id:'custpage_applyto_checklink',
+						type:serverWidget.FieldType.INLINEHTML,
+						label:'Applied To',
+						container:'custom_primaryinfo_group'
+					}).updateBreakType({
+						breakType : serverWidget.FieldBreakType.STARTCOL
+					}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text" style="margin-top:5px"><span id="custom_itpm_st_promotion_desc_fs_lbl" class="smallgraytextnolink uir-label" style="">'+
+					'<a class="smallgraytextnolink">Applied To</a></span>'+
+					'<span class="uir-field"><span style="white-space: nowrap" id="custom_itpm_st_promotion_desc_fs" class="effectStatic" data-fieldtype="" data-helperbutton-count="0">'+
+					'<a href="'+checkURL+'" class="dottedlink">'+'Check #'+checkRec.getValue('tranid')+'</a></span></span></div></td></tr>';
+				} else{
+					form.addField({
+						id : 'custpage_applyto_empty',
+						type : serverWidget.FieldType.TEXT,
+						label : 'Applied To',
+						container:'custom_primaryinfo_group'
+					}).updateDisplayType({
+						displayType : serverWidget.FieldDisplayType.INLINE
+					}).updateBreakType({
+						breakType : serverWidget.FieldBreakType.STARTCOL
+					});
+				}
+				
+				/*  PRIMARY INFORMATION End  */
+				
+				/*  CLASSIFICATION Start  */
+				form.addFieldGroup({
+					id : 'custom_classification_group',
+					label : 'Classification'
+				});
+
+				//Subsidary field
+				form.addField({
+					id:'custpage_subsidiary',
+					type:serverWidget.FieldType.TEXT,
+					label:'subsidiary',
+					container:'custom_classification_group'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.INLINE
+				}).defaultValue = settlementRec.getText('subsidiary');
+				
+				var subsid = settlementRec.getValue('subsidiary'),
+				ddndept = settlementRec.getValue('department'),
+				ddnclass = settlementRec.getValue('class'),
+				ddnlocation = settlementRec.getValue('location');
+
+				//currency
+				form.addField({
+					id : 'custom_itpm_st_currency',
+					type : serverWidget.FieldType.SELECT,
+					label:'Currency',
+					container:'custom_classification_group'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				}).addSelectOption({
+					text:settlementRec.getText('currency'),
+					value:settlementRec.getValue('currency')
+				})
+
+
+				//location
+				var locationField = form.addField({
+					id:'custom_itpm_st_location',
+					type:serverWidget.FieldType.SELECT,
+					label:'Location',
+					container:'custom_classification_group'
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
+				});
+
+				locationField.addSelectOption({
+					value:' ',
+					text:' '
+				});
+
+				getList(subsid,'location').run().each(function(e){
+					locationField.addSelectOption({
+						value:e.getValue('internalid'),
+						text:e.getValue('name'),
+						isSelected:(ddnlocation == e.getValue('internalid'))
+					})
+					return true;
+				});
+
+				//department
+				var deptField = form.addField({
+					id:'custom_itpm_st_department',
+					type:serverWidget.FieldType.SELECT,
+					label:'Department',
+					container:'custom_classification_group'
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
+				});
+
+				deptField.addSelectOption({
+					value:' ',
+					text:' '
+				});
+
+				getList(subsid,'dept').run().each(function(e){
+					deptField.addSelectOption({
+						value:e.getValue('internalid'),
+						text:e.getValue('name'),
+						isSelected:(ddndept == e.getValue('internalid'))
+					})
+					return true;
+				});
+
+				//class
+				var classField = form.addField({
+					id:'custom_itpm_st_class',
+					type:serverWidget.FieldType.SELECT,
+					label:'Class',
+					container:'custom_classification_group'
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
+				});
+
+
+				classField.addSelectOption({
+					value:' ',
+					text:' '
+				});
+
+				getList(subsid,'class').run().each(function(e){
+					classField.addSelectOption({
+						value:e.getValue('internalid'),
+						text:e.getValue('name'),
+						isSelected:(ddnclass == e.getValue('internalid'))
+					})
+					return true;
+				})
+				/*  CLASSIFICATION End  */
+				
+				/*  PROMOTION INFORMATION Start  */
+				form.addFieldGroup({
+					id : 'custom_promoinfo_group',
+					label : 'Promotion Information'
+				});
+
+				//Promotion Number field
+				form.addField({
+					id:'custpage_promono',
+					type:serverWidget.FieldType.TEXT,
+					label:'PROMOTION NUMBER',
+					container:'custom_promoinfo_group'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.INLINE
+				}).defaultValue = String(settlementRec.getValue('custbody_itpm_set_promonum'));
+
+				//promotion/deal field to get the value in post
+				form.addField({
+					id:'custpage_promo_deal',
+					type:serverWidget.FieldType.TEXT,
+					label:'PROMOTION / DEAL'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.HIDDEN
+				}).defaultValue = settlementRec.getText('custbody_itpm_set_promo');
+
+				//Promotion field
+				form.addField({
+					id:'custpage_promo_deallink',
+					type:serverWidget.FieldType.INLINEHTML,
+					label:'PROMOTION / DEAL',
+					container:'custom_promoinfo_group'
+				}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text"><span id="custpage_promo_deal_fs_lbl_uir_label" class="smallgraytextnolink uir-label ">'+
+				'<span id="custpage_promo_deal_fs_lbl" class="smallgraytextnolink" style=""><a class="smallgraytextnolink">PROMOTION / DEAL</a></span>'+
+				'</span><span class="uir-field inputreadonly">'+
+				'<a href="'+promoDealURL+'" class="dottedlink">'+settlementRec.getText('custbody_itpm_set_promo')+'</a></span></div></td></tr>'
+				
+				//Promotion Description field
+				form.addField({
+					id:'custpage_promo_desc',
+					type:serverWidget.FieldType.TEXT,
+					label:'PROMOTION DESCRIPTION',
+					container:'custom_promoinfo_group'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.INLINE
+				}).defaultValue = settlementRec.getValue('custbody_itpm_set_promodesc')
+
+				//Ship start date field
+				form.addField({
+					id:'custpage_shstart_date',
+					type:serverWidget.FieldType.TEXT,
+					label:'Ship start Date',
+					container:'custom_promoinfo_group'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.INLINE
+				}).updateBreakType({
+					breakType : serverWidget.FieldBreakType.STARTCOL
+				}).defaultValue = settlementRec.getText('custbody_itpm_set_promoshipstart')
+
+				//Ship end date field
+				form.addField({
+					id:'custpage_shpend_date',
+					type:serverWidget.FieldType.TEXT,
+					label:'Ship end Date',
+					container:'custom_promoinfo_group'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.INLINE
+				}).defaultValue = settlementRec.getText('custbody_itpm_set_promoshipend')
+
+
+				/*  PROMOTION INFORMATION End  */
+				
+				/*  TRANSACTION DETAIL Start  */
+				form.addFieldGroup({
+					id : 'custom_transdetail_group',
+					label : 'Transaction Detail'
+				});
+				//Amount Field
 				var settlementReqField = form.addField({
 					id : 'custom_itpm_st_reql',
 					type : serverWidget.FieldType.CURRENCY,
 					label : 'Settlement Request',
-					container:'custom_detailed_information'
+					container:'custom_transdetail_group'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-
+				
 				//lump sum fields
-				var netLumSumLbltyField = form.addField({
+				/*var netLumSumLbltyField = form.addField({
 					id : 'custpage_netlumsum_liablty',
 					type : serverWidget.FieldType.CURRENCY,
 					label : 'Net Liability : Lump Sum',
-					container:'custom_detailed_information'
+					container:'custom_transdetail_group'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				netLumSumLbltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliabilityls');
+				netLumSumLbltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliabilityls');*/
 
 				//editable field
 				var lumsumSetField = form.addField({
 					id : 'custpage_lumsum_setreq',
 					type : serverWidget.FieldType.CURRENCY,
 					label : 'Settlement Request : Lump Sum',
-					container:'custom_detailed_information'
+					container:'custom_transdetail_group'
 				});
 
 
-				var lumsumOverPayField = form.addField({
+				/*var lumsumOverPayField = form.addField({
 					id : 'custpage_lumsum_overpay',
 					type : serverWidget.FieldType.CURRENCY,
 					label : 'UNDER (OVER) PAID : LUMP SUM',
-					container:'custom_detailed_information'
+					container:'custom_transdetail_group'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				})
 
-				lumsumOverPayField.defaultValue = settlementRec.getValue('custbody_itpm_set_paidls');
-
+				lumsumOverPayField.defaultValue = settlementRec.getValue('custbody_itpm_set_paidls');*/
+				
 				//off-invoice fields
-				var netOffInvLiabltyField = form.addField({
+			/*	var netOffInvLiabltyField = form.addField({
 					id : 'custpage_netoffinvoice_liablty',
 					type : serverWidget.FieldType.CURRENCY,
 					label : 'Net Liability : Off-Invoice',
-					container:'custom_detailed_information'
+					container:'custom_transdetail_group'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				})
 				netOffInvLiabltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliabilityoi');
-
+*/
 				//editable field
 				var offinvSetReqField = form.addField({
 					id : 'custpage_offinvoice_setreq',
 					type : serverWidget.FieldType.CURRENCY,
 					label : 'Settlement request : Missed off-invoice',
-					container:'custom_detailed_information'
+					container:'custom_transdetail_group'
 				})
 
 				var reqoiValue = settlementRec.getValue('custbody_itpm_set_reqoi');
 				offinvSetReqField.defaultValue = reqoiValue>0?reqoiValue:0;
-				var offinvOverPayField = form.addField({
+				/*var offinvOverPayField = form.addField({
 					id : 'custpage_offinv_overpay',
 					type : serverWidget.FieldType.CURRENCY,
 					label : ' UNDER (OVER) PAID : Off-Invoice',
-					container:'custom_detailed_information'
+					container:'custom_transdetail_group'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				})
 
-				offinvOverPayField.defaultValue = settlementRec.getValue('custbody_itpm_set_paidoi');
+				offinvOverPayField.defaultValue = settlementRec.getValue('custbody_itpm_set_paidoi');*/
 
 				//bill-back fields
-				var netBillLiabltyField = form.addField({
+				/*var netBillLiabltyField = form.addField({
 					id : 'custpage_netbillback_liablty',
 					type : serverWidget.FieldType.CURRENCY,
 					label : 'Net Liability : Bill-back',
-					container:'custom_detailed_information'
+					container:'custom_transdetail_group'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				})
-				netBillLiabltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliabilitybb');
+				netBillLiabltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliabilitybb');*/
 
 				//editable field
 				var netbillBackSetReqField = form.addField({
 					id : 'custpage_billback_setreq',
 					type : serverWidget.FieldType.CURRENCY,
 					label : 'Settlement request : Bill back',
-					container:'custom_detailed_information'
+					container:'custom_transdetail_group'
 				})
 
-				var billbackOverPayField = form.addField({
+				/*var billbackOverPayField = form.addField({
 					id : 'custpage_billback_overpay',
 					type : serverWidget.FieldType.CURRENCY,
 					label : 'UNDER (OVER) PAID : BILL-BACK',
-					container:'custom_detailed_information'
+					container:'custom_transdetail_group'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				})
 
-				billbackOverPayField.defaultValue = settlementRec.getValue('custbody_itpm_set_paidbb');
+				billbackOverPayField.defaultValue = settlementRec.getValue('custbody_itpm_set_paidbb');*/
 
+
+				/*  TRANSACTION DETAIL End  */
+				
+
+
+				//promotion information
+				form.addFieldGroup({
+					id : 'custom_promotion_information',
+					label : 'Promotion Information'
+				});
+
+				var netPromotionLiabltyField = form.addField({
+					id : 'custpage_netpromo_liablty',
+					type : serverWidget.FieldType.CURRENCY,
+					label : 'Net Promotional Liabliity',
+					container:'custom_promotion_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.INLINE
+				});
+
+				netPromotionLiabltyField.defaultValue = settlementRec.getValue('custbody_itpm_set_netliability');
+
+				
 				form.addField({
 					id : 'custpage_memo',
 					type : serverWidget.FieldType.TEXT,
@@ -522,6 +669,25 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 		}catch(e){
 			log.error('excetpion in settlement on edit',e.message);
 //			throw Error(e.message)
+		}
+		//for Location,class and department
+		function getList(subid,rectype){
+			switch(rectype){
+			case 'class':
+				rectype = search.Type.CLASSIFICATION;
+				break;
+			case 'dept':
+				rectype = search.Type.DEPARTMENT;
+				break;
+			case 'location':
+				rectype = search.Type.LOCATION;
+				break;
+			}
+			return search.create({
+				type:rectype,
+				columns:['internalid','name'],
+				filters:[['subsidiary','is',subid],'and',['isinactive','is',false]]
+			});
 		}
 
 	}
