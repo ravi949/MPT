@@ -2,7 +2,6 @@
  * @NApiVersion 2.x
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
- * Suitelet script to create an expense Journal Entry and link it to an iTPM Deduction record.
  */
 define(['N/record', 'N/search', 'N/runtime', './iTPM_Module.js'],
 
@@ -17,22 +16,28 @@ function(record, search, runtime, iTPM) {
      * @Since 2015.2
      */
     function onRequest(context) {
-    	if(context.request.method == 'GET'){
+    	if (context.request.method == 'GET'){
     		try{
     			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
-    			var itpmPreferences = iTPM.getPrefrenceValues(),
-        		expAccount = itpmPreferences.expenseAccnt,
-        		ddnAccount = null,
-        		ddnId = context.request.parameters.ddn,
-        		journalEntry = null,
-        		journalId = null,
-        		subsidiary = null,
-        		currency = null,
-        		openBalance = null,
-        		ddnFields = ['tranid', 
+    			var ddnId = context.request.parameters.ddn;
+    			if (!ddnId) throw {name:'SU_DDN_Invoice_DDNID', message:'Deduction ID not specified.'};
+    			var ddnAccount = null,
+    			journalEntry = null,
+    			journalId = null,
+    			customerId = null,
+    			invoiceId = null,
+    			accountReceivables = null,
+    			openBalance = null,
+    			subsidiary = null,
+    			currency = null,
+    			ddnRecord = null,
+    			ddnFields = ['tranid',
+    			             'custbody_itpm_ddn_invoice', 
+    			             'custbody_itpm_ddn_customer', 
     			             'custbody_itpm_ddn_openbal'
     			             ],
-    			memo = 'Expense for Deduction ';
+    			invoiceFields = ['account'],
+    			memo = 'Moving open balance to A/R for Deduction ';
     			
     			if (subsidiaryExists){
     				ddnFields.push('subsidiary');
@@ -45,7 +50,21 @@ function(record, search, runtime, iTPM) {
     				columns: ddnFields
     			});
     			if (util.isObject(ddnFields)){
+    				customerId = ddnFields.custbody_itpm_ddn_customer[0].value;
+    				invoiceId = ddnFields.custbody_itpm_ddn_invoice[0].value;
     				openBalance = parseFloat(ddnFields.custbody_itpm_ddn_openbal)
+    				if (invoiceId){
+    					accountReceivables = search.lookupFields({
+    						type: search.Type.TRANSACTION,
+    	    				id: invoiceId,
+    	    				columns: 'account'
+    					}).account[0].value;
+    				} else {
+    					throw {
+    						name: 'SU_DDN_Invoice_DDNFIELDS',
+        					message: 'DDN Fields did not return Invoice Id for Deduction Id ' + ddnId
+    					}
+    				}
     				if (subsidiaryExists){
     					subsidiary = ddnFields.subsidiary[0].value;
     					currency = ddnFields['subsidiary.currency'];
@@ -53,30 +72,27 @@ function(record, search, runtime, iTPM) {
     				}
     			} else {
     				throw {
-    					name: 'SU_DDN_Expense_DDNFIELDS',
+    					name: 'SU_DDN_Invoice_DDNFIELDS',
     					message: 'DDN Fields did not return object for Deduction Id ' + ddnId
     				}
     			}
-    			
     			ddnAccount = search.create({
     				type: search.Type.TRANSACTION,
     				filters:[['internalid', 'anyof', ddnId],'and',
     				         ['debitamount', 'greaterthan', '0']],
     				columns:[{name:'account'}]
     			}).run().getRange(0,1)[0].getValue({name:'account'});
-    			
-        		journalEntry = record.create({
-        			type: record.Type.JOURNAL_ENTRY,
-        			isDynamic: true
-        		});
-        		journalEntry.setValue({
+    			journalEntry = record.create({
+    				type: record.Type.JOURNAL_ENTRY,
+    				isDynamic: true
+    			}).setValue({
     				fieldId:'custbody_itpm_set_deduction',
     				value:ddnId
     			}).setValue({
     				fieldId:'memo',
     				value:memo + ddnFields.tranid
     			});
-        		if (subsidiaryExists){
+    			if (subsidiaryExists){
     				journalEntry.setValue({
         				fieldId:'subsidiary',
         				value:subsidiary
@@ -85,7 +101,30 @@ function(record, search, runtime, iTPM) {
         				value:currency
         			});
     			}
-        		//CREDIT LINE ON DDN ACCOUNT
+        		//DEBIT LINE ON A/R
+        		journalEntry.selectNewLine({
+        			sublistId: 'line'
+        		});
+        		journalEntry.setCurrentSublistValue({
+        			sublistId: 'line',
+        			fieldId:'account',
+    				value:accountReceivables
+        		}).setCurrentSublistValue({
+        			sublistId: 'line',
+        			fieldId:'debit',
+    				value:openBalance
+    			}).setCurrentSublistValue({
+    				sublistId: 'line',
+    				fieldId:'memo',
+    				value:memo + ddnFields.tranid
+    			}).setCurrentSublistValue({
+    				sublistId: 'line',
+    				fieldId:'entity',
+    				value:customerId
+    			}).commitLine({
+    				sublistId: 'line'
+    			});
+        		//CREDIT LINE ON EXPENSE ACCOUNT
         		journalEntry.selectNewLine({
         			sublistId: 'line'
         		});
@@ -104,32 +143,13 @@ function(record, search, runtime, iTPM) {
     			}).commitLine({
     				sublistId: 'line'
     			});
-        		//DEBIT LINE ON EXPENSE ACCOUNT
-        		journalEntry.selectNewLine({
-        			sublistId: 'line'
-        		});
-        		journalEntry.setCurrentSublistValue({
-        			sublistId: 'line',
-        			fieldId:'account',
-    				value:expAccount
-        		}).setCurrentSublistValue({
-        			sublistId: 'line',
-        			fieldId:'debit',
-    				value:openBalance
-    			}).setCurrentSublistValue({
-    				sublistId: 'line',
-    				fieldId:'memo',
-    				value:memo + ddnFields.tranid
-    			}).commitLine({
-    				sublistId: 'line'
-    			});
         		
         		journalId = journalEntry.save({
         			enableSourcing: true,
         			ignoreMandatoryFields: true
         		});
         		
-        		if (journalId){
+        		if(journalId){
         			record.submitFields({
         				type: 'customtransaction_itpm_deduction',
         				id: ddnId,
@@ -138,13 +158,13 @@ function(record, search, runtime, iTPM) {
         			});
         		} else {
         			throw {
-        				name: 'SU_DDN_Expense',
+        				name: 'SU_DDN_Invoice_JE',
         				message: 'Journal Entry not created successfully. Journal ID empty.'
         			}
         		}
         		context.response.write(journalId);
     		} catch(ex) {
-    			log.error(ex.name, ex.message + '; Deduction: ' + ddnRecord.getValue('tranid'));
+    			log.error(ex.name, ex.message + '; ddnId: ' + ddnId);
     		}
     	}
     }
