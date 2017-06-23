@@ -38,22 +38,22 @@ function(url,record,search, widget, runtime, redirect) {
 				var btn_split = sc.form.addButton({
 					id: 'custpage_itpm_split',
 					label: 'Split',
-					functionName: 'itpm_split(' + sc.newRecord.id + ')'
+					functionName: 'iTPMsplit(' + sc.newRecord.id + ')'
 				});
 				var btn_settlement = sc.form.addButton({
 					id: 'custpage_itpm_settlement',
 					label: 'Settlement',
-					functionName: 'itpm_settlement(' + sc.newRecord.id + ')'
+					functionName: 'iTPMsettlement(' + sc.newRecord.id + ')'
 				});
 				var btn_expense = sc.form.addButton({
 					id: 'custpage_itpm_expense',
 					label: 'Expense',
-					functionName: 'itpm_expense(' + sc.newRecord.id + ')'
+					functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
 				});
 				var btn_invoice = sc.form.addButton({
 					id: 'custpage_itpm_invoice',
 					label: 'Re-Invoice',
-					functionName: 'itpm_invoice(' + sc.newRecord.id + ')'
+					functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
 				});
 			} else if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
 				redirect.toSuitelet({
