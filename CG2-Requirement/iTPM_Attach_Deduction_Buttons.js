@@ -9,11 +9,11 @@ define(['N/url', 'N/https', 'N/ui/message'],
 
 function(url, https, message) {
 	
-	function displayMessage(text){
+	function displayMessage(title,text){
 		try{
 			var msg = message.create({
 				type: message.Type.INFORMATION,
-				title: 'Splitting Deduction',
+				title: title,
 				message: text
 			});
 			return msg;
@@ -24,7 +24,7 @@ function(url, https, message) {
 	
 	function iTPMsplit(id) {
 		try{
-			var msg = displayMessage('Please wait while you are redirected to the split deduction screen.');
+			var msg = displayMessage('Splitting Deduction','Please wait while you are redirected to the split deduction screen.');
 			msg.show();
 			var suiteletUrl = url.resolveScript({
 				scriptId:'customscript_itpm_ddn_assnt_view',
@@ -39,7 +39,7 @@ function(url, https, message) {
 	
 	function iTPMexpense(id) {
 		try{
-			var msg = displayMessage('Please wait while the expense is created and applied.');
+			var msg = displayMessage('Expensing Deduction','Please wait while the expense is created and applied.');
 			msg.show();
 			var suiteletUrl = url.resolveScript({
 				scriptId:'customscript_itpm_su_ddn_expense',
