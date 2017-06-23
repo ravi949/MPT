@@ -213,7 +213,11 @@ function(config, record, search, iTPM_Module) {
 	   			value:params['custom_itpm_st_incrd_promolbty']
 	   		});
 	   	}
-   	
+	   	//other reference code value
+	   	newSettlementRecord.setValue({
+	   		fieldId:'custbody_itpm_set_otherrefcode',
+	   		value:params['custom_itpm_st_otherref_code']
+	   	})
 	   	//customer value
 	   	newSettlementRecord.setValue({
 	   		fieldId:'custbody_itpm_set_customer',
