@@ -29,14 +29,9 @@ function(url, https, message) {
 			var suiteletUrl = url.resolveScript({
 				scriptId:'customscript_itpm_ddn_assnt_view',
 				deploymentId:'customdeploy_itpm_ddn_assnt_view',
-				returnExternalUrl: false,
 				params:{fid:id,from:'ddn'}
 			});
-			console.log(suiteletUrl);
-			https.get.promise({
-				url: suiteletUrl
-			});
-			return;
+			window.open(suiteletUrl, '_self');
 		} catch(ex) {
 			console.log(ex);
 		}
@@ -61,11 +56,10 @@ function(url, https, message) {
 					recordId: id,
 					params:{itpm:'expense'}
 				});
-				window.load(recUrl);
+				window.open(recUrl, '_self');
 			}).catch(function(ex){
 				throw ex;
 			});
-			return;
 		} catch(ex) {
 			console.log(ex);
 		}

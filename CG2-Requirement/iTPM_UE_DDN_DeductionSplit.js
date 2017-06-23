@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType UserEventScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  * if parent deduction amount is less than new deduction amount then.
  * split the deduction into two and creating the two journal entries for each deduction and changed the parent deduction status to resolved.
  */
