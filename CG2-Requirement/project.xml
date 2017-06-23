@@ -9,10 +9,8 @@
     <file name="iTPMAllowance_Get_Price_Value_su_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMCheck_Edit_Validation_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMDeductionToDeduction_Redirection_Wf_Script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
-    <file name="iTPMDeduction_AssistantView_su_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMDeduction_Button_ToInvoice_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMDeduction_RedirectToDdn_Assistant_FromInvoice_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
-    <file name="iTPMDeduction_SplitAndCreationOf_JournalEntries_ue_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMDeduction_ToDeduction_Validations_cs_script.js" bundleable="true" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMEstVol_DynamicField_EstVolBy_ue_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMEstVolume_AfterSubmit_Create_KPI_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>

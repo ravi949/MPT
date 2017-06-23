@@ -22,8 +22,9 @@ function(search, record, util) {
 			rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
 			rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB);
     		log.debug('getSpend_Values', 'qty: ' + qty + ', rateBB: ' + rateBB + ', rateOI: ' + rateOI + ', rateNB: ' + rateNB);
-		var eSpendBB = qty * rateOI, eSpendOI = qty * rateOI, eSpendNB = qty * rateNB;
-		return {error: false, spend: eSpendBB + eSpendOI + eSpendNB, bb: eSpendBB, oi: eSpendOI, nb: eSpendNB};
+		//var eSpendBB = qty * rateOI, eSpendOI = qty * rateOI, eSpendNB = qty * rateNB;
+		//return {error: false, spend: eSpendBB + eSpendOI + eSpendNB, bb: eSpendBB, oi: eSpendOI, nb: eSpendNB};
+		return {error: false, spend: qty*(rateBB + rateOI + rateNB), bb: qty*rateBB, oi: qty*rateOI, nb: qty*rateNB};
     	} catch(ex) {
     		return {error: true, name: 'SPEND_MODULE', message: ex.name + '; ' + ex.message + '; objParameter: ' + JSON.stringify(objParameter)};
     	}
@@ -47,8 +48,9 @@ function(search, record, util) {
 			rFactor = (objParameter.redemption == '' || objParameter.redemption == null || !objParameter.redemption)? 0 : parseFloat(objParameter.redemption);
     		rFactor /= 100;
     		log.debug('getLiability_Values', 'qty: ' + qty + ', rateBB: ' + rateBB + ', rateOI: ' + rateOI + ', rateNB: ' + rateNB + ', rFactor: ' + rFactor);
-		var expBB = qty * rateBB * rFactor, expOI = qty * rateOI, expNB = qty * rateNB;
-		return {error: false, liability: expBB + expOI + expNB, bb: expBB, oi: expOI, nb: expNB};
+		//var expBB = qty * rateBB * rFactor, expOI = qty * rateOI, expNB = qty * rateNB;
+		//return {error: false, liability: expBB + expOI + expNB, bb: expBB, oi: expOI, nb: expNB};
+    		return {error: false, liability: qty*((rateBB*rFactor)+rateOI+rateNB), bb: qty*rateBB*rFactor, oi: qty*rateOI, nb: qty*rateNB};
     	} catch(ex) {
     		return {error: true, name: 'LIABILITY_MODULE', message: ex.name + '; ' + ex.message + '; objParameter: ' + JSON.stringify(objParameter)};
     	}
