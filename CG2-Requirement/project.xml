@@ -6,7 +6,6 @@
     <file name="Retail_Info_Duplicate_Detection_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="Retail_Info_RetailCalculation_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="TestingScript_For_EstimateVolume_su_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
-    <file name="iTPMAllowance_Get_Price_Value_su_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMCheck_Edit_Validation_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMDeductionToDeduction_Redirection_Wf_Script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMDeduction_Button_ToInvoice_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
@@ -50,6 +49,7 @@
     <file name="iTPM_CS_ESTQTY_ItemAndUnitOptions.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_MR_Copy_Promotion.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_SU_Allowance_BackendUOM_Service.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="iTPM_SU_Allowance_GetPrice.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_SU_GetItemUnits.js" bundleable="true" hideInBundle="false" isOnline="false" textFileEncoding="_utf8">
       <description>Suitelet to return units based on item, or conversion rate based on unit and item.</description>
     </file>
