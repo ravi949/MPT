@@ -60,14 +60,15 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						type:'customtransaction_itpm_deduction',
 						id:params.fid
 					});
-					var originalDddno = deductionRec.getValue('custbody_itpm_ddn_originalddn'),
-					originalDdnText = deductionRec.getText('custbody_itpm_ddn_originalddn');
-					if(originalDddno !=''){
+//					log.error('params.fid',params.fid);
+//					log.error('deductionRec',deductionRec);
+					var originalDddno = deductionRec.getValue('custbody_itpm_ddn_originalddn');
+					/*if(originalDddno !=''){
 						originalDddnRec = record.load({
 							type:'customtransaction_itpm_deduction',
 							id:originalDddno
 						});
-					}
+					}*/
 
 					var deductnNo = deductionRec.getValue('tranid'),
 					invoiceId = deductionRec.getValue('custbody_itpm_ddn_invoice'),
@@ -143,6 +144,22 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					displayType : serverWidget.FieldDisplayType.DISABLED
 				}).defaultValue = "To Be Generated";
 				
+				//setting the INVOICE Value
+				var invoice = ddnForm.addField({
+					id : 'custom_itpm_ddn_invoice',
+					type : serverWidget.FieldType.SELECT,
+					label:'Invoice',
+					container:'custom_primry_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				});
+
+				invoice.addSelectOption({
+					value : invoiceId,
+					text : invoiceText,
+					isSelected:true
+				});
+
 				//setting the ORIGINAL NUMBER value
 				var originnoField = ddnForm.addField({
 					id : 'custom_itpm_ddn_originalddn',
@@ -153,8 +170,8 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					displayType : serverWidget.FieldDisplayType.DISABLED
 				});
 				originnoField.addSelectOption({
-					value:(params.from =='inv')?' ':originalDddnRec.id,
-							text:(params.from =='inv')?' ':originalDddnRec.getValue('tranid')
+					value:(params.from =='inv')?' ':deductionRec.getValue('custbody_itpm_ddn_originalddn'),
+							text:(params.from =='inv')?' ':deductionRec.getText('custbody_itpm_ddn_originalddn')
 				})	
 
 				//setting the OTHER REFERENCE CODE value
@@ -165,24 +182,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					container:'custom_primry_information'
 				});
 
-				//setting the INVOICE Value
-				var invoice = ddnForm.addField({
-					id : 'custom_itpm_ddn_invoice',
-					type : serverWidget.FieldType.SELECT,
-					label:'Invoice',
-					container:'custom_primry_information'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				}).updateBreakType({
-					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
-
-				invoice.addSelectOption({
-					value : invoiceId,
-					text : invoiceText,
-					isSelected:true
-				});
-
+				
 				if(customerParentId != ''){
 					//setting the parent value from the customer
 					var customerParent = ddnForm.addField({
@@ -191,7 +191,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						label:'Parent',
 						container:'custom_primry_information'
 					}).updateDisplayType({
-						displayType : serverWidget.FieldDisplayType.DISABLED
+						displayType : serverWidget.FieldDisplayType.HIDDEN
 					});
 
 					customerParent.addSelectOption({
@@ -259,7 +259,16 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
 				});
-
+				
+				//iTPM Applied To Transaction field 				
+				var aplydToTrans = ddnForm.addField({
+					id : 'custom_itpm_ddn_appliedto',
+					type : serverWidget.FieldType.SELECT,
+					label:'Applied To',
+					container:'custom_primry_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				});
 				/*-----PRIMARY INFORMATION end-----*/
 
 				/*------CLASSIFICATION start ------*/
@@ -471,7 +480,15 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					breakType : serverWidget.FieldBreakType.STARTCOL
 				}).defaultValue = invAmount - totalSettlements;
 
-				
+				//setting the TOTAL EXPENSES value
+				ddnForm.addField({
+					id : 'custom_itpm_ddn_totalexpense',
+					type : serverWidget.FieldType.CURRENCY,
+					label:'TOTAL EXPENSES',
+					container:'custom_itpm_ddn_transdetails'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				}).defaultValue = 0;
 				/*------- TRANSACTION DETAIL End --------*/
 
 				ddnForm.addSubmitButton({label:'Submit'});

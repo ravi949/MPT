@@ -25,7 +25,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 					type:'customtransaction_itpm_deduction',
 					id: request.parameters.fid
 				});
-//				log.debug('ddnRec',deductionRec);
+//				log.error('ddnRec',deductionRec);
 				
 				var subsid = deductionRec.getValue('subsidiary'), //subsidiary from original dedution
 				customerId = deductionRec.getValue('custbody_itpm_ddn_customer'), //customer from original dedution
@@ -399,6 +399,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
 				}).defaultValue = deductionRec.getValue({ fieldId: 'custbody_itpm_ddn_openbal'});
+				
 				//setting the TOTAL EXPENSES value
 				ddnForm.addField({
 					id : 'custom_itpm_ddn_totalexpense',
