@@ -219,7 +219,7 @@ function(search, runtime, record, iTPM) {
 						var leQuantity = (parseFloat(values.estPromoted)>=parseFloat(kpi_actualQty.quantity))? values.estPromoted : kpi_actualQty.quantity;
 						log.debug('leQuantity', leQuantity);
 						leSpend = iTPM.getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
-						var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.qty;
+						var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.quantity;
 						actualSpend = iTPM.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
 						expectedLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: values.estRedemption});
 						maxLiability = iTPM.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
