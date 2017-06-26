@@ -222,7 +222,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
 			container:'custom_primaryinfo_group'
 		}).updateDisplayType({
 			displayType : serverWidget.FieldDisplayType.DISABLED
-		}).defaultValue = 'A';
+		}).defaultValue = ' ';
 
 	    //APPLIED TO
 
