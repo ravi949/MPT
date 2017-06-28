@@ -482,7 +482,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					container:'custom_itpm_ddn_transdetails'
 				});
 				amountField.updateDisplayType({
-					displayType : (params.from =='inv')?serverWidget.FieldDisplayType.DISABLED:serverWidget.FieldDisplayType.NORMAL
+					displayType : (params.from =='inv'||params.type == 'edit')?serverWidget.FieldDisplayType.DISABLED:serverWidget.FieldDisplayType.NORMAL
 				}).defaultValue = invAmount;
 
 				amountField.isMandatory = true;
