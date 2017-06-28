@@ -3,13 +3,13 @@
  * @NScriptType workflowactionscript
  * When user apply settlement to check then creating the check record and re-directing to the check
  */
-define(['N/record', 'N/redirect', 'N/search', './iTPM_ST_Module.js'],
+define(['N/record', 'N/redirect', 'N/search', 'N/runtime', './iTPM_Module_Settlement.js'],
 /**
  * @param {record} record
  * @param {redirect} redirect
  * @param {search} search
  */
-function(record, redirect, search, ST_Module) {
+function(record, redirect, search, runtime, ST_Module) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -20,14 +20,8 @@ function(record, redirect, search, ST_Module) {
      * @Since 2016.1
      */
     function onAction(scriptContext) {
-    	try{ 
-    		//search the Preferences record for account field value
-    		/*var preferenceRec = search.create({
-    			type: 'customrecord_itpm_preferences',
-    			columns: ['custrecord_itpm_pref_ddnaccount' ],
-    			filters: [ ]
-    		}).run().getRange(0,1);*/
-    		
+    	try{     
+    		var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
     		//loading the settlement record
     		var settlementRec = record.load({
     		     type: 'customtransaction_itpm_settlement',
@@ -63,16 +57,19 @@ function(record, redirect, search, ST_Module) {
         			value:  settlementRec.getValue('custbody_itpm_set_amount'),
         			ignoreFieldChange: true
         		});
-        		checkRecord.setValue({
-        			fieldId: 'subsidiary',
-        			value:  settlementRec.getValue('subsidiary'),
-        			ignoreFieldChange: true
-        		});
-        		checkRecord.setValue({
-        			fieldId: 'currency',
-        			value:  settlementRec.getValue('currency'),
-        			ignoreFieldChange: true
-        		});
+        		
+        		if(subsidiaryExists){
+        			checkRecord.setValue({
+            			fieldId: 'subsidiary',
+            			value:  settlementRec.getValue('subsidiary'),
+            			ignoreFieldChange: true
+            		}).setValue({
+            			fieldId: 'currency',
+            			value:  settlementRec.getValue('currency'),
+            			ignoreFieldChange: true
+            		});
+        		}
+        		
         		checkRecord.setValue({
         			fieldId: 'memo',
         			value:  ' From Settlement #'+ settlementRec.getValue('tranid'),
@@ -88,12 +85,6 @@ function(record, redirect, search, ST_Module) {
         			value:  settlementRec.getValue('custbody_itpm_set_promo'),
         			ignoreFieldChange: true
         		});
-        		//if any account field added in Preferences to related this field, then add that field value to this 
-        		/*checkRecord.setValue({
-        	    fieldId: 'account',
-        	    value: preferenceRec[0].getValue('custrecord_itpm_pref_ddnaccount'),
-        	    ignoreFieldChange: true
-        	    });*/
         		
         		//adding line items in the check record    		
         		var expenseLineCount = 0;//increasing line count after adding record

@@ -18,16 +18,19 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
      */
 	function onRequest(context) {
 		try{
-			var request = context.request,response = context.response,params = request.parameters;
-
+			var request = context.request,response = context.response,params = request.parameters,
+			subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
+			
 			if(request.method == 'GET'){
 
 				//validation on passed id
-				var statusObj = checkWhetherIdValidOrNot(params.fid,params.from);
-				if(!statusObj.success){
-					throw Error(statusObj.errormessage);
+				if(params.type != 'edit'){
+					var statusObj = checkWhetherIdValidOrNot(params.fid,params.from);
+					if(!statusObj.success){
+						throw Error(statusObj.errormessage);
+					}
 				}
-
+				
 				if(params.from == 'inv'){
 					var invoiceRec = record.load({
 						type:record.Type.INVOICE,
@@ -35,64 +38,49 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					}),
 					invoiceId = invoiceRec.id,
 					invoiceText = invoiceRec.getText('tranid'),
-					subsid = invoiceRec.getValue('subsidiary'),
-					subsidiaryText = invoiceRec.getText('subsidiary'),
 					customerId = invoiceRec.getValue('entity'),
 					customerEntity = invoiceRec.getText('entity'),
-					invAmount = invoiceRec.getValue('amountremainingtotalbox'),
-					invclass = invoiceRec.getValue('class'),
-					invdept = invoiceRec.getValue('department'),
-					invlocation = invoiceRec.getValue('location'),
-					currencyId = invoiceRec.getValue('currency'),
-					currencyText = invoiceRec.getText('currency'),
-					currentUserId = runtime.getCurrentUser().id,
-					totalSettlements = 0,
-					customerRec = record.load({
-						type:record.Type.CUSTOMER,
-						id:customerId
-					}),
-					defaultRecvAccnt = customerRec.getValue('receivablesaccount'),
-					customerParentId = customerRec.getValue('parent');
-				}
-
-				if(params.from == 'ddn'){
-					var deductionRec = originalDddnRec = record.load({
+					invAmount = invoiceRec.getValue('amountremainingtotalbox');
+					
+				}else if(params.from == 'ddn'){
+					var deductionRec = record.load({
 						type:'customtransaction_itpm_deduction',
 						id:params.fid
 					});
-//					log.error('params.fid',params.fid);
-//					log.error('deductionRec',deductionRec);
-					var originalDddno = deductionRec.getValue('custbody_itpm_ddn_originalddn');
-					/*if(originalDddno !=''){
-						originalDddnRec = record.load({
-							type:'customtransaction_itpm_deduction',
-							id:originalDddno
-						});
-					}*/
 
+					//taking the values from the parent deduction record.
+					var originalDddno = deductionRec.getValue('custbody_itpm_ddn_originalddn');
 					var deductnNo = deductionRec.getValue('tranid'),
 					invoiceId = deductionRec.getValue('custbody_itpm_ddn_invoice'),
 					invoiceText = deductionRec.getText('custbody_itpm_ddn_invoice'),
-					subsid = originalDddnRec.getValue('subsidiary'), //subsidiary from original dedution
-					subsidiaryText = originalDddnRec.getText('subsidiary'), //subsidiary from original dedution
-					customerId = originalDddnRec.getValue('custbody_itpm_ddn_customer'), //customer from original dedution
-					customerEntity = originalDddnRec.getText('custbody_itpm_ddn_customer'), //customer from original dedution
-					invAmount = deductionRec.getValue('custbody_itpm_ddn_amount'),
-					invclass = originalDddnRec.getValue('class'), //class from original dedution
-					invdept = originalDddnRec.getValue('department'), //dept from original dedution
-					invlocation = originalDddnRec.getValue('location'), //location from original dedution
-					currencyId = originalDddnRec.getValue('currency'), //currency from original dedution
-					currencyText = originalDddnRec.getText('currency'), //currency from original dedution
-					currentUserId = runtime.getCurrentUser().id,
-					totalSettlements = 0,
-					customerRec = record.load({
-						type:record.Type.CUSTOMER,
-						id:customerId
-					}),
-					defaultRecvAccnt = customerRec.getValue('receivablesaccount'),
-					customerParentId = customerRec.getValue('parent');
+					customerId = deductionRec.getValue('custbody_itpm_ddn_customer'), 
+					customerEntity = deductionRec.getText('custbody_itpm_ddn_customer'), 
+					invAmount = deductionRec.getValue('custbody_itpm_ddn_amount');
 				}
-
+				
+				//reading the values same intenralid values from the deduciton or invoice record.
+				var recObj = (params.from == 'ddn')?deductionRec:invoiceRec;
+				var invclass = recObj.getValue('class'),
+				invdept = recObj.getValue('department'),
+				invlocation = recObj.getValue('location'),
+				subsid = recObj.getValue('subsidiary'),
+				currentUserId = runtime.getCurrentUser().id,
+				totalSettlements = 0,
+				customerRec = record.load({
+					type:record.Type.CUSTOMER,
+					id:customerId
+				}),
+				defaultRecvAccnt = customerRec.getValue('receivablesaccount'),
+				customerParentId = customerRec.getValue('parent');
+				
+				//if subsidiary feature in effect
+				if(subsidiaryExists){
+					subsidiaryText = recObj.getText('subsidiary'),
+					currencyId = recObj.getValue('currency'),
+					currencyText = recObj.getText('currency');
+				}
+				
+				//Deduction form creation
 				var ddnForm = serverWidget.createForm({
 					title: '- ITPM Deduction'
 				});
@@ -104,7 +92,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					label:'Parent Record id'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.HIDDEN
-				}).defaultValue = params.fid;  
+				}).defaultValue = (params.type != 'edit')?params.fid:recObj.getValue('custbody_itpm_ddn_parentddn');  
 
 				ddnForm.addField({
 					id : 'custom_cfrom',
@@ -113,6 +101,15 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.HIDDEN
 				}).defaultValue = params.from;
+				
+				ddnForm.addField({
+					id : 'custom_user_eventype',
+					type : serverWidget.FieldType.TEXT,
+					label:'Record Event Type'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.HIDDEN
+				}).defaultValue = params.type;  
+				
 
 				/*-----------------------------end--------------------------*/
 
@@ -142,7 +139,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					container:'custom_primry_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
-				}).defaultValue = "To Be Generated";
+				}).defaultValue =(params.type != 'edit')?"To Be Generated":recObj.getValue('tranid');
 				
 				//setting the INVOICE Value
 				var invoice = ddnForm.addField({
@@ -169,10 +166,31 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
 				});
-				originnoField.addSelectOption({
-					value:(params.from =='inv')?' ':deductionRec.getValue('custbody_itpm_ddn_originalddn'),
-							text:(params.from =='inv')?' ':deductionRec.getText('custbody_itpm_ddn_originalddn')
-				})	
+				
+				if(originalDddno != ''){
+					originnoField.addSelectOption({
+						value:(params.from =='inv')?' ':deductionRec.getValue('custbody_itpm_ddn_originalddn'),
+						text:(params.from =='inv')?' ':deductionRec.getText('custbody_itpm_ddn_originalddn')
+					})
+				}
+				
+				//parent deduciton field
+				var parentDDNField = ddnForm.addField({
+					id : 'custom_itpm_ddn_parentddn',
+					type : serverWidget.FieldType.SELECT,
+					label:'Parent DEDUCTION',
+					container:'custom_primry_information'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.DISABLED
+				});
+				
+				if(deductionRec.getValue('custbody_itpm_ddn_parentddn') != ''){
+					parentDDNField.addSelectOption({
+						value:(params.from =='inv')?' ':deductionRec.getValue('custbody_itpm_ddn_parentddn'),
+						text:(params.from =='inv')?' ':deductionRec.getText('custbody_itpm_ddn_parentddn')
+					})	
+				}
+				
 
 				//setting the OTHER REFERENCE CODE value
 				ddnForm.addField({
@@ -228,8 +246,8 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				});
 
 				status.addSelectOption({
-					value : 'A',
-					text : 'Open',
+					value : (params.type != 'edit')?'A':deductionRec.getValue('transtatus'),
+					text : (params.type != 'edit')?'Open':deductionRec.getText('transtatus'),
 					isSelected:true
 				});
 
@@ -258,17 +276,26 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					container:'custom_primry_information'
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
+				}).defaultValue = (params.type != 'edit')?'F':deductionRec.getValue('custbody_itpm_ddn_disputed')?'T':'F';
 				
 				//iTPM Applied To Transaction field 				
 				var aplydToTrans = ddnForm.addField({
 					id : 'custom_itpm_ddn_appliedto',
 					type : serverWidget.FieldType.SELECT,
-					label:'Applied To',
+					label:'ITPM APPLIED TO TRANSACTION',
 					container:'custom_primry_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
 				});
+				
+				if(params.type == 'edit' && deductionRec.getValue('custbody_itpm_set_deduction') != ''){
+					aplydToTrans.addSelectOption({
+						value:deductionRec.getValue('custbody_itpm_set_deduction'),
+						text:deductionRec.getText('custbody_itpm_set_deduction'),
+						isSelected:true
+					})
+				}
+				
 				/*-----PRIMARY INFORMATION end-----*/
 
 				/*------CLASSIFICATION start ------*/
@@ -277,38 +304,40 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					label : 'Classification'
 				});
 
-				//setting the SUBSIDIARY Value
-				var subsidiary = ddnForm.addField({
-					id : 'custom_subsidiary',
-					type : serverWidget.FieldType.SELECT,
-					label:'Subsidiary',
-					container:'custom_classification'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
+				if(subsidiaryExists){
+					//setting the SUBSIDIARY Value
+					var subsidiary = ddnForm.addField({
+						id : 'custom_subsidiary',
+						type : serverWidget.FieldType.SELECT,
+						label:'Subsidiary',
+						container:'custom_classification'
+					}).updateDisplayType({
+						displayType : serverWidget.FieldDisplayType.DISABLED
+					});
 
-				subsidiary.addSelectOption({
-					value : subsid,
-					text : subsidiaryText,
-					isSelected:true
-				});
+					subsidiary.addSelectOption({
+						value : subsid,
+						text : subsidiaryText,
+						isSelected:true
+					});
+
+					//setting the CURRENCY value
+					var currency = ddnForm.addField({
+						id : 'custom_currency',
+						type : serverWidget.FieldType.SELECT,
+						label:'Currency',
+						container:'custom_classification'
+					}).updateDisplayType({
+						displayType : serverWidget.FieldDisplayType.DISABLED
+					});
+
+					currency.addSelectOption({
+						value : currencyId,
+						text : currencyText,
+						isSelected:true
+					});
+				}
 				
-				//setting the CURRENCY value
-				var currency = ddnForm.addField({
-					id : 'custom_currency',
-					type : serverWidget.FieldType.SELECT,
-					label:'Currency',
-					container:'custom_classification'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
-
-				currency.addSelectOption({
-					value : currencyId,
-					text : currencyText,
-					isSelected:true
-				});
-
 				//setting the LOCATION value
 				var location = ddnForm.addField({
 					id : 'custom_location',
@@ -434,7 +463,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					container:'custom_itpm_ddn_taskdetails'
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
+				}).defaultValue = (params.type != 'edit')?' ':deductionRec.getValue('memo');
 
 				/*------- TASK DETAIL End --------*/
 
@@ -511,8 +540,6 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				classno = params['custom_class'],
 				deptno = params['custom_department'],
 				locationno = params['custom_location'],
-				subsidiaryno = params['custom_subsidiary'],
-				currencyno = params['custom_currency'],
 				assignto = params['custom_itpm_ddn_assignedto'],
 				amount = params['custom_itpm_ddn_amount'].replace(/,/g,''),
 				totalsettlement = params['custom_total_settlements'],
@@ -521,12 +548,23 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				followup = params['custom_itpm_ddn_nextaction'],
 				memo = params['custom_memo'],
 				status = params['custom_status'],
-				defaultRecvAccnt = params['custom_def_accnt_recv'];
+				defaultRecvAccnt = params['custom_def_accnt_recv'],
+				deductionRec = null;
 
-				var deductionRec = record.create({
-					type:'customtransaction_itpm_deduction',
-					isDynamic:true
-				})
+				
+				if(params['custom_user_eventype'] != 'edit'){
+					deductionRec = record.create({
+						type:'customtransaction_itpm_deduction',
+						isDynamic:true
+					})
+				}else{
+					deductionRec = record.load({
+						type:'customtransaction_itpm_deduction',
+						id:params['custom_parent_recid'],
+						isDynamic:true
+					})
+				}
+				
 
 				if(params['custom_cfrom'] == 'ddn'){
 					deductionRec.setValue({
@@ -575,13 +613,17 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						ignoreFieldChange:true
 					})
 				}
-
-				if(subsidiaryno != ''){
+				
+				if(subsidiaryExists){
 					deductionRec.setValue({
 						fieldId:'subsidiary',
-						value:subsidiaryno,
+						value:params['custom_subsidiary'],
 						ignoreFieldChange:true
-					})
+					}).setValue({
+						fieldId:'currency',
+						value:params['custom_currency'],
+						ignoreFieldChange:true
+					});
 				}
 
 				if(classno != ''){
@@ -604,14 +646,6 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					deductionRec.setValue({
 						fieldId:'department',
 						value:deptno,
-						ignoreFieldChange:true
-					})
-				}
-
-				if(currencyno != ''){
-					deductionRec.setValue({
-						fieldId:'currency',
-						value:currencyno,
 						ignoreFieldChange:true
 					})
 				}
@@ -648,7 +682,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					deductionRec.setValue({
 						fieldId:'custbody_itpm_ddn_disputed',
 						value:(disputed == "T")?true:false,
-								ignoreFieldChange:true
+						ignoreFieldChange:true
 					})
 				}
 
@@ -669,153 +703,148 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					});
 				}
 
-				//getting the line value for the deduction
-				var expenseId,lineMemo,createdFrom = params['custom_cfrom'],
-				receivbaleAccntsList;
-				if(createdFrom == 'inv'){
-					var recieveableAccnts = search.create({
-						type:search.Type.INVOICE,
-						columns:['internalid','account.type','account.name','account.internalid'],
-						filters:[['internalid','is',invoiceno],'and',['account.type','anyof',["AcctRec","Expense"]]]
-					}),recievableAccntId;
+				if(params['custom_user_eventype'] != 'edit'){
+					//getting the line value for the deduction
+					var expenseId,lineMemo,createdFrom = params['custom_cfrom'],
+					receivbaleAccntsList;
+					if(createdFrom == 'inv'){
+						var recieveableAccnts = search.create({
+							type:search.Type.INVOICE,
+							columns:['internalid','account.type','account.name','account.internalid'],
+							filters:[['internalid','is',invoiceno],'and',['account.type','anyof',["AcctRec","Expense"]]]
+						}),recievableAccntId;
 
-					lineMemo = 'Deduction applied on Invoice #'+invoiceLookup.tranid;
+						lineMemo = 'Deduction applied on Invoice #'+invoiceLookup.tranid;
 
-					recieveableAccnts.run().each(function(e){
-						if(e.getValue({name:'type',join:'account'}) == 'AcctRec')
-							recievableAccntId = e.getValue({name:'internalid',join:'account'});
-						return true
-					})
+						recieveableAccnts.run().each(function(e){
+							if(e.getValue({name:'type',join:'account'}) == 'AcctRec')
+								recievableAccntId = e.getValue({name:'internalid',join:'account'});
+							return true
+						})
 
-					var configObj = config.load({
-						type:config.Type.ACCOUNTING_PREFERENCES
-					}),
-					itpmPreferenceSearch = search.create({
-						type:'customrecord_itpm_preferences',
-						columns:['custrecord_itpm_pref_ddnaccount'],
-						filters:[]
-					}).run().getRange(0,1);
+						var configObj = config.load({
+							type:config.Type.ACCOUNTING_PREFERENCES
+						}),
+						itpmPreferenceSearch = search.create({
+							type:'customrecord_itpm_preferences',
+							columns:['custrecord_itpm_pref_ddnaccount'],
+							filters:[]
+						}).run().getRange(0,1);
 
-					expenseId = itpmPreferenceSearch[0].getValue('custrecord_itpm_pref_ddnaccount');
+						expenseId = itpmPreferenceSearch[0].getValue('custrecord_itpm_pref_ddnaccount');
 
-					if(defaultRecvAccnt == "-10"){
-						defaultRecvAccnt = configObj.getValue('ARACCOUNT');	
-						defaultRecvAccnt = (defaultRecvAccnt == '')?recievableAccntId:defaultRecvAccnt;
+						if(defaultRecvAccnt == "-10"){
+							defaultRecvAccnt = configObj.getValue('ARACCOUNT');	
+							defaultRecvAccnt = (defaultRecvAccnt == '')?recievableAccntId:defaultRecvAccnt;
+						}
+
+						receivbaleAccntsList = [{accountId:defaultRecvAccnt,amount:amount,fid:'credit',memo:lineMemo,recievable:true},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo,recievable:false}];
+
+					}else if(createdFrom == 'ddn'){
+						var dedRec = record.load({
+							type:'customtransaction_itpm_deduction',
+							id:originalno
+						});					
+						lineMemo = 'Deduction split from Deduction #'+dedRec.getText({fieldId:'tranid'});
+						expenseId = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:1});
+
+						receivbaleAccntsList = [{accountId:expenseId,amount:amount,fid:'credit',memo:lineMemo,recievable:false},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo,recievable:false}];
 					}
-				
-					receivbaleAccntsList = [{accountId:defaultRecvAccnt,amount:amount,fid:'credit',memo:lineMemo,recievable:true},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo,recievable:false}];
-		
-				}else if(createdFrom == 'ddn'){
-					var dedRec = record.load({
-						type:'customtransaction_itpm_deduction',
-						id:originalno
-					});
-//					,lineCount = dedRec.getLineCount('line');
-//					for(var i = 0;i<lineCount;i++){
-//						lineMemo = 'Deduction split from Deduction #'+dedRec.getText({fieldId:'tranid'});
-//						if(i == 0)
-//							defaultRecvAccnt = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:i});
-//						else
-//							expenseId = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:i});
-//					}
-					
-					lineMemo = 'Deduction split from Deduction #'+dedRec.getText({fieldId:'tranid'});
-					expenseId = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:1});
 
-					receivbaleAccntsList = [{accountId:expenseId,amount:amount,fid:'credit',memo:lineMemo,recievable:false},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo,recievable:false}];
-				}
-
-				//adding the memo value in deduction record
-				deductionRec.setValue({
-					fieldId:'memo',
-					value:(memo!='')?memo:lineMemo,
-					ignoreFieldChange:true
-				})
-
-				log.debug('receivableAccntsList',receivbaleAccntsList)
-				receivbaleAccntsList.forEach(function(e){
-					deductionRec.selectNewLine({sublistId: 'line'});
-					deductionRec.setCurrentSublistValue({
-						sublistId:'line',
-						fieldId:'account',
-						value:e.accountId
-					}).setCurrentSublistValue({
-						sublistId:'line',
-						fieldId:e.fid,
-						value:e.amount
-					}).setCurrentSublistValue({
-						sublistId:'line',
+					//adding the memo value in deduction record
+					deductionRec.setValue({
 						fieldId:'memo',
-						value:e.memo
+						value:(memo!='')?memo:lineMemo,
+								ignoreFieldChange:true
 					})
-					if(e.recievable){
+
+					log.debug('receivableAccntsList',receivbaleAccntsList)
+					receivbaleAccntsList.forEach(function(e){
+						deductionRec.selectNewLine({sublistId: 'line'});
 						deductionRec.setCurrentSublistValue({
 							sublistId:'line',
-							fieldId:'entity',
-							value:customerno
+							fieldId:'account',
+							value:e.accountId
+						}).setCurrentSublistValue({
+							sublistId:'line',
+							fieldId:e.fid,
+							value:e.amount
+						}).setCurrentSublistValue({
+							sublistId:'line',
+							fieldId:'memo',
+							value:e.memo
 						})
-					}
-					deductionRec.commitLine({
-						sublistId: 'line'
-					});
-
-				});
-
-
-				var deductionId = deductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});
-
-				//when a deduction is created from invoice then the invoice is converted into payment fulfillment
-				if(params['custom_cfrom'] == 'inv'){
-					var deductionCreatedRec = record.load({type:'customtransaction_itpm_deduction',id:deductionId}),
-					invId = params['custom_itpm_ddn_invoice'],
-					invTransformRec = record.transform({
-						fromType: record.Type.INVOICE,
-						fromId: invId,
-						toType: record.Type.CUSTOMER_PAYMENT
-					}),
-					transFormRecLineCount = invTransformRec.getLineCount('credit');
-
-					invTransformRec.setValue({
-						fieldId:'class',
-						value:classno
-					}).setValue({
-						fieldId:'location',
-						value:locationno
-					}).setValue({
-						fieldId:'department',
-						value:deptno
-					}).setValue({
-						fieldId:'memo',
-						value:'Deduction '+deductionCreatedRec.getValue('tranid')+' applied to Invoice '+invoiceLookup.tranid
-					});
-					
-					deductionId = deductionCreatedRec.setValue({
-						fieldId:'custbody_itpm_ddn_originalddn',
-						value:deductionId
-					}).save({enableSourcing:false,ignoreMandatoryFields:true});
-					
-
-					for(var v =0; v < transFormRecLineCount;v++){
-						var ddId = invTransformRec.getSublistValue({
-							sublistId: 'credit',
-							fieldId: 'internalid',
-							line: v
+						if(e.recievable){
+							deductionRec.setCurrentSublistValue({
+								sublistId:'line',
+								fieldId:'entity',
+								value:customerno
+							})
+						}
+						deductionRec.commitLine({
+							sublistId: 'line'
 						});
 
-						if(deductionId == ddId){
-							invTransformRec.setSublistValue({
+					});
+
+
+					var deductionId = deductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});
+
+					//when a deduction is created from invoice then the invoice is converted into payment fulfillment
+					if(params['custom_cfrom'] == 'inv'){
+						var deductionCreatedRec = record.load({type:'customtransaction_itpm_deduction',id:deductionId}),
+						invId = params['custom_itpm_ddn_invoice'],
+						invTransformRec = record.transform({
+							fromType: record.Type.INVOICE,
+							fromId: invId,
+							toType: record.Type.CUSTOMER_PAYMENT
+						}),
+						transFormRecLineCount = invTransformRec.getLineCount('credit');
+
+						invTransformRec.setValue({
+							fieldId:'class',
+							value:classno
+						}).setValue({
+							fieldId:'location',
+							value:locationno
+						}).setValue({
+							fieldId:'department',
+							value:deptno
+						}).setValue({
+							fieldId:'memo',
+							value:'Deduction '+deductionCreatedRec.getValue('tranid')+' applied to Invoice '+invoiceLookup.tranid
+						});
+
+						deductionId = deductionCreatedRec.setValue({
+							fieldId:'custbody_itpm_ddn_originalddn',
+							value:deductionId
+						}).save({enableSourcing:false,ignoreMandatoryFields:true});
+
+
+						for(var v =0; v < transFormRecLineCount;v++){
+							var ddId = invTransformRec.getSublistValue({
 								sublistId: 'credit',
-								fieldId: 'apply',
-								line: v,
-								value: true
+								fieldId: 'internalid',
+								line: v
 							});
-							var lastId =invTransformRec.save({
-								enableSourcing: false,
-								ignoreMandatoryFields: true
-							});
-							log.debug('invTransformRecId ',lastId );
+
+							if(deductionId == ddId){
+								invTransformRec.setSublistValue({
+									sublistId: 'credit',
+									fieldId: 'apply',
+									line: v,
+									value: true
+								});
+								var lastId =invTransformRec.save({
+									enableSourcing: false,
+									ignoreMandatoryFields: true
+								});
+								log.debug('invTransformRecId ',lastId );
+							}
 						}
 					}
+				}else{
+					var deductionId = deductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});
 				}
 				
 				redirect.toRecord({
@@ -825,15 +854,15 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				});
 			}
 		}catch(e){
-			
-			if(e.message == 'invoice'){
-				throw Error('you cannot make a deduction from this invoice');
-			}else if(e.message == 'deduction'){
-				throw Error('you cannot make a deduction from this deduction');
-			}else if(e.message == 'invalid'){
-				throw Error('invalid parameters');
+			if(e.message == 'you cannot make a deduction from this invoice'){
+				throw Error(e.message);
+			}else if(e.message == 'you cannot make a deduction from this deduction'){
+				throw Error(e.message);
+			}else if(e.message == 'invalid parameters'){
+				throw Error(e.message);
 			}else{
-				log.error('exception in deduction creation',e.message);
+				var recType = (params.from == 'inv')?'Invoice':'iTPM Deduction';
+				log.error(e.name,'record type = '+recType+', record id='+params.fid+' message='+e.message);
 			}
 		}
 	}
@@ -902,7 +931,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
     			if(invConditionsMet && invoiceDeductionsAreEmpty)
     				return {success:true}
     			else
-    				return {success:false,errormessage:'invoice'}
+    				return {success:false,errormessage:'you cannot make a deduction from this invoice'}
 
     		}else if(from == 'ddn'){
     			
@@ -910,12 +939,12 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
     				type:'customtransaction_itpm_deduction',
     				id:id
     			});
-    			return (loadedRec.getValue('transtatus') == 'A')?{success:true}:{success:false,errormessage:'deduction'};
+    			return (loadedRec.getValue('transtatus') == 'A')?{success:true}:{success:false,errormessage:'you cannot make a deduction from this deduction'};
 
     		}
     		return {success:true}   		
     	}catch(e){
-    		return {success:false,errormessage:'invalid'}
+    		return {success:false,errormessage:'invalid parameters'}
     	}
     }
     

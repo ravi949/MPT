@@ -10,7 +10,7 @@ define(['N/ui/serverWidget',
 		'N/redirect',
 		'N/format',
 		'N/url',
-		'./iTPM_ST_Module.js'
+		'./iTPM_Module_Settlement.js'
 		],
 
 function(serverWidget,search,record,redirect,format,url,ST_Module) {

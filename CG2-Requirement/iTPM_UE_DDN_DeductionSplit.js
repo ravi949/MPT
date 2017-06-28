@@ -57,10 +57,10 @@ function(url,record,search, widget, runtime, redirect) {
 				});
 			} else if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
 				redirect.toSuitelet({
-					scriptId:'customscript_itpm_deduction_editview',
-					deploymentId:'customdeploy_itpm_deduction_editview',
+					scriptId:'customscript_itpm_ddn_assnt_view',
+					deploymentId:'customdeploy_itpm_ddn_assnt_view',
 					returnExternalUrl: false,
-					parameters:{fid:sc.newRecord.id,from:'edit'}
+					parameters:{fid:sc.newRecord.id,from:'ddn',type:'edit'}
 				}); 
 			}
 		} catch(ex) {

@@ -11,7 +11,7 @@ define(['N/record',
 		'N/config',
 		'N/redirect',
 		'N/url',
-		'./iTPM_ST_Module.js'],
+		'./iTPM_Module_Settlement.js'],
  /**
   * @param {record} record
   * @param {search} search
