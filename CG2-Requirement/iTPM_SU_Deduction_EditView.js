@@ -414,7 +414,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/co
 				
 				ddnForm.addSubmitButton({label:'Submit'});
 				ddnForm.addButton({label:'Cancel',id : 'custom_itpm_cancelbtn',functionName:"redirectToBack"})
-				ddnForm.clientScriptModulePath =  './iTPMDeduction_ToDeduction_Validations_cs_script.js';
+				ddnForm.clientScriptModulePath =  './iTPM_Attach_Deduction_ClientMethods.js';
 				response.writePage(ddnForm);
 				
 			}else if(request.method == 'POST'){

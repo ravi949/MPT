@@ -1,25 +1,12 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType ClientScript
- * @NModuleScope Public
- * In pageinit setting the date and disputed value to empty or false.
- * before save the record amount shouldn't greaterthan open balance.
+ * @NModuleScope TargetAccount
+ * Before save the record amount shouldn't greaterthan open balance.
  */
 define([],
 
 function() {
-    
-	 /**
-     * Function to be executed when field is changed.
-     *
-     * @param {Object} scriptContext
-     * @param {Record} scriptContext.currentRecord - Current form record
-     * @since 2015.2
-     */
-
-	function pageInit(scriptContext){
-	}
-
     /**
      * Validation function to be executed when record is saved.
      *
@@ -41,7 +28,7 @@ function() {
         	}
         	return true
     	}catch(ex){
-    		log.error(ex.name,ex.message);
+    		console.log(ex.name,'record type = iTPM deduction, record id='+scriptContext.newRecord.id+' message='+ex.message);
     	}
     	
     }
