@@ -282,7 +282,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				var aplydToTrans = ddnForm.addField({
 					id : 'custom_itpm_ddn_appliedto',
 					type : serverWidget.FieldType.SELECT,
-					label:'ITPM APPLIED TO TRANSACTION',
+					label:'APPLIED TO',
 					container:'custom_primry_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED

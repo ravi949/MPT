@@ -18,7 +18,7 @@ function() {
      */
     function saveRecord(scriptContext) {
     	try{
-    		var isFromEdit = window.location.href.search('&from=edit');
+    		var isFromEdit = window.location.href.search('&type=edit');
         	var deductionAsstRec = scriptContext.currentRecord;
         	if(isFromEdit == -1){
         		if(deductionAsstRec.getValue('custom_itpm_ddn_openbal') < deductionAsstRec.getValue('custom_itpm_ddn_amount')){
