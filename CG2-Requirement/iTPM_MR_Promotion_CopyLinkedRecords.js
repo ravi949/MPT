@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType MapReduceScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  * Copying Promotion/Deal Allowances and Saving them into Copied Promotion/Deal and calling iTPMPromoDeal_EstQty_Copy_mp_script.js script to copying the Estimate Quantities
  * iTPMPromoDeal_Allowances_Copy_mp_script.js renamed as iTPM_MR_Copy_Promotion.js
  */
