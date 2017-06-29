@@ -61,6 +61,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				
 				//reading the values same intenralid values from the deduciton or invoice record.
 				var recObj = (params.from == 'ddn')?deductionRec:invoiceRec;
+				
 				var invclass = recObj.getValue('class'),
 				invdept = recObj.getValue('department'),
 				invlocation = recObj.getValue('location'),
@@ -82,11 +83,11 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				/*-------------------Set the Parent Deduction value----------*/
 				ddnForm.addField({
 					id : 'custom_parent_recid',
-					type : serverWidget.FieldType.TEXT,
+					type : serverWidget.FieldType.INTEGER,
 					label:'Parent Record id'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.HIDDEN
-				}).defaultValue = (params.type != 'edit')?params.fid:recObj.getValue('custbody_itpm_ddn_parentddn');  
+				}).defaultValue = (params.type != 'edit')?params.fid:deductionRec.id;  
 
 				ddnForm.addField({
 					id : 'custom_cfrom',
@@ -177,14 +178,15 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
 				});
-				
-				if(deductionRec.getValue('custbody_itpm_ddn_parentddn') != ''){
+
+				if(params.type == 'edit'){
+					var parentDdnId = deductionRec.getValue('custbody_itpm_ddn_parentddn');
 					parentDDNField.addSelectOption({
-						value:(params.from =='inv')?' ':deductionRec.getValue('custbody_itpm_ddn_parentddn'),
-						text:(params.from =='inv')?' ':deductionRec.getText('custbody_itpm_ddn_parentddn')
-					})	
+						value:(parentDdnId == '')?' ':parentDdnId,
+						text:(parentDdnId == '')?' ':deductionRec.getText('custbody_itpm_ddn_parentddn')
+					})
 				}
-				
+					
 
 				//setting the OTHER REFERENCE CODE value
 				ddnForm.addField({
@@ -864,7 +866,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				throw Error(e.message);
 			}else{
 				var recType = (params.from == 'inv')?'Invoice':'iTPM Deduction';
-				log.error(e.name,'record type = '+recType+', record id='+params.fid+' message='+e.message);
+				log.error(e.name,'record type = '+recType+', record id='+params.fid+' message='+e);
 			}
 		}
 	}
