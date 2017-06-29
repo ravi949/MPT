@@ -39,7 +39,7 @@ define(['N/record', 'N/search'],
 				          filters: [["custrecord_itpm_p_copiedfrom","noneof","@NONE@"], 'and' ,["custrecord_itpm_p_copy","is","T"]]  
 			})
 		}catch(e){
-			log.error(e.name,'getInputData, message = '+e.message);
+			log.error(e.name,'getInputData state, message = '+e.message);
 		}		 
 	}
 
