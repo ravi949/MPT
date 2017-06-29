@@ -39,7 +39,7 @@ define(['N/record', 'N/search'],
 				          filters: [["custrecord_itpm_p_copiedfrom","noneof","@NONE@"], 'and' ,["custrecord_itpm_p_copy","is","T"]]  
 			})
 		}catch(e){
-			log.error(e.name,'error occurred in getInputData, message = '+e.message);
+			log.error(e.name,'getInputData, message = '+e.message);
 		}		 
 	}
 
@@ -149,7 +149,7 @@ define(['N/record', 'N/search'],
 				}
 		
 		}catch(e){
-			log.error(e.name,'error occurred in map state, message = '+e.message);
+			log.error(e.name,'Map state, message = '+e.message);
 		}		
 	}
 
@@ -241,7 +241,7 @@ define(['N/record', 'N/search'],
 			}
 			
 		}catch (e) {
-			log.error(e.name,'error occurred in reduce state, message = '+e.message);
+			log.error(e.name,'Reduce state, message = '+e.message);
 		}
 	}
 
