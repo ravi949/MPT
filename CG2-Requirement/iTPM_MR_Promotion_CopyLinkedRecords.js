@@ -39,7 +39,7 @@ define(['N/record', 'N/search'],
 				          filters: [["custrecord_itpm_p_copiedfrom","noneof","@NONE@"], 'and' ,["custrecord_itpm_p_copy","is","T"]]  
 			})
 		}catch(e){
-			log.error('Exception',e.message)
+			log.error(e.name,'error occurred in getInputData, message = '+e.message);
 		}		 
 	}
 
@@ -58,9 +58,9 @@ define(['N/record', 'N/search'],
 			copyPromoId = arrResult['internalid.CUSTRECORD_ITPM_P_COPIEDFROM'].value,
 			contextObj = null,executeResultSet = []
 
-//			log.debug('searchResult',searchResult);
-//			log.debug('promotionID',promoID);
-//			log.debug('copyPromoId',copyPromoId);
+			log.debug('searchResult',searchResult);
+			log.debug('promotionID',promoID);
+			log.debug('copyPromoId',copyPromoId);
 			
 			var loadedSearch = search.create({
 				   type: "customrecord_itpm_promotiondeal",
@@ -149,7 +149,7 @@ define(['N/record', 'N/search'],
 				}
 		
 		}catch(e){
-			log.error('Exception',e.message)
+			log.error(e.name,'error occurred in map state, message = '+e.message);
 		}		
 	}
 
@@ -163,7 +163,7 @@ define(['N/record', 'N/search'],
 		try{
 			
 			var keyObj = JSON.parse(context.key);
-//			log.debug('keyObh',keyObj)
+			log.debug('keyObh',keyObj)
 			switch(keyObj.type){
 		/********* Copying Promotion/Deal Allowances and Saving them into Copied Promotion/Deal Allowances **********/
 			case 'all':
@@ -241,7 +241,7 @@ define(['N/record', 'N/search'],
 			}
 			
 		}catch (e) {
-			log.error('Exception occures',e)
+			log.error(e.name,'error occurred in reduce state, message = '+e.message);
 		}
 	}
 
@@ -253,7 +253,7 @@ define(['N/record', 'N/search'],
 	 * @since 2015.1
 	 */
 	function summarize(summary) {
-		log.error('summary',summary)
+		log.debug('summary state',summary)
 	}
 
 	return {

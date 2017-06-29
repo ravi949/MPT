@@ -2,7 +2,8 @@
  * @NApiVersion 2.x
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
- * Getting the promotions which are approved, completed, same customer and active to show in a drop down view  
+ * Getting the promotions which are approved, completed, same customer and 
+ * ALLOW SETTLEMENTS WHEN PROMOTION IS ACTIVE? checked in promotion type.  
  */
 define(['N/ui/serverWidget','N/redirect','N/search','N/record'],
 

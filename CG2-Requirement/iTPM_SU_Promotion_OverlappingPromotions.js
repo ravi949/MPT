@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  * Showing the overlapping promotions in a list view(comparing with the Estimated quantity items in that promotion to other promotions which are in between start & end Dates of current promotion)
  */
 
@@ -10,10 +10,10 @@ define(['N/render','N/search'],
 function(render,search) {
 	function onRequest(context){
 		try{
-			var request = context.request,response = context.response;
+			var request = context.request,response = context.response,params = request.parameters;
 
 			if(request.method == 'GET'){
-				var params = request.parameters,estQtyItems = [],overlap = [];
+				var estQtyItems = [],overlap = [];
 				var renderer = render.create();
 				var scriptString = 'var app=angular.module("overlapdeals",[]);app.controller("overlapCtrl",function($scope,$http){$scope.lists=${OVERLAP_LIST.list};})</script>'
 					renderer.templateContent = '<html ng-app=overlapdeals><link href=https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css rel=stylesheet><script src=https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.6/angular.min.js></script><style>'+
@@ -83,8 +83,7 @@ function(render,search) {
 				response.write(output);
 			}
 		}catch(e){
-			log.error('exception',e);
-//			throw Error(e.message);
+			log.error(e.name,'record type = iTPM Promotion, record id='+params.pdid+', message = '+e.message);
 		}
 	}
 
@@ -122,12 +121,7 @@ function(render,search) {
 		diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
 		return diffDays;
 	}	
-
-	/*filters:[[['custrecord_itpm_p_shipstart','within',params.start,params.end],'or',
-	          ['custrecord_itpm_p_shipend','within',params.start,params.end]],'and',
-	          ['isinactive','is',false],'and',['internalid','noneof',params.pdid],'and',
-	          ['custrecord_itpm_p_customer','is',params.cid],'and',['custrecord_itpm_p_status','noneof',[5,7]]]*/
-
+	
 	return {
 		onRequest:onRequest
 	}
