@@ -1,8 +1,8 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
- * @NModuleScope SameAccount
- * List out the deductions in the new suitelet view.
+ * @NModuleScope TargetAccount
+ * showing the list of deductions which are pass the conditions.
  */
 define(['N/record',
 		'N/search',
@@ -40,153 +40,10 @@ function(record, search, serverWidget,runtime,config,redirect,url,ST_Module) {
 			if(request.method == 'GET' && parameters.submit == 'true')
 			{
 				var SettlementRecId = ST_Module.applyToSettlement(parameters);
-//				var deductionRec = record.load({
-//					type:'customtransaction_itpm_deduction',
-//					id: parameters.ddn,
-//					isDynamic: true,
-//				});
-//
-//				var customer=deductionRec.getValue('custbody_itpm_ddn_customer');
-//				var DeductionId=deductionRec.getValue('id');
-//				var DeductionNum = deductionRec.getValue('tranid');
-//				var CustomerRec=record.load({
-//					type:record.Type.CUSTOMER,
-//					id:customer,
-//					isDynamic: true
-//				});
-//
-//				var receivablesaccount=CustomerRec.getValue('receivablesaccount');
-//
-//				var configRec = config.load({
-//					type: config.Type.ACCOUNTING_PREFERENCES
-//				});
-//				var ARACCOUNT= configRec.getValue({
-//					fieldId: 'ARACCOUNT'
-//				});
-//
-//				var numLines = deductionRec.getLineCount({
-//					sublistId: 'line'
-//				});
-//
-//				var Account,Debit,Credit;
-//
-//				for(var i=0; i<numLines; i++)
-//				{
-//					var lineAccount = deductionRec.getSublistValue({
-//						sublistId: 'line',
-//						fieldId: 'account',
-//						line: i
-//					});
-//					var lineDebit = deductionRec.getSublistValue({
-//						sublistId: 'line',
-//						fieldId: 'debit',
-//						line: i
-//					});
-//
-//					var lineCredit = deductionRec.getSublistValue({
-//						sublistId: 'line',
-//						fieldId: 'credit',
-//						line: i
-//					});		
-//
-//					var AccountRec=record.load({
-//						type:record.Type.ACCOUNT,
-//						id:lineAccount
-//					});
-//
-//					var AccountType= AccountRec.getValue('accttype2');	
-//
-//					if(AccountType == 'Expense'){
-//						Account = lineAccount;
-//						if(lineDebit != '')
-//							Debit = lineDebit;
-//					}
-//
-//					if(lineCredit != '')
-//						Credit = lineCredit;
-//				}
-//
-//				var journalRecord = record.create({
-//					type: record.Type.JOURNAL_ENTRY		
-//				});
-//
-//				journalRecord.setValue({
-//					fieldId: 'subsidiary',
-//					value: deductionRec.getValue('subsidiary')
-//				}).setValue({
-//					fieldId:'memo',
-//					value:'Reversal Journal applied on Deduction #'+DeductionNum
-//				});						
-//
-//				journalRecord.setSublistValue({
-//					sublistId: 'line',
-//					fieldId: 'account',
-//					line: 0,
-//					value: lineAccount
-//				});		
-//				journalRecord.setSublistValue({
-//	    			sublistId:'line',
-//	    			fieldId:'memo',
-//					line: 0,
-//	    			value:'Reversal Journal applied on Deduction #'+DeductionNum
-//	    		});
-//				journalRecord.setSublistValue({
-//					sublistId: 'line',
-//					fieldId: 'credit',
-//					line: 0,
-//					value: Credit
-//				});	
-//
-//				journalRecord.setSublistValue({
-//					sublistId: 'line',
-//					fieldId: 'account',
-//					line: 1,
-//					value: (receivablesaccount != "-10")?receivablesaccount:ARACCOUNT
-//				});
-//				journalRecord.setSublistValue({
-//	    			sublistId:'line',
-//	    			fieldId:'memo',
-//					line: 1,
-//	    			value:'Reversal Journal applied on Deduction #'+DeductionNum
-//	    		});
-//
-//				journalRecord.setSublistValue({
-//					sublistId: 'line',
-//					fieldId: 'debit',
-//					line: 1,
-//					value: Debit
-//				});
-//
-//
-//				var JournalId = journalRecord.save({
-//					enableSourcing: true,
-//					ignoreMandatoryFields: true
-//				});	
-//				log.debug('JournalId',JournalId);
-//				var SettlementRec= record.load({
-//					type:'customtransaction_itpm_settlement',
-//					id: parameters.sid,
-//					isDynamic: true
-//				});
-//				SettlementRec.setValue({
-//					fieldId : 'transtatus',
-//					value	: "B"
-//				});
-//				SettlementRec.setValue({
-//					fieldId : 'custbody_itpm_set_deduction',
-//					value	: DeductionId
-//				});
-//				var SettlementRecId = SettlementRec.save({
-//					enableSourcing: true,
-//					ignoreMandatoryFields: true
-//				});
-				
 				redirect.toRecord({
 					type : 'customtransaction_itpm_settlement',
 					id : SettlementRecId					
 				});
-
-
 			}else if(request.method == 'GET') {
 			
 				var list = serverWidget.createList({
@@ -322,7 +179,7 @@ function(record, search, serverWidget,runtime,config,redirect,url,ST_Module) {
 				response.writePage(list); 
 			}
 		}catch (e) {
-    		log.error(e.name,e.message);
+    		log.error(e.name,'record type = iTPM Settlement, record id='+parameters.sid+', message='+e.messsage);
     	}
 	}
 	return {
