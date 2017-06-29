@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  * Getting the promotions which are approved, completed, same customer and active to show in a drop down view  
  */
 define(['N/ui/serverWidget','N/redirect','N/search','N/record'],
@@ -38,14 +38,14 @@ function(serverWidget,redirect,search,record) {
 					text:' '
 				});
 				
-				form.addField({
-		    		id:'custom_itpm_list_promotiondeallink',
-		    		type:serverWidget.FieldType.INLINEHTML,
-		    		label:'Selected PROMOTION / DEAL'
-		    	}).defaultValue = '<div class="uir-field-wrapper" data-field-type="text"><span id="custpage_promo_deal_fs_lbl_uir_label" class="smallgraytextnolink uir-label ">'+
-	    		'<span id="custpage_promo_deal_fs_lbl" class="smallgraytextnolink" style=""><a class="smallgraytextnolink">PROMOTION / DEAL</a></span>'+
-	    		'</span><span class="uir-field inputreadonly">'+
-	    		'<a href="" target="_blank" id="promolink" class="dottedlink"></a></span></div>'
+//				form.addField({
+//		    		id:'custom_itpm_list_promotiondeallink',
+//		    		type:serverWidget.FieldType.INLINEHTML,
+//		    		label:'Selected PROMOTION / DEAL'
+//		    	}).defaultValue = '<div class="uir-field-wrapper" data-field-type="text"><span id="custpage_promo_deal_fs_lbl_uir_label" class="smallgraytextnolink uir-label ">'+
+//	    		'<span id="custpage_promo_deal_fs_lbl" class="smallgraytextnolink" style=""><a class="smallgraytextnolink">PROMOTION / DEAL</a></span>'+
+//	    		'</span><span class="uir-field inputreadonly">'+
+//	    		'<a href="" target="_blank" id="promolink" class="dottedlink"></a></span></div>'
 		    	
 				form.addField({
 					id : 'custpage_promotion_liability',
@@ -120,10 +120,8 @@ function(serverWidget,redirect,search,record) {
 					    	['custrecord_itpm_p_condition','is',2]],'or', //active if promotion type allow for settlemen in active
 					    	['custrecord_itpm_p_condition','is', 3]  //completed
 					    ],'and',
-//					    ['custrecord_itpm_p_condition','is', 3],'and', //completed
 						['custrecord_itpm_p_customer','is', deductionRec.custbody_itpm_ddn_customer[0].value],'and',
 						['custrecord_itpm_p_type.custrecord_itpm_pt_validmop','is',1],'and',  //mop is bill-back
-//						['custrecord_itpm_p_netpromotionalle','GREATERTHAN', 0],'and',  //custrecord_itpm_p_netpromotionalle
 						['isinactive','is',false]]	    		
 				}).run().each(function(k){ 
 					promotionField.addSelectOption({
@@ -147,7 +145,7 @@ function(serverWidget,redirect,search,record) {
 				});
 			}
 		}catch (e) {
-    		log.error(e.name,e.message);
+    		log.error(e.name,'record type = iTPM Deduction, record id='+params.ddn+', message = '+e.message);
     	}
 	}
 	return {
