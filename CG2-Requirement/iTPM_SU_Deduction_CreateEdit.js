@@ -194,7 +194,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					type : serverWidget.FieldType.TEXT,
 					label:'OTHER REFERENCE CODE',
 					container:'custom_primry_information'
-				});
+				}).defaultValue = (params.from == 'inv')?'':deductionRec.getValue('custbody_itpm_ddn_otherrefcode');
 
 				
 				if(customerParentId != ''){
@@ -464,7 +464,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					container:'custom_itpm_ddn_taskdetails'
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
-				}).defaultValue = (params.type != 'edit')?' ':deductionRec.getValue('memo');
+				}).defaultValue = (params.from == 'inv')?' ':deductionRec.getValue('memo');
 
 				/*------- TASK DETAIL End --------*/
 
@@ -586,13 +586,17 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						ignoreFieldChange:true
 					})
 				}
-				if(otherrefno != ''){
-					deductionRec.setValue({
-						fieldId:'custbody_itpm_ddn_otherrefcode',
-						value:otherrefno,
-						ignoreFieldChange:true
-					})
-				}
+				
+				deductionRec.setValue({
+					fieldId:'custbody_itpm_ddn_otherrefcode',
+					value:otherrefno,
+					ignoreFieldChange:true
+				}).setValue({
+					fieldId:'memo',
+					value:memo,
+					ignoreFieldChange:true
+				});
+				
 				if(invoiceno != ''){
 					deductionRec.setValue({
 						fieldId:'custbody_itpm_ddn_invoice',
