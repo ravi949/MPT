@@ -2,7 +2,7 @@
  * @NApiVersion 2.x
  * @NScriptType ClientScript
  * @NModuleScope TargetAccount
- * Before save the record amount shouldn't greaterthan open balance.
+ * Client script to be attached to the front-end suitelet used for iTPM Deduction records.
  */
 define([],
 

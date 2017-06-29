@@ -2,7 +2,7 @@
  * @NApiVersion 2.x
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
- * This is an assistant view to create a deduction
+ * Front-end suitelet script for creating and editing iTPM Deduction records.
  */
 define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/config','N/format'],
 
@@ -18,8 +18,9 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
      */
 	function onRequest(context) {
 		try{
-			var request = context.request,response = context.response,params = request.parameters,
-			subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
+			var request = context.request,response = context.response,params = request.parameters;
+			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
+			var currencyExists = runtime.isFeatureInEffect('multicurrency');
 			
 			if(request.method == 'GET'){
 
@@ -72,13 +73,6 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				}),
 				defaultRecvAccnt = customerRec.getValue('receivablesaccount'),
 				customerParentId = customerRec.getValue('parent');
-				
-				//if subsidiary feature in effect
-				if(subsidiaryExists){
-					subsidiaryText = recObj.getText('subsidiary'),
-					currencyId = recObj.getValue('currency'),
-					currencyText = recObj.getText('currency');
-				}
 				
 				//Deduction form creation
 				var ddnForm = serverWidget.createForm({
@@ -304,6 +298,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					label : 'Classification'
 				});
 
+				//if subsidiary feature in effect
 				if(subsidiaryExists){
 					//setting the SUBSIDIARY Value
 					var subsidiary = ddnForm.addField({
@@ -317,10 +312,13 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 
 					subsidiary.addSelectOption({
 						value : subsid,
-						text : subsidiaryText,
+						text : recObj.getText('subsidiary'),
 						isSelected:true
 					});
+				}
 
+				//if multicurrnecy feature in effect
+				if(currencyExists){
 					//setting the CURRENCY value
 					var currency = ddnForm.addField({
 						id : 'custom_currency',
@@ -332,11 +330,12 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					});
 
 					currency.addSelectOption({
-						value : currencyId,
-						text : currencyText,
+						value : recObj.getValue('currency'),
+						text : recObj.getText('currency'),
 						isSelected:true
 					});
-				}
+				}		
+				
 				
 				//setting the LOCATION value
 				var location = ddnForm.addField({
@@ -619,7 +618,11 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						fieldId:'subsidiary',
 						value:params['custom_subsidiary'],
 						ignoreFieldChange:true
-					}).setValue({
+					})
+				}
+				
+				if(currencyExists){
+					deductionRec.setValue({
 						fieldId:'currency',
 						value:params['custom_currency'],
 						ignoreFieldChange:true
@@ -678,13 +681,12 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					})
 				}
 
-				if(disputed != ''){
-					deductionRec.setValue({
-						fieldId:'custbody_itpm_ddn_disputed',
-						value:(disputed == "T")?true:false,
-						ignoreFieldChange:true
-					})
-				}
+
+				deductionRec.setValue({
+					fieldId:'custbody_itpm_ddn_disputed',
+					value:(disputed == "T")?true:false,
+					ignoreFieldChange:true
+				})
 
 				if(followup != ''){
 					deductionRec.setValue({

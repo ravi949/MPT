@@ -2,7 +2,7 @@
  * @NApiVersion 2.x
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
- * showing the list of deductions which are pass the conditions.
+ * Suitelet script to fetch and return a list of iTPM Deduction records that are available for the iTPM Settlement to be applied.
  */
 define(['N/record',
 		'N/search',

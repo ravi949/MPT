@@ -2,8 +2,7 @@
  * @NApiVersion 2.x
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
- * Getting the promotions which are approved, completed, same customer and 
- * ALLOW SETTLEMENTS WHEN PROMOTION IS ACTIVE? checked in promotion type.  
+ * Front-end suitelet script to get and return a list of eligible promotions upon which a new iTPM Settlement record can be created.
  */
 define(['N/ui/serverWidget','N/redirect','N/search','N/record'],
 

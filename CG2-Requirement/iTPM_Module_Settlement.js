@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NModuleScope TargetAccount
- * This module will perform the create settlement and apply to deduction actions. 
+ * Custom module for operations related to iTPM Settlement records.
  */
 
 define(['N/config', 'N/record', 'N/search','N/runtime','./iTPM_Module.js'],
@@ -20,6 +20,7 @@ function(config, record, search, runtime, iTPM_Module) {
 			//loading the deduction record
 			var createdFromDDN = (params.custom_itpm_st_created_frm == 'ddn');
 			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
+			var currencyExists = runtime.isFeatureInEffect('multicurrency');
 			if(createdFromDDN){
 				var deductionRec = record.load({
 					type:'customtransaction_itpm_deduction',
@@ -188,11 +189,16 @@ function(config, record, search, runtime, iTPM_Module) {
 			});
 			
 			if(subsidiaryExists){
-				//subsidiary & currency
+				//subsidiary 
 				newSettlementRecord.setValue({
 					fieldId:'subsidiary',
 					value:params['custom_itpm_st_subsidiary']
-				}).setValue({
+				})
+			}
+			
+			if(currencyExists){
+				//currency
+				newSettlementRecord.setValue({
 					fieldId:'currency',
 					value:params['custom_itpm_st_currency']
 				});

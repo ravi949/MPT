@@ -2,15 +2,14 @@
  * @NApiVersion 2.x
  * @NScriptType MapReduceScript
  * @NModuleScope TargetAccount
- * Copying Promotion/Deal Allowances and Saving them into Copied Promotion/Deal and calling iTPMPromoDeal_EstQty_Copy_mp_script.js script to copying the Estimate Quantities
- * iTPMPromoDeal_Allowances_Copy_mp_script.js renamed as iTPM_MR_Copy_Promotion.js
+ * Map / Reduce script to copy linked records from original iTPM Promotion record to the new (copied) iTPM Promotion record.
  */
 define(['N/record', 'N/search'],
-		/**
-		 * @param {record} record
-		 * @param {search} search
-		 */
-		function(record, search) {
+/**
+ * @param {record} record
+ * @param {search} search
+ */
+function(record, search) {
 
 	/**
 	 * Marks the beginning of the Map/Reduce process and generates input data.
