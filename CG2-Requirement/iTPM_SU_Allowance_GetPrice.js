@@ -94,15 +94,9 @@ define(['N/record','N/search'],
 	//setting the Price Value in allowance record.
 	function setPriceValue(priceLevel,itemId){
 		var priceValue = undefined,itemResult;
-//		if(pricingTypeText == 'Base Price' || pricingTypeText =='Price Level'){
-//			priceLevel = (pricingTypeText == 'Base Price')?1:priceLevel;
-			itemResult = getItemPriceValue(['pricing.pricelevel','pricing.unitprice'],['pricing.pricelevel','is',priceLevel],itemId);
+		itemResult = getItemPriceValue(['pricing.pricelevel','pricing.unitprice'],['pricing.pricelevel','is',priceLevel],itemId);
+		priceValue = itemResult[0].getValue({name:'unitprice',join:'pricing'});
 
-//			log.debug('itemId ',itemId);
-//			log.debug('itemResult ',itemResult);
-			priceValue = itemResult[0].getValue({name:'unitprice',join:'pricing'});
-//			log.debug('priceValue ',priceValue);
-//		}
 		return priceValue;
 	}
 

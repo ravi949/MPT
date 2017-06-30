@@ -144,7 +144,7 @@ function(record, search, runtime, iTPM) {
         		}
         		context.response.write(journalId);
     		} catch(ex) {
-    			log.error(ex.name, ex.message + '; Deduction: ' + ddnRecord.getValue('tranid'));
+    			log.error(ex.name, ex.message + '; Deduction: ' + context.request.parameters.ddn );
     		}
     	}
     }
