@@ -197,7 +197,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 						});
 
 						var endCount = 0;
-						for(var i=0;i<=totalPageCount;i+=20){
+						for(var i=0;i<totalPageCount;i+=20){
 							endCount = (i+20);
 							paginationField.addSelectOption({
 								value : i+1,
@@ -255,7 +255,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 
 				}
 
-				form.clientScriptModulePath = './iTPMPromoDeal_ActualSales_And_Shippment_Pagination_cs_script.js';
+				form.clientScriptModulePath = './iTPM_Attach_Promotion_ActualSalesShipmentsPagination.js';
 				response.writePage(form);	
 			}
 

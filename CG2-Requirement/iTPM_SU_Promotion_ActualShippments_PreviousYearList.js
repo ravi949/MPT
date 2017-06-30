@@ -213,7 +213,7 @@ function(serverWidget,search,record,runtime,format) {
 						});
 
 						var endCount = 0;
-						for(var i=0;i<=totalPageCount;i+=20){
+						for(var i=0;i<totalPageCount;i+=20){
 							endCount = (i+20);
 							paginationField.addSelectOption({
 								value : i+1,
@@ -271,7 +271,7 @@ function(serverWidget,search,record,runtime,format) {
 
 				}
 
-				form.clientScriptModulePath = './iTPMPromoDeal_ActualSales_And_Shippment_Pagination_cs_script.js';
+				form.clientScriptModulePath = './iTPM_Attach_Promotion_ActualSalesShipmentsPagination.js';
 				response.writePage(form);	
 			}
 

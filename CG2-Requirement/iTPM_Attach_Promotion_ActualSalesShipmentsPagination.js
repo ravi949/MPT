@@ -1,8 +1,8 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType ClientScript
- * @NModuleScope Public
- * It shows the pagination in Actual sales and Shipments records
+ * @NModuleScope TargetAccount 
+ * Attached client script to enable pagination for Actual Sales and Shipment report suitelet pages
  */
 define([],
 
