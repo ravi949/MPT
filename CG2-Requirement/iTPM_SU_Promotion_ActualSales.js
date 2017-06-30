@@ -1,8 +1,8 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
- * @NModuleScope SameAccount
- * Displays the Actual Sales record in that shows invoices as line items and added pagination to it
+ * @NModuleScope TargetAccount
+ * Suitelet script to generate and return a report of actual sales based on Invoice records for the items selected in the Allowances of a Promotion.
  */
 define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 
