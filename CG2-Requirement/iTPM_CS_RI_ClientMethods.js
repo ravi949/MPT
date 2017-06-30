@@ -42,14 +42,12 @@ function(record) {
     			});
     			rec.setValue({
     				fieldId: 'custrecord_itpm_rei_item',
-    				value: itemFieldValue,
-    				ignoreFieldChange: true
+    				value: itemFieldValue
     			});
     		} else if(scriptContext.fieldId == 'custpage_itpm_activity_field'){
     			rec.setValue({
     				fieldId: 'custrecord_itpm_rei_activity',
-    				value: rec.getValue({	fieldId: 'custpage_itpm_activity_field'}),
-    				ignoreFieldChange: true
+    				value: rec.getValue({fieldId: 'custpage_itpm_activity_field'})
     			});
     		}
     	}catch(ex){
