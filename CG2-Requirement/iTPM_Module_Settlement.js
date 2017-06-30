@@ -312,7 +312,10 @@ function(config, record, search, runtime, iTPM_Module) {
 
 		}catch(e){
 			var recordType = (params.custom_itpm_st_created_frm == 'ddn')?'iTPM Deduction':'iTPM Promotion';
-			throw Error('record type='+recordType+', module=iTPM_Module_settlement.js, message='+e.message);
+			if(e.message == 'settlement not completed')
+				throw Error(e.message);
+			else
+				throw Error('record type='+recordType+', module=iTPM_Module_settlement.js, message='+e.message);
 		}
 	}
 	
