@@ -567,14 +567,14 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				}
 				
 
-				if(params['custom_cfrom'] == 'ddn'){
+				if(params['custom_cfrom'] == 'ddn' && params['custom_user_eventype'] != 'edit'){
 					deductionRec.setValue({
 						fieldId:'custbody_itpm_ddn_parentddn',
-						value:params['custom_itpm_ddn_parentddn'],
+						value:params['custom_parent_recid'],
 						ignoreFieldChange:true
 					}).setValue({
 						fieldId:'custbody_itpm_set_deduction',
-						value:params['custom_itpm_ddn_parentddn'],
+						value:params['custom_parent_recid'],
 						ignoreFieldChange:true
 					})
 				}
