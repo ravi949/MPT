@@ -382,7 +382,10 @@ function(config, record, search, runtime, iTPM_Module) {
 				}).setValue({
 					fieldId : 'custbody_itpm_set_deduction',
 					value	: DeductionId
-				});
+				}).setValue({
+					fieldId:'custbody_itpm_ddn_openbal',
+					value:deductionRec.getValue('custbody_itpm_ddn_openbal')
+				})
 
 				return  SettlementRec.save({enableSourcing: true,ignoreMandatoryFields: true});
 			}
