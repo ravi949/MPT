@@ -72,16 +72,19 @@ function(message,url,https) {
 	        				}
 	        			})
 	    			}).then(function(response) {
-	    					var body = JSON.parse(response.body)
-	    					sc.currentRecord.setValue({
-								fieldId:'custrecord_itpm_all_impactprice',value:body.price
-							});
+	    					var body = JSON.parse(response.body);
+	    					if(body.success){
+	    						sc.currentRecord.setValue({
+									fieldId:'custrecord_itpm_all_impactprice',value:body.price
+								});
+	    					}else{
+	    					    console.log(body);	
+	    					}
 					});
 	    		}
 	    	}
     	} catch(ex) {
-    		log.error(ex.name,ex.message);
-    		console.log(ex)
+    		console.log(ex.name,'record type = iTPM Allowance, record id = ',scriptContext.newRecord.id+', message = '+e.message);
     	}
     }
     
