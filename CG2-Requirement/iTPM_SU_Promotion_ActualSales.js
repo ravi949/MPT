@@ -167,7 +167,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 				}).run().each(function(e){
 					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
 					return true;
-				})
+				});
 
 
 				//Actual Sales search
@@ -233,25 +233,25 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 								id:'custpage_item',
 								line:lineNo,
 								value:invResultList[i].getText('item')
-							})
+							});
 							actualSalesSublist.setSublistValue({
 								id:'custpage_item_description',
 								line:lineNo,
 								value:invResultList[i].getValue({name:'description',join:'item'})
-							})
+							});
 
 							actualSalesSublist.setSublistValue({
 								id:'custpage_invoiceid',
 								line:lineNo,
 								value:invResultList[i].getValue('internalid')
-							})
+							});
 
 							if(unit != ''){
 								actualSalesSublist.setSublistValue({
 									id:'custpage_invoice_uom',
 									line:lineNo,
 									value:unit
-								})
+								});
 							}
 
 							if(quantity != ''){
@@ -259,7 +259,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 									id:'custpage_invoice_qty',
 									line:lineNo,
 									value:quantity
-								})
+								});
 							}
 
 							if(rate != ''){
@@ -267,20 +267,20 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 									id:'custpage_actual_price',
 									line:lineNo,
 									value:parseFloat(rate)
-								})
+								});
 							}
 
 							actualSalesSublist.setSublistValue({
 								id:'custpage_actual_revenue',
 								line:lineNo,
 								value:parseFloat(invResultList[i].getValue('amount'))
-							})
+							});
 							lineNo++;
 						}
 					}
 				}
 
-				log.debug('runtime',runtime.getCurrentScript().getRemainingUsage())
+				log.debug('runtime',runtime.getCurrentScript().getRemainingUsage());
 				form.clientScriptModulePath = './iTPM_Attach_Promotion_ActualSalesShipmentsPagination.js';
 				response.writePage(form);	
 			}
