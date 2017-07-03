@@ -22,8 +22,8 @@ function() {
      */
     function fieldChanged(scriptContext) {
     	if(scriptContext.fieldId == 'custpage_ss_pagination'){
-    		var startno = scriptContext.currentRecord.getValue(scriptContext.fieldId),
-    		url = window.location.search;
+    		var startno = scriptContext.currentRecord.getValue(scriptContext.fieldId);
+    		var url = window.location.search;
     		url = url.substring(0, url.indexOf('&st'));
     		window.location.search = url + '&st='+startno;
     	}

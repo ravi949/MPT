@@ -2,11 +2,11 @@
  * @NApiVersion 2.x
  * @NScriptType Suitelet
  * @NModuleScope SameAccount
- *  Displays the Actual Shipments record in that shows item fulfillments as line items and added pagination to it
+ *  Suitelet script to generate and return a report of actual shipments based on Item Fulfillment records for the items selected in the Allowances of a Promotion.
  */
-define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
+define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 
-		function(serverWidget,search,record,runtime) {
+function(serverWidget,search,record,runtime,format) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -22,12 +22,13 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 
 			if(request.method == 'GET'){
 
-				var startno = request.parameters.st,
-				endno = parseInt(startno)+(10*2),
-				form = serverWidget.createForm({
+				var startno = request.parameters.st;
+				var yearResult = request.parameters.yr;
+				var endno = parseInt(startno)+(10*2);
+				var form = serverWidget.createForm({
 					title : 'Actual Shipments'
-				}),
-				promotionField=form.addField({
+				});
+				var promotionField=form.addField({
 					id : 'custpage_promotion',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion #'
@@ -130,15 +131,30 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 					columns: ['internalid','name','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_customer']
 				});
 
+				var startDate = new Date(promoDealRecord['custrecord_itpm_p_shipstart']);
+				var endDate = new Date(promoDealRecord['custrecord_itpm_p_shipend']);
+
+				if(yearResult == 1){
+					startDate.setFullYear(startDate.getFullYear()-1);
+					endDate.setFullYear(endDate.getFullYear()-1);
+				}
+				var startDateYear = format.format({
+					value: startDate,
+					type: format.Type.DATE
+				});
+				var endDateYear = format.format({
+					value: endDate,
+					type: format.Type.DATE
+				});
 				promotionField.defaultValue=promoDealRecord.internalid[0].value;
 				promotionRefernece.defaultValue = promoDealRecord["name"];
-				promotionDesc.defaultValue = promoDealRecord["custrecord_itpm_p_description"]
-				promotionStdate.defaultValue = promoDealRecord["custrecord_itpm_p_shipstart"]
-				promotionEndate.defaultValue = promoDealRecord["custrecord_itpm_p_shipend"]
+				promotionDesc.defaultValue = promoDealRecord["custrecord_itpm_p_description"];
+				promotionStdate.defaultValue = startDateYear;
+				promotionEndate.defaultValue = endDateYear;
 				
-				var CustId = promoDealRecord['custrecord_itpm_p_customer'][0].value,
+				var CustId = promoDealRecord['custrecord_itpm_p_customer'][0].value;
 
-				customerRecord = record.load({
+				var customerRecord = record.load({
 					type : record.Type.CUSTOMER,
 					id : CustId
 				});    		    		    		
@@ -154,7 +170,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 				}).run().each(function(e){
 					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
 					return true;
-				})
+				});
 
 				if(estVolumeItems.length>0){
 					//search for item fulfillment filters are ship start,end date and est volume items
@@ -163,7 +179,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 						columns:['internalid','item','item.description','quantity','unit'],
 						filters:[['item','anyof',estVolumeItems],'and',
 							['entity','is', customerRecord.getValue('entityid')],'and',
-							['trandate','within',promoDealRecord['custrecord_itpm_p_shipstart'],promoDealRecord['custrecord_itpm_p_shipend']],'and',
+							['trandate','within',startDateYear,endDateYear],'and',
 							['taxline','is',false],'and',
 							['cogs','is',false],'and',
 							['shipping','is',false],'and',
@@ -171,9 +187,10 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 					}).run();
 
 					//getting the total number of pages existed in search
-					var totalPageCount = 0,
-					count = 0, pageSize = 1000,
-					currentIndex = 0;
+					var totalPageCount = 0;
+					var count = 0;
+					var pageSize = 1000;
+					var currentIndex = 0;
 					do{
 						count = itemFulResult.getRange(currentIndex, currentIndex + pageSize).length;
 						currentIndex += pageSize;
@@ -212,33 +229,33 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 					lineNo = 0,rate = 0,unit ='';
 					for(var i=0;i<itemFulResultLength;i++){
 						if(itemFulResultList[i].getValue('item') != ''){
-							var quantity = itemFulResultList[i].getValue('quantity'),
-							unit = itemFulResultList[i].getValue('unit');
+							var quantity = itemFulResultList[i].getValue('quantity');
+							var unit = itemFulResultList[i].getValue('unit');
 
 //							log.debug('unit',unit) //not getting the uom
 							actualSalesSublist.setSublistValue({
 								id:'custpage_item',
 								line:lineNo,
 								value:itemFulResultList[i].getText('item')
-							})
+							});
 							actualSalesSublist.setSublistValue({
 								id:'custpage_item_description',
 								line:lineNo,
 								value:itemFulResultList[i].getValue({name:'description',join:'item'})
-							})
+							});
 
 							actualSalesSublist.setSublistValue({
 								id:'custpage_shippmentid',
 								line:lineNo,
 								value:itemFulResultList[i].getValue('internalid')
-							})
+							});
 
 							if(quantity != ''){
 								actualSalesSublist.setSublistValue({
 									id:'custpage_shippmentqty',
 									line:lineNo,
 									value:quantity
-								})
+								});
 							}
 
 							if(unit != ''){
@@ -246,7 +263,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime'],
 									id:'custpage_shippmentuom',
 									line:lineNo,
 									value:unit
-								})
+								});
 							}
 							lineNo++;
 						}
