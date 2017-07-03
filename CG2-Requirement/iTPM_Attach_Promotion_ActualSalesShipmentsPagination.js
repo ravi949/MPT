@@ -22,10 +22,15 @@ function() {
      */
     function fieldChanged(scriptContext) {
     	if(scriptContext.fieldId == 'custpage_ss_pagination'){
-    		var startno = scriptContext.currentRecord.getValue(scriptContext.fieldId);
-    		var url = window.location.search;
-    		url = url.substring(0, url.indexOf('&st'));
-    		window.location.search = url + '&st='+startno;
+    		try{
+    			var startno = scriptContext.currentRecord.getValue(scriptContext.fieldId);
+        		var url = window.location.search;
+        		url = url.substring(0, url.indexOf('&st'));
+        		window.location.search = url + '&st='+startno;
+    		}catch (e) {
+    			log.error(e.name,'record type = iTPM promotion, record id = '+scriptContext.currentRecord.id+', message = '+e.message);
+			}
+    		
     	}
     }
     

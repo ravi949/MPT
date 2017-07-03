@@ -23,7 +23,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 			if(request.method == 'GET'){
 
 				var startno = request.parameters.st;
-				var yearResult = request.parameters.yr;
+				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var endno = parseInt(startno)+20;
 				var form = serverWidget.createForm({
 					title : 'Actual Sales'
@@ -305,7 +305,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 			}
 
 		}catch(e){
-			log.error('exception in actual sales',e);
+			log.error(e.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+e.message);
 //			throw Error(e.message)
 		}
 

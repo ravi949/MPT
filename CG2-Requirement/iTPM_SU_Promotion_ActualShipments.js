@@ -23,7 +23,7 @@ function(serverWidget,search,record,runtime,format) {
 			if(request.method == 'GET'){
 
 				var startno = request.parameters.st;
-				var yearResult = request.parameters.yr;
+				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var endno = parseInt(startno)+(10*2);
 				var form = serverWidget.createForm({
 					title : 'Actual Shipments'
@@ -278,7 +278,7 @@ function(serverWidget,search,record,runtime,format) {
 
 		}catch(ex)
 		{
-			log.error('Exception', ex);
+			log.error(e.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+e.message);
 		}
 
 	}

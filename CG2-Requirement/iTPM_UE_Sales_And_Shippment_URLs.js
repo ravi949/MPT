@@ -90,7 +90,7 @@ define(['N/url','N/record'],
 				});
 			}
 		}catch(e){
-			log.error('exception',e.message)
+			log.error(e.name,'record type = iTPM promotion, record id = '+scriptContext.newRecord.id+', message = '+e.message);
 		}
 	}
 
