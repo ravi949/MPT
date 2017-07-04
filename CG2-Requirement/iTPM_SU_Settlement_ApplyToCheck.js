@@ -26,6 +26,7 @@ function(record, redirect, runtime, search, ST_Module) {
     		var response = context.response;
     		var parameters = request.parameters;
     		var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
+    		var currencyExists = runtime.isFeatureInEffect('multicurrency');
     		//loading the settlement record
     		var settlementRec = record.load({
     		     type: 'customtransaction_itpm_settlement',
@@ -67,7 +68,11 @@ function(record, redirect, runtime, search, ST_Module) {
             			fieldId: 'subsidiary',
             			value:  settlementRec.getValue('subsidiary'),
             			ignoreFieldChange: true
-            		}).setValue({
+            		});
+        		}
+        		
+        		if(currencyExists){
+        			checkRecord.setValue({
             			fieldId: 'currency',
             			value:  settlementRec.getValue('currency'),
             			ignoreFieldChange: true
