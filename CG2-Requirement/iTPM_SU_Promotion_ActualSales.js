@@ -202,21 +202,17 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 						         ['cogs','is',false],'and',
 						         ['shipping','is',false],'and',
 						         ['item.isinactive','is',false]]
-					}).run();
-
-					//getting the total number of pages existed in search
-					var totalPageCount = 0;
-					var count = 0;
-					var pageSize = 1000;
-					var currentIndex = 0;
-					do{
-						count = invResult.getRange(currentIndex, currentIndex + pageSize).length;
-						currentIndex += pageSize;
-						totalPageCount += count;
-					}while(count == pageSize);
-
-					//Actual Sales pagination
-					if(totalPageCount>0){
+					});
+					
+					var pagedData = invResult.runPaged({
+					    pageSize:20
+				    });
+					
+					var totalResultCount = pagedData.count;
+					var listOfPages = pagedData["pageRanges"];
+					var numberOfPages = listOfPages.length;
+					
+					if(numberOfPages > 0){
 						var paginationField = form.addField({
 							id : 'custpage_ss_pagination',
 							type : serverWidget.FieldType.SELECT,
@@ -224,51 +220,56 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 							container:'custpage_actualsales'
 						});
 
+
 						paginationField.updateDisplaySize({
 							height:50,
 							width : 120
 						});
-
-						var endCount = 0;
-						for(var i=0;i<totalPageCount;i+=20){
-							endCount = (i+20);
+						
+						for(var i = 0;i < numberOfPages;i++){
+							var paginationTextStart = (i == 0)?(i * 20):((i*20)+1);
+							var paginationTextEnd = (totalResultCount >= (i*20)+20)?((i * 20)+20):totalResultCount;
 							paginationField.addSelectOption({
-								value : i+1,
-								text : (i+1)+' to '+(endCount < totalPageCount? endCount:totalPageCount),
-								isSelected:(startno == i+1)
+								value :listOfPages[i].index,
+								text : paginationTextStart+' to '+paginationTextEnd,
+								isSelected:(startno == i)
 							});
 						}
 					}
+					
+					
+					var page = pagedData.fetch({
+					    index:startno
+					});
+					
+					var dataCount = page.data.length;
+					for(var i = 0;i < dataCount;i++){
+						if(page.data[i].getValue('item') != ''){
 
-					//getting the values from invoice search
-					var invResultList = invResult.getRange(startno,endno),invResultLength = invResultList.length,
-					lineNo = 0,rate = 0,unit ='';
-					for(var i=0;i<invResultLength;i++){
-						if(invResultList[i].getValue('item') != ''){
-							var quantity = invResultList[i].getValue('quantity'),
-							rate = invResultList[i].getValue('rate'),
-							unit = invResultList[i].getValue('unit');
+							var quantity = page.data[i].getValue('quantity'),
+							rate = page.data[i].getValue('rate'),
+							unit = page.data[i].getValue('unit');
 							actualSalesSublist.setSublistValue({
 								id:'custpage_item',
-								line:lineNo,
-								value:invResultList[i].getText('item')
+								line:i,
+								value:page.data[i].getText('item')
 							});
 							actualSalesSublist.setSublistValue({
 								id:'custpage_item_description',
-								line:lineNo,
-								value:invResultList[i].getValue({name:'description',join:'item'})
+								line:i,
+								value:page.data[i].getValue({name:'description',join:'item'})
 							});
 
 							actualSalesSublist.setSublistValue({
 								id:'custpage_invoiceid',
-								line:lineNo,
-								value:invResultList[i].getValue('internalid')
+								line:i,
+								value:page.data[i].getValue('internalid')
 							});
 
 							if(unit != ''){
 								actualSalesSublist.setSublistValue({
 									id:'custpage_invoice_uom',
-									line:lineNo,
+									line:i,
 									value:unit
 								});
 							}
@@ -276,7 +277,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 							if(quantity != ''){
 								actualSalesSublist.setSublistValue({
 									id:'custpage_invoice_qty',
-									line:lineNo,
+									line:i,
 									value:quantity
 								});
 							}
@@ -284,21 +285,20 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 							if(rate != ''){
 								actualSalesSublist.setSublistValue({
 									id:'custpage_actual_price',
-									line:lineNo,
+									line:i,
 									value:parseFloat(rate)
 								});
 							}
 
 							actualSalesSublist.setSublistValue({
 								id:'custpage_actual_revenue',
-								line:lineNo,
-								value:parseFloat(invResultList[i].getValue('amount'))
+								line:i,
+								value:parseFloat(page.data[i].getValue('amount'))
 							});
-							lineNo++;
 						}
-					}
+					}	
 				}
-
+				
 				log.debug('runtime',runtime.getCurrentScript().getRemainingUsage());
 				form.clientScriptModulePath = './iTPM_Attach_Promotion_ActualSalesShipmentsPagination.js';
 				response.writePage(form);	

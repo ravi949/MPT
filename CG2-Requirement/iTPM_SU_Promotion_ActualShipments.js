@@ -24,7 +24,6 @@ function(serverWidget,search,record,runtime,format) {
 
 				var startno = request.parameters.st;
 				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
-				var endno = parseInt(startno)+(10*2);
 				var form = serverWidget.createForm({
 					title : 'Actual Shipments'
 				});
@@ -184,22 +183,16 @@ function(serverWidget,search,record,runtime,format) {
 							['cogs','is',false],'and',
 							['shipping','is',false],'and',
 							['item.isinactive','is',false]]
-					}).run();
+					});
 
-					//getting the total number of pages existed in search
-					var totalPageCount = 0;
-					var count = 0;
-					var pageSize = 1000;
-					var currentIndex = 0;
-					do{
-						count = itemFulResult.getRange(currentIndex, currentIndex + pageSize).length;
-						currentIndex += pageSize;
-						totalPageCount += count;
-					}while(count == pageSize);
-
-
-					if(totalPageCount>0){
-						//pagination for shippments list
+					var pagedData = itemFulResult.runPaged({
+					    pageSize:20
+				    });
+					var totalResultCount = pagedData.count;
+					var listOfPages = pagedData["pageRanges"];
+					var numberOfPages = listOfPages.length;
+					
+					if(numberOfPages > 0){
 						var paginationField = form.addField({
 							id : 'custpage_ss_pagination',
 							type : serverWidget.FieldType.SELECT,
@@ -212,48 +205,51 @@ function(serverWidget,search,record,runtime,format) {
 							height:50,
 							width : 120
 						});
-
-						var endCount = 0;
-						for(var i=0;i<totalPageCount;i+=20){
-							endCount = (i+20);
+						
+						for(var i = 0;i < numberOfPages;i++){
+							var paginationTextStart = (i == 0)?(i * 20):((i*20)+1);
+							var paginationTextEnd = (totalResultCount >= (i*20)+20)?((i * 20)+20):totalResultCount;
 							paginationField.addSelectOption({
-								value : i+1,
-								text : (i+1)+' to '+(endCount < totalPageCount? endCount:totalPageCount),
-								isSelected:(startno == i+1)
+								value :listOfPages[i].index,
+								text : paginationTextStart+' to '+paginationTextEnd,
+								isSelected:(startno == i)
 							});
 						}
 					}
+					
+					var page = pagedData.fetch({
+					    index:startno
+					});
+					
+					var dataCount = page.data.length;
+					for(var i = 0;i < dataCount;i++){
+						if(page.data[i].getValue('item') != ''){
 
-					//getting the values from item fulfillment search
-					var itemFulResultList = itemFulResult.getRange(startno,endno),itemFulResultLength = itemFulResultList.length,
-					lineNo = 0,rate = 0,unit ='';
-					for(var i=0;i<itemFulResultLength;i++){
-						if(itemFulResultList[i].getValue('item') != ''){
-							var quantity = itemFulResultList[i].getValue('quantity');
-							var unit = itemFulResultList[i].getValue('unit');
+							var quantity = page.data[i].getValue('quantity');
+							var unit = page.data[i].getValue('unit');
 
 //							log.debug('unit',unit) //not getting the uom
 							actualSalesSublist.setSublistValue({
 								id:'custpage_item',
-								line:lineNo,
-								value:itemFulResultList[i].getText('item')
+								line:i,
+								value:page.data[i].getText('item')
 							});
 							actualSalesSublist.setSublistValue({
 								id:'custpage_item_description',
-								line:lineNo,
-								value:itemFulResultList[i].getValue({name:'description',join:'item'})
+								line:i,
+								value:page.data[i].getValue({name:'description',join:'item'})
 							});
 
 							actualSalesSublist.setSublistValue({
 								id:'custpage_shippmentid',
-								line:lineNo,
-								value:itemFulResultList[i].getValue('internalid')
+								line:i,
+								value:page.data[i].getValue('internalid')
 							});
 
 							if(quantity != ''){
 								actualSalesSublist.setSublistValue({
 									id:'custpage_shippmentqty',
-									line:lineNo,
+									line:i,
 									value:quantity
 								});
 							}
@@ -261,24 +257,20 @@ function(serverWidget,search,record,runtime,format) {
 							if(unit != ''){
 								actualSalesSublist.setSublistValue({
 									id:'custpage_shippmentuom',
-									line:lineNo,
+									line:i,
 									value:unit
 								});
 							}
-							lineNo++;
 						}
 					}
-
-
 				}
 
 				form.clientScriptModulePath = './iTPM_Attach_Promotion_ActualSalesShipmentsPagination.js';
 				response.writePage(form);	
 			}
 
-		}catch(ex)
-		{
-			log.error(e.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+e.message);
+		}catch(ex){
+			log.error(ex.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+ex.message);
 		}
 
 	}
