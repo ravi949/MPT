@@ -207,11 +207,10 @@ function(serverWidget,search,record,runtime,format) {
 						});
 						
 						for(var i = 0;i < numberOfPages;i++){
-							var paginationTextStart = (i == 0)?(i * 20):((i*20)+1);
 							var paginationTextEnd = (totalResultCount >= (i*20)+20)?((i * 20)+20):totalResultCount;
 							paginationField.addSelectOption({
 								value :listOfPages[i].index,
-								text : paginationTextStart+' to '+paginationTextEnd,
+								text : ((i*20)+1)+' to '+paginationTextEnd,
 								isSelected:(startno == i)
 							});
 						}
