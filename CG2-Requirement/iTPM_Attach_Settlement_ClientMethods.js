@@ -37,9 +37,18 @@ function(message, url) {
 		   console.log(e.name,'error in redirection to deduction list, message='+e.message);
 	   }
    }
-
+   function redirectToCheck(settlementId){
+	   try{
+		  var msg = displayMessage('Check','Please wait while you are redirected to the check record.');
+		  msg.show();
+		  console.log('Hi aaplying to check');
+	   }catch(e){
+		   console.log(e.name,'error in redirection to deduction list, message='+e.message);
+	   }
+   }
     return {
-        redirectToDeductionList:redirectToDeductionList
+        redirectToDeductionList:redirectToDeductionList,
+        redirectToCheck:redirectToCheck
     };
     
 });

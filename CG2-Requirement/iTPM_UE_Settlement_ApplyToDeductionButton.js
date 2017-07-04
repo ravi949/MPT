@@ -37,6 +37,11 @@ function(runtime, serverWidget) {
     					label:'Apply To Deduction',
     					functionName:'redirectToDeductionList('+scriptContext.newRecord.id+')'
     				});
+    				scriptContext.form.addButton({
+    					id:'custpage_itpm_applytocheck',
+    					label:'Apply To Check',
+    					functionName:'redirectToCheck('+scriptContext.newRecord.id+')'
+    				});
     			}
     		}
     	}catch(e){
