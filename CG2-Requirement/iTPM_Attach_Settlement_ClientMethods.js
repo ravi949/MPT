@@ -39,7 +39,7 @@ function(message, url) {
    }
    function redirectToCheck(settlementId){
 	   try{
-		  var msg = displayMessage('Check','Please wait while you are redirected to the check record.');
+		  var msg = displayMessage('Applying to Check','Please wait while you are redirected to the check record.');
 		  msg.show();
 		  var deductionListURL = url.resolveScript({
 	   			scriptId:'customscript_itpm_settlemnt_aplyto_check',

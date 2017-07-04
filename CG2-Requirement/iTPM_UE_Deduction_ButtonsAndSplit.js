@@ -114,7 +114,14 @@ function(url,record,search, widget, runtime, redirect) {
 							id:parentDedutionRecId //scriptContext.newRecord.id
 						});
 
+						//setting the applied to and parent deduction values and other main values.
 						copiedDeductionRec.setValue({
+							fieldId:'custbody_itpm_ddn_parentddn',
+							value:parentDedutionRecId
+						}).setValue({
+							fieldId:'custbody_itpm_set_deduction',
+							value:parentDedutionRecId
+						}).setValue({
 							fieldId:'custbody_itpm_ddn_disputed',
 							value:false //when split the deduction if first one checked second set to false
 						}).setValue({
@@ -123,7 +130,10 @@ function(url,record,search, widget, runtime, redirect) {
 						}).setValue({
 							fieldId:'custbody_itpm_ddn_openbal',
 							value:remainingAmount
-						})
+						}).setValue({
+							fieldId:'memo',
+							value:'Deduction split from Deduction #'+parentDeductionRec.getText('tranid')
+						});
 
 						//setting the line values to copied deduction record
 						var lineCount = copiedDeductionRec.getLineCount('line');
@@ -132,6 +142,11 @@ function(url,record,search, widget, runtime, redirect) {
 								sublistId:'line',
 								fieldId:(i==0)?'credit':'debit',
 								value:remainingAmount,
+								line:i
+							}).setSublistValue({
+								sublistId:'line',
+								fieldId:'memo',
+								value:'Deduction split from Deduction #'+parentDeductionRec.getText('tranid'),
 								line:i
 							});
 						}

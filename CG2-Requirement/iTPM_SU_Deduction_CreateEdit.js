@@ -287,7 +287,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				}
 				
 				//If deduction is split then we are setting the parent and apply to deduction values
-				if(params.from == 'ddn'){
+				if(params.type != 'edit' && params.from == 'ddn'){
 					var deductionText = record.load({type:'customtransaction_itpm_deduction',id:params.fid}).getText('tranid');
 					var selectionObj = {
 							value:params.fid,
@@ -469,7 +469,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					container:'custom_itpm_ddn_taskdetails'
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
-				}).defaultValue = (params.from == 'inv')?' ':deductionRec.getValue('memo');
+				}).defaultValue = (params.from == 'inv' || params.type != 'edit')?' ':deductionRec.getValue('memo');
 
 				/*------- TASK DETAIL End --------*/
 
