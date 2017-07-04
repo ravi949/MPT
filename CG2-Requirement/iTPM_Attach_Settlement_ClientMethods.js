@@ -41,9 +41,14 @@ function(message, url) {
 	   try{
 		  var msg = displayMessage('Check','Please wait while you are redirected to the check record.');
 		  msg.show();
-		  console.log('Hi aaplying to check');
+		  var deductionListURL = url.resolveScript({
+	   			scriptId:'customscript_itpm_settlemnt_aplyto_check',
+	   			deploymentId:'customdeploy_itpm_settlemnt_aplyto_check',
+	   			params:{sid:settlementId}
+	   		  }); 
+			  window.open(deductionListURL,'_self');
 	   }catch(e){
-		   console.log(e.name,'error in redirection to deduction list, message='+e.message);
+		   console.log(e.name,'error in apply settlement to check, message='+e.message);
 	   }
    }
     return {
