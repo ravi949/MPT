@@ -111,7 +111,7 @@ function(url,record,search, widget, runtime, redirect) {
 						//copying the previous child into the new child deduction record
 						copiedDeductionRec = record.copy({
 							type:recordType,
-							id:scriptContext.newRecord.id
+							id:parentDedutionRecId //scriptContext.newRecord.id
 						});
 
 						copiedDeductionRec.setValue({

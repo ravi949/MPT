@@ -179,15 +179,6 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					displayType : serverWidget.FieldDisplayType.DISABLED
 				});
 
-				if(params.type == 'edit'){
-					var parentDdnId = deductionRec.getValue('custbody_itpm_ddn_parentddn');
-					parentDDNField.addSelectOption({
-						value:(parentDdnId == '')?' ':parentDdnId,
-						text:(parentDdnId == '')?' ':deductionRec.getText('custbody_itpm_ddn_parentddn')
-					})
-				}
-					
-
 				//setting the OTHER REFERENCE CODE value
 				ddnForm.addField({
 					id : 'custom_itpm_ddn_otherrefcode',
@@ -284,12 +275,26 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					displayType : serverWidget.FieldDisplayType.DISABLED
 				});
 				
+				
+				//If deduction is edited then we are setting the parent and apply to deduction values
 				if(params.type == 'edit' && deductionRec.getValue('custbody_itpm_set_deduction') != ''){
-					aplydToTrans.addSelectOption({
-						value:deductionRec.getValue('custbody_itpm_set_deduction'),
-						text:deductionRec.getText('custbody_itpm_set_deduction'),
-						isSelected:true
-					})
+					var selectionObj = {
+							value:deductionRec.getValue('custbody_itpm_set_deduction'),
+							text:deductionRec.getText('custbody_itpm_set_deduction')
+					};
+					aplydToTrans.addSelectOption(selectionObj);
+					parentDDNField.addSelectOption(selectionObj);
+				}
+				
+				//If deduction is split then we are setting the parent and apply to deduction values
+				if(params.from == 'ddn'){
+					var deductionText = record.load({type:'customtransaction_itpm_deduction',id:params.fid}).getText('tranid');
+					var selectionObj = {
+							value:params.fid,
+							text:'- iTPM Deduction #'+deductionText
+					};
+					parentDDNField.addSelectOption(selectionObj);
+					aplydToTrans.addSelectOption(selectionObj);
 				}
 				
 				/*-----PRIMARY INFORMATION end-----*/
