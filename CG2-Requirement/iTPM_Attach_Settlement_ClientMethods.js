@@ -34,7 +34,7 @@ function(message, url) {
    		  }); 
 		  window.open(deductionListURL,'_self');
 	   }catch(e){
-		   console.log(e.name,'error in redirection to deduction list, message='+e.message);
+		   console.log(e.name,'error in redirection to deduction list, message='+e.message)
 	   }
    }
    function redirectToCheck(settlementId){
