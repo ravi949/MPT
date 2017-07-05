@@ -875,7 +875,8 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				throw Error(e.message);
 			}else{
 				var recType = (params.from == 'inv')?'Invoice':'iTPM Deduction';
-				log.error(e.name,'record type = '+recType+', record id='+params.fid+' message='+e);
+				var eventType = (params.type != 'edit')?'create':'edit';
+				log.error(e.name,'record type = '+recType+', record id='+params.fid+', event type = '+eventType+' message='+e);
 			}
 		}
 	}
