@@ -24,7 +24,7 @@ function(search,runtime) {
     	try{
     		var eventType = scriptContext.type;
         	var exeType = runtime.executionContext;
-        	log.debug('exeType',exeType)
+        	
     		if(eventType == 'create' && 
     		   (exeType == runtime.ContextType.USER_INTERFACE || 
     			exeType == runtime.ContextType.USEREVENT || 
