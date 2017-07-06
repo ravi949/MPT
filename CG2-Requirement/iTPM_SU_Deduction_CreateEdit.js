@@ -185,7 +185,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					type : serverWidget.FieldType.TEXT,
 					label:'OTHER REFERENCE CODE',
 					container:'custom_primry_information'
-				}).defaultValue = (params.from == 'inv')?'':deductionRec.getValue('custbody_itpm_ddn_otherrefcode');
+				}).defaultValue = (params.from == 'inv' || params.type != 'edit')?'':deductionRec.getValue('custbody_itpm_ddn_otherrefcode');
 
 				
 				if(customerParentId != ''){
@@ -572,7 +572,29 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				}
 				
 
-				if(params['custom_cfrom'] == 'ddn' && params['custom_user_eventype'] != 'edit'){
+				deductionRec.setValue({
+					fieldId:'custbody_itpm_ddn_otherrefcode',
+					value:otherrefno,
+					ignoreFieldChange:true
+				}).setValue({
+					fieldId:'memo',
+					value:memo,
+					ignoreFieldChange:true
+				}).setValue({
+					fieldId:'custbody_itpm_ddn_amount',
+					value:amount,
+					ignoreFieldChange:true
+				}).setValue({
+					fieldId:'custbody_itpm_ddn_openbal',
+					value:amount,
+					ignoreFieldChange:true
+				}).setValue({
+					fieldId:'custbody_itpm_ddn_disputed',
+					value:(disputed == "T")?true:false,
+					ignoreFieldChange:true
+				});
+				
+				if(params['custom_user_eventype'] != 'edit' && params['custom_cfrom'] == 'ddn'){
 					deductionRec.setValue({
 						fieldId:'custbody_itpm_ddn_parentddn',
 						value:params['custom_parent_recid'],
@@ -591,16 +613,6 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						ignoreFieldChange:true
 					})
 				}
-				
-				deductionRec.setValue({
-					fieldId:'custbody_itpm_ddn_otherrefcode',
-					value:otherrefno,
-					ignoreFieldChange:true
-				}).setValue({
-					fieldId:'memo',
-					value:memo,
-					ignoreFieldChange:true
-				});
 				
 				if(invoiceno != ''){
 					deductionRec.setValue({
@@ -672,18 +684,6 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					})
 				}
 
-				if(amount != ''){
-					deductionRec.setValue({
-						fieldId:'custbody_itpm_ddn_amount',
-						value:amount,
-						ignoreFieldChange:true
-					}).setValue({
-						fieldId:'custbody_itpm_ddn_openbal',
-						value:amount,
-						ignoreFieldChange:true
-					})
-				}
-
 				if(totalsettlement != ''){
 					deductionRec.setValue({
 						fieldId:'custbody_itpm_ddn_totsett',
@@ -691,13 +691,6 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						ignoreFieldChange:true
 					})
 				}
-
-
-				deductionRec.setValue({
-					fieldId:'custbody_itpm_ddn_disputed',
-					value:(disputed == "T")?true:false,
-					ignoreFieldChange:true
-				})
 
 				if(followup != ''){
 					deductionRec.setValue({
@@ -768,7 +761,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					deductionRec.setValue({
 						fieldId:'memo',
 						value:(memo!='')?memo:lineMemo,
-								ignoreFieldChange:true
+						ignoreFieldChange:true
 					})
 
 					log.debug('receivableAccntsList',receivbaleAccntsList)
@@ -802,9 +795,22 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 
 
 					var deductionId = deductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});
-
+					
+					//creating the other deduction record when click the split
+					if(deductionId && createdFrom == 'ddn'){
+						var parentRec = record.load({type:'customtransaction_itpm_deduction',id:params['custom_parent_recid']});
+						var parentDdnId = params['custom_itpm_ddn_parentddn'];
+						var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_ddn_amount'));
+						var newDdnAmount = parseFloat(amount);
+						log.debug('parentDdnAmt',parentDdnAmount)
+					    log.debug('newDdnAmount',newDdnAmount)
+						if(parentDdnAmount > newDdnAmount){
+							createAutomatedDeductionRecord(parentRec,parentDdnAmount - newDdnAmount);
+						}
+					}
+					
 					//when a deduction is created from invoice then the invoice is converted into payment fulfillment
-					if(params['custom_cfrom'] == 'inv'){
+					if(createdFrom == 'inv'){
 						var deductionCreatedRec = record.load({type:'customtransaction_itpm_deduction',id:deductionId}),
 						invId = params['custom_itpm_ddn_invoice'],
 						invTransformRec = record.transform({
@@ -881,6 +887,74 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 		}
 	}
 
+	
+	//creating the automated Deduction record
+	function createAutomatedDeductionRecord(parentDdnRec,remainingAmount){
+		remainingAmount = remainingAmount.toFixed(2);
+		//copying the previous child into the new child deduction record
+		var copiedDeductionRec = record.copy({
+			type:'customtransaction_itpm_deduction',
+			id:parentDdnRec.id //scriptContext.newRecord.id
+		});
+
+		//setting the applied to and parent deduction values and other main values.
+		copiedDeductionRec.setValue({
+			fieldId:'custbody_itpm_ddn_parentddn',
+			value:parentDdnRec.id
+		}).setValue({
+			fieldId:'custbody_itpm_set_deduction',
+			value:parentDdnRec.id
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_disputed',
+			value:false //when split the deduction if first one checked second set to false
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_amount',
+			value:remainingAmount  //setting the remaining the amount value to the Amount field
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_openbal',
+			value:remainingAmount
+		}).setValue({
+			fieldId:'memo',
+			value:'Deduction split from Deduction #'+parentDdnRec.getText('tranid')
+		});
+		log.debug('remaining amount',remainingAmount)
+		//setting the line values to copied deduction record
+		var lineCount = copiedDeductionRec.getLineCount('line');
+		for(var i = 0;i<lineCount;i++){
+			copiedDeductionRec.setSublistValue({
+				sublistId:'line',
+				fieldId:(i==0)?'credit':'debit',
+				value:remainingAmount,
+				line:i
+			}).setSublistValue({
+				sublistId:'line',
+				fieldId:'memo',
+				value:'Deduction split from Deduction #'+parentDdnRec.getText('tranid'),
+				line:i
+			});
+		}
+
+		//save the new child deduction record
+		var newChildDedid = copiedDeductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});
+		
+		//loading the parent record again why because parentDeductionRec already save 
+		//thats why we are loading the record newly	
+		parentDdnRec.setValue({
+			fieldId:'custbody_itpm_ddn_openbal',
+			value:0 
+		}).setValue({
+			fieldId:'transtatus',
+			value:'C'  //changed the parent status to Resolved
+		}).save({
+			enableSourcing: false,
+			ignoreMandatoryFields : true
+		});
+		
+	}
+	
+	
+	
+	
     //getting the Class,Department and Location list based on subsidiary.
     function getList(subid,rectype){
     	switch(rectype){
