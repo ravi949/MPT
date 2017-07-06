@@ -45,7 +45,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
 
     			addFieldsToTheSettlementForm(settlementForm,request.parameters);
 
-    			settlementForm.clientScriptModulePath = './iTPMSettlement_ClientValidations_cs_script.js';
+    			settlementForm.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js';
 
     			response.writePage(settlementForm);
     		}
@@ -547,7 +547,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
     	
     	/*  TRANSACTION DETAIL Start  */
 	    
-	    settlementForm.clientScriptModulePath = './iTPMSettlement_ClientValidations_cs_script.js'
+	    settlementForm.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js'
     }
     
     

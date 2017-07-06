@@ -546,7 +546,7 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 					functionName:'redirectToBack'
 				});
 
-				form.clientScriptModulePath = './iTPMSettlement_ClientValidations_cs_script.js'
+				form.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js'
 
 			    response.writePage(form)
 			}
