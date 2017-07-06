@@ -57,9 +57,9 @@ function(record, search) {
 			copyPromoId = arrResult['internalid.CUSTRECORD_ITPM_P_COPIEDFROM'].value,
 			contextObj = null,executeResultSet = []
 
-			log.debug('searchResult',searchResult);
-			log.debug('promotionID',promoID);
-			log.debug('copyPromoId',copyPromoId);
+//			log.debug('searchResult',searchResult);
+//			log.debug('promotionID',promoID);
+//			log.debug('copyPromoId',copyPromoId);
 			
 			var loadedSearch = search.create({
 				   type: "customrecord_itpm_promotiondeal",
@@ -97,7 +97,7 @@ function(record, search) {
 					count = result.length;
 					currentIndex += pageSize;
 				}while(count == pageSize);
-				log.debug('arrayofRecs',copyPromoId)
+//				log.debug('arrayofRecs',copyPromoId)
 
 
 				//Deducting the duplicates, and removing them and pushing those results into array
@@ -162,7 +162,8 @@ function(record, search) {
 		try{
 			
 			var keyObj = JSON.parse(context.key);
-			log.debug('keyObh',keyObj)
+			var a = +new Date();
+			log.debug('keyObh '+a,keyObj);
 			switch(keyObj.type){
 		/********* Copying Promotion/Deal Allowances and Saving them into Copied Promotion/Deal Allowances **********/
 			case 'all':
@@ -175,11 +176,7 @@ function(record, search) {
 					id:keyObj.recId
 				}).setValue({
 					fieldId: 'custrecord_itpm_all_account',
-					value:  allRec.getValue({fieldId: 'custrecord_itpm_all_account'}),
-					ignoreFieldChange: true
-				}).setValue({
-					fieldId: 'custrecord_itpm_all_mop',
-					value:  allRec.getValue({fieldId: 'custrecord_itpm_all_mop'}),
+					value:allRec.getValue({fieldId: 'custrecord_itpm_all_account'}),
 					ignoreFieldChange: true
 				}).setValue({
 					fieldId: 'custrecord_itpm_all_promotiondeal',
