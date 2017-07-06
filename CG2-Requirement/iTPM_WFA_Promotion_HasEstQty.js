@@ -1,6 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
+ * Workflow action script to check whether an iTPM Estimated Quantity record already exists for an Item and Promotion record.
  */
 define(['N/search','N/runtime'],
 /**
