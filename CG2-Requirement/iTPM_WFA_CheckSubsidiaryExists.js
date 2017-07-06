@@ -2,6 +2,7 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  * @NModuleScope TargetAccount
+ * Checks whether subsidiaries are enabled, via a workflow action and returns boolean.
  */
 define(['N/runtime'],
 /**
@@ -20,7 +21,11 @@ function(runtime) {
     
     return {
         onAction : function(scriptContext){
-        	return runtime.isFeatureInEffect('SUBSIDIARIES').toString();
+        	try{
+        		return runtime.isFeatureInEffect('SUBSIDIARIES')?'T':'F';
+        	}catch(e){
+        		log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
+        	}
         }
     };
     
