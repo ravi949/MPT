@@ -51,7 +51,7 @@ function(search,runtime) {
     		if(e.message == 'Allowance not set'){
     			throw Error('Promotion Allowances must be set before Estimated Volume can be entered');
     		}else{
-    			log.error('exception in before creation of kpi check for allownaces',e);
+    			log.error(e.name,'record type = -iTPM Kpi, record id = '+scriptContext.newRecord.id+', message = '+e.message);
     		}
     	}
     }
