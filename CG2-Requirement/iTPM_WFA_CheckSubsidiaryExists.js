@@ -24,7 +24,7 @@ function(runtime) {
         	try{
         		return runtime.isFeatureInEffect('SUBSIDIARIES')?'T':'F';
         	}catch(e){
-        		log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
+        		log.error(e.name,'record type = iTPM promotion or iTPM promotion type , record id = '+scriptContext.newRecord.id+', message = '+e.message);
         	}
         }
     };
