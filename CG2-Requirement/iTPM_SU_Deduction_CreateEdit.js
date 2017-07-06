@@ -905,6 +905,9 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 			fieldId:'custbody_itpm_set_deduction',
 			value:parentDdnRec.id
 		}).setValue({
+			fieldId:'custbody_itpm_ddn_otherrefcode',
+			value:''
+		}).setValue({
 			fieldId:'custbody_itpm_ddn_disputed',
 			value:false //when split the deduction if first one checked second set to false
 		}).setValue({

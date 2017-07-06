@@ -33,6 +33,7 @@ function(url,record,search, widget, runtime, redirect) {
 				status == 'A' && 
 				clientScriptPath
 					){
+				var disputed = sc.newRecord.getValue('custbody_itpm_ddn_disputed');
 				log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
 				sc.form.clientScriptModulePath = clientScriptPath;
 				var btn_split = sc.form.addButton({
@@ -50,11 +51,15 @@ function(url,record,search, widget, runtime, redirect) {
 					label: 'Expense',
 					functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
 				});
-				var btn_invoice = sc.form.addButton({
-					id: 'custpage_itpm_invoice',
-					label: 'Re-Invoice',
-					functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
-				});
+				
+				if(disputed){
+					var btn_invoice = sc.form.addButton({
+						id: 'custpage_itpm_invoice',
+						label: 'Re-Invoice',
+						functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
+					});
+				}
+				
 			} else if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
 				redirect.toSuitelet({
 					scriptId:'customscript_itpm_ddn_assnt_view',
