@@ -7,8 +7,6 @@
 define(['N/record',
 		'N/search',
 		'N/ui/serverWidget',
-		'N/runtime',
-		'N/config',
 		'N/redirect',
 		'N/url',
 		'./iTPM_Module_Settlement.js'],
@@ -16,7 +14,7 @@ define(['N/record',
   * @param {record} record
   * @param {search} search
  */
-function(record, search, serverWidget,runtime,config,redirect,url,ST_Module) {
+function(record, search, serverWidget,redirect,url,ST_Module) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -102,7 +100,7 @@ function(record, search, serverWidget,runtime,config,redirect,url,ST_Module) {
 				    value : parameters.sid
 				})
 				list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'})
-				list.clientScriptModulePath = './iTPMSettlement_ClientValidations_cs_script.js'
+				list.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js'
 				
 				//getting the settlement request amount from the settlement record.
 				var settlementRec = record.load({
