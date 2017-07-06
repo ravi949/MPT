@@ -191,6 +191,7 @@ function(serverWidget,search,record,runtime,format) {
 					var totalResultCount = pagedData.count;
 					var listOfPages = pagedData["pageRanges"];
 					var numberOfPages = listOfPages.length;
+					var page = dataCount = null;
 					
 					if(numberOfPages > 0){
 						var paginationField = form.addField({
@@ -214,14 +215,16 @@ function(serverWidget,search,record,runtime,format) {
 								isSelected:(startno == i)
 							});
 						}
+						
+						page = pagedData.fetch({
+						    index:startno
+						});
+						
+						dataCount = page.data.length;
 					}
 					
-					var page = pagedData.fetch({
-					    index:startno
-					});
 					
-					var dataCount = page.data.length;
-					for(var i = 0;i < dataCount;i++){
+					for(var i = 0;dataCount != null,i < dataCount;i++){
 						if(page.data[i].getValue('item') != ''){
 
 							var quantity = page.data[i].getValue('quantity');
