@@ -36,7 +36,6 @@ function(redirect,runtime,search,record) {
 //    				parameters:{sid:settlementRec.id,from:'set',type:'edit'}
 //    			});
     			
-    			
     		}
     	}catch (e) {
     		log.error(e.name,e.message);
