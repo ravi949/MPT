@@ -10,10 +10,11 @@ define(['N/ui/serverWidget',
 		'N/redirect',
 		'N/format',
 		'N/url',
+		'N/runtime',
 		'./iTPM_Module_Settlement.js'
 		],
 
-function(serverWidget,search,record,redirect,format,url,ST_Module) {
+function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -70,24 +71,28 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
     		if(e.message == 'settlement not completed')
     			throw Error("There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion.")
     		else
-    			log.error('exception in settlemet suitlet',e);
+    			log.error(e.name,'record type = -iTPM Settlement, record id = '+params.sid+', message = '+e.message);
     	}
     }
     
     //adding the fields to the settlement form
     function addFieldsToTheSettlementForm(settlementForm,params){
+    	var eventType = params.type;
+    	var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
+		var currencyExists = runtime.isFeatureInEffect('multicurrency');
     	
-    	//created from settlement record
-    	settlementForm.addField({
-    		id:'custom_itpm_st_created_frm',
-    		type:serverWidget.FieldType.TEXT,
-    		label:'created from'
-    	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.HIDDEN
-		}).defaultValue = params.from;
+    	if(eventType == 'edit'){
+    		settlementForm.addField({
+				id : 'custom_user_eventype',
+				type : serverWidget.FieldType.TEXT,
+				label:'Record Event Type'
+			}).updateDisplayType({
+				displayType : serverWidget.FieldDisplayType.HIDDEN
+			}).defaultValue = params.type;
+    	}
     	
     	
-    	if(params.from == 'promo' || params.from == 'ddn'){
+    	if(params.from == 'promo' || params.from == 'ddn'){    		
     		var pid = params.pid,createdFromDDN = (params.from == 'ddn');
         	
     		var promoDealRec = search.lookupFields({
@@ -123,10 +128,19 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
 			    recordId: pid,
 			    isEditMode: false
 			});
+    		
+    		//created from settlement record
+        	settlementForm.addField({
+        		id:'custom_itpm_st_created_frm',
+        		type:serverWidget.FieldType.TEXT,
+        		label:'created from'
+        	}).updateDisplayType({
+    			displayType : serverWidget.FieldDisplayType.HIDDEN
+    		}).defaultValue = params.from;
+    		
         	
         	if(params.from == 'ddn'){
         		//loading the deduction values
-
         		var deductionRec = record.load({
         			type:'customtransaction_itpm_deduction',
         			id:params.ddn
@@ -137,7 +151,6 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
         			isEditMode: false
         		}),
         		ddnOpenBal = deductionRec.getValue('custbody_itpm_ddn_openbal');
-
         		
         		//deduction open bal value
         		settlementForm.addField({
@@ -147,8 +160,14 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
             	}).updateDisplayType({
         			displayType : serverWidget.FieldDisplayType.HIDDEN
         		}).defaultValue = deductionRec.getValue('custbody_itpm_ddn_openbal');
-        	}
+        	}        	
+    	}else if(params.from == 'set'){
+    		var settlementRec = record.load({
+    			type:'customtransaction_itpm_settlement',
+    			id:params.sid
+    		});
     	}
+    	
     	/*  PRIMARY INFORMATION Start  */
     	settlementForm.addFieldGroup({
 		    id : 'custom_primaryinfo_group',
@@ -269,7 +288,6 @@ function(serverWidget,search,record,redirect,format,url,ST_Module) {
 		}).updateDisplayType({
 	    	displayType : serverWidget.FieldDisplayType.DISABLED
 	    });
-
 	    /*  PRIMARY INFORMATION End  */
 	    
 	    /*  CLASSIFICATION Start  */

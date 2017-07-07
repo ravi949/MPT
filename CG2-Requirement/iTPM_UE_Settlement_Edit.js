@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType UserEventScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  * Calling suitelet to edit settlement and validate then saving the settlement 
  */
 define(['N/redirect','N/runtime','N/search','N/record'],
@@ -27,7 +27,16 @@ function(redirect,runtime,search,record) {
     				deploymentId:'customdeploy_itpm_set_suview_onedit',
     				returnExternalUrl: false,
     				parameters:{sid:settlementRec.id,type:'edit'}
-    			});   
+    			});
+    			
+//    			redirect.toSuitelet({
+//    				scriptId:'customscript_itpm_settlement_using_su',
+//    				deploymentId:'customdeploy_itpm_settlement_using_su',
+//    				returnExternalUrl: false,
+//    				parameters:{sid:settlementRec.id,from:'set',type:'edit'}
+//    			});
+    			
+    			
     		}
     	}catch (e) {
     		log.error(e.name,e.message);
