@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  * Create the Settlement view on edit the settlement record.
  */
 define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],

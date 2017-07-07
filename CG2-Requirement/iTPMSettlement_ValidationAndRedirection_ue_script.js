@@ -26,7 +26,7 @@ function(redirect,runtime,search,record) {
     				scriptId:'customscript_itpm_set_suview_onedit',
     				deploymentId:'customdeploy_itpm_set_suview_onedit',
     				returnExternalUrl: false,
-    				parameters:{sid:settlementRec.id}
+    				parameters:{sid:settlementRec.id,type:'edit'}
     			});   
     		}
     	}catch (e) {
