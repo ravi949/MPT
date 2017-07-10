@@ -148,69 +148,10 @@ function(redirect,runtime,search,record) {
     	}
     }
 
-    /**
-     * Function definition to be triggered before record is loaded.
-     *
-     * @param {Object} scriptContext
-     * @param {Record} scriptContext.newRecord - New record
-     * @param {Record} scriptContext.oldRecord - Old record
-     * @param {string} scriptContext.type - Trigger type
-     * @Since 2015.2
-     */
-    function afterSubmit(scriptContext) {
-    	try{
-    		if(scriptContext.type == 'edit'){
-        		var loadedSettlementRec = record.load({
-            		type:'customtransaction_itpm_settlement',
-            		id:scriptContext.newRecord.id
-            	}),
-            	lumpsumSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqls'),
-            	bbSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqbb'),
-            	offinvSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqoi'),
-            	linecount = loadedSettlementRec.getLineCount({sublistId:'line'});
-        		for(var i = 0;i < linecount;i++){
-        			var isDebit = loadedSettlementRec.getSublistValue({
-        			    sublistId: 'line',
-        			    fieldId: 'custcol_itpm_set_isdebit',
-        			    line: i
-        			});
-        			var lsbboi = loadedSettlementRec.getSublistValue({
-        			    sublistId: 'line',
-        			    fieldId: 'custcol_itpm_lsbboi',
-        			    line: i
-        			});
-        			var lineValue = (lsbboi == 1)?lumpsumSetReqAmnt:(lsbboi == 2)?bbSetReqAmnt:offinvSetReqAmnt;
-        			if(lineValue != '' && lineValue > 0){
-        				log.debug('lineValue '+i,lineValue)
-        				if(isDebit){
-        					loadedSettlementRec.setSublistValue({
-        						sublistId:'line',
-        						fieldId:'debit',
-        						line:i,
-        						value:lineValue
-        					})
-        				}else{
-        					loadedSettlementRec.setSublistValue({
-        						sublistId:'line',
-        						fieldId:'credit',
-        						line:i,
-        						value:lineValue
-        					})
-        				}
-        			}
-        		}
-        		loadedSettlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
-        	}
-    	}catch(e){
-    		throw new Error(e.message);
-    	}
-    	
-    }
-
+ 
     return {
         beforeLoad: beforeLoad,
-        beforeSubmit: beforeSubmit,
-        afterSubmit: afterSubmit
+        beforeSubmit: beforeSubmit
     };
     
 });

@@ -593,7 +593,6 @@ define(['N/ui/serverWidget','N/record','N/search','N/redirect','N/url'],
 						value:params.custom_itpm_st_department
 					});
 
-
 					var sid = loadedSettlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
 
 					redirect.toRecord({

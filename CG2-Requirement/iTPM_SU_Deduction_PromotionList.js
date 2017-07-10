@@ -140,7 +140,7 @@ function(serverWidget,redirect,search,record) {
 					scriptId:'customscript_itpm_settlement_using_su',
 					deploymentId:'customdeploy_itpm_settlement_using_su',
 					returnExternalUrl: false,
-					parameters:{pid:params.custpage_promotion,ddn:params.custpage_ddn_id,from:'ddn'}
+					parameters:{pid:params.custpage_promotion,ddn:params.custpage_ddn_id,from:'ddn',type:'create'}
 				});
 			}
 		}catch (e) {

@@ -11,10 +11,11 @@ define(['N/ui/serverWidget',
 		'N/format',
 		'N/url',
 		'N/runtime',
-		'./iTPM_Module_Settlement.js'
+		'./iTPM_Module_Settlement.js',
+		'./iTPM_Module'
 		],
 
-function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
+function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_Module) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -87,6 +88,11 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 		var currencyExists = runtime.isFeatureInEffect('multicurrency');
 		var isEdit = (eventType == 'edit');
 		var displayTypeSetup = (isEdit)?serverWidget.FieldDisplayType.INLINE:serverWidget.FieldDisplayType.DISABLED;
+		
+		//iTPM prefernce record values.
+		var prefObj = iTPM_Module.getPrefrenceValues();
+		var perferenceLS = prefObj.perferenceLS;
+		var perferenceBB = prefObj.perferenceBB;
     	
     	if(isEdit){
     		settlementForm.addField({
@@ -192,7 +198,8 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		var entryNo = settlementRec.getValue('tranid');
     		var otherRefCode = settlementRec.getValue('custbody_itpm_set_otherrefcode');
     		var defaultDate = settlementRec.getValue('trandate');
-    		var appliedTo = settlementRec.getValue('custbody_itpm_set_check');
+    		var appliedToCheck = settlementRec.getValue('custbody_itpm_set_check');
+    		var appliedToTransaction = settlementRec.getValue('custbody_itpm_set_deduction');
     		var status = settlementRec.getText('transtatus');
     		var customerId = settlementRec.getValue('custbody_itpm_set_customer');
     		var customerText = settlementRec.getText('custbody_itpm_set_customer');
@@ -330,37 +337,40 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 
 	    //APPLIED TO
 		//setting the deduction id for post method
-//	    var appliedToField = settlementForm.addField({
-//	    	id : 'custom_itpm_st_appliedtransction',
-//	    	type : serverWidget.FieldType.TEXT,
-//	    	label : 'APPLIED TO',
-//	    	container:'custom_primaryinfo_group'
-//	    });
-//	    
-//	    if(createdFromDDN){
-//	    	appliedToField.updateDisplayType({
-//				displayType : serverWidget.FieldDisplayType.HIDDEN
-//			}).defaultValue = params.ddn;
-//	    	
-//	    	settlementForm.addField({
-//	    		id:'custom_itpm_st_ddn_idlink',
-//	    		type:serverWidget.FieldType.INLINEHTML,
-//	    		label:'Applied To',
-//	    		container:'custom_primaryinfo_group'
-//	    	}).updateBreakType({
-//				breakType : serverWidget.FieldBreakType.STARTCOL
-//			}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text" style="margin-top:5px"><span id="custom_itpm_st_promotion_desc_fs_lbl" class="smallgraytextnolink uir-label" style="">'+
-//	    	'<a class="smallgraytextnolink">APPLIED TO</a></span>'+
-//	    	'<span class="uir-field"><span style="white-space: nowrap" id="custom_itpm_st_promotion_desc_fs" class="effectStatic" data-fieldtype="" data-helperbutton-count="0">'+
-//	    	'<a href="'+appliedToURL+'" class="dottedlink">'+'- iTPM Deduction #'+appliedToText+'</a></span></span></div></td></tr>';
-//	    }else{
-//	    	appliedToField.updateDisplayType({
-//		    	displayType : serverWidget.FieldDisplayType.DISABLED
-//		    }).updateBreakType({
-//				breakType : serverWidget.FieldBreakType.STARTCOL
-//			});
-//	    }
-//	    
+	    var appliedToField = settlementForm.addField({
+	    	id : 'custom_itpm_st_appliedtransction',
+	    	type : serverWidget.FieldType.SELECT,
+	    	label : 'APPLIED TO',
+	    	container:'custom_primaryinfo_group',
+	    	source:'transaction'
+	    });
+	    
+	    //APPLIED TO Check
+		//setting the deduction id for post method
+	    var appliedToCheckField = settlementForm.addField({
+	    	id : 'custom_itpm_st_appliedtocheck',
+	    	type : serverWidget.FieldType.SELECT,
+	    	label : 'APPLIED TO Check',
+	    	container:'custom_primaryinfo_group',
+	    	source:'check'
+	    });
+	    
+	    if(createdFromDDN){
+	    	appliedToField.updateDisplayType({
+				displayType : serverWidget.FieldDisplayType.INLINE
+			}).defaultValue = params.ddn;
+	    }else{
+	    	appliedToField.updateDisplayType({
+		    	displayType : displayTypeSetup
+		    }).updateBreakType({
+				breakType : serverWidget.FieldBreakType.STARTCOL
+			}).defaultValue = appliedToTransaction;
+	    	
+	    	appliedToCheckField.updateDisplayType({
+		    	displayType : displayTypeSetup
+		    }).defaultValue = appliedToCheck;
+	    }
+	    
 	    //memo field
 	    settlementForm.addField({
 			id : 'custpage_memo',
@@ -514,22 +524,13 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 	    //promotion deal
 	    settlementForm.addField({
     		id:'custom_itpm_st_promotiondeal',
-    		type:serverWidget.FieldType.TEXT,
-    		label:'PROMOTION / DEAL'
-    	}).updateDisplayType({
-		    displayType : serverWidget.FieldDisplayType.HIDDEN
-		}).defaultValue = promoId;
-		// promotion deal inline html field with redirection link
-		settlementForm.addField({
-    		id:'custom_itpm_st_promotiondeallink',
-    		type:serverWidget.FieldType.INLINEHTML,
+    		type:serverWidget.FieldType.SELECT,
     		label:'PROMOTION / DEAL',
     		container:'custom_promotioninfo_group',
-    	}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text" style="margin-top:5px"><span id="custom_itpm_st_promotion_desc_fs_lbl" class="smallgraytextnolink uir-label" style="">'+
-    	'<a class="smallgraytextnolink">Promotion / Deal</a></span>'+
-    	'<span class="uir-field"><span style="white-space: nowrap" id="custom_itpm_st_promotion_desc_fs" class="effectStatic" data-fieldtype="" data-helperbutton-count="0">'+
-    	'<a href="'+promoDealURL+'" class="dottedlink">'+promoName+'</a></span></span></div></td></tr>';
-		
+    		source:'transaction'
+    	}).updateDisplayType({
+		    displayType : serverWidget.FieldDisplayType.INLINE
+		}).defaultValue = promoId;
 		
 	    //promotion description
 	    settlementForm.addField({
@@ -608,7 +609,9 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 			}).defaultValue = ddnOpenBal;
 	    }
 	    //settlement request
-	    var settlementReqValue = (createdFromDDN)?(ddnOpenBal>netPromotionLiablty)?netPromotionLiablty:ddnOpenBal:0;
+	    if(!isEdit){
+	    	var settlementReqValue = (createdFromDDN)?(ddnOpenBal>netPromotionLiablty)?netPromotionLiablty:ddnOpenBal:0;
+	    }
 	    var settlementReqField = settlementForm.addField({
     		id:'custom_itpm_st_reql',
     		type:serverWidget.FieldType.CURRENCY,
@@ -619,14 +622,22 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     	}).defaultValue = settlementReqValue;
     	
     	//SETTLEMENT REQUEST : LUMP SUM
-    	settlementForm.addField({
+    	var amountLSField = settlementForm.addField({
     		id:'custpage_lumsum_setreq',
     		type:serverWidget.FieldType.CURRENCY,
     		label:'AMOUNT : LUMP SUM',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
 			displayType : (promoLumSum != 0 && promoLumSum != '')?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqls'):0;
+    	})
+    	
+
+    	if(createdFromDDN && perferenceLS){
+    		amountLSField.defaultValue = settlementReqValue; 
+    	}else{
+    		amountLSField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqls'):0;
+    	}
+    	
     	
     	if(!isEdit){
     		//reason code
@@ -642,14 +653,20 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     	}
     	
     	//Settlement request : Bill back
-    	settlementForm.addField({
+    	var amountBBField = settlementForm.addField({
     		id : 'custpage_billback_setreq',
     		type : serverWidget.FieldType.CURRENCY,
     		label : 'AMOUNT : Bill back',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
 			displayType : (promoTypeMOP.some(function(e){return e.value == 1}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqbb'):0;
+    	});
+    	
+    	if(createdFromDDN && perferenceBB){
+    		amountBBField.defaultValue = settlementReqValue; 
+    	}else{
+    		amountBBField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqbb'):0;
+    	}
     	
     	//Settlement request : Missed off-invoice
     	settlementForm.addField({

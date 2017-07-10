@@ -472,6 +472,7 @@ function(config, record, search, runtime, iTPM_Module) {
 				enableSourcing: true,
 				ignoreMandatoryFields: true
 			});	
+			
 		}catch(e){
 			throw Error('error occured in iTPM_Module_Settlement while setting the JE lines, message = '+e.message);
 		}
@@ -480,41 +481,76 @@ function(config, record, search, runtime, iTPM_Module) {
 	
 	function editSettlement(params){
 		try{
-		var loadedSettlementRec = record.load({
-			type:'customtransaction_itpm_settlement',
-			id:params.custom_itpm_st_recordid
-		}),linecount = loadedSettlementRec.getLineCount({sublistId:'line'});
-		loadedSettlementRec.setValue({
-			fieldId:'custbody_itpm_set_otherrefcode',
-			value:params.custom_itpm_st_otherref_code
-		}).setValue({
-			fieldId:'custbody_itpm_set_amount',
-			value:parseFloat(params.custom_itpm_st_reql.replace(/,/g,''))
-		}).setValue({
-			fieldId:'custbody_itpm_set_reqls',
-			value:parseFloat(params.custpage_lumsum_setreq.replace(/,/g,''))
-		}).setValue({
-			fieldId:'custbody_itpm_set_reqoi',
-			value:parseFloat(params.custpage_offinvoice_setreq.replace(/,/g,''))
-		}).setValue({
-			fieldId:'custbody_itpm_set_reqbb',
-			value:parseFloat(params.custpage_billback_setreq.replace(/,/g,''))
-		}).setValue({
-			fieldId:'memo',
-			value:params.custpage_memo
-		}).setValue({
-			fieldId:'location',
-			value:params.custom_itpm_st_location
-		}).setValue({
-			fieldId:'class',
-			value:params.custom_itpm_st_class
-		}).setValue({
-			fieldId:'department',
-			value:params.custom_itpm_st_department
-		});
-		
-		return loadedSettlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
-		
+			var loadedSettlementRec = record.load({
+				type:'customtransaction_itpm_settlement',
+				id:params.custom_itpm_st_recordid
+			}),linecount = loadedSettlementRec.getLineCount({sublistId:'line'});
+			loadedSettlementRec.setValue({
+				fieldId:'custbody_itpm_set_otherrefcode',
+				value:params.custom_itpm_st_otherref_code
+			}).setValue({
+				fieldId:'custbody_itpm_set_amount',
+				value:parseFloat(params.custom_itpm_st_reql.replace(/,/g,''))
+			}).setValue({
+				fieldId:'custbody_itpm_set_reqls',
+				value:parseFloat(params.custpage_lumsum_setreq.replace(/,/g,''))
+			}).setValue({
+				fieldId:'custbody_itpm_set_reqoi',
+				value:parseFloat(params.custpage_offinvoice_setreq.replace(/,/g,''))
+			}).setValue({
+				fieldId:'custbody_itpm_set_reqbb',
+				value:parseFloat(params.custpage_billback_setreq.replace(/,/g,''))
+			}).setValue({
+				fieldId:'memo',
+				value:params.custpage_memo
+			}).setValue({
+				fieldId:'location',
+				value:params.custom_itpm_st_location
+			}).setValue({
+				fieldId:'class',
+				value:params.custom_itpm_st_class
+			}).setValue({
+				fieldId:'department',
+				value:params.custom_itpm_st_department
+			});
+			
+			var lumpsumSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqls');
+        	var bbSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqbb');
+        	var offinvSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqoi');
+    		for(var i = 0;i < linecount;i++){
+    			var isDebit = loadedSettlementRec.getSublistValue({
+    			    sublistId: 'line',
+    			    fieldId: 'custcol_itpm_set_isdebit',
+    			    line: i
+    			});
+    			var lsbboi = loadedSettlementRec.getSublistValue({
+    			    sublistId: 'line',
+    			    fieldId: 'custcol_itpm_lsbboi',
+    			    line: i
+    			});
+    			var lineValue = (lsbboi == 1)?lumpsumSetReqAmnt:(lsbboi == 2)?bbSetReqAmnt:offinvSetReqAmnt;
+    			if(lineValue != '' && lineValue > 0){
+    				log.debug('lineValue '+i,lineValue)
+    				if(isDebit){
+    					loadedSettlementRec.setSublistValue({
+    						sublistId:'line',
+    						fieldId:'debit',
+    						line:i,
+    						value:lineValue
+    					})
+    				}else{
+    					loadedSettlementRec.setSublistValue({
+    						sublistId:'line',
+    						fieldId:'credit',
+    						line:i,
+    						value:lineValue
+    					})
+    				}
+    			}
+    		}
+
+			return loadedSettlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
+
 		}catch(e){
 			throw Error('error occured in iTPM_Module_Settlement while edititn the settlement record, message = '+e.message);
 		}
