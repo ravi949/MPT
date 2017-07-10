@@ -30,7 +30,7 @@ function(url,message) {
 			var ddnSuiteletURL = url.resolveScript({
 				scriptId:'customscript_itpm_ddn_assnt_view',
 				deploymentId:'customdeploy_itpm_ddn_assnt_view',
-				params:{fid:invId,from:'inv'}
+				params:{fid:invId,from:'inv',type:'create'}
 			});
 			window.open(ddnSuiteletURL,'_self');
 		}catch(e){

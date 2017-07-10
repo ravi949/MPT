@@ -24,7 +24,7 @@ function(config, record, search, runtime, iTPM_Module) {
 			if(createdFromDDN){
 				var deductionRec = record.load({
 					type:'customtransaction_itpm_deduction',
-					id:params.custom_itpm_st_ddn_id
+					id:params.custom_itpm_st_appliedtransction
 				}),
 				ddnOpenBal = deductionRec.getValue('custbody_itpm_ddn_openbal');
 			}
@@ -109,7 +109,7 @@ function(config, record, search, runtime, iTPM_Module) {
 			if(createdFromDDN){
 				newSettlementRecord.setValue({
 					fieldId:'custbody_itpm_set_deduction',
-					value:params.custom_itpm_st_ddn_id
+					value:params.custom_itpm_st_appliedtransction
 				}).setValue({
 					fieldId:'custbody_itpm_ddn_openbal',
 					value:params.custom_itpm_ddn_openbal
@@ -473,7 +473,50 @@ function(config, record, search, runtime, iTPM_Module) {
 				ignoreMandatoryFields: true
 			});	
 		}catch(e){
-			throw Error(e.message);
+			throw Error('error occured in iTPM_Module_Settlement while setting the JE lines, message = '+e.message);
+		}
+	}
+	
+	
+	function editSettlement(params){
+		try{
+		var loadedSettlementRec = record.load({
+			type:'customtransaction_itpm_settlement',
+			id:params.custom_itpm_st_recordid
+		}),linecount = loadedSettlementRec.getLineCount({sublistId:'line'});
+		loadedSettlementRec.setValue({
+			fieldId:'custbody_itpm_set_otherrefcode',
+			value:params.custom_itpm_st_otherref_code
+		}).setValue({
+			fieldId:'custbody_itpm_set_amount',
+			value:parseFloat(params.custom_itpm_st_reql.replace(/,/g,''))
+		}).setValue({
+			fieldId:'custbody_itpm_set_reqls',
+			value:parseFloat(params.custpage_lumsum_setreq.replace(/,/g,''))
+		}).setValue({
+			fieldId:'custbody_itpm_set_reqoi',
+			value:parseFloat(params.custpage_offinvoice_setreq.replace(/,/g,''))
+		}).setValue({
+			fieldId:'custbody_itpm_set_reqbb',
+			value:parseFloat(params.custpage_billback_setreq.replace(/,/g,''))
+		}).setValue({
+			fieldId:'memo',
+			value:params.custpage_memo
+		}).setValue({
+			fieldId:'location',
+			value:params.custom_itpm_st_location
+		}).setValue({
+			fieldId:'class',
+			value:params.custom_itpm_st_class
+		}).setValue({
+			fieldId:'department',
+			value:params.custom_itpm_st_department
+		});
+		
+		return loadedSettlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
+		
+		}catch(e){
+			throw Error('error occured in iTPM_Module_Settlement while edititn the settlement record, message = '+e.message);
 		}
 	}
 
@@ -481,6 +524,7 @@ function(config, record, search, runtime, iTPM_Module) {
 	
     return {
         createSettlement:createSettlement,
+        editSettlement:editSettlement,
         applyToSettlement:applyToSettlement,
         createReverseJE:createReverseJE
     };

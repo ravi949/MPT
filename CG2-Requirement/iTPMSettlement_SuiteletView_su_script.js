@@ -53,12 +53,17 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 
     		if(request.method == 'POST'){
 //    			saveTheSettlement(request.parameters);
-    			var setId = ST_Module.createSettlement(params);
-    			
-    			if(params.custom_itpm_st_created_frm == 'ddn'){
-    				params.ddn = params.custom_itpm_st_ddn_id,
-    				params.sid = setId;
-    				setId = ST_Module.applyToSettlement(params);
+    			var eventType = request.parameters.custom_user_eventype;
+    			if(eventType != 'edit'){
+    				var setId = ST_Module.createSettlement(params);
+        			
+        			if(params.custom_itpm_st_created_frm == 'ddn'){
+        				params.ddn = params.custom_itpm_st_ddn_id,
+        				params.sid = setId;
+        				setId = ST_Module.applyToSettlement(params);
+        			}
+    			}else if(eventType == 'edit'){
+    				setId = ST_Module.editSettlement(params);
     			}
     			
     	    	redirect.toRecord({
@@ -80,8 +85,10 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     	var eventType = params.type;
     	var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
 		var currencyExists = runtime.isFeatureInEffect('multicurrency');
+		var isEdit = (eventType == 'edit');
+		var displayTypeSetup = (isEdit)?serverWidget.FieldDisplayType.INLINE:serverWidget.FieldDisplayType.DISABLED;
     	
-    	if(eventType == 'edit'){
+    	if(isEdit){
     		settlementForm.addField({
 				id : 'custom_user_eventype',
 				type : serverWidget.FieldType.TEXT,
@@ -113,6 +120,11 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
         	var promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'];
         	var customerId = promoDealRec['custrecord_itpm_p_customer'][0].value;
         	var customerText = promoDealRec['custrecord_itpm_p_customer'][0].text;
+        	var promotionDesc = promoDealRec['custrecord_itpm_p_description'];
+        	var promoShipStDate = promoDealRec['custrecord_itpm_p_shipstart'];
+        	var promoShipEdDate = promoDealRec['custrecord_itpm_p_shipend'];
+        	var promoId = pid;
+        	var promoName = promoDealRec['name'];
         	
         	if(subsidiaryExists){
         		var subsid = promoDealRec['custrecord_itpm_p_subsidiary'][0].value;
@@ -130,6 +142,8 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
         	});
         	var customerParentId = customerRec.getValue('parent');
 			var customerParentText = customerRec.getText('parent');
+			var defaultDate = new Date();
+			
 			var promoDealURL = url.resolveRecord({
 			    recordType: 'customrecord_itpm_promotiondeal',
 			    recordId: pid,
@@ -152,12 +166,14 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
         			type:'customtransaction_itpm_deduction',
         			id:params.ddn
         		}),
-        		deductionURL = url.resolveRecord({
+        		appliedToURL = url.resolveRecord({
         			recordType: 'customtransaction_itpm_deduction',
         			recordId: params.ddn,
         			isEditMode: false
         		}),
         		ddnOpenBal = deductionRec.getValue('custbody_itpm_ddn_openbal');
+        		
+        		var appliedToText = deductionRec.getValue('tranid');
         		
         		//deduction open bal value
         		settlementForm.addField({
@@ -168,11 +184,62 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
         			displayType : serverWidget.FieldDisplayType.HIDDEN
         		}).defaultValue = deductionRec.getValue('custbody_itpm_ddn_openbal');
         	}        	
-    	}else if(params.from == 'setrec'){
+    	}else if(isEdit){
     		var settlementRec = record.load({
     			type:'customtransaction_itpm_settlement',
     			id:params.sid
     		});
+    		var entryNo = settlementRec.getValue('tranid');
+    		var otherRefCode = settlementRec.getValue('custbody_itpm_set_otherrefcode');
+    		var defaultDate = settlementRec.getValue('trandate');
+    		var appliedTo = settlementRec.getValue('custbody_itpm_set_check');
+    		var status = settlementRec.getText('transtatus');
+    		var customerId = settlementRec.getValue('custbody_itpm_set_customer');
+    		var customerText = settlementRec.getText('custbody_itpm_set_customer');
+    		var memo = settlementRec.getValue('memo');
+    		var classSet = settlementRec.getValue('class');
+    		var deptSet = settlementRec.getValue('department');
+    		var locationSet = settlementRec.getValue('location');
+    		var settlementReqValue = settlementRec.getValue('custbody_itpm_set_amount');
+    		var incrdPromotionLiablty = settlementRec.getValue('custbody_itpm_set_incrd_promoliability');
+			var netPromotionLiablty = settlementRec.getValue('custbody_itpm_set_netliability');
+			var promotionDesc = settlementRec.getValue('custbody_itpm_set_promodesc');
+        	var promoShipStDate = settlementRec.getValue('custbody_itpm_set_promoshipstart');
+        	var promoShipEdDate = settlementRec.getValue('custbody_itpm_set_promoshipend');
+        	var promoId = settlementRec.getValue('custbody_itpm_set_promo');
+        	var promoName = settlementRec.getText('custbody_itpm_set_promo');
+        	var promoDealRec = search.lookupFields({
+        		type:'customrecord_itpm_promotiondeal',
+        		id:promoId,
+        		columns:['internalid','name','custrecord_itpm_p_lumpsum','custrecord_itpm_p_type.custrecord_itpm_pt_validmop']
+    		}); 
+        	
+        	var promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']);
+        	var promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'];
+    		
+    		var promoDealURL = url.resolveRecord({
+			    recordType: 'customrecord_itpm_promotiondeal',
+			    recordId: settlementRec.getValue('custbody_itpm_set_promo'),
+			    isEditMode: false
+			});
+    		
+    		var promoName = settlementRec.getText('custbody_itpm_set_promo');
+    		
+    		if(subsidiaryExists){
+    			var subsid = settlementRec.getValue('subsidiary');
+          		var subsText = settlementRec.getText('subsidiary');
+    		}
+    		if(currencyExists){
+    			var currencyText = settlementRec.getText('currency');
+    		}
+    		
+    		settlementForm.addField({
+        		id:'custom_itpm_st_recordid',
+        		type:serverWidget.FieldType.TEXT,
+        		label:'Settlement Rec Id'
+        	}).updateDisplayType({
+    			displayType :  serverWidget.FieldDisplayType.HIDDEN
+    		}).defaultValue = params.sid;
     	}
     	
     	/*  PRIMARY INFORMATION Start  */
@@ -188,31 +255,40 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		label:'ENTRY NO.',
     		container:'custom_primaryinfo_group'
     	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
-		});
+			displayType : displayTypeSetup
+		}).defaultValue = (isEdit)?entryNo:'';
 		
     	//Other Reference Code
-    	var otherRefCodeField = settlementForm.addField({
+    	settlementForm.addField({
     		id:'custom_itpm_st_otherref_code',
     		type:serverWidget.FieldType.TEXT,
     		label:'Other Reference Code',
     		container:'custom_primaryinfo_group'
-    	})
-    	
+    	}).updateDisplayType({
+			displayType : (isEdit)?serverWidget.FieldDisplayType.INLINE:serverWidget.FieldDisplayType.NORMAL
+		}).defaultValue = (isEdit)?otherRefCode:'';
+
     	//customer
-	    settlementForm.addField({
+	    var customerField = settlementForm.addField({
     		id:'custom_itpm_st_cust',
-    		type:serverWidget.FieldType.SELECT,
+    		type:(isEdit)?serverWidget.FieldType.TEXT:serverWidget.FieldType.SELECT,
     		label:'Customer',
     		container:'custom_primaryinfo_group'
     	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
-		}).addSelectOption({
-			text:customerText,
-			value:customerId
+			displayType : displayTypeSetup
 		})
+		
+		if(isEdit){
+			customerField.defaultValue = customerText;
+		}else{
+			customerField.addSelectOption({
+				text:customerText,
+				value:customerId
+			})
+		}
+		
     	
-		if(customerParentId != ''){
+		if(customerParentId && customerParentId != ''){
 		    //customer parent
 		    settlementForm.addField({
 	    		id:'custom_itpm_st_cust_parent',
@@ -226,6 +302,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 				value:customerParentId
 			})
 		}
+		
     	//Date
 	    settlementForm.addField({
     		id:'custom_itpm_st_date',
@@ -233,13 +310,14 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		label:'Date',
     		container:'custom_primaryinfo_group'
     	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
+			displayType : displayTypeSetup
 		}).updateBreakType({
 			breakType : serverWidget.FieldBreakType.STARTCOL
 		}).defaultValue = format.format({
-		    value:new Date(),
+		    value:defaultDate,
 		    type: format.Type.DATE
 		});
+		
 	  //STATUS field 
 	    settlementForm.addField({
 			id:'custom_itpm_status',
@@ -247,52 +325,49 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 			label:'STATUS',
 			container:'custom_primaryinfo_group'
 		}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
-		}).defaultValue = ' ';
+			displayType : displayTypeSetup
+		}).defaultValue = (isEdit)?status:' ';
 
 	    //APPLIED TO
-
 		//setting the deduction id for post method
-	    if(createdFromDDN){
-	    	settlementForm.addField({
-	    		id:'custom_itpm_st_ddn_id',
-	    		type:serverWidget.FieldType.SELECT,
-	    		label:'APPLIED TO'
-	    	}).updateDisplayType({
-				displayType : serverWidget.FieldDisplayType.HIDDEN
-			}).defaultValue = params.ddn;
-	    	
-	    	settlementForm.addField({
-	    		id:'custom_itpm_st_ddn_idlink',
-	    		type:serverWidget.FieldType.INLINEHTML,
-	    		label:'Applied To',
-	    		container:'custom_primaryinfo_group'
-	    	}).updateBreakType({
-				breakType : serverWidget.FieldBreakType.STARTCOL
-			}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text" style="margin-top:5px"><span id="custom_itpm_st_promotion_desc_fs_lbl" class="smallgraytextnolink uir-label" style="">'+
-	    	'<a class="smallgraytextnolink">APPLIED TO</a></span>'+
-	    	'<span class="uir-field"><span style="white-space: nowrap" id="custom_itpm_st_promotion_desc_fs" class="effectStatic" data-fieldtype="" data-helperbutton-count="0">'+
-	    	'<a href="'+deductionURL+'" class="dottedlink">'+'- iTPM Deduction #'+deductionRec.getValue('tranid')+'</a></span></span></div></td></tr>';
-	    }else{
-	    	settlementForm.addField({
-		    	id : 'custpage_applyto_deduction',
-		    	type : serverWidget.FieldType.TEXT,
-		    	label : 'APPLIED TO',
-		    	container:'custom_primaryinfo_group'
-		    }).updateDisplayType({
-		    	displayType : serverWidget.FieldDisplayType.DISABLED
-		    }).updateBreakType({
-				breakType : serverWidget.FieldBreakType.STARTCOL
-			});
-	    }
-	    
-	  //memo field
+//	    var appliedToField = settlementForm.addField({
+//	    	id : 'custom_itpm_st_appliedtransction',
+//	    	type : serverWidget.FieldType.TEXT,
+//	    	label : 'APPLIED TO',
+//	    	container:'custom_primaryinfo_group'
+//	    });
+//	    
+//	    if(createdFromDDN){
+//	    	appliedToField.updateDisplayType({
+//				displayType : serverWidget.FieldDisplayType.HIDDEN
+//			}).defaultValue = params.ddn;
+//	    	
+//	    	settlementForm.addField({
+//	    		id:'custom_itpm_st_ddn_idlink',
+//	    		type:serverWidget.FieldType.INLINEHTML,
+//	    		label:'Applied To',
+//	    		container:'custom_primaryinfo_group'
+//	    	}).updateBreakType({
+//				breakType : serverWidget.FieldBreakType.STARTCOL
+//			}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text" style="margin-top:5px"><span id="custom_itpm_st_promotion_desc_fs_lbl" class="smallgraytextnolink uir-label" style="">'+
+//	    	'<a class="smallgraytextnolink">APPLIED TO</a></span>'+
+//	    	'<span class="uir-field"><span style="white-space: nowrap" id="custom_itpm_st_promotion_desc_fs" class="effectStatic" data-fieldtype="" data-helperbutton-count="0">'+
+//	    	'<a href="'+appliedToURL+'" class="dottedlink">'+'- iTPM Deduction #'+appliedToText+'</a></span></span></div></td></tr>';
+//	    }else{
+//	    	appliedToField.updateDisplayType({
+//		    	displayType : serverWidget.FieldDisplayType.DISABLED
+//		    }).updateBreakType({
+//				breakType : serverWidget.FieldBreakType.STARTCOL
+//			});
+//	    }
+//	    
+	    //memo field
 	    settlementForm.addField({
 			id : 'custpage_memo',
 			type : serverWidget.FieldType.TEXT,
 			label : 'Memo',
 			container:'custom_primaryinfo_group'
-		})
+		}).defaultValue = (isEdit)?memo:'';
 		
 	    /*  PRIMARY INFORMATION End  */
 	    
@@ -304,32 +379,45 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 	    
 	    if(subsidiaryExists){
 	    	//subsidiary
-			settlementForm.addField({
+			var subsidiaryField = settlementForm.addField({
 		    	id : 'custom_itpm_st_subsidiary',
-				type : serverWidget.FieldType.SELECT,
+				type : (isEdit)?serverWidget.FieldType.TEXT:serverWidget.FieldType.SELECT,
 				label:'Subsidiary',
 				container:'custom_classification_group'
 			}).updateDisplayType({
-				displayType : serverWidget.FieldDisplayType.DISABLED
-			}).addSelectOption({
-				text:subsText,
-				value:subsid
+				displayType :displayTypeSetup
 			})
+			
+			if(isEdit){
+				subsidiaryField.defaultValue = subsText;
+			}else{
+				subsidiaryField.addSelectOption({
+					text:subsText,
+					value:subsid
+				})
+			}
 	    }
     	
+	    
 	    if(currencyExists){
 	    	//currency
-		    settlementForm.addField({
+		    var currencyField = settlementForm.addField({
 		    	id : 'custom_itpm_st_currency',
-				type : serverWidget.FieldType.SELECT,
+				type : (isEdit)?serverWidget.FieldType.TEXT:serverWidget.FieldType.SELECT,
 				label:'Currency',
 				container:'custom_classification_group'
 			}).updateDisplayType({
-				displayType : serverWidget.FieldDisplayType.DISABLED
-			}).addSelectOption({
-				text:currencyText,
-				value:currencyId
+				displayType : displayTypeSetup
 			})
+			
+			if(isEdit){
+				currencyField.defaultValue = currencyText;
+			}else{
+				currencyField.addSelectOption({
+					text:currencyText,
+					value:currencyId
+				})
+			}
 	    }
 	    
     	//location
@@ -350,7 +438,8 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 	    getList(subsid,'location').run().each(function(e){
 	    	locationField.addSelectOption({
 			   value:e.getValue('internalid'),
-			   text:e.getValue('name')
+			   text:e.getValue('name'),
+			   isSelected:locationSet == e.getValue('internalid')
 	    	})
 	    	return true;
 	    });
@@ -373,7 +462,8 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 	    getList(subsid,'dept').run().each(function(e){
 	    	deptField.addSelectOption({
 			   value:e.getValue('internalid'),
-			   text:e.getValue('name')
+			   text:e.getValue('name'),
+			   isSelected:deptSet == e.getValue('internalid')
 	    	})
 	    	return true;
 	    });
@@ -397,7 +487,8 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 	    getList(subsid,'class').run().each(function(e){
 	    	classField.addSelectOption({
   			   value:e.getValue('internalid'),
-  			   text:e.getValue('name')
+  			   text:e.getValue('name'),
+  			 isSelected:classSet == e.getValue('internalid')
 	    	})
 	    	return true;
 	    })
@@ -417,8 +508,8 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		label:'Promotion Number',
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
-		}).defaultValue = String(promoDealRec['internalid'][0].value)
+			displayType : displayTypeSetup
+		}).defaultValue = promoId;
 	    
 	    //promotion deal
 	    settlementForm.addField({
@@ -427,7 +518,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		label:'PROMOTION / DEAL'
     	}).updateDisplayType({
 		    displayType : serverWidget.FieldDisplayType.HIDDEN
-		}).defaultValue = promoDealRec['internalid'][0].value;
+		}).defaultValue = promoId;
 		// promotion deal inline html field with redirection link
 		settlementForm.addField({
     		id:'custom_itpm_st_promotiondeallink',
@@ -437,7 +528,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     	}).defaultValue = '<tr><td><div class="uir-field-wrapper" data-field-type="text" style="margin-top:5px"><span id="custom_itpm_st_promotion_desc_fs_lbl" class="smallgraytextnolink uir-label" style="">'+
     	'<a class="smallgraytextnolink">Promotion / Deal</a></span>'+
     	'<span class="uir-field"><span style="white-space: nowrap" id="custom_itpm_st_promotion_desc_fs" class="effectStatic" data-fieldtype="" data-helperbutton-count="0">'+
-    	'<a href="'+promoDealURL+'" class="dottedlink">'+promoDealRec['name']+'</a></span></span></div></td></tr>';
+    	'<a href="'+promoDealURL+'" class="dottedlink">'+promoName+'</a></span></span></div></td></tr>';
 		
 		
 	    //promotion description
@@ -447,8 +538,8 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		label:'Promotion Description',
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
-		}).defaultValue = promoDealRec['custrecord_itpm_p_description'];
+			displayType : displayTypeSetup
+		}).defaultValue = promotionDesc;
 	    
 	  //INCURRED PROMOTIONAL LIABILITY
 	    settlementForm.addField({
@@ -457,7 +548,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		label:'MAXIMUM PROMOTION LIABILITY',
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
+			displayType : displayTypeSetup
 		}).updateBreakType({
 			breakType : serverWidget.FieldBreakType.STARTCOL
 		}).defaultValue = incrdPromotionLiablty;
@@ -469,7 +560,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		label:'NET PROMOTIONAL LIABLIITY',
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
+			displayType : displayTypeSetup
 		}).defaultValue = netPromotionLiablty;
 	    
 	  
@@ -481,10 +572,10 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		label:'Ship Start Date',
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
+			displayType :displayTypeSetup
 		}).updateBreakType({
 			breakType : serverWidget.FieldBreakType.STARTCOL
-		}).defaultValue = promoDealRec['custrecord_itpm_p_shipstart'];
+		}).defaultValue = promoShipStDate;
 
 	    //ship end date
 	    settlementForm.addField({
@@ -493,8 +584,8 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		label:'Ship End Date',
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
-		}).defaultValue = promoDealRec['custrecord_itpm_p_shipend'];
+			displayType : displayTypeSetup
+		}).defaultValue = promoShipEdDate;
 	    
 	    /*  PROMOTION INFORMATION End  */
 	    
@@ -525,9 +616,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
 			displayType : serverWidget.FieldDisplayType.INLINE
-    	});
-	    
-    	settlementReqField.defaultValue = settlementReqValue;
+    	}).defaultValue = settlementReqValue;
     	
     	//SETTLEMENT REQUEST : LUMP SUM
     	settlementForm.addField({
@@ -537,19 +626,21 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
 			displayType : (promoLumSum != 0 && promoLumSum != '')?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = 0;
+    	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqls'):0;
     	
-    	//reason code
-	    settlementForm.addField({
-    		id:'custom_itpm_st_reason_code',
-    		type:serverWidget.FieldType.SELECT,
-    		label:'Reason Code',
-    		source:'customlist_itpm_set_reasoncode',
-    		container:'custom_transdetail_group'
-    	}).updateBreakType({
-			breakType : serverWidget.FieldBreakType.STARTCOL
-		}).isMandatory = true;
-	    
+    	if(!isEdit){
+    		//reason code
+    	    settlementForm.addField({
+        		id:'custom_itpm_st_reason_code',
+        		type:serverWidget.FieldType.SELECT,
+        		label:'Reason Code',
+        		source:'customlist_itpm_set_reasoncode',
+        		container:'custom_transdetail_group'
+        	}).updateBreakType({
+    			breakType : serverWidget.FieldBreakType.STARTCOL
+    		}).isMandatory = true;
+    	}
+    	
     	//Settlement request : Bill back
     	settlementForm.addField({
     		id : 'custpage_billback_setreq',
@@ -558,7 +649,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
 			displayType : (promoTypeMOP.some(function(e){return e.value == 1}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = 0;
+    	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqbb'):0;
     	
     	//Settlement request : Missed off-invoice
     	settlementForm.addField({
@@ -570,7 +661,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 			breakType : serverWidget.FieldBreakType.STARTCOL
 		}).updateDisplayType({
 			displayType : (promoTypeMOP.some(function(e){return e.value == 3 || e.value == 2 }))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = 0;
+    	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqoi'):0;
     	
     	/*  TRANSACTION DETAIL Start  */
 	    

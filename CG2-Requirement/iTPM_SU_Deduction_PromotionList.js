@@ -132,10 +132,9 @@ function(serverWidget,redirect,search,record) {
 				});	
 
 				form.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js';
-
-				response.writePage(form);				
-			}else if(request.method == 'POST')
-			{
+				response.writePage(form);
+				
+			}else if(request.method == 'POST'){
 				log.debug('request',params)
 				redirect.toSuitelet({
 					scriptId:'customscript_itpm_settlement_using_su',

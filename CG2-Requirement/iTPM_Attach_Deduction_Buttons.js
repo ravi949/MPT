@@ -29,7 +29,7 @@ function(url, https, message) {
 			var suiteletUrl = url.resolveScript({
 				scriptId:'customscript_itpm_ddn_assnt_view',
 				deploymentId:'customdeploy_itpm_ddn_assnt_view',
-				params:{fid:id,from:'ddn'}
+				params:{fid:id,from:'ddn',type:'create'}
 			});
 			window.open(suiteletUrl, '_self');
 		} catch(ex) {
