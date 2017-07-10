@@ -131,7 +131,7 @@ function(serverWidget,redirect,search,record) {
 					return true;
 				});	
 
-				form.clientScriptModulePath = './iTPMSettlement_ClientValidations_cs_script.js';
+				form.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js';
 
 				response.writePage(form);				
 			}else if(request.method == 'POST')

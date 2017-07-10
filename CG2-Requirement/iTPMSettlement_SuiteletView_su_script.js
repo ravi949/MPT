@@ -99,31 +99,38 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
         		type:'customrecord_itpm_promotiondeal',
         		id:pid,
         		columns:['internalid','name','custrecord_itpm_p_lumpsum','custrecord_itpm_p_type.custrecord_itpm_pt_validmop','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_subsidiary','custrecord_itpm_p_currency','custrecord_itpm_p_customer','custrecord_itepm_p_incurredpromotionalle']
-    		}),
+    		});
     		//loading the record for NET PROMOTIONAL LIABLIITY, INCURRED PROMOTIONAL LIABILITY fields(These are did not return a value in lookupFields method)
-    		promotionRec = record.load({
+    		var promotionRec = record.load({
 				type:'customrecord_itpm_promotiondeal',
 				id:pid
-			}),
+			});
 //    		incrdPromotionLiablty = (promoDealRec['custrecord_itepm_p_incurredpromotionalle'] == '' || promoDealRec['custrecord_itepm_p_incurredpromotionalle'] == 'ERROR: Invalid Expression')?0:promoDealRec['custrecord_itepm_p_incurredpromotionalle'],
 //        	netPromotionLiablty = (promoDealRec['custrecord_itpm_p_netpromotionalle'] == '' || promoDealRec['custrecord_itpm_p_netpromotionalle'] == 'ERROR: Invalid Expression')?0:promoDealRec['custrecord_itpm_p_netpromotionalle'],
-			incrdPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itepm_p_incurredpromotionalle'}),
-			netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'}),
-        	promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']),
-        	promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
-        	subsid = promoDealRec['custrecord_itpm_p_subsidiary'][0].value,
-        	subsText = promoDealRec['custrecord_itpm_p_subsidiary'][0].text,
-        	currencyId = promoDealRec['custrecord_itpm_p_currency'][0].value,
-        	currencyText = promoDealRec['custrecord_itpm_p_currency'][0].text,
-        	customerId = promoDealRec['custrecord_itpm_p_customer'][0].value,
-        	customerText = promoDealRec['custrecord_itpm_p_customer'][0].text,
-        	customerRec = record.load({
+			var incrdPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itepm_p_incurredpromotionalle'});
+			var netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'});
+        	var promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']);
+        	var promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'];
+        	var customerId = promoDealRec['custrecord_itpm_p_customer'][0].value;
+        	var customerText = promoDealRec['custrecord_itpm_p_customer'][0].text;
+        	
+        	if(subsidiaryExists){
+        		var subsid = promoDealRec['custrecord_itpm_p_subsidiary'][0].value;
+            	var subsText = promoDealRec['custrecord_itpm_p_subsidiary'][0].text;
+        	}
+        	
+        	if(currencyExists){
+        		var currencyId = promoDealRec['custrecord_itpm_p_currency'][0].value;
+            	var currencyText = promoDealRec['custrecord_itpm_p_currency'][0].text;
+        	}
+        	
+        	var customerRec = record.load({
         		type:record.Type.CUSTOMER,
         		id:customerId
-        	}),
-        	customerParentId = customerRec.getValue('parent'),
-			customerParentText = customerRec.getText('parent'),
-			promoDealURL = url.resolveRecord({
+        	});
+        	var customerParentId = customerRec.getValue('parent');
+			var customerParentText = customerRec.getText('parent');
+			var promoDealURL = url.resolveRecord({
 			    recordType: 'customrecord_itpm_promotiondeal',
 			    recordId: pid,
 			    isEditMode: false
@@ -161,7 +168,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
         			displayType : serverWidget.FieldDisplayType.HIDDEN
         		}).defaultValue = deductionRec.getValue('custbody_itpm_ddn_openbal');
         	}        	
-    	}else if(params.from == 'set'){
+    	}else if(params.from == 'setrec'){
     		var settlementRec = record.load({
     			type:'customtransaction_itpm_settlement',
     			id:params.sid
@@ -285,9 +292,8 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 			type : serverWidget.FieldType.TEXT,
 			label : 'Memo',
 			container:'custom_primaryinfo_group'
-		}).updateDisplayType({
-	    	displayType : serverWidget.FieldDisplayType.DISABLED
-	    });
+		})
+		
 	    /*  PRIMARY INFORMATION End  */
 	    
 	    /*  CLASSIFICATION Start  */
@@ -295,34 +301,37 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module) {
 			id : 'custom_classification_group',
 			label : 'Classification'
 		});
-    	//subsidiary
-		settlementForm.addField({
-	    	id : 'custom_itpm_st_subsidiary',
-			type : serverWidget.FieldType.SELECT,
-			label:'Subsidiary',
-			container:'custom_classification_group'
-		}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
-		}).addSelectOption({
-			text:subsText,
-			value:subsid
-		})
+	    
+	    if(subsidiaryExists){
+	    	//subsidiary
+			settlementForm.addField({
+		    	id : 'custom_itpm_st_subsidiary',
+				type : serverWidget.FieldType.SELECT,
+				label:'Subsidiary',
+				container:'custom_classification_group'
+			}).updateDisplayType({
+				displayType : serverWidget.FieldDisplayType.DISABLED
+			}).addSelectOption({
+				text:subsText,
+				value:subsid
+			})
+	    }
     	
-    	
-		//currency
-	    settlementForm.addField({
-	    	id : 'custom_itpm_st_currency',
-			type : serverWidget.FieldType.SELECT,
-			label:'Currency',
-			container:'custom_classification_group'
-		}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.DISABLED
-		}).addSelectOption({
-			text:currencyText,
-			value:currencyId
-		})
-    	
-    	
+	    if(currencyExists){
+	    	//currency
+		    settlementForm.addField({
+		    	id : 'custom_itpm_st_currency',
+				type : serverWidget.FieldType.SELECT,
+				label:'Currency',
+				container:'custom_classification_group'
+			}).updateDisplayType({
+				displayType : serverWidget.FieldDisplayType.DISABLED
+			}).addSelectOption({
+				text:currencyText,
+				value:currencyId
+			})
+	    }
+	    
     	//location
     	var locationField = settlementForm.addField({
     		id:'custom_itpm_st_location',

@@ -33,7 +33,7 @@ function(redirect,runtime,search,record) {
 //    				scriptId:'customscript_itpm_settlement_using_su',
 //    				deploymentId:'customdeploy_itpm_settlement_using_su',
 //    				returnExternalUrl: false,
-//    				parameters:{sid:settlementRec.id,from:'set',type:'edit'}
+//    				parameters:{sid:settlementRec.id,from:'setrec',type:'edit'}
 //    			});
     			
     		}
