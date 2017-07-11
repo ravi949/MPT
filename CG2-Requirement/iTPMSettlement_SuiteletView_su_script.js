@@ -610,11 +610,9 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
 			}).defaultValue = ddnOpenBal;
 	    }
 	    //settlement request
-	    if(isEdit){
-	    	var settlementReqValue = (createdFromDDN)?(ddnOpenBal>netPromotionLiablty)?netPromotionLiablty:ddnOpenBal:0;
-	    }else{
-	    	settlementReqValue  = ddnOpenBal;
-	    }
+
+	    var settlementReqValue = (createdFromDDN && isEdit)?(ddnOpenBal>netPromotionLiablty)?netPromotionLiablty:ddnOpenBal:0;
+	    
 	    var settlementReqField = settlementForm.addField({
     		id:'custom_itpm_st_reql',
     		type:serverWidget.FieldType.CURRENCY,
