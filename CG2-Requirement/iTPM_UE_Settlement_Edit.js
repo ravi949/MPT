@@ -72,7 +72,7 @@ function(redirect,runtime,search,record) {
     			var oldSettlementReq = settlementOldRec.getValue('custbody_itpm_set_amount'),
     			applyToDeduction = settlementOldRec.getValue('custbody_itpm_set_deduction');
     			if(applyToDeduction !='' && (settlementReq > oldSettlementReq))
-    				throw Error("amount exceed on edit");
+    				throw {error:'custom',message:"The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."}
 
     			var promotDealSearch = search.create({
     				type:'customrecord_itpm_promotiondeal',
@@ -92,57 +92,43 @@ function(redirect,runtime,search,record) {
     				//If the promotion record does not have a lump sum, do not allow record to be submitted with a positive value in lump sum request.
     				if(!promoTypeMOPOffInvoice && !promoTypeMOPNetBill){
     					if(settlementRec.getValue('custbody_itpm_set_reqoi') > 0){
-    						throw Error('oi req zero');
+    						throw {error:'custom',message:"Off invoice request value should be zero"};
     					}
     				}
 
     				if(!promoTypeMOPBillBack){
     					if(settlementRec.getValue('custbody_itpm_set_reqbb')>0){
-    						throw Error('bb zero');
+    						throw {error:'custom',message:'Bill back request value should be zero'};
     					}
     				}
 
     				if(e.getValue('custrecord_itpm_p_lumpsum') <= 0){
     					if(settlementRec.getValue('custbody_itpm_set_reqls')>0){
-    						throw Error('ls zero');
+    						throw {error:'custom',message:"Lum sum request value should be zero"};
     					}
     				}
 
     				if(!promoTypeMOPOffInvoice && !promoTypeMOPNetBill){
     					if((lumsumSetReq+billbackSetReq) != settlementReq){
-    						throw Error('ls bb total not match')
+    						throw {error:'custom',message:"The sum of bill back and lump sum settlement requests must be equal to the settlement request"};
     					}
     				}else{
     					if(settlementReq != (lumsumSetReq+billbackSetReq+offInvSetReq)){
-    						throw Error('ls bb oi total not match');
+    						throw {error:'custom',message:"settlement request must be equal to the sum of bill back, off-invoice and lump sum"};
     					}
     				}
 
     				// All settlement request values MUST be greater than zero. (Do NOT allow Lump Sum AND Bill Back to be zero during submit, on EDIT. Either of the fields can individually be zero, but not both.)
     				if(lumsumSetReq <= 0 && billbackSetReq <= 0){
-    					throw Error('ls bb both zero');
+    					throw {error:'custom',message:"Lump Sum AND Bill Back Either of the fields can individually be zero, but not both"};
     				}else if(settlementReq <= 0 && offInvSetReq <= 0){
-    					throw Error('all set req zero');
+    					throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
     				}
     			});		
     		}
     	}catch(e){
-    		if(e.message == 'amount exceed on edit')
-    			throw {error:'custom',message:"The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."}
-    		else if(e.message == 'oi req zero')
-    			throw {error:'custom',message:"Off invoice request value should be zero"};
-    		else if(e.message == 'bb zero')
-    			throw {error:'custom',message:'Bill back request value should be zero'};
-    		else if(e.message == 'ls zero')
-    			throw {error:'custom',message:"Lum sum request value should be zero"};
-    		else if(e.message == 'ls bb total not match')
-    			throw {error:'custom',message:"The sum of bill back and lump sum settlement requests must be equal to the settlement request"};
-    		else if(e.message == 'ls bb oi total not match')
-    			throw {error:'custom',message:"settlement request must be equal to the sum of bill back, off-invoice and lump sum"};
-    		else if(e.message == 'ls bb both zero')
-    			throw {error:'custom',message:"Lump Sum AND Bill Back Either of the fields can individually be zero, but not both"};
-    		else if(e.message == 'all set req zero')
-    			throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
+    		if(e.error == 'custom')
+    			throw Error(JSON.stringify(e));
     		else
     			log.error('exception in settlement validation scirpt',e);
     	}

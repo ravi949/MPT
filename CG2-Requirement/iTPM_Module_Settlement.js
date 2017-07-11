@@ -552,7 +552,14 @@ function(config, record, search, runtime, iTPM_Module) {
 			return loadedSettlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
 
 		}catch(e){
-			throw Error('error occured in iTPM_Module_Settlement while edititn the settlement record, message = '+e.message);
+			var errObj = undefined;
+			if(e.message.search('{')){
+				errObj = JSON.parse(e.message.replace(/Error: /g,''));
+			}
+    		if(errObj && errObj.error == 'custom')
+    			throw {error:'custom',message:e.message};
+    		else 
+    			throw Error('error occured in iTPM_Module_Settlement while edititn the settlement record, message = '+e.message);
 		}
 	}
 

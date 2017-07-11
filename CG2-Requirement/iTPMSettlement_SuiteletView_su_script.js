@@ -74,8 +74,15 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
     			});
     		}
     	}catch(e){
+    		var errObj = undefined;
+    		if(e.message.search('{') > -1){
+    			errObj = JSON.parse(e.message.replace(/Error: /g,''));
+    		}
+    		
     		if(e.message == 'settlement not completed')
-    			throw Error("There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion.")
+    			throw Error("There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion.");
+    		else if(errObj && errObj.error == 'custom')
+    			throw Error(errObj.message);
     		else
     			log.error(e.name,'record type = -iTPM Settlement, record id = '+params.sid+', message = '+e.message);
     	}
