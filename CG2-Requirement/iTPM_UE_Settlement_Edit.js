@@ -128,21 +128,21 @@ function(redirect,runtime,search,record) {
     		}
     	}catch(e){
     		if(e.message == 'amount exceed on edit')
-    			throw Error("The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance.")
+    			throw {error:'custom',message:"The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."}
     		else if(e.message == 'oi req zero')
-    			throw Error("Off invoice request value should be zero");
+    			throw {error:'custom',message:"Off invoice request value should be zero"};
     		else if(e.message == 'bb zero')
-    			throw Error('Bill back request value should be zero');
+    			throw {error:'custom',message:'Bill back request value should be zero'};
     		else if(e.message == 'ls zero')
-    			throw Error("Lum sum request value should be zero");
+    			throw {error:'custom',message:"Lum sum request value should be zero"};
     		else if(e.message == 'ls bb total not match')
-    			throw Error("The sum of bill back and lump sum settlement requests must be equal to the settlement request");
+    			throw {error:'custom',message:"The sum of bill back and lump sum settlement requests must be equal to the settlement request"};
     		else if(e.message == 'ls bb oi total not match')
-    			throw Error("settlement request must be equal to the sum of bill back, off-invoice and lump sum");
+    			throw {error:'custom',message:"settlement request must be equal to the sum of bill back, off-invoice and lump sum"};
     		else if(e.message == 'ls bb both zero')
-    			throw Error("Lump Sum AND Bill Back Either of the fields can individually be zero, but not both");
+    			throw {error:'custom',message:"Lump Sum AND Bill Back Either of the fields can individually be zero, but not both"};
     		else if(e.message == 'all set req zero')
-    			throw Error("All settlement request values MUST be greater than zero")
+    			throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
     		else
     			log.error('exception in settlement validation scirpt',e);
     	}
