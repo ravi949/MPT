@@ -344,20 +344,19 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
 
 	    //APPLIED TO
 		//setting the deduction id for post method
-	    var appliedToField = settlementForm.addField({
+	    var appliedToTransactionField = settlementForm.addField({
 	    	id : 'custom_itpm_st_appliedtransction',
 	    	type : serverWidget.FieldType.SELECT,
 	    	label : 'APPLIED TO',
-	    	container:'custom_primaryinfo_group',
-	    	source:'customrecord_itpm_promotiondeal'
+	    	container:'custom_primaryinfo_group'
 	    });
 	    
 	    if(createdFromDDN){
-	    	appliedToField.updateDisplayType({
+	    	appliedToTransactionField.updateDisplayType({
 				displayType : serverWidget.FieldDisplayType.INLINE
 			}).defaultValue = params.ddn;
 	    }else{
-	    	appliedToField.updateDisplayType({
+	    	appliedToTransactionField.updateDisplayType({
 		    	displayType : displayTypeSetup
 		    }).updateBreakType({
 				breakType : serverWidget.FieldBreakType.STARTCOL
@@ -611,8 +610,10 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
 			}).defaultValue = ddnOpenBal;
 	    }
 	    //settlement request
-	    if(!isEdit){
+	    if(isEdit){
 	    	var settlementReqValue = (createdFromDDN)?(ddnOpenBal>netPromotionLiablty)?netPromotionLiablty:ddnOpenBal:0;
+	    }else{
+	    	settlementReqValue  = ddnOpenBal;
 	    }
 	    var settlementReqField = settlementForm.addField({
     		id:'custom_itpm_st_reql',
@@ -624,14 +625,14 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
     	}).defaultValue = settlementReqValue;
     	
     	//SETTLEMENT REQUEST : LUMP SUM
-    	settlementForm.addField({
+    	var amountLSField = settlementForm.addField({
     		id:'custpage_lumsum_setreq',
     		type:serverWidget.FieldType.CURRENCY,
     		label:'AMOUNT : LUMP SUM',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
 			displayType : (promoLumSum != 0 && promoLumSum != '')?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqls'):0;
+    	})
     	
     	if(!isEdit){
     		//reason code
@@ -647,14 +648,14 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
     	}
     	
     	//Settlement request : Bill back
-    	settlementForm.addField({
+    	var amountBBField = settlementForm.addField({
     		id : 'custpage_billback_setreq',
     		type : serverWidget.FieldType.CURRENCY,
     		label : 'AMOUNT : Bill back',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
 			displayType : (promoTypeMOP.some(function(e){return e.value == 1}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqbb'):0;
+    	})
     	
     	//Settlement request : Missed off-invoice
     	settlementForm.addField({
@@ -667,6 +668,20 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
 		}).updateDisplayType({
 			displayType : (promoTypeMOP.some(function(e){return e.value == 3 || e.value == 2 }))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
     	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqoi'):0;
+    	
+    	
+    	if(createdFromDDN && perferenceLS){
+    		amountLSField.defaultValue = settlementReqValue; 
+    	}else{
+    		amountLSField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqls'):0;
+    	}
+
+    	if(createdFromDDN && perferenceBB){
+    		amountBBField.defaultValue = settlementReqValue; 
+    	}else{
+    		amountBBField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqbb'):0;
+    	}
+    	
     	
     	/*  TRANSACTION DETAIL Start  */
 	    
