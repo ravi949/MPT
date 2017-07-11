@@ -117,14 +117,16 @@ function(redirect,runtime,search,record) {
     						throw {error:'custom',message:"settlement request must be equal to the sum of bill back, off-invoice and lump sum"};
     					}
     				}
-
-    				// All settlement request values MUST be greater than zero. (Do NOT allow Lump Sum AND Bill Back to be zero during submit, on EDIT. Either of the fields can individually be zero, but not both.)
-    				if(lumsumSetReq <= 0 && billbackSetReq <= 0){
-    					throw {error:'custom',message:"Lump Sum AND Bill Back Either of the fields can individually be zero, but not both"};
-    				}else if(settlementReq <= 0 && offInvSetReq <= 0){
-    					throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
-    				}
     			});		
+    		}
+    		
+    		if(scriptContext.type == 'edit' || scriptContext.type == 'create'){
+    			// All settlement request values MUST be greater than zero. (Do NOT allow Lump Sum AND Bill Back to be zero during submit, on EDIT. Either of the fields can individually be zero, but not both.)
+    			if(lumsumSetReq <= 0 && billbackSetReq <= 0){
+    				throw {error:'custom',message:"Lump Sum AND Bill Back Either of the fields can individually be zero, but not both"};
+    			}else if(settlementReq <= 0 && offInvSetReq <= 0){
+    				throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
+    			}
     		}
     	}catch(e){
     		if(e.error == 'custom')

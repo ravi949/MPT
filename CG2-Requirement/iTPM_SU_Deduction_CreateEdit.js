@@ -585,10 +585,6 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					value:amount,
 					ignoreFieldChange:true
 				}).setValue({
-					fieldId:'custbody_itpm_ddn_openbal',
-					value:amount,
-					ignoreFieldChange:true
-				}).setValue({
 					fieldId:'custbody_itpm_ddn_disputed',
 					value:(disputed == "T")?true:false,
 					ignoreFieldChange:true
@@ -603,7 +599,11 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						fieldId:'custbody_itpm_set_deduction',
 						value:params['custom_parent_recid'],
 						ignoreFieldChange:true
-					})
+					}).setValue({
+						fieldId:'custbody_itpm_ddn_openbal',
+						value:amount,
+						ignoreFieldChange:true
+					});
 				}
 
 				if(originalno != ''){

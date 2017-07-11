@@ -118,6 +118,7 @@ function(record, search, url) {
      */
     function saveRecord(scriptContext){
     	try{
+    		console.log('ihi')
     		var currentRecord = scriptContext.currentRecord;
     		var settReq = parseFloat(currentRecord.getValue('custom_itpm_st_reql'));
     		if(settReq > 0 ){
