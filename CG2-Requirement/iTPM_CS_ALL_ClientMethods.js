@@ -18,20 +18,8 @@ function(search,dialog) {
      *
      * @since 2015.2
      */
-	var mode;
     function pageInit(scriptContext) {
-    	try{
-    		mode = scriptContext.mode;
-    		if(mode == 'edit'){
-    			var disableADD = checkForAllowaceDuplicates(mode,scriptContext.currentRecord);
-    			if(disableADD != 0){
-    				var checkBoxField = scriptContext.currentRecord.getField('custrecord_itpm_all_allowaddnaldiscounts');
-    				checkBoxField.isDisabled = disableADD;
-    			}
-    		}
-    	}catch(e){
-    		log.error('exception in pageint allowance',e)
-    	}
+    	
     }
 
     /**
@@ -47,86 +35,12 @@ function(search,dialog) {
      * @since 2015.2
      */
     function fieldChanged(scriptContext) {
-    	try{
-    		if((mode == 'create'|| mode == 'edit' || mode == 'copy') && scriptContext.fieldId == 'custrecord_itpm_all_item'){
-    			var item = scriptContext.currentRecord.getValue('custrecord_itpm_all_item');
-    			if(item != ""){
-    				var disableADD = checkForAllowaceDuplicates(mode,scriptContext.currentRecord),
-    				checkBoxField = scriptContext.currentRecord.getField('custrecord_itpm_all_allowaddnaldiscounts');
-    				if(disableADD != -1){
-    					checkBoxField.isDisabled = true;
-    					//if previous allowane ADD checked than we showing the popup for other allowances
-    					if(disableADD){
-    						dialog.confirm({title:'Confirm',message:'You selected an item that is already being used on another allowance on this promotion. Are you sure?'})
-        					.then(function(result){
-        						if(!result){
-        							disableADD = false;
-        							scriptContext.currentRecord.setValue('custrecord_itpm_all_item','')
-        							.setValue({fieldId:'custrecord_itpm_all_allowaddnaldiscounts',value:false});
-        						}
-        						checkBoxField.isDisabled = disableADD;
-        					})
-        					.catch(function(){return false});
-    					}
-    					
-    				}else{
-    					checkBoxField.isDisabled = false; 
-    				}
-    			}
-    		}
-    	}catch(e){
-    		log.error('exception in field change item in allowance',e);
-    	}
+    	
     }
     
-    /**
-     * Validation function to be executed when record is saved.
-     *
-     * @param {Object} scriptContext
-     * @param {Record} scriptContext.currentRecord - Current form record
-     * @returns {boolean} Return true if record is valid
-     *
-     * @since 2015.2
-     */
-    function saveRecord(scriptContext) {
-    	return true
-    }
-    
-    function checkForAllowaceDuplicates(mode,allRec){
-    	var allAddChecked = -1,
-		item = allRec.getValue('custrecord_itpm_all_item'),promo = allRec.getValue('custrecord_itpm_all_promotiondeal'),
-		allFilter = [['custrecord_itpm_all_promotiondeal','is',promo],'and',
-			['custrecord_itpm_all_item','is',item],'and',
-			['isinactive','is',false]];
-    	
-    	if(mode == 'edit'){
-    		allFilter.push('and',['internalid','noneof',allRec.id]);
-    	}
-
-    	search.create({
-    		type:'customrecord_itpm_promoallowance',
-    		columns:['internalid','custrecord_itpm_all_allowaddnaldiscounts'],
-    		filters:allFilter
-    	}).run().each(function(e){
-    		allRec.setValue({fieldId:'custrecord_itpm_all_allowaddnaldiscounts',value:e.getValue({name:'custrecord_itpm_all_allowaddnaldiscounts'})})
-    		allAddChecked = e.getValue({name:'custrecord_itpm_all_allowaddnaldiscounts'});
-    		return false;
-    	});
-    	
-    	return allAddChecked;
-    }
-
     return {
         pageInit: pageInit,
-        fieldChanged: fieldChanged,
-//        postSourcing: postSourcing,
-//        sublistChanged: sublistChanged,
-//        lineInit: lineInit,
-//        validateField: validateField,
-//        validateLine: validateLine,
-//        validateInsert: validateInsert,
-//        validateDelete: validateDelete,
-//        saveRecord: saveRecord
+        fieldChanged: fieldChanged
     };
     
 });
