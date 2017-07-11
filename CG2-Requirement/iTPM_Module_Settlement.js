@@ -321,7 +321,7 @@ function(config, record, search, runtime, iTPM_Module) {
 	
 	
 	//Apply the Settlement to Deduction record.
-	function applyToSettlement(parameters){
+	function applyToDeduction(parameters){
 		try{
 
 			var deductionRec = record.load({
@@ -409,14 +409,14 @@ function(config, record, search, runtime, iTPM_Module) {
 				JELines.push({
 					account:settlementRec.getSublistValue({sublistId:'line',fieldId:'account',line:i}),
 					type:(parseFloat(credit) > 0 || credit != "")?'debit':'credit',
-							amount:(parseFloat(credit) > 0 || credit != "")?credit:debit,
-									memo:'Reverse Journal For Settlement #'+settlementRec.getValue('tranid')
+					amount:(parseFloat(credit) > 0 || credit != "")?credit:debit,
+					memo:'Reverse Journal For Settlement #'+settlementRec.getValue('tranid')
 				});
 			}
 			var JERecId = setJELines(settlementRec.id,settlementRec.getValue('subsidiary'),JELines);
 			return JERecId;
 		}catch(e){
-			throw Error('record type=iTPM Settlement, record id='+settlementRec.id+', module=iTPM_Module_Settlement.js, message='+e.message);
+			throw Error('record type=iTPM Settlement, record id='+settlementRec.id+', module=iTPM_Module_Settlement.js , error function = createReverseJE, message='+e.message);
 		}
 	}
 	
@@ -568,7 +568,7 @@ function(config, record, search, runtime, iTPM_Module) {
     return {
         createSettlement:createSettlement,
         editSettlement:editSettlement,
-        applyToSettlement:applyToSettlement,
+        applyToDeduction:applyToDeduction,
         createReverseJE:createReverseJE
     };
     

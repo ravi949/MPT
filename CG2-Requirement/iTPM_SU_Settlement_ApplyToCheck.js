@@ -315,7 +315,7 @@ function(record, redirect, runtime, search, ST_Module) {
         		    ignoreFieldChange: true
         		});
         		settlementRec.setValue({
-        		    fieldId: 'custbody_itpm_set_check',
+        		    fieldId: 'custbody_itpm_set_deduction',
         		    value: checkRecordId,
         		    ignoreFieldChange: true
         		});
