@@ -17,24 +17,26 @@ function(record, http, runtime, search) {
      */
     function onRequest(context) {
     	try{
-    		//log.debug('ServerRequest', 'Method: ' + context.request.method);
-    		if (context.request.method == http.Method.GET){
-    			//log.debug('ServerRequest', 'Parameters: ' + JSON.stringify(context.request.parameters));
-    			var itemId = context.request.parameters.itemid;
-    			var unitId = context.request.parameters.unitid;
-    			//log.debug('ItemId', itemId);
+    		var request = context.request;
+    		var response = context.response;
+    		var params = request.parameters;
+    		if (request.method == http.Method.GET && params.price == "false"){
+
+    			var itemId = params.itemid;
+    			var unitId = params.unitid;
+
     			if (itemId != '' && itemId != null){
     				var itemUnit = search.lookupFields({
     					type: search.Type.ITEM,
     					id: itemId,
     					columns: ['unitstype']
     				}).unitstype[0].value;
-    				//log.debug('ItemUnit', itemUnit);
+
     				var unitType = record.load({
     					type: record.Type.UNITS_TYPE,
     					id: itemUnit
     				});
-    				//log.debug('Unit', JSON.stringify(unitType));
+
     				var returnArray = [], lineCount = unitType.getLineCount({sublistId: 'uom'});
     				if (unitId != '' && unitId != null){
     					for (var x = 0; x < lineCount; x++){
@@ -79,17 +81,58 @@ function(record, http, runtime, search) {
     				}
     			} else {
     				log.error('ITEM_ID_NULL', 'No value in Item Id parameter.');
-    				context.response.write(JSON.stringify({error:true}));
+    				response.write(JSON.stringify({error:true}));
     			}
     			log.debug('JSON response', JSON.stringify({error:false, unitsList : returnArray}));
-    			context.response.write(JSON.stringify({error:false, unitsList : returnArray}));
+    			response.write(JSON.stringify({error:false, unitsList : returnArray}));
+    			
+    		}else if(request.method == http.Method.GET && params.price == "true"){
+    			
+    			//reading the price value according to the conditions and return the value to the field
+    			var price = '';
+    			var itemBasePrice = params.baseprice;
+    			var promotionLookup = search.lookupFields({
+    				type:'customrecord_itpm_promotiondeal',
+    				id:params.pid,
+    				columns:['custrecord_itpm_p_type']
+    			});
+    			var promoTypeRec = record.load({
+    				type:'customrecord_itpm_promotiontype',
+    				id:promotionLookup['custrecord_itpm_p_type'][0].value
+    			});
+    			var promotionImpact = promoTypeRec.getValue('custrecord_itpm_pt_financialimpact');
+
+    			switch(promotionImpact){
+    			case "13": //Expense
+    				price = setPriceValue((params.pricelevel =='')?undefined:params.pricelevel,params.itemid);
+    				price = (isNaN(price))?itemBasePrice:price;
+    				break;
+    			}
+    			response.write(JSON.stringify({success:true,price:price}));
+    			
     		}
     	} catch(ex) {
     		log.error(ex.name, ex.message + '; on parameters = ' + JSON.stringify(context.request.parameters));
     		context.response.write(JSON.stringify({error:true}));
     	}
+    	
     }
 
+  //setting the Price Value in allowance record.
+	function setPriceValue(priceLevel,itemId){
+		var price = undefined;
+		var itemResult = search.create({
+			type:search.Type.ITEM,
+			columns:['pricing.pricelevel','pricing.unitprice'],
+			filters:[['internalid','is',itemId],'and',
+					 ['pricing.pricelevel','is',priceLevel],'and',
+					 ['isinactive','is',false]
+			]
+		}).run().getRange(0,1);
+		price = itemResult[0].getValue({name:'unitprice',join:'pricing'});
+		return price;
+	}
+    
     return {
         onRequest: onRequest
     };

@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType ClientScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  * Client script to perform actions on the iTPM Allowance record during Create or Edit.
  */
 define(['N/ui/message','N/url','N/https','N/search','N/ui/dialog'],
@@ -102,14 +102,15 @@ function(message,url,https, search,dialog) {
 	    		} else {
 	    			https.get.promise({
 	    				url : url.resolveScript({
-	        				scriptId: 'customscript_itpm_allowance_price_val',
-	        				deploymentId: 'customdeploy_itpm_allowance_price_val',
+	    					scriptId:'customscript_itpm_su_getitemunits',
+	    					deploymentId:'customdeploy_itpm_su_getitemunits',
 	        				returnExternalUrl: true,
 	        				params: {
 	        					itemid: itemId,
 	        					pid:promoId,
 	        					pricelevel: priceLevel,
-	        					baseprice:impactBasePrice
+	        					baseprice:impactBasePrice,
+	        					price:true
 	        				}
 	        			})
 	    			}).then(function(response) {
@@ -219,7 +220,7 @@ function(message,url,https, search,dialog) {
 			var output = url.resolveScript({
 				scriptId:'customscript_itpm_su_getitemunits',
 				deploymentId:'customdeploy_itpm_su_getitemunits',
-				params: {itemid : id, unitid: null},
+				params: {itemid : id, unitid: null, price:false},
 				returnExternalUrl: true
 			});
 			//log.debug('GetItemUnit URL', output);
@@ -248,7 +249,7 @@ function(message,url,https, search,dialog) {
 			var output = url.resolveScript({
 				scriptId:'customscript_itpm_su_getitemunits',
 				deploymentId:'customdeploy_itpm_su_getitemunits',
-				params: {itemid : itemid, unitid: unitid},
+				params: {itemid : itemid, unitid: unitid, price:false},
 				returnExternalUrl: true
 			});
 			var response = https.get({
