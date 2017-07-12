@@ -1,8 +1,8 @@
 /**
  * @NApiVersion 2.x
  * @NModuleScope Public
- * Client script to be attached with UserEvent script to iTPM Deduction records.
  * This will call the respective suitelet scripts upon button click.
+ * Client script to be attached to the iTPM Deduction record, via UE, for Deduction Buttons.
  */
 
 define(['N/url', 'N/https', 'N/ui/message'],
