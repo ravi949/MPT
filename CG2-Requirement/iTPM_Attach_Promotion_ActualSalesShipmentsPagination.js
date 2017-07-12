@@ -28,7 +28,7 @@ function() {
         		url = url.substring(0, url.indexOf('&st'));
         		window.location.search = url + '&st='+startno;
     		}catch (e) {
-    			log.error(e.name,'record type = iTPM promotion, record id = '+scriptContext.currentRecord.id+', message = '+e.message);
+    			log.error(e.name,'record type = iTPM promotion, record id = '+scriptContext.currentRecord.id+', function name = fieldChanged, message = '+e.message);
 			}
     		
     	}

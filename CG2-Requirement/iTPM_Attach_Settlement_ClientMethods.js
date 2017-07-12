@@ -18,7 +18,7 @@ function(message, url) {
 			});
 			return msg;
 		} catch(ex) {
-			console.log(ex);
+			console.log(ex.name,'function name = displayMessage, message = '+ex.message);
 		}
 	}
 
@@ -34,7 +34,7 @@ function(message, url) {
    		  }); 
 		  window.open(deductionListURL,'_self');
 	   }catch(e){
-		   console.log(e.name,'error in redirection to deduction list, message='+e.message);
+		   console.log(e.name,'error in redirection to deduction list, function name = redirectToDeductionList,  message='+e.message);
 	   }
    }
    function redirectToCheck(settlementId){
@@ -48,7 +48,7 @@ function(message, url) {
 	   		  }); 
 			  window.open(deductionListURL,'_self');
 	   }catch(e){
-		   console.log(e.name,'error in apply settlement to check, message='+e.message);
+		   console.log(e.name,'error in apply settlement to check, function name = redirectToCheck, message='+e.message);
 	   }
    }
     return {

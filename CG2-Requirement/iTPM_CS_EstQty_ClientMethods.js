@@ -66,7 +66,7 @@ function(https, url) {
 				setUnits(estqty,mode);
 			}
 		}catch(e){
-			console.log(e.name,e.message);
+			console.log(ex.name,'function name = pageInit, message = '+ex.message);
 		}
 	}
 	
@@ -118,46 +118,50 @@ function(https, url) {
     
     //get the units and insert them into field as a values.
     function setUnits(estqty,mode){
-    	var itemField = estqty.getValue({fieldId:'custrecord_itpm_estqty_item'});
-    	var output = url.resolveScript({
-			scriptId:'customscript_itpm_su_getitemunits',
-			deploymentId:'customdeploy_itpm_su_getitemunits',
-			params: {itemid : itemField, unitid: null, price:false},
-			returnExternalUrl: true
-		});
-		var response = https.get.promise({
-			url: output
-		}).then(function(objResponse){
-			objResponse = JSON.parse(objResponse.body);
-			if(!objResponse.error){
-				var unitField = estqty.getField({fieldId:'custpage_itpm_estqty_unit'});
-				unitField.removeSelectOption({value:null});
-				var unitsList = objResponse.unitsList;
-				
-				if(mode == null){
-					unitField.insertSelectOption({
-						value: 0,
-						text: " "
-					});
-				}
-				
-				for (x in unitsList){
-					log.debug('unitOption', unitsList[x].name);
-					unitField.insertSelectOption({
-						value: unitsList[x].internalId,
-						text: unitsList[x].name,
-						isSelected:unitsList[x].internalId == estqty.getValue('	custrecord_itpm_estqty_qtyby')
-					});
-				}
-				estqty.setValue({
-					fieldId: 'custpage_itpm_estqty_unit',
-					value: 0,
-					ignoreFieldChange: true
-				});
-			} else {
-				console.log('Response Object', 'Error returned in compiling the list of applicable units.');
-			}
-		});
+    	try{
+    		var itemField = estqty.getValue({fieldId:'custrecord_itpm_estqty_item'});
+    		var output = url.resolveScript({
+    			scriptId:'customscript_itpm_su_getitemunits',
+    			deploymentId:'customdeploy_itpm_su_getitemunits',
+    			params: {itemid : itemField, unitid: null, price:false},
+    			returnExternalUrl: true
+    		});
+    		var response = https.get.promise({
+    			url: output
+    		}).then(function(objResponse){
+    			objResponse = JSON.parse(objResponse.body);
+    			if(!objResponse.error){
+    				var unitField = estqty.getField({fieldId:'custpage_itpm_estqty_unit'});
+    				unitField.removeSelectOption({value:null});
+    				var unitsList = objResponse.unitsList;
+
+    				if(mode == null){
+    					unitField.insertSelectOption({
+    						value: 0,
+    						text: " "
+    					});
+    				}
+
+    				for (x in unitsList){
+    					log.debug('unitOption', unitsList[x].name);
+    					unitField.insertSelectOption({
+    						value: unitsList[x].internalId,
+    						text: unitsList[x].name,
+    						isSelected:unitsList[x].internalId == estqty.getValue('	custrecord_itpm_estqty_qtyby')
+    					});
+    				}
+    				estqty.setValue({
+    					fieldId: 'custpage_itpm_estqty_unit',
+    					value: 0,
+    					ignoreFieldChange: true
+    				});
+    			} else {
+    				console.log('Response Object', 'Error returned in compiling the list of applicable units.');
+    			}
+    		});
+    	}catch(ex) {
+    		console.log(ex.name,'function name = setUnits, message = '+ex.message);
+    	}
     }
 
     return {

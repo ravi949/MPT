@@ -101,7 +101,7 @@ function(record, search, url) {
     	}
     	
     	}catch(ex){
-    		console.log(ex.name,'record type = iTPM Settlement, record id='+scriptContext.currentRecord.id+' message='+ex.message);
+    		console.log(ex.name,'record type = iTPM Settlement, record id='+scriptContext.currentRecord.id+', function name = fieldChanged, message='+ex.message);
     	}
     }
     /**
@@ -118,7 +118,6 @@ function(record, search, url) {
      */
     function saveRecord(scriptContext){
     	try{
-    		console.log('ihi')
     		var currentRecord = scriptContext.currentRecord;
     		var settReq = parseFloat(currentRecord.getValue('custom_itpm_st_reql'));
     		if(settReq > 0 ){
@@ -132,7 +131,7 @@ function(record, search, url) {
     		}
     		return true
     	}catch(ex){
-    		console.log(ex.name,'record type = iTPM Settlement, record id='+scriptContext.currentRecord.id+' message='+ex.message);
+    		console.log(ex.name,'record type = iTPM Settlement, record id='+scriptContext.currentRecord.id+', function name = saveRecord, message='+ex.message);
     	}
     }
     

@@ -33,7 +33,7 @@ function(url, https, message) {
 			});
 			window.open(suiteletUrl, '_self');
 		} catch(ex) {
-			console.log(ex);
+			console.log(ex.name,'function name = iTPMsplit, message'+ex.message);
 		}
 	}
 	
@@ -61,7 +61,7 @@ function(url, https, message) {
 				console.log(ex);
 			});
 		} catch(ex) {
-			console.log(ex);
+			console.log(ex.name,'function name = iTPMexpense, message'+ex.message);
 		}
 	}
 	
@@ -88,7 +88,7 @@ function(url, https, message) {
 				console.log(ex);
 			});
 		} catch(ex) {
-			console.log(ex);
+			console.log(ex.name,'function name = iTPMinvoice, message'+ex.message);
 		}
 	}
 	
@@ -103,7 +103,7 @@ function(url, https, message) {
 			});
 			window.open(suiteletUrl, '_self');
 		} catch(ex) {
-			console.log(ex);
+			console.log(ex.name,'function name = iTPMsettlement, message'+ex.message);
 		}
 	}
 	

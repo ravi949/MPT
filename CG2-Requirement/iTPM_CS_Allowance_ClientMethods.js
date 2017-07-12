@@ -56,8 +56,8 @@ function(message,url,https, search,dialog) {
 				}
 			}
 		}catch(ex){
-			log.error(ex.name,'record type = iTPM Allowance, message = '+ex.message);
-			console.log(ex.name,'record type = iTPM Allowance, message = '+ex.message);
+			log.error(ex.name,'record type = iTPM Allowance,function name = pageInit, message = '+ex.message);
+			console.log(ex.name,'record type = iTPM Allowance, function name = pageInit, message = '+ex.message);
 		}
 		
 	}
@@ -204,8 +204,8 @@ function(message,url,https, search,dialog) {
 				
 			}
     	} catch(ex) {
-    		log.error(ex.name,'record type = iTPM Allowance, message = '+ex.message);
-    		console.log(ex.name,'record type = iTPM Allowance, message = '+ex.message);
+    		log.error(ex.name,'record type = iTPM Allowance, function name = fieldchange, message = '+ex.message);
+    		console.log(ex.name,'record type = iTPM Allowance, function name = fieldchange, message = '+ex.message);
     	}
     }
     /**
@@ -232,8 +232,8 @@ function(message,url,https, search,dialog) {
 			//log.debug('jsonResponse', jsonResponse);
 			return jsonResponse;
 		} catch(ex) {
-			log.error(ex.name,'record type = iTPM Allowance, message = '+ex.message);
-			console.log(ex.name,'record type = iTPM Allowance, message = '+ex.message);
+			log.error(ex.name,'record type = iTPM Allowance, function name = getUnits message = '+ex.message);
+			console.log(ex.name,'record type = iTPM Allowance, function name = getUnits message = '+ex.message);
 		}
 	}
 
@@ -258,10 +258,13 @@ function(message,url,https, search,dialog) {
 			var jsonResponse =  JSON.parse(response.body);
 			return jsonResponse;
 		} catch(ex) {
-			log.error(ex.name,'record type = iTPM Allowance, message = '+ex.message);
-			console.log(ex.name,'record type = iTPM Allowance, message = '+ex.message);
+			log.error(ex.name,'record type = iTPM Allowance, function name = getConversionRate, message = '+ex.message);
+			console.log(ex.name,'record type = iTPM Allowance, function name = getConversionRate, message = '+ex.message);
 		}
 	}
+	
+	
+	//check for allowance duplicate and return allow additional checkbox true or false
 	function checkForAllowaceDuplicates(mode,allRec){
 		try{
 			var allAddChecked = -1;
@@ -286,8 +289,8 @@ function(message,url,https, search,dialog) {
 
 			return allAddChecked;
 		} catch(ex) {
-			log.error(ex.name,'record type = iTPM Allowance, message = '+ex.message);
-			console.log(ex.name,'record type = iTPM Allowance, message = '+ex.message);
+			log.error(ex.name,'record type = iTPM Allowance, function name = checkForAllowaceDuplicates, message = '+ex.message);
+			console.log(ex.name,'record type = iTPM Allowance, function name = checkForAllowaceDuplicates, message = '+ex.message);
 		}
     }
 

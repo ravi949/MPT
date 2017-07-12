@@ -123,17 +123,21 @@ function(record, http, runtime, search) {
 
   //setting the Price Value in allowance record.
 	function setPriceValue(priceLevel,itemId){
-		var price = undefined;
-		var itemResult = search.create({
-			type:search.Type.ITEM,
-			columns:['pricing.pricelevel','pricing.unitprice'],
-			filters:[['internalid','is',itemId],'and',
-					 ['pricing.pricelevel','is',priceLevel],'and',
-					 ['isinactive','is',false]
-			]
-		}).run().getRange(0,1);
-		price = itemResult[0].getValue({name:'unitprice',join:'pricing'});
-		return price;
+		try{
+			var price = undefined;
+			var itemResult = search.create({
+				type:search.Type.ITEM,
+				columns:['pricing.pricelevel','pricing.unitprice'],
+				filters:[['internalid','is',itemId],'and',
+					['pricing.pricelevel','is',priceLevel],'and',
+					['isinactive','is',false]
+				]
+			}).run().getRange(0,1);
+			price = itemResult[0].getValue({name:'unitprice',join:'pricing'});
+			return price;
+		}catch(e){
+			log.error(e.name,'error ocurred in function = setPriceValue');
+		}
 	}
     
     return {

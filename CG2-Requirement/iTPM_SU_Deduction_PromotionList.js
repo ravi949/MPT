@@ -38,15 +38,6 @@ function(serverWidget,redirect,search,record) {
 					text:' '
 				});
 				
-//				form.addField({
-//		    		id:'custom_itpm_list_promotiondeallink',
-//		    		type:serverWidget.FieldType.INLINEHTML,
-//		    		label:'Selected PROMOTION / DEAL'
-//		    	}).defaultValue = '<div class="uir-field-wrapper" data-field-type="text"><span id="custpage_promo_deal_fs_lbl_uir_label" class="smallgraytextnolink uir-label ">'+
-//	    		'<span id="custpage_promo_deal_fs_lbl" class="smallgraytextnolink" style=""><a class="smallgraytextnolink">PROMOTION / DEAL</a></span>'+
-//	    		'</span><span class="uir-field inputreadonly">'+
-//	    		'<a href="" target="_blank" id="promolink" class="dottedlink"></a></span></div>'
-		    	
 				form.addField({
 					id : 'custpage_promotion_liability',
 					type : serverWidget.FieldType.CURRENCY,

@@ -34,7 +34,7 @@ function(url,message) {
 			});
 			window.open(ddnSuiteletURL,'_self');
 		}catch(e){
-			console.log(e.name,' record type = invoice, record id='+invId+' message='+e.message);
+			console.log(e.name,' record type = invoice, record id='+invId+', function name = iTPMDeduction, message='+e.message);
 		}
 	}
    

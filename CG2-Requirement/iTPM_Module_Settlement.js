@@ -315,7 +315,7 @@ function(config, record, search, runtime, iTPM_Module) {
 			if(e.message == 'settlement not completed')
 				throw Error(e.message);
 			else
-				throw Error('record type='+recordType+', module=iTPM_Module_settlement.js, message='+e.message);
+				throw Error('record type='+recordType+', module=iTPM_Module_settlement.js, function name = createSettlement, message='+e.message);
 		}
 	}
 	
@@ -394,7 +394,7 @@ function(config, record, search, runtime, iTPM_Module) {
 			}
 
 		}catch(e){
-			throw Error('record type=iTPM settlement, record id='+parameters.sid+', module=iTPM_Module_Settlement.js, message='+e.message);
+			throw Error('record type=iTPM settlement, record id='+parameters.sid+', module=iTPM_Module_Settlement.js,function name = applyToDeduction,  message='+e.message);
 		}
 		
 	}
@@ -416,7 +416,7 @@ function(config, record, search, runtime, iTPM_Module) {
 			var JERecId = setJELines(settlementRec.id,settlementRec.getValue('subsidiary'),JELines);
 			return JERecId;
 		}catch(e){
-			throw Error('record type=iTPM Settlement, record id='+settlementRec.id+', module=iTPM_Module_Settlement.js , error function = createReverseJE, message='+e.message);
+			throw Error('record type=iTPM Settlement, record id='+settlementRec.id+', module=iTPM_Module_Settlement.js ,function name = createReverseJE, error function = createReverseJE, message='+e.message);
 		}
 	}
 	
@@ -474,7 +474,7 @@ function(config, record, search, runtime, iTPM_Module) {
 			});	
 			
 		}catch(e){
-			throw Error('error occured in iTPM_Module_Settlement while setting the JE lines, message = '+e.message);
+			throw Error('error occured in iTPM_Module_Settlement, function name = setJELines, message = '+e.message);
 		}
 	}
 	
@@ -559,7 +559,7 @@ function(config, record, search, runtime, iTPM_Module) {
     		if(errObj && errObj.error == 'custom')
     			throw {error:'custom',message:e.message};
     		else 
-    			throw Error('error occured in iTPM_Module_Settlement while edititn the settlement record, message = '+e.message);
+    			throw Error('error occured in iTPM_Module_Settlement , function name = editSettlement,message = '+e.message);
 		}
 	}
 

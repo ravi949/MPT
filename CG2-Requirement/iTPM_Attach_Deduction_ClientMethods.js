@@ -28,7 +28,7 @@ function() {
         	}
         	return true
     	}catch(ex){
-    		console.log(ex.name,'record type = iTPM deduction, record id='+scriptContext.currentRecord.id+' message='+ex.message);
+    		console.log(ex.name,'record type = iTPM deduction, record id='+scriptContext.currentRecord.id+', function name = saveRecord, message='+ex.message);
     	}
     	
     }
