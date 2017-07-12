@@ -3,11 +3,11 @@
  * @NScriptType workflowactionscript
  * Workflow action script to check whether an iTPM Estimated Quantity record already exists for an Item and Promotion record.
  */
-define(['N/search','N/runtime'],
+define(['N/search','N/runtime','N/util'],
 /**
  * @param {search} search
  */
-function(search,runtime) {
+function(search,runtime,util) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -21,20 +21,29 @@ function(search,runtime) {
     	try{
     		var scriptObj = runtime.getCurrentScript(),
     		promotion = scriptObj.getParameter({name:'custscript_itpm_all_hasestqty_promotion'}),
-    		item = scriptObj.getParameter({name:'custscript_itpm_all_hasestqty_item'})
+    		item = scriptObj.getParameter({name:'custscript_itpm_all_hasestqty_item'});
+    		
+    		var searchFilter = [['custrecord_itpm_estqty_promodeal','is',promotion],'and',
+				['custrecord_itpm_estqty_item','is',item],'and',
+				['isinactive','is',false]
+			];
+    		var recordId = scriptContext.newRecord.id;
+    		
+    		if(util.isNumber(recordId)){
+    			searchFilter.push('and',['internalid','noneof',recordId]);
+    		}
     		
     		var estqtyPresent = search.create({
     			type:'customrecord_itpm_estquantity',
     			columns:['internalid'],
-    			filters:[['custrecord_itpm_estqty_promodeal','is',promotion],'and',
-    				['custrecord_itpm_estqty_item','is',item],'and',
-    				['isinactive','is',false]
-    			]
+    			filters:searchFilter
     		}).run().getRange(0,2).length >0; 
+    		
+    		log.debug('estqtyp',estqtyPresent)
     		
     		return estqtyPresent?'T':'F';
     	}catch(e){
-    		log.error('exception has estqty',e)
+    		log.error(e.name,'error in promotion has est qty, message = '+e.message);
     	}
     }
 
