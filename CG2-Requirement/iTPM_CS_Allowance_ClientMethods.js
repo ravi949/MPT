@@ -23,7 +23,7 @@ function(message,url,https, search,dialog) {
 			mode = sc.mode;
 			//clear the allowance type field value when get the error duplicate
 			if(rec.id==''){
-				sc.currentRecord.setValue({
+				rec.setValue({
 					fieldId:'custrecord_itpm_all_type',
 					value:''
 				});
@@ -56,7 +56,8 @@ function(message,url,https, search,dialog) {
 				}
 			}
 		}catch(ex){
-			log.error(ex.name,ex.message);
+			log.error(ex.name,'record type = iTPM Allowance, message = '+ex.message);
+			console.log(ex.name,'record type = iTPM Allowance, message = '+ex.message);
 		}
 		
 	}
@@ -76,9 +77,10 @@ function(message,url,https, search,dialog) {
     function fieldChanged(sc) {
     	try{
 	    	var fieldId = sc.fieldId, rec = sc.currentRecord;
+			var unitField = rec.getField({fieldId: 'custpage_itpm_all_unit'});
 	    	if (fieldId == 'custpage_itpm_all_unit'){
-				var dynFieldValue = rec.getValue({fieldId: 'custpage_itpm_all_unit'}),
-				unitFieldValue = rec.getValue({fieldId: 'custrecord_itpm_all_uom'});
+				var dynFieldValue = rec.getValue({fieldId: 'custpage_itpm_all_unit'});
+				var unitFieldValue = rec.getValue({fieldId: 'custrecord_itpm_all_uom'});
 				if (dynFieldValue != unitFieldValue){
 					rec.setValue({
 						fieldId: 'custrecord_itpm_all_uom',
@@ -86,20 +88,18 @@ function(message,url,https, search,dialog) {
 					});
 				}
 			} else if (fieldId == 'custrecord_itpm_all_item'){
-				console.log('camehere1  '+rec.getValue({fieldId:'custrecord_itpm_all_item'}));
 	    		var itemId = rec.getValue({fieldId:'custrecord_itpm_all_item'});
 	    		var priceLevel = rec.getValue({fieldId:'custrecord_itpm_all_pricelevel'});
 	    		var promoId = rec.getValue({fieldId:'custrecord_itpm_all_promotiondeal'});
 	    		var impactBasePrice = rec.getValue({fieldId:'custrecord_itpm_all_itembaseprice'});
-	    		var currency = rec.getValue({fieldId:'custrecord_itpm_all_currency'});
-	    		if (itemId == '' || priceLevel == '' || currency == ''){
-					console.log('camehere2  '+rec.getValue({fieldId:'custrecord_itpm_all_item'}));
+	    		if (itemId == '' || priceLevel == ''){
 	    			sc.currentRecord.setValue({
 	    				fieldId:'custrecord_itpm_all_impactprice', 
 	    				value: 0
 	    			});
+	    			if(itemId == '')
+	    				unitField.removeSelectOption({value:null});
 	    		} else {
-					console.log('camehere3  '+rec.getValue({fieldId:'custrecord_itpm_all_item'}));
 	    			https.get.promise({
 	    				url : url.resolveScript({
 	        				scriptId: 'customscript_itpm_allowance_price_val',
@@ -109,8 +109,7 @@ function(message,url,https, search,dialog) {
 	        					itemid: itemId,
 	        					pid:promoId,
 	        					pricelevel: priceLevel,
-	        					baseprice:impactBasePrice,
-	        					curr: currency
+	        					baseprice:impactBasePrice
 	        				}
 	        			})
 	    			}).then(function(response) {
@@ -130,7 +129,6 @@ function(message,url,https, search,dialog) {
 	    			});
 
 	    			var objResponse = getUnits(itemId);
-	    			var unitField = rec.getField({fieldId: 'custpage_itpm_all_unit'});
 	    			if (!(objResponse.error)){
 	    				unitField.removeSelectOption({value:null});
 	    				var unitsList = objResponse.unitsList;
@@ -150,8 +148,8 @@ function(message,url,https, search,dialog) {
 	    			}
 	    			if(mode == 'create'|| mode == 'edit' || mode == 'copy'){
 	        			if(itemId != ""){
-	        				var disableADD = checkForAllowaceDuplicates(mode,rec),
-	        				checkBoxField = rec.getField('custrecord_itpm_all_allowaddnaldiscounts');
+	        				var disableADD = checkForAllowaceDuplicates(mode,rec);
+	        				var checkBoxField = rec.getField('custrecord_itpm_all_allowaddnaldiscounts');
 	        				if(disableADD != -1){
 	        					checkBoxField.isDisabled = true;
 	        					//if previous allowane ADD checked than we showing the popup for other allowances
@@ -164,8 +162,10 @@ function(message,url,https, search,dialog) {
 	            							.setValue({fieldId:'custrecord_itpm_all_allowaddnaldiscounts',value:false});
 	            						}
 	            						checkBoxField.isDisabled = disableADD;
-	            					})
-	            					.catch(function(){return false});
+	            					}).catch(function(error){
+	            						console.log(error.name,'record type = iTPM Allowance, message = '+error.message);
+	            						return false
+	            					});
 	        					}
 	        					
 	        				}else{
@@ -177,9 +177,9 @@ function(message,url,https, search,dialog) {
 			}else if(fieldId == 'custrecord_itpm_all_uom'){
 				var unitId = rec.getValue({fieldId: 'custrecord_itpm_all_uom'});
 				if(unitId > 0){
-					var itemId = rec.getValue({fieldId: 'custrecord_itpm_all_item'}),
-					dynUnit = rec.getValue({fieldId: 'custpage_itpm_all_unit'}),
-					itemSaleUnit = search.lookupFields({type:search.Type.ITEM,id:itemId,columns:['saleunit']})['saleunit'][0].value;
+					var itemId = rec.getValue({fieldId: 'custrecord_itpm_all_item'});
+					var dynUnit = rec.getValue({fieldId: 'custpage_itpm_all_unit'});
+					var itemSaleUnit = search.lookupFields({type:search.Type.ITEM,id:itemId,columns:['saleunit']})['saleunit'][0].value;
 					var itemUnitRate = parseFloat(getConversionRate(itemId, itemSaleUnit).unitsList[0].rate);
 					var objResponse = getConversionRate(itemId, unitId);
 					if (!(objResponse.error)){
@@ -191,7 +191,7 @@ function(message,url,https, search,dialog) {
 							ignoreFieldChange: true
 						});
 					} else {
-						log.error('Response Object', 'Error returned in conversion rate.')
+						log.error('Response Object', 'Error returned in conversion rate.');
 					}
 				}else{
 					rec.setValue({
@@ -203,6 +203,7 @@ function(message,url,https, search,dialog) {
 				
 			}
     	} catch(ex) {
+    		log.error(ex.name,'record type = iTPM Allowance, message = '+ex.message);
     		console.log(ex.name,'record type = iTPM Allowance, message = '+ex.message);
     	}
     }
@@ -231,6 +232,7 @@ function(message,url,https, search,dialog) {
 			return jsonResponse;
 		} catch(ex) {
 			log.error(ex.name,'record type = iTPM Allowance, message = '+ex.message);
+			console.log(ex.name,'record type = iTPM Allowance, message = '+ex.message);
 		}
 	}
 
@@ -256,6 +258,7 @@ function(message,url,https, search,dialog) {
 			return jsonResponse;
 		} catch(ex) {
 			log.error(ex.name,'record type = iTPM Allowance, message = '+ex.message);
+			console.log(ex.name,'record type = iTPM Allowance, message = '+ex.message);
 		}
 	}
 	function checkForAllowaceDuplicates(mode,allRec){
@@ -283,6 +286,7 @@ function(message,url,https, search,dialog) {
 			return allAddChecked;
 		} catch(ex) {
 			log.error(ex.name,'record type = iTPM Allowance, message = '+ex.message);
+			console.log(ex.name,'record type = iTPM Allowance, message = '+ex.message);
 		}
     }
 
