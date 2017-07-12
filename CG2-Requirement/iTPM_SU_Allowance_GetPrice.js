@@ -6,7 +6,7 @@
  */
 define(['N/record','N/search'],
 
-		function(record,search) {
+function(record,search) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
