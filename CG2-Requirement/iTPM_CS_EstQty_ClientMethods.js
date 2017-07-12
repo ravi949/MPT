@@ -85,15 +85,11 @@ function(https, url) {
     				var response = https.get.promise({
     					url: output
     				}).then(function(objResponse){
-    					log.debug('Response Body', objResponse.body);
-    					objResponse = objResponse.body;
-    					log.debug('objResponse', objResponse);
+    					objResponse = JSON.parse(objResponse.body);
     					if(!objResponse.error){
         					var unitField = estqty.getField({fieldId:'custpage_itpm_estqty_unit'});
-        					log.debug('UnitField', unitField);
         					unitField.removeSelectOption({value:null});
-        					var unitsList = JSON.parse(objResponse).unitsList;
-        					log.debug('UnitsList', unitsList);
+        					var unitsList = objResponse.unitsList;
         					unitField.insertSelectOption({
         						value: 0,
         						text: " "

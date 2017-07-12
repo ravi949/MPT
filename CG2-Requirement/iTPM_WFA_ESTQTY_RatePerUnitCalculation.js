@@ -56,7 +56,7 @@ function(runtime,search,iTPM_Module) {
     				allRate = unitsList.filter(function(e){return e.id == allUnitId})[0].conversionRate;
     				ratePerUnit += allRatePerUnit * (estqtyRate/allRate);
     			}
-    		})
+    		});
     		
     		log.debug('ratePerUnit',ratePerUnit)
     		return ratePerUnit;
