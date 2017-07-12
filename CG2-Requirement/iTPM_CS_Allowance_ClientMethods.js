@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType ClientScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  * Client script to perform actions on the iTPM Allowance record during Create or Edit.
  */
 define(['N/ui/message','N/url','N/https','N/search','N/ui/dialog'],

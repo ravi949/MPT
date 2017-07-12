@@ -25,7 +25,7 @@ function(https, url) {
 			var output = url.resolveScript({
 				scriptId:'customscript_itpm_su_getitemunits',
 				deploymentId:'customdeploy_itpm_su_getitemunits',
-				params: {itemid : id, unitid: null},
+				params: {itemid : id, unitid: null, price:false},
 				returnExternalUrl: true
 			});
 			var jsonResponse = null;
@@ -79,7 +79,7 @@ function(https, url) {
     				var output = url.resolveScript({
     					scriptId:'customscript_itpm_su_getitemunits',
     					deploymentId:'customdeploy_itpm_su_getitemunits',
-    					params: {itemid : itemField, unitid: null},
+    					params: {itemid : itemField, unitid: null, price:false},
     					returnExternalUrl: true
     				});
     				var response = https.get.promise({
