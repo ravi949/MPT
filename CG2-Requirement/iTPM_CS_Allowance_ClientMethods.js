@@ -263,9 +263,9 @@ function(message,url,https, search,dialog) {
 	}
 	function checkForAllowaceDuplicates(mode,allRec){
 		try{
-			var allAddChecked = -1,
-			item = allRec.getValue('custrecord_itpm_all_item'),promo = allRec.getValue('custrecord_itpm_all_promotiondeal'),
-			allFilter = [['custrecord_itpm_all_promotiondeal','is',promo],'and',
+			var allAddChecked = -1;
+			var item = allRec.getValue('custrecord_itpm_all_item'),promo = allRec.getValue('custrecord_itpm_all_promotiondeal');
+			var allFilter = [['custrecord_itpm_all_promotiondeal','is',promo],'and',
 			             ['custrecord_itpm_all_item','is',item],'and',
 			             ['isinactive','is',false]];
 
