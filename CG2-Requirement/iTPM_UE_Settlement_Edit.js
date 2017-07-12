@@ -22,20 +22,12 @@ function(redirect,runtime,search,record) {
     		var eventType = scriptContext.type,contextType = runtime.executionContext
     		if(contextType == 'USERINTERFACE' && eventType == 'edit'){
     			var settlementRec = scriptContext.newRecord;
-//    			redirect.toSuitelet({
-//    				scriptId:'customscript_itpm_set_suview_onedit',
-//    				deploymentId:'customdeploy_itpm_set_suview_onedit',
-//    				returnExternalUrl: false,
-//    				parameters:{sid:settlementRec.id,type:'edit'}
-//    			});
-    			
     			redirect.toSuitelet({
     				scriptId:'customscript_itpm_settlement_using_su',
     				deploymentId:'customdeploy_itpm_settlement_using_su',
     				returnExternalUrl: false,
     				parameters:{sid:settlementRec.id,from:'setrec',type:'edit'}
     			});
-    			
     		}
     	}catch (e) {
     		log.error(e.name,e.message);
