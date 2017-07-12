@@ -39,8 +39,6 @@ function(search,runtime,util) {
     			filters:searchFilter
     		}).run().getRange(0,2).length >0; 
     		
-    		log.debug('estqtyp',estqtyPresent)
-    		
     		return estqtyPresent?'T':'F';
     	}catch(e){
     		log.error(e.name,'error in promotion has est qty, message = '+e.message);
