@@ -30,7 +30,7 @@ function(redirect,runtime,search,record) {
     			});
     		}
     	}catch (e) {
-    		log.error(e.name,e.message);
+    		log.error(e.name,'function name = beforeload, message = '+e.message);
     	}
     }
 
@@ -124,7 +124,7 @@ function(redirect,runtime,search,record) {
     		if(e.error == 'custom')
     			throw Error(JSON.stringify(e));
     		else
-    			log.error('exception in settlement validation scirpt',e);
+    			log.error(e.name,'function name = beforesubmit, message = '+e.message);
     	}
     }
 
