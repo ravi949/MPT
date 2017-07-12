@@ -7,7 +7,7 @@ define([],
 
 function() {
     /*it will redirect the user to previous screen*/
-    function redirectToBack(from,id){
+    function redirectToBack(){
     	history.go(-1);
     }
     return {
