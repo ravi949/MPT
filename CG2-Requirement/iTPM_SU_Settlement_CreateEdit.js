@@ -380,13 +380,18 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
 	    }
 	    
 	    //memo field
-	    settlementForm.addField({
+	    var memoField = settlementForm.addField({
 			id : 'custpage_memo',
 			type : serverWidget.FieldType.TEXT,
 			label : 'Memo',
 			container:'custom_primaryinfo_group'
-		}).defaultValue = (isEdit)?memo:'';
-		
+		});
+	    if(!isEdit){
+	    	memoField.updateDisplayType({
+	    		displayType : serverWidget.FieldDisplayType.DISABLED
+	    	});
+	    }
+	    memoField.defaultValue = (isEdit)?memo:'';
 	    /*  PRIMARY INFORMATION End  */
 	    
 	    /*  CLASSIFICATION Start  */
