@@ -1,7 +1,9 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType ClientScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
+ * Client script to perform actions on the iTPM EstimatedQuantity record during Create or Edit.
+ * Sets the select options on Item and Unit dynamic fields
  */
 define(['N/https', 'N/url'],
 /**
@@ -43,7 +45,7 @@ function(https, url) {
 			//var jsonResponse =  JSON.parse(response.body);
 			return jsonResponse;
 		} catch(ex) {
-			log.error(ex.name, ex.message);
+			console.log(ex.name,'function name = getUnits, message = '+ex.message);
 		}
 	}
     
@@ -109,7 +111,7 @@ function(https, url) {
         						ignoreFieldChange: true
         					});
         				} else {
-        					log.error('Response Object', 'Error returned in compiling the list of applicable units.')
+        					console.log('Response Object', 'Error returned in compiling the list of applicable units.');
         				}
     				});
     			}    			
@@ -125,7 +127,7 @@ function(https, url) {
     		}
     		
     	} catch(ex) {
-    		log.error(ex.name,ex.message);
+    		console.log(ex.name,'function name = fieldchange, message = '+ex.message);
     	}
     }
 
