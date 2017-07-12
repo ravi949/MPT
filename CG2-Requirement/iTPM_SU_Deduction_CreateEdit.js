@@ -596,18 +596,18 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						value:amount,
 						ignoreFieldChange:true
 					});
-				}
-				
-				if(params['custom_user_eventype'] != 'edit' && params['custom_cfrom'] == 'ddn'){
-					deductionRec.setValue({
-						fieldId:'custbody_itpm_ddn_parentddn',
-						value:params['custom_parent_recid'],
-						ignoreFieldChange:true
-					}).setValue({
-						fieldId:'custbody_itpm_set_deduction',
-						value:params['custom_parent_recid'],
-						ignoreFieldChange:true
-					});
+					
+					if(params['custom_cfrom'] == 'ddn'){
+						deductionRec.setValue({
+							fieldId:'custbody_itpm_ddn_parentddn',
+							value:params['custom_parent_recid'],
+							ignoreFieldChange:true
+						}).setValue({
+							fieldId:'custbody_itpm_set_deduction',
+							value:params['custom_parent_recid'],
+							ignoreFieldChange:true
+						});
+					}
 				}
 
 				if(originalno != ''){
@@ -809,7 +809,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						log.debug('parentDdnAmt',parentDdnAmount)
 					    log.debug('newDdnAmount',newDdnAmount)
 						if(parentDdnAmount > newDdnAmount){
-							createAutomatedDeductionRecord(parentRec,parentDdnAmount - newDdnAmount);
+							createAutomatedDeductionRecord(parentRec,parentDdnAmount - newDdnAmount,expenseId);
 						}
 					}
 					
@@ -893,7 +893,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 
 	
 	//creating the automated Deduction record
-	function createAutomatedDeductionRecord(parentDdnRec,remainingAmount){
+	function createAutomatedDeductionRecord(parentDdnRec,remainingAmount,ddnExpnseAccount){
 		remainingAmount = remainingAmount.toFixed(2);
 		//copying the previous child into the new child deduction record
 		var copiedDeductionRec = record.copy({
@@ -929,6 +929,11 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 		var lineCount = copiedDeductionRec.getLineCount('line');
 		for(var i = 0;i<lineCount;i++){
 			copiedDeductionRec.setSublistValue({
+				sublistId:'line',
+				fieldId:'account',
+				value:ddnExpnseAccount,
+				line:i
+			}).setSublistValue({
 				sublistId:'line',
 				fieldId:(i==0)?'credit':'debit',
 				value:remainingAmount,
