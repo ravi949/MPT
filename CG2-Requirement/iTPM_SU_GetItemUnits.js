@@ -2,6 +2,8 @@
  * @NApiVersion 2.x
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
+ * Backend Suitelet script to fetch the price of an Item. Returns value to client script.
+ * And It return list of unit of measures which is related to the item unit type.
  */
 define(['N/record', 'N/http', 'N/runtime', 'N/search'],
 
@@ -113,6 +115,7 @@ function(record, http, runtime, search) {
     		}
     	} catch(ex) {
     		log.error(ex.name, ex.message + '; on parameters = ' + JSON.stringify(context.request.parameters));
+    		console.log(log.error(ex.name, ex.message + '; on parameters = ' + JSON.stringify(context.request.parameters)));
     		context.response.write(JSON.stringify({error:true}));
     	}
     	
