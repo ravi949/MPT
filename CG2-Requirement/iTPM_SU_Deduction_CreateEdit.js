@@ -590,6 +590,14 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					ignoreFieldChange:true
 				});
 				
+				if(params['custom_user_eventype'] != 'edit'){
+					deductionRec.setValue({
+						fieldId:'custbody_itpm_ddn_openbal',
+						value:amount,
+						ignoreFieldChange:true
+					});
+				}
+				
 				if(params['custom_user_eventype'] != 'edit' && params['custom_cfrom'] == 'ddn'){
 					deductionRec.setValue({
 						fieldId:'custbody_itpm_ddn_parentddn',
@@ -598,10 +606,6 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					}).setValue({
 						fieldId:'custbody_itpm_set_deduction',
 						value:params['custom_parent_recid'],
-						ignoreFieldChange:true
-					}).setValue({
-						fieldId:'custbody_itpm_ddn_openbal',
-						value:amount,
 						ignoreFieldChange:true
 					});
 				}
