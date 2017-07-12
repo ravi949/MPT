@@ -62,18 +62,18 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				//reading the values same intenralid values from the deduciton or invoice record.
 				var recObj = (params.from == 'ddn')?deductionRec:invoiceRec;
 				
-				var invclass = recObj.getValue('class'),
-				invdept = recObj.getValue('department'),
-				invlocation = recObj.getValue('location'),
-				subsid = recObj.getValue('subsidiary'),
-				currentUserId = runtime.getCurrentUser().id,
-				totalSettlements = 0,
-				customerRec = record.load({
+				var invclass = recObj.getValue('class');
+				var invdept = recObj.getValue('department');
+				var invlocation = recObj.getValue('location');
+				var subsid = recObj.getValue('subsidiary');
+				var currentUserId = (params.type == 'edit')?recObj.getValue('custbody_itpm_ddn_assignedto'):runtime.getCurrentUser().id;
+				var totalSettlements = 0;
+				var customerRec = record.load({
 					type:record.Type.CUSTOMER,
 					id:customerId
-				}),
-				defaultRecvAccnt = customerRec.getValue('receivablesaccount'),
-				customerParentId = customerRec.getValue('parent');
+				});
+				var defaultRecvAccnt = customerRec.getValue('receivablesaccount');
+				var customerParentId = customerRec.getValue('parent');
 				
 				//Deduction form creation
 				var ddnForm = serverWidget.createForm({
