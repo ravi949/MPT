@@ -111,7 +111,7 @@ function(serverWidget,redirect,search,record) {
 					    	['custrecord_itpm_p_condition','is',2]],'or', //active if promotion type allow for settlemen in active
 					    	['custrecord_itpm_p_condition','is', 3]  //completed
 					    ],'and',
-						['custrecord_itpm_p_customer','is', deductionRec.custbody_itpm_ddn_customer[0].value],'and',
+						['custrecord_itpm_p_customer','anyof', deductionRec.custbody_itpm_ddn_customer[0].value],'and',
 						['custrecord_itpm_p_type.custrecord_itpm_pt_validmop','is',1],'and',  //mop is bill-back
 						['isinactive','is',false]]	    		
 				}).run().each(function(k){ 

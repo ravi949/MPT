@@ -41,7 +41,7 @@ function(config, record, search, runtime, iTPM_Module) {
 			var searchResultFound = search.create({
 				type:'customtransaction_itpm_settlement',
 				columns:['internalid'],
-				filters:[['custbody_itpm_set_promo','is',params['custom_itpm_st_promotion_no']],'and',
+				filters:[['custbody_itpm_set_promo','anyof',params['custom_itpm_st_promotion_no']],'and',
 					['custbody_itpm_set_reqbb','equalto',0],'and',
 					['custbody_itpm_set_reqoi','equalto',0],'and',['custbody_itpm_set_reqls','equalto',0]]
 			}).run().getRange(0,2).length > 0;

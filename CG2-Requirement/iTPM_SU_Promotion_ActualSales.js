@@ -180,7 +180,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 				search.create({
 					type:'customrecord_itpm_estquantity',
 					columns:['custrecord_itpm_estqty_item'],
-					filters:[['custrecord_itpm_estqty_promodeal','is',request.parameters.pid],'and',
+					filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
 					         ['isinactive','is',false]]
 				}).run().each(function(e){
 					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
@@ -195,7 +195,7 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 						type:search.Type.INVOICE,
 						columns:['internalid','item','item.description','amount','rate','quantity','unit'],
 						filters:[['item','anyof',estVolumeItems],'and',
-						         ['entity','is',customerRecord.getValue('entityid')],'and',
+						         ['entity','anyof',customerRecord.getValue('entityid')],'and',
 						         ['trandate','within',startDateYear,endDateYear],'and',
 						         ['status','anyof',['CustInvc:A','CustInvc:B']],'and',
 						         ['taxline','is',false],'and',

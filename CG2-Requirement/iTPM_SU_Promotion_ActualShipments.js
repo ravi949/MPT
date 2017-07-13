@@ -164,7 +164,7 @@ function(serverWidget,search,record,runtime,format) {
 				search.create({
 					type:'customrecord_itpm_estquantity',
 					columns:['custrecord_itpm_estqty_item'],
-					filters:[['custrecord_itpm_estqty_promodeal','is',request.parameters.pid],'and',
+					filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
 						['isinactive','is',false]]
 				}).run().each(function(e){
 					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
@@ -177,7 +177,7 @@ function(serverWidget,search,record,runtime,format) {
 						type:search.Type.ITEM_FULFILLMENT,
 						columns:['internalid','item','item.description','quantity','unit'],
 						filters:[['item','anyof',estVolumeItems],'and',
-							['entity','is', customerRecord.getValue('entityid')],'and',
+							['entity','anyof', customerRecord.getValue('entityid')],'and',
 							['trandate','within',startDateYear,endDateYear],'and',
 							['taxline','is',false],'and',
 							['cogs','is',false],'and',

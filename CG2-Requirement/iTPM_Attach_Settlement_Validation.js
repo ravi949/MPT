@@ -4,12 +4,12 @@
  * @NModuleScope TargetAccount
  * Client script to be attached to the front-end suitelet scripts for iTPM Settlement record Create or Edit.
  */
-define(['N/record', 'N/search','N/url'],
+define(['N/record','N/url'],
 /**
  * @param {record} record
- * @param {search} search
+ * @param {url} url
  */
-function(record, search, url) {
+function(record, url) {
     
     /**
      * Function to be executed when field is changed.

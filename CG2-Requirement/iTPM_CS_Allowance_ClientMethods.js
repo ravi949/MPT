@@ -269,8 +269,8 @@ function(message,url,https, search,dialog) {
 		try{
 			var allAddChecked = -1;
 			var item = allRec.getValue('custrecord_itpm_all_item'),promo = allRec.getValue('custrecord_itpm_all_promotiondeal');
-			var allFilter = [['custrecord_itpm_all_promotiondeal','is',promo],'and',
-			             ['custrecord_itpm_all_item','is',item],'and',
+			var allFilter = [['custrecord_itpm_all_promotiondeal','anyof',promo],'and',
+			             ['custrecord_itpm_all_item','anyof',item],'and',
 			             ['isinactive','is',false]];
 
 			if(mode == 'edit'){

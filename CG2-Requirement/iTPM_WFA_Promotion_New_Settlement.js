@@ -18,8 +18,8 @@ function(redirect,runtime) {
 	function onAction(scriptContext) {
 		try{
 			redirect.toSuitelet({
-				scriptId:runtime.getCurrentScript().getParameter({name:'custscript_itpm_setlement_susid'}),
-				deploymentId:runtime.getCurrentScript().getParameter({name:'custscript_itpm_settlement_sudpid'}),
+				scriptId:'customscript_itpm_set_createeditsuitelet',
+				deploymentId:'customdeploy_itpm_set_createeditsuitelet',
 				returnExternalUrl: false,
 				parameters:{pid:scriptContext.newRecord.id,from:'promo'}
 			});

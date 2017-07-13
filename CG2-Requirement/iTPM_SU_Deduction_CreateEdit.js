@@ -982,7 +982,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
     	return search.create({
     		type:rectype,
     		columns:['internalid','name'],
-    		filters:[['isinactive','is',false],'and',['subsidiary','is',subid]]
+    		filters:[['isinactive','is',false],'and',['subsidiary','anyof',subid]]
     	});
     }
     
@@ -991,7 +991,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
     	return search.create({
     		type:search.Type.EMPLOYEE,
     		columns:['internalid','entityid'],
-    		filters:[['isinactive','is',false],'and',['subsidiary','is',subid]]
+    		filters:[['isinactive','is',false],'and',['subsidiary','anyof',subid]]
     	});
     }
     

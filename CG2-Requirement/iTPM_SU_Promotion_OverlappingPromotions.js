@@ -29,7 +29,7 @@ function(render,search) {
 				search.create({
 					type:'customrecord_itpm_estquantity',
 					columns:['custrecord_itpm_estqty_item'],
-					filters:[['custrecord_itpm_estqty_promodeal','is',params.pdid]]
+					filters:[['custrecord_itpm_estqty_promodeal','anyof',params.pdid]]
 				}).run().each(function(e){
 					estQtyItems.push(e.getValue('custrecord_itpm_estqty_item'));
 					return true;
@@ -44,7 +44,7 @@ function(render,search) {
 							['custrecord_itpm_p_shipend','after', params.end]],'or',[['custrecord_itpm_p_shipstart','within', params.start, params.end],'or',
 								['custrecord_itpm_p_shipend','within', params.start, params.end]],'and',
 								['isinactive','is',false],'and',['internalid','noneof', params.pdid],'and',
-								['custrecord_itpm_p_customer','is',params.cid],'and',['custrecord_itpm_p_status','noneof',[5,7]]]	    		
+								['custrecord_itpm_p_customer','anyof',params.cid],'and',['custrecord_itpm_p_status','noneof',[5,7]]]	    		
 					}).run().each(function(e){
 						var promoDealSearchId = e.getValue('internalid'),
 						promoDealStatus = e.getText('custrecord_itpm_p_status'),
@@ -59,7 +59,7 @@ function(render,search) {
 						search.create({
 							type:'customrecord_itpm_estquantity',
 							columns:['custrecord_itpm_estqty_item','custrecord_itpm_estqty_qtyby','custrecord_itpm_estqty_totalrate','custrecord_itpm_estqty_totalpercent'],
-							filters:[['custrecord_itpm_estqty_promodeal','is',promoDealSearchId],'and',
+							filters:[['custrecord_itpm_estqty_promodeal','anyof',promoDealSearchId],'and',
 								['isinactive','is',false],'and',['custrecord_itpm_estqty_item','anyof',estQtyItems]]
 						}).run().each(function(estQty){
 							log.debug('estQty',estQty)
