@@ -721,7 +721,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						var recieveableAccnts = search.create({
 							type:search.Type.INVOICE,
 							columns:['internalid','account.type','account.name','account.internalid'],
-							filters:[['internalid','is',invoiceno],'and',['account.type','anyof',["AcctRec","Expense"]]]
+							filters:[['internalid','anyof',invoiceno],'and',['account.type','anyof',["AcctRec","Expense"]]]
 						}),recievableAccntId;
 
 						lineMemo = 'Deduction applied on Invoice #'+invoiceLookup.tranid;
@@ -1010,7 +1010,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
     				type:search.Type.INVOICE,
     				columns:['internalid'],
     				filters:[
-    				         ['internalid','is',id],'and',
+    				         ['internalid','anyof',id],'and',
     				         ['applyingtransaction','noneof','none'],'and',
     				         ['applyingtransaction.type','anyof','CustPymt'],'and',
     				         ['mainline','is','T'],'and',
@@ -1022,7 +1022,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
     			var invoiceDeductionsAreEmpty = search.create({
     				type:'customtransaction_itpm_deduction',
     				columns:['internalid'],
-    				filters:[['custbody_itpm_ddn_invoice','is',id],'and',
+    				filters:[['custbody_itpm_ddn_invoice','anyof',id],'and',
     				         ['status','anyof',["Custom100:A","Custom100:B"]]]
     			}).run().getRange(0,5).length == 0;
 

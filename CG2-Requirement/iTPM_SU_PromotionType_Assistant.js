@@ -203,7 +203,7 @@ function(serverWidget,search,redirect,record,runtime) {
     				search.create({
     					type:search.Type.SUBSIDIARY,
     					columns:['internalid','name','parent'],
-    					filters:[['isinactive','is',false],'and',['parent','is',userSubsidiary]]
+    					filters:[['isinactive','is',false],'and',['parent','anyof',userSubsidiary]]
     				}).run().each(function(e){
     					subsidiaryField.addSelectOption({
     						value:e.getValue('internalid'),
@@ -248,7 +248,7 @@ function(serverWidget,search,redirect,record,runtime) {
 
     			//checking the subsidiaries feature is enabled or not
     			var validAccountFilter = [['type','is',finanImpact.charAt(0).toUpperCase()+finanImpact.slice(1)],'and',['isinactive','is',false]];
-    			(isSubsidiaryExist)? validAccountFilter.push('and',['subsidiary','is',subsidiaryId]):'';
+    			(isSubsidiaryExist)? validAccountFilter.push('and',['subsidiary','anyof',subsidiaryId]):'';
 
     			//search all accounts using above filter and added the accounts list to the VALID ACCOUNTS FIELD.
     			search.create({
@@ -286,7 +286,7 @@ function(serverWidget,search,redirect,record,runtime) {
     			search.create({
     				type:search.Type.ACCOUNT,
     				columns:['internalid','name'],
-    				filters:[['internalid','is',validAccounts],'and',['isinactive','is',false]]
+    				filters:[['internalid','anyof',validAccounts],'and',['isinactive','is',false]]
     			}).run().each(function(e){
     				defaultAccountField.addSelectOption({
     					value:e.getValue('internalid'),
