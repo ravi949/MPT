@@ -806,11 +806,23 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						var parentDdnId = params['custom_itpm_ddn_parentddn'];
 						var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_ddn_amount'));
 						var newDdnAmount = parseFloat(amount);
-						log.debug('parentDdnAmt',parentDdnAmount)
-					    log.debug('newDdnAmount',newDdnAmount)
 						if(parentDdnAmount > newDdnAmount){
 							createAutomatedDeductionRecord(parentRec,parentDdnAmount - newDdnAmount,expenseId);
 						}
+						
+						//loading the parent record again why because parentDeductionRec already save 
+						//thats why we are loading the record newly	
+						parentRec.setValue({
+							fieldId:'custbody_itpm_ddn_openbal',
+							value:0 
+						}).setValue({
+							fieldId:'transtatus',
+							value:'C'  //changed the parent status to Resolved
+						}).save({
+							enableSourcing: false,
+							ignoreMandatoryFields : true
+						});
+						
 					}
 					
 					//when a deduction is created from invoice then the invoice is converted into payment fulfillment
@@ -947,21 +959,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 		}
 
 		//save the new child deduction record
-		var newChildDedid = copiedDeductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});
-		
-		//loading the parent record again why because parentDeductionRec already save 
-		//thats why we are loading the record newly	
-		parentDdnRec.setValue({
-			fieldId:'custbody_itpm_ddn_openbal',
-			value:0 
-		}).setValue({
-			fieldId:'transtatus',
-			value:'C'  //changed the parent status to Resolved
-		}).save({
-			enableSourcing: false,
-			ignoreMandatoryFields : true
-		});
-		
+		var newChildDedid = copiedDeductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});		
 	}
 	
 	

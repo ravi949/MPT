@@ -42,8 +42,8 @@ function(url, https, message) {
 			var msg = displayMessage('Expensing Deduction','Please wait while the expense is created and applied.');
 			msg.show();
 			var suiteletUrl = url.resolveScript({
-				scriptId:'customscript_itpm_su_ddn_expense',
-				deploymentId:'customdeploy_itpm_su_ddn_expense',
+				scriptId:'customscript_itpm_ddn_expense',
+				deploymentId:'customdeploy_itpm_ddn_expense',
 				params:{ddn:id}
 			});
 			console.log(suiteletUrl);
@@ -70,8 +70,8 @@ function(url, https, message) {
 			var msg = displayMessage('Re-Invoicing Deduction','Please wait while the open balance is moved to A/R.');
 			msg.show();
 			var suiteletUrl = url.resolveScript({
-				scriptId:'customscript_itpm_su_ddn_invoice',
-				deploymentId:'customdeploy_itpm_su_ddn_invoice',
+				scriptId:'customscript_itpm_ddn_reinvoice_script',
+				deploymentId:'customdeploy_itpm_ddn_reinvoice_script',
 				params:{ddn:id}
 			});
 			https.get.promise({
@@ -97,8 +97,8 @@ function(url, https, message) {
 			var msg = displayMessage('New Settlement','Please wait while the iTPM Settlement screen is loaded.');
 			msg.show();
 			var suiteletUrl = url.resolveScript({
-				scriptId:'customscript_itpm_settlemnt_listpromotns',
-    			deploymentId:'customdeploy_itpm_settlemnt_listpromotns',
+				scriptId:'customscript_itpm_set_promotionlist',
+    			deploymentId:'customdeploy_itpm_set_promotionlist',
     			params:{ddn:id}
 			});
 			window.open(suiteletUrl, '_self');

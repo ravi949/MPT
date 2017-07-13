@@ -22,8 +22,8 @@ define(['N/url','N/record'],
 			if(scriptContext.newRecord.getValue('custrecord_itpm_p_impact') == '13'){
 				//Actual Sales Suitelet URL
 				var actualSalesURL = url.resolveScript({
-					scriptId: 'customscript_itpm_promodeal_actual_sales',
-					deploymentId: 'customdeploy_itpm_promodeal_actual_sales',
+					scriptId: 'customscript_itpm_promo_actualsales',
+					deploymentId: 'customdeploy_itpm_promo_actualsales',
 					returnExternalUrl: false,
 					params: {
 						'pid':scriptContext.newRecord.id,
@@ -34,8 +34,8 @@ define(['N/url','N/record'],
 
 				//Actual Sales Previous Year Suitelet URL
 				var actualSalesURLPreviousYear = url.resolveScript({
-					scriptId: 'customscript_itpm_promodeal_actual_sales',
-					deploymentId: 'customdeploy_itpm_promodeal_actual_sales',
+					scriptId: 'customscript_itpm_promo_actualsales',
+					deploymentId: 'customdeploy_itpm_promo_actualsales',
 					returnExternalUrl: false,
 					params: {
 						'pid':scriptContext.newRecord.id,
