@@ -46,8 +46,8 @@ define(['N/url','N/record'],
 				
 				//Actual Shippments Suitelet URL
 				var actualShippmentsURL = url.resolveScript({
-					scriptId: 'customscript_itpm_pd_actual_shippments',
-					deploymentId: 'customdeploy_itpm_pd_actual_shippments',
+					scriptId: 'customscript_itpm_promo_actualshippments',
+					deploymentId: 'customdeploy_itpm_promo_actualshippments',
 					returnExternalUrl: false,
 					params: {
 						'pid':scriptContext.newRecord.id,
@@ -58,8 +58,8 @@ define(['N/url','N/record'],
 				
 				//Actual Shippments Previous Year Suitelet URL
 				var actualShippmentsURLPreviousYear = url.resolveScript({
-					scriptId: 'customscript_itpm_pd_actual_shippments',
-					deploymentId: 'customdeploy_itpm_pd_actual_shippments',
+					scriptId: 'customscript_itpm_promo_actualshippments',
+					deploymentId: 'customdeploy_itpm_promo_actualshippments',
 					returnExternalUrl: false,
 					params: {
 						'pid':scriptContext.newRecord.id,

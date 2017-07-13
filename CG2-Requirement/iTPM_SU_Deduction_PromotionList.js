@@ -128,8 +128,8 @@ function(serverWidget,redirect,search,record) {
 			}else if(request.method == 'POST'){
 				log.debug('request',params)
 				redirect.toSuitelet({
-					scriptId:'customscript_itpm_settlement_using_su',
-					deploymentId:'customdeploy_itpm_settlement_using_su',
+					scriptId:'customscript_itpm_set_createeditsuitelet',
+					deploymentId:'customdeploy_itpm_set_createeditsuitelet',
 					returnExternalUrl: false,
 					parameters:{pid:params.custpage_promotion,ddn:params.custpage_ddn_id,from:'ddn',type:'create'}
 				});

@@ -23,8 +23,8 @@ function(redirect,runtime,search,record) {
     		if(contextType == 'USERINTERFACE' && eventType == 'edit'){
     			var settlementRec = scriptContext.newRecord;
     			redirect.toSuitelet({
-    				scriptId:'customscript_itpm_settlement_using_su',
-    				deploymentId:'customdeploy_itpm_settlement_using_su',
+    				scriptId:'customscript_itpm_set_createeditsuitelet',
+    				deploymentId:'customdeploy_itpm_set_createeditsuitelet',
     				returnExternalUrl: false,
     				parameters:{sid:settlementRec.id,from:'setrec',type:'edit'}
     			});

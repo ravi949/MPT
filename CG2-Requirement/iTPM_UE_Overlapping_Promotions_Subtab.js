@@ -33,8 +33,8 @@ function(search,runtime,serverWidget,url) {
 				startDate = promoDealRec.getText('custrecord_itpm_p_shipstart'),
 				endDate = promoDealRec.getText('custrecord_itpm_p_shipend'),
 				overlapDealViewUrl = url.resolveScript({
-					scriptId: 'customscript_itpm_promodeal_overlap_su',
-					deploymentId: 'customdeploy_itpm_promodeal_overlap_su',
+					scriptId: 'customscript_itpm_promo_overlapsubtab',
+					deploymentId: 'customdeploy_itpm_promo_overlapsubtab',
 					returnExternalUrl: false,
 					params: {
 						cid:customerId,

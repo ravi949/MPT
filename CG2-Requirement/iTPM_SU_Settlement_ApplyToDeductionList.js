@@ -30,8 +30,8 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 			var request = context.request,response = context.response,parameters = request.parameters;
 
 			var output = url.resolveScript({
-			    scriptId: 'customscript_itpm_settlement_applyto_ddn',
-			    deploymentId: 'customdeploy_itpm_settlement_applyto_ddn',
+			    scriptId: 'customscript_itpm_set_applytodeduction',
+			    deploymentId: 'customdeploy_itpm_set_applytodeduction',
 			    returnExternalUrl: false
 			});
 
