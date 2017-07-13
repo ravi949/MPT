@@ -62,8 +62,8 @@ function(url,record,search, widget, runtime, redirect) {
 				
 			} else if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
 				redirect.toSuitelet({
-					scriptId:'customscript_itpm_ddn_assnt_view',
-					deploymentId:'customdeploy_itpm_ddn_assnt_view',
+					scriptId:'customscript_itpm_ddn_createeditsuitelet',
+					deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
 					returnExternalUrl: false,
 					parameters:{fid:sc.newRecord.id,from:'ddn',type:'edit'}
 				}); 

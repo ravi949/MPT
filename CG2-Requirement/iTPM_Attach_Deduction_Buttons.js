@@ -27,8 +27,8 @@ function(url, https, message) {
 			var msg = displayMessage('Splitting Deduction','Please wait while you are redirected to the split deduction screen.');
 			msg.show();
 			var suiteletUrl = url.resolveScript({
-				scriptId:'customscript_itpm_ddn_assnt_view',
-				deploymentId:'customdeploy_itpm_ddn_assnt_view',
+				scriptId:'customscript_itpm_ddn_createeditsuitelet',
+				deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
 				params:{fid:id,from:'ddn',type:'create'}
 			});
 			window.open(suiteletUrl, '_self');
