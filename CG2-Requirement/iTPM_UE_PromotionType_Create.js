@@ -29,7 +29,7 @@ function(redirect,serverWidget,runtime) {
     			});  
     		}	
     	}catch(e){
-    		log.error(e.name,e.message);
+    		log.error(e.name,'record id = '+scriptContext.newRecord.id+', function name = beforeload, message = '+e.message);
     	}
     }
 

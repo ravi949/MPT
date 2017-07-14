@@ -1,12 +1,13 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType UserEventScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  */
 define(['N/search', 'N/ui/serverWidget', 'N/runtime'],
 /**
  * @param {search} search
  * @param {serverWidget} serverWidget
+ * @param {runtime} runtime
  */
 function(search, serverWidget, runtime) {
    
@@ -81,9 +82,7 @@ function(search, serverWidget, runtime) {
     						isSelected:reiItem == e.getValue({name:'custrecord_itpm_all_item', summary: search.Summary.GROUP})
     					})
     					return true;
-    				})
-    				
-    				
+    				});
     			}
     		}
     	}catch(e){
@@ -91,36 +90,8 @@ function(search, serverWidget, runtime) {
     	}
     }
 
-    /**
-     * Function definition to be triggered before record is loaded.
-     *
-     * @param {Object} scriptContext
-     * @param {Record} scriptContext.newRecord - New record
-     * @param {Record} scriptContext.oldRecord - Old record
-     * @param {string} scriptContext.type - Trigger type
-     * @Since 2015.2
-     */
-    function beforeSubmit(scriptContext) {
-
-    }
-
-    /**
-     * Function definition to be triggered before record is loaded.
-     *
-     * @param {Object} scriptContext
-     * @param {Record} scriptContext.newRecord - New record
-     * @param {Record} scriptContext.oldRecord - Old record
-     * @param {string} scriptContext.type - Trigger type
-     * @Since 2015.2
-     */
-    function afterSubmit(scriptContext) {
-
-    }
-
     return {
-        beforeLoad: beforeLoad,
-//        beforeSubmit: beforeSubmit,
-//        afterSubmit: afterSubmit
+        beforeLoad: beforeLoad
     };
     
 });
