@@ -46,7 +46,7 @@ function(search,runtime) {
 
 		}catch(e){
 			log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
-			return -1;
+			return 0;
 		}
 	}
 
