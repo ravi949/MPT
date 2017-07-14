@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType UserEventScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  * When user clicks on new promotion type then it redirects to assistant view and In that form it Enable or Disable the Stackable Field based on condition.
  */
 define(['N/redirect','N/ui/serverWidget','N/runtime'],
@@ -22,15 +22,14 @@ function(redirect,serverWidget,runtime) {
     		if(scriptContext.type == 'create' && runtime.executionContext == 'USERINTERFACE'){
     			var listId = scriptContext.request.parameters.rectype; //this is promotion type list id
     			redirect.toSuitelet({
-    				scriptId:'customscript_itpm_assistant_promtiontype',
-    				deploymentId:'customdeploy_itpm_assistant_promtiontype',
+    				scriptId:'customscript_itpm_promtiontype_assistant',
+    				deploymentId:'customdeploy_itpm_promtiontype_assistant',
     				parameters:{listId:listId},
     				isExternal:false
     			});  
     		}	
     	}catch(e){
-    		log.error('exception',e);
-//    		throw Error(e.message)
+    		log.error(e.name,e.message);
     	}
     }
 

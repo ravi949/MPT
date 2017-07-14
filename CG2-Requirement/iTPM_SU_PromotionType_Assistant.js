@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  */
 define(['N/ui/serverWidget','N/search','N/redirect','N/record','N/runtime'],
 
@@ -310,8 +310,7 @@ function(serverWidget,search,redirect,record,runtime) {
 
     		response.writePage(assistant);
     	}catch(e){
-    		log.error('exception',e)
-//    		throw Error(e.message);
+    		log.error(e.name,e.message);
     	}
     }
 
