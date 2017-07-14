@@ -17,8 +17,8 @@ function(search,runtime) {
 	 */
 	function onAction(scriptContext) {
 		try{
-			var iTPMAllowanceId = scriptContext.newRecord.id,estimatedQtyId = 0,
-			allowanceFilter =[['custrecord_itpm_all_promotiondeal','anyof',runtime.getCurrentScript().getParameter({name:'custscript_itpm_promotion'})],'and',
+			var iTPMAllowanceId = scriptContext.newRecord.id,estimatedQtyId = 0;
+			var allowanceFilter =[['custrecord_itpm_all_promotiondeal','anyof',runtime.getCurrentScript().getParameter({name:'custscript_itpm_promotion'})],'and',
 				['custrecord_itpm_all_item','anyof',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_item'})],'and',
 				['isinactive','is',false]];
 
@@ -35,7 +35,7 @@ function(search,runtime) {
 
 			allowancesSearch.each(function(e){
 				if(e.getValue('custrecord_itpm_all_allowaddnaldiscounts')){
-					estimatedQtyId = e.getValue('custrecord_itpm_all_estqty')
+					estimatedQtyId = e.getValue('custrecord_itpm_all_estqty');
 				}
 				return false;
 			})
@@ -45,7 +45,8 @@ function(search,runtime) {
 			return estimatedQtyId;
 
 		}catch(e){
-			log.error('exception',e.message);
+			log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
+			return -1;
 		}
 	}
 
