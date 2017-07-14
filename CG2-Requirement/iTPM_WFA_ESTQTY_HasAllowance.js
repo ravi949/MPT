@@ -18,8 +18,8 @@ function(search,runtime) {
 	function checkForAllowanceRecords(scriptContext) {
 		try{
 			//check the allowance are exist for promotion deal before estimate volume create
-			var estVolumeRec = scriptContext.newRecord,
-			scriptObj = runtime.getCurrentScript();
+			var estVolumeRec = scriptContext.newRecord;
+			var scriptObj = runtime.getCurrentScript();
 			
 			var promoDealId = scriptObj.getParameter({name:'custscript_itpm_estqty_hasallownce_promo'}),
 			estVolumeItemId = scriptObj.getParameter({name:'custscript_itpm_estqty_hasallowance_item'});
