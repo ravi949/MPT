@@ -2,11 +2,11 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/redirect','N/search','N/record','./iTPM_Module'],
+define(['N/redirect','N/record','./iTPM_Module'],
 /**
  * @param {redirect} redirect
  */
-function(redirect,search,record,iTPM_Module) {
+function(redirect,record,iTPM_Module) {
    
     /**
      * Definition of the Suitelet script trigger point.

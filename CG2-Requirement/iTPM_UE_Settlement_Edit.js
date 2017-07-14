@@ -69,7 +69,7 @@ function(redirect,runtime,search,record) {
     			var promotDealSearch = search.create({
     				type:'customrecord_itpm_promotiondeal',
     				columns:['custrecord_itpm_p_lumpsum','custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
-    				filters:[['internalid','is',settlementRec.getValue('custbody_itpm_set_promo')]]
+    				filters:[['internalid','anyof',settlementRec.getValue('custbody_itpm_set_promo')]]
     			}).run();
 
     			promotDealSearch.each(function(e){

@@ -47,7 +47,7 @@ function(search,serverWidget,runtime) {
     				search.create({
     					type:'customrecord_itpm_promotiondeal',
     					columns:['custrecord_itpm_p_type','custrecord_itpm_p_type.custrecord_itpm_pt_merchtypes'],
-    					filters:[['internalid','is',promoDealRecId],'and',['isinactive','is',false]]
+    					filters:[['internalid','anyof',promoDealRecId],'and',['isinactive','is',false]]
     				}).run().each(function(e){
 
     					var promotTypeValidMerchantList = e.getValue({name:'custrecord_itpm_pt_merchtypes',join:'custrecord_itpm_p_type'});
@@ -56,7 +56,7 @@ function(search,serverWidget,runtime) {
     						search.create({
     							type:'customrecord_itpm_promotionactivity',
     							columns:['internalid','name'],
-    							filters:[['custrecord_itpm_activity_type','is',promotTypeValidMerchantList.split(',')],'and',['isinactive','is',false]]
+    							filters:[['custrecord_itpm_activity_type','anyof',promotTypeValidMerchantList.split(',')],'and',['isinactive','is',false]]
     						}).run().each(function(activity){
     							activityField.addSelectOption({
     								value : activity.getValue('internalid'),

@@ -31,8 +31,8 @@ function(search,record,runtime,iTPM_Module) {
     		search.create({
     			type:'customrecord_itpm_promoallowance',
     			columns:['custrecord_itpm_all_uom','custrecord_itpm_all_rateperuom','custrecord_itpm_all_percentperuom'],
-    			filters:[['custrecord_itpm_all_promotiondeal','is',promoDealId],'and',
-    				['custrecord_itpm_all_item','is',itemId],'and',['isinactive','is',false]
+    			filters:[['custrecord_itpm_all_promotiondeal','anyof',promoDealId],'and',
+    				['custrecord_itpm_all_item','anyof',itemId],'and',['isinactive','is',false]
     			]
     		}).run().each(function(e){
     			var allowanceConvertionRate = unitsList.filter(function(list){return list.id == e.getValue('custrecord_itpm_all_uom')})[0];

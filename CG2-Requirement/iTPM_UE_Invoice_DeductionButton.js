@@ -28,7 +28,7 @@ function(search, serverWidget, runtime) {
     				type:search.Type.INVOICE,
     				columns:['internalid'],
     				filters:[
-    					['internalid','is',scriptContext.newRecord.id],'and',
+    					['internalid','anyof',scriptContext.newRecord.id],'and',
     					['applyingtransaction','noneof','none'],'and',
     					['applyingtransaction.type','anyof','CustPymt'],'and',
     					['mainline','is','T'],'and',

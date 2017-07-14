@@ -5,7 +5,7 @@
  */
 define(['N/search','N/runtime'],
 
-		function(search,runtime) {
+function(search,runtime) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -18,10 +18,8 @@ define(['N/search','N/runtime'],
 	function onAction(scriptContext) {
 		try{
 			var iTPMAllowanceId = scriptContext.newRecord.id,estimatedQtyId = 0,
-//			allowDuplicates = runtime.getCurrentScript().getParameter({name:'custscript_itpm_allowadditionaldiscounts'}),    
-			allowanceFilter =[['custrecord_itpm_all_promotiondeal','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_promotion'})],'and',
-				['custrecord_itpm_all_item','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_item'})],'and',
-//				['custrecord_itpm_all_type','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_allowancetype'})],'and',
+			allowanceFilter =[['custrecord_itpm_all_promotiondeal','anyof',runtime.getCurrentScript().getParameter({name:'custscript_itpm_promotion'})],'and',
+				['custrecord_itpm_all_item','anyof',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_item'})],'and',
 				['isinactive','is',false]];
 
 			if(iTPMAllowanceId){

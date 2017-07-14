@@ -124,7 +124,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 						['custbody_itpm_ddn_openbal','GREATERTHAN', 0],'and'
 						,['mainline','is','T'],'and'
 						,['custbody_itpm_ddn_openbal','greaterthanorequalto',settlementRec.getValue('custbody_itpm_set_amount')],'and'
-						,['custbody_itpm_ddn_customer','is',settlementRec.getValue('custbody_itpm_set_customer')]
+						,['custbody_itpm_ddn_customer','anyof',settlementRec.getValue('custbody_itpm_set_customer')]
 						]		    		
 				}),searchLength = DeductionSearch.run().getRange(0,2).length;
 				

@@ -21,8 +21,8 @@ function(search) {
     		var promoDeal = reatailRec.getValue('custrecord_itpm_rei_promotiondeal');
     		var item = reatailRec.getValue('custrecord_itpm_rei_item');
 
-    		var reatailFilter = [['custrecord_itpm_rei_promotiondeal','is',promoDeal],'and',
-    		                     ['custrecord_itpm_rei_item','is',item],'and',
+    		var reatailFilter = [['custrecord_itpm_rei_promotiondeal','anyof',promoDeal],'and',
+    		                     ['custrecord_itpm_rei_item','anyof',item],'and',
     		                     ['isinactive','is',false]];
 
     		if(reatailRec.id){

@@ -35,7 +35,7 @@ function(record, redirect, search, runtime, ST_Module) {
     			          ,'custrecord_itpm_p_type'
     			          ,'custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount'
     			          ],
-    			          filters: [['internalid','is',settlementRec.getValue('custbody_itpm_set_promo')]]
+    			          filters: [['internalid','anyof',settlementRec.getValue('custbody_itpm_set_promo')]]
     		}).run().getRange(0,1);
     		log.debug('currne',promotionRecSer[0].getValue('custrecord_itpm_p_currency'));
 

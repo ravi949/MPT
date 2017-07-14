@@ -128,7 +128,7 @@ function(record, http, runtime, search) {
 			var itemResult = search.create({
 				type:search.Type.ITEM,
 				columns:['pricing.pricelevel','pricing.unitprice'],
-				filters:[['internalid','is',itemId],'and',
+				filters:[['internalid','anyof',itemId],'and',
 					['pricing.pricelevel','is',priceLevel],'and',
 					['isinactive','is',false]
 				]

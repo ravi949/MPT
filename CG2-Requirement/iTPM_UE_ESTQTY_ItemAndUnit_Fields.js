@@ -83,7 +83,7 @@ function(record, search, serverWidget, runtime, url, https) {
 					search.create({
 						  type:'customrecord_itpm_estquantity',
 						  columns:['internalid','custrecord_itpm_estqty_item'],
-						  filters:[['custrecord_itpm_estqty_promodeal','is',promotionId],'and',['isinactive','is',false]]
+						  filters:[['custrecord_itpm_estqty_promodeal','anyof',promotionId],'and',['isinactive','is',false]]
 					  }).run().each(function(e){
 						  estExistedItems.push(e.getValue('custrecord_itpm_estqty_item'));
 						  return true

@@ -32,7 +32,10 @@ function(search,runtime) {
 				var allowanceResult = search.create({
 					type:'customrecord_itpm_promoallowance',
 					columns:[sortOnRedemptionFactor],
-					filters:[['custrecord_itpm_all_promotiondeal','is',promoDealId],'and',['custrecord_itpm_all_item','is',itemId],'and',['isinactive','is',false]]
+					filters:[['custrecord_itpm_all_promotiondeal','anyof',promoDealId],'and',
+							 ['custrecord_itpm_all_item','anyof',itemId],'and',
+							 ['isinactive','is',false]
+					]
 				}).run().getRange(0,1);
 
 				//calculating the Estimated Promoted Quantity

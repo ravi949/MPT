@@ -5,7 +5,7 @@
  */
 define(['N/record','N/search'],
 
-		function(record,search) {
+function(record,search) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -25,8 +25,8 @@ define(['N/record','N/search'],
 				type:'customrecord_itpm_estquantity',
 				columns:['internalid'],
 				filters:[['isinactive','is',false],'and',
-					['custrecord_itpm_estqty_promodeal','is',promoDealId],'and',
-					['custrecord_itpm_estqty_item','is',promoItem]]
+					['custrecord_itpm_estqty_promodeal','anyof',promoDealId],'and',
+					['custrecord_itpm_estqty_item','anyof',promoItem]]
 			}).run().getRange(0,1);
 			log.debug('estVolumeResult',estVolumeResult)
 			//edit the estimated quantity record.

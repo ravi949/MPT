@@ -37,8 +37,8 @@ function(search,runtime) {
         		var allowanceResult = search.create({
         			type:'customrecord_itpm_promoallowance',
         			columns:['internalid'],
-        			filters:[['custrecord_itpm_all_promotiondeal','is',promoDealId],'and',
-        				['custrecord_itpm_all_item','is',item],'and',
+        			filters:[['custrecord_itpm_all_promotiondeal','anyof',promoDealId],'and',
+        				['custrecord_itpm_all_item','anyof',item],'and',
         				['isinactive','is',false]
         			]
         		}).run().getRange(0,2);

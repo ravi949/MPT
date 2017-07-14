@@ -23,8 +23,8 @@ function(search,runtime,util) {
     		promotion = scriptObj.getParameter({name:'custscript_itpm_all_hasestqty_promotion'}),
     		item = scriptObj.getParameter({name:'custscript_itpm_all_hasestqty_item'});
     		
-    		var searchFilter = [['custrecord_itpm_estqty_promodeal','is',promotion],'and',
-				['custrecord_itpm_estqty_item','is',item],'and',
+    		var searchFilter = [['custrecord_itpm_estqty_promodeal','anyof',promotion],'and',
+				['custrecord_itpm_estqty_item','anyof',item],'and',
 				['isinactive','is',false]
 			];
     		var recordId = scriptContext.newRecord.id;

@@ -717,7 +717,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
     	return search.create({
     		type:rectype,
     		columns:['internalid','name'],
-    		filters:[['isinactive','is',false],'and',['subsidiary','is',subid]]
+    		filters:[['isinactive','is',false],'and',['subsidiary','anyof',subid]]
     	});
     }
     

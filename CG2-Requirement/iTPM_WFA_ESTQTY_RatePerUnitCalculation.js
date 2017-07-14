@@ -33,8 +33,8 @@ function(runtime,search,iTPM_Module) {
     		var allSearch = search.create({
     			type:'customrecord_itpm_promoallowance',
     			columns:['custrecord_itpm_all_rateperuom','custrecord_itpm_all_uom'],
-    			filters:[['custrecord_itpm_all_promotiondeal','is',estqtyPromoId],'and',
-					     ['custrecord_itpm_all_item','is',itemId],'and',
+    			filters:[['custrecord_itpm_all_promotiondeal','anyof',estqtyPromoId],'and',
+					     ['custrecord_itpm_all_item','anyof',itemId],'and',
 					     ['isinactive','is',false],'and',
 					     ['custrecord_itpm_all_mop','is',allMop] //mop
     			]

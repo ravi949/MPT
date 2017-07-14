@@ -43,7 +43,7 @@ function(search, serverWidget, runtime) {
     				    nextfield : 'custrecord_itpm_rei_itemdescription'
     				});
     				
-    				var retailInfoItemsFilter = [['custrecord_itpm_all_promotiondeal','is',promoId],'and',
+    				var retailInfoItemsFilter = [['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
 						 ['isinactive','is',false]];
     				
     				//Not performing this operation while edit record
@@ -52,7 +52,7 @@ function(search, serverWidget, runtime) {
         				search.create({
         					type:'customrecord_itpm_promoretailevent',
         					columns:['custrecord_itpm_rei_item'],
-        					filters:[['custrecord_itpm_rei_promotiondeal','is',promoId]]
+        					filters:[['custrecord_itpm_rei_promotiondeal','anyof',promoId]]
         				}).run().each(function(e){
         					retailItems.push(e.getValue('custrecord_itpm_rei_item'));
         					return true;

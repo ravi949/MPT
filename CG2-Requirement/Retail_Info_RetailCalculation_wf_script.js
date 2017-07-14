@@ -31,8 +31,8 @@ define(['N/search','N/record'],
 				var allowanceResult = search.create({
 					type:'customrecord_itpm_promoallowance',
 					columns:['custrecord_itpm_all_uom','custrecord_itpm_all_rateperuom','custrecord_itpm_all_item.unitstype'],
-					filters:[['custrecord_itpm_all_promotiondeal','is',promoDealId],'and',
-						['custrecord_itpm_all_item','is',itemId],'and',
+					filters:[['custrecord_itpm_all_promotiondeal','anyof',promoDealId],'and',
+						['custrecord_itpm_all_item','anyof',itemId],'and',
 						['isinactive','is',false]]
 				}).run().getRange(0,30),allowanceResultLength = allowanceResult.length;
 

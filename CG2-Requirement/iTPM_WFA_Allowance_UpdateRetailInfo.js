@@ -3,11 +3,11 @@
  * @NScriptType workflowactionscript
  */
 define(['N/record', 'N/search'],
-		/**
-		 * @param {record} record
-		 * @param {search} search
-		 */
-		function(record, search) {
+/**
+ * @param {record} record
+ * @param {search} search
+*/
+function(record, search) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -27,8 +27,8 @@ define(['N/record', 'N/search'],
 			var retailInfoSearch = search.create({
 				type:'customrecord_itpm_promoretailevent',
 				columns:['internalid'],
-				filters:[['custrecord_itpm_rei_item','is',promoItem],'and',
-					['custrecord_itpm_rei_promotiondeal','is',promoDealId],'and',
+				filters:[['custrecord_itpm_rei_item','anyof',promoItem],'and',
+					['custrecord_itpm_rei_promotiondeal','anyof',promoDealId],'and',
 					['isinactive','is',false]]
 			}).run().getRange(0,1);
 

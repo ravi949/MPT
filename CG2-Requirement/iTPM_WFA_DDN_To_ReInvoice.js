@@ -20,7 +20,6 @@ function(record, redirect, search, config) {
      * @Since 2016.1
      */
     function onAction(scriptContext) {
-    	log.error('asdfasfsdf','asdfasdfgsadg');
     	try{
     		var DeductionRec = scriptContext.newRecord,
     		customerRec = record.load({
@@ -34,7 +33,7 @@ function(record, redirect, search, config) {
     		recieveableAccnts = search.create({
     			type:search.Type.INVOICE,
     			columns:['internalid','account.type','account.name','account.internalid'],
-    			filters:[['internalid','is',DeductionRec.getValue('custbody_itpm_ddn_invoice')],'and',['account.type','anyof',["AcctRec"]]]
+    			filters:[['internalid','anyof',DeductionRec.getValue('custbody_itpm_ddn_invoice')],'and',['account.type','anyof',["AcctRec"]]]
     		}),recievableAccntId;
 
     		recieveableAccnts.run().each(function(e){

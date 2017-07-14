@@ -26,9 +26,9 @@ function(search,record,runtime) {
 			var promoDealAllowanceSearch = search.create({
 				type:'customrecord_itpm_promotiondeal',
 				columns:['custrecord_itpm_all_promotiondeal.internalid'],
-				filters:[['internalid','is',promoDealId],'and',
+				filters:[['internalid','anyof',promoDealId],'and',
 					['isinactive','is',false],'and',
-					['custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item','is',estVolumeItemId],'and',
+					['custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item','anyof',estVolumeItemId],'and',
 					['custrecord_itpm_all_promotiondeal.isinactive','is',false]]
 			});
 

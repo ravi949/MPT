@@ -4,9 +4,9 @@
  * @NModuleScope SameAccount
  * When user clicks on new promotion type then it redirects to assistant view and In that form it Enable or Disable the Stackable Field based on condition.
  */
-define(['N/search','N/redirect','N/ui/serverWidget','N/runtime'],
+define(['N/redirect','N/ui/serverWidget','N/runtime'],
 
-function(search,redirect,serverWidget,runtime) {
+function(redirect,serverWidget,runtime) {
    
     /**
      * Function definition to be triggered before record is loaded.

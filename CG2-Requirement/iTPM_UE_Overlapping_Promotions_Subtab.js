@@ -4,9 +4,9 @@
  * @NModuleScope SameAccount
  * calling the suitelet(iTPMPromoDeal_Overlapping_FrontEnd_su_script.js) to showing the overlapping promotions in a list view 
  */
-define(['N/search','N/runtime','N/ui/serverWidget','N/url'],
+define(['N/runtime','N/ui/serverWidget','N/url'],
 
-function(search,runtime,serverWidget,url) {
+function(runtime,serverWidget,url) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.

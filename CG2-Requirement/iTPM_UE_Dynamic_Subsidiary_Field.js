@@ -61,7 +61,7 @@ function(record,search,serverWidget,runtime,url) {
 					search.create({
 						type:search.Type.SUBSIDIARY,
 						columns:['internalid','name','parent'],
-						filters:[['isinactive','is',false],'and',['parent','is',userSubsidiary]]
+						filters:[['isinactive','is',false],'and',['parent','anyof',userSubsidiary]]
 					}).run().each(function(e){
 						subsidiaryField.addSelectOption({
 							value:e.getValue('internalid'),

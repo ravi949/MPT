@@ -29,7 +29,7 @@ define(['N/search','N/runtime'],
 	function getPromotionTypeRecords(iTPMRecord,isSubsidiaryExist){
 		var financialImpact = iTPMRecord.getValue('custrecord_itpm_pt_financialimpact'),
 		promotionTypeFilter =[['internalid','noneof',iTPMRecord.id],'and',
-			['custrecord_itpm_pt_financialimpact','is',financialImpact],'and',
+			['custrecord_itpm_pt_financialimpact','anyof',financialImpact],'and',
 			['custrecord_itpm_pt_stackable','is',true],'and',
 			['isinactive','is',false]]; 
 

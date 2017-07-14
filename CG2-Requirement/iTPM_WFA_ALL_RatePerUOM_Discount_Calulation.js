@@ -2,11 +2,11 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/search','N/record'],
+define(['N/record'],
 /**
  * @param {search} search
  */
-function(search,record) {
+function(record) {
    
     /**
      * Definition of the Suitelet script trigger point.

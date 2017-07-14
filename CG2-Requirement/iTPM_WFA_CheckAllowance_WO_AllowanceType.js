@@ -18,8 +18,8 @@ function(search,runtime) {
     	try{
     		var iTPMAllowanceId = scriptContext.newRecord.id,estimatedQtyId = -1,
 //    		allowDuplicates = runtime.getCurrentScript().getParameter({name:'custscript_itpm_allowadditionaldiscounts'}),    
-    		allowanceFilter =[['custrecord_itpm_all_promotiondeal','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_woalltypepromotion'})],'and',
-    			['custrecord_itpm_all_item','is',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_woalltypeitem'})],'and',
+    		allowanceFilter =[['custrecord_itpm_all_promotiondeal','anyof',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_woalltypepromotion'})],'and',
+    			['custrecord_itpm_all_item','anyof',runtime.getCurrentScript().getParameter({name:'custscript_itpm_all_woalltypeitem'})],'and',
     			['isinactive','is',false]];
 
     		if(iTPMAllowanceId){
