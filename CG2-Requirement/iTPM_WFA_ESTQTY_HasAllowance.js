@@ -1,10 +1,11 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
+ * check the allowance are exist for promotion deal before estimate volume create
  */
-define(['N/search','N/record','N/runtime'],
+define(['N/search','N/runtime'],
 
-function(search,record,runtime) {
+function(search,runtime) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -14,7 +15,7 @@ function(search,record,runtime) {
 	 * @param {Record} scriptContext.oldRecord - Old record
 	 * @Since 2016.1
 	 */
-	function checkAllowanceForPromoDealWithItem(scriptContext) {
+	function checkForAllowanceRecords(scriptContext) {
 		try{
 			//check the allowance are exist for promotion deal before estimate volume create
 			var estVolumeRec = scriptContext.newRecord,
@@ -35,12 +36,13 @@ function(search,record,runtime) {
 			return (promoDealAllowanceSearch.run().getRange(0,10).length > 0)?'T':'F';
 			
 		}catch(e){
-			log.error('exception in allowance duplicated detection',e)
+			log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
+			return 'F';
 		}
 	}
 
 	return {
-		onAction : checkAllowanceForPromoDealWithItem
+		onAction : checkForAllowanceRecords
 	};
 
 });
