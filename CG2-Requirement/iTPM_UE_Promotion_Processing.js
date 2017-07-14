@@ -48,6 +48,18 @@ function(serverWidget,record,runtime,url) {
         				});
         				promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
         			}
+        			
+        			//after copy and save the record it will show the copy in progress message
+        			var copyInProgress = promoRec.getValue('custrecord_itpm_p_copyinprogress');
+            		var copyRelatedRecords = promoRec.getValue('custrecord_itpm_p_copy');
+            		if(copyInProgress && copyRelatedRecords){
+            			var msgText = "This Promotion is queued for copying and cannot be edited until the linked records (Allowances, Estimated Quantities, and Retail Info) are copied over from the original promotion, Please be patient."
+            			scriptContext.form.addField({
+            					id:'custpage_copyinprg_message',
+            					type:serverWidget.FieldType.INLINEHTML,
+            					label:'script'
+            			}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Copy In Progress",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+            		}
         		}
         		
     			//this block for showing the overlapping promotions in promotion record subtab
