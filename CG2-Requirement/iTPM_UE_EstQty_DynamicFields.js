@@ -137,12 +137,12 @@ function(record, search, serverWidget, runtime, url, https) {
 							value: estQty.getValue({fieldId:'custrecord_itpm_estqty_qtyby'})
 						});
 					} else {
-						log.error('UnitsList', 'Error retrieving units for selected item. record id = '+scriptContext.newRecord.id);
+						log.error('UnitsList', 'Error retrieving units for selected item. record id = '+sc.newRecord.id);
 					}
 				}
 			}
 		}catch(e){
-			log.error(e.name,'record id = '+scriptContext.newRecord.id+', function name = beforeload, message = '+e.message);
+			log.error(e.name,'record id = '+sc.newRecord.id+', function name = beforeload, message = '+e.message);
 		}
 	}
 	
