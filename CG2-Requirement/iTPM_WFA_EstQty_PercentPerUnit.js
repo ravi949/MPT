@@ -18,12 +18,12 @@ function(runtime,search) {
      */
     function onAction(scriptContext) {
     	try{
-    		var estqtyRec = scriptContext.newRecord,
-    		scriptObj = runtime.getCurrentScript(),
-    		itemId = scriptObj.getParameter({name:'custscript_itpm_estqty_percent_item'}),
-    		estqtyUnitId = scriptObj.getParameter({name:'custscript_itpm_estqty_percent_unit'}),
-    		estqtyPromoId = scriptObj.getParameter({name:'custscript_itpm_estqty_percent_promo'}),
-    		allMop = scriptObj.getParameter({name:'custscript_itpm_estqty_precent_allmop'}),percentRateUnit = 0;
+    		var estqtyRec = scriptContext.newRecord;
+    		var scriptObj = runtime.getCurrentScript();
+    		var itemId = scriptObj.getParameter({name:'custscript_itpm_estqty_percent_item'});
+    		var estqtyUnitId = scriptObj.getParameter({name:'custscript_itpm_estqty_percent_unit'});
+    		var estqtyPromoId = scriptObj.getParameter({name:'custscript_itpm_estqty_percent_promo'});
+    		var allMop = scriptObj.getParameter({name:'custscript_itpm_estqty_precent_allmop'}),percentRateUnit = 0;
     		//searching for the allowances records with Promo,Item and MOP.
     		var allSearch = search.create({
     			type:'customrecord_itpm_promoallowance',
@@ -33,9 +33,12 @@ function(runtime,search) {
     				['isinactive','is',false],'and',
     				['custrecord_itpm_all_mop','is',allMop] //mop
     			]
-    		}).run(),
-    		allResult = [],start = 0,end = 1000,result,allPercentUnit;
-
+    		}).run();
+    		var allResult = [];
+    		var start = 0;
+    		var end = 1000;
+    		var result;
+    		var allPercentUnit;
     		do{
     			result = allSearch.getRange(start,end);
     			allResult = allResult.concat(result);
@@ -45,12 +48,13 @@ function(runtime,search) {
     		allResult.forEach(function(result){
     			allPercentUnit = parseFloat(result.getValue({name:'custrecord_itpm_all_percentperuom'}));
     			percentRateUnit += allPercentUnit;
-    		})
+    		});
 
-    		log.debug('percentRateUnit',percentRateUnit)
+    		log.debug('percentRateUnit',percentRateUnit);
     		return percentRateUnit;
     	}catch(e){
-    		log.error('exception in percent per unit',e);
+			log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
+			return 0;
     	}
     }
 
