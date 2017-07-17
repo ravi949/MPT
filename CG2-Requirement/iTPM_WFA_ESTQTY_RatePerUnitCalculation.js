@@ -61,7 +61,8 @@ function(runtime,search,iTPM_Module) {
     		log.debug('ratePerUnit',ratePerUnit)
     		return ratePerUnit;
     	}catch(e){
-    		log.error('exception in rate per unit',e);
+    		log.error(e.name,e.message);
+    		return 0;
     	}
     }
 

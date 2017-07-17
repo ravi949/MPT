@@ -40,7 +40,7 @@ function(record,search) {
 				});
 			}
 		}catch(e){
-			log.error('exception',e.message);
+			log.error(e.name,e.message);
 		}
 	}
 
