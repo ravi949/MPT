@@ -2,9 +2,69 @@
  * @NApiVersion 2.x
  * @NModuleScope TargetAccount
  */
-define(['N/search', 'N/record', 'N/util'],
+define(['N/search', 'N/record', 'N/util', 'N/runtime'],
 
-function(search, record, util) {
+function(search, record, util, runtime) {
+	
+	/**
+	 * function locationEnabled()
+	 * Returns a boolean to indicate whether the Locations feature is enabled.
+	 * @returns {string}
+	 */
+	function locationsEnabled() {
+		try{
+			var featureEnabled = runtime.isFeatureInEffect({feature:'LOCATIONS'});
+			var currentUser = runtime.getCurrentUser();
+			var currentScript = runtime.getCurrentScript();
+			var currentSession = runtime.getCurrentSession();
+			log.debug('locationEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+			return featureEnabled.toString();
+		} catch(ex) {
+			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
+			log.error(ex.name, ex.message + '; additionalDetails: ' + message);
+			return 'false';
+		}
+	}
+	
+	/**
+	 * function departmentEnabled()
+	 * Returns a boolean to indicate whether the Departments feature is enabled.
+	 * @returns {string}
+	 */
+	function departmentsEnabled() {
+		try{
+			var featureEnabled = runtime.isFeatureInEffect({feature:'DEPARTMENTS'});
+			var currentUser = runtime.getCurrentUser();
+			var currentScript = runtime.getCurrentScript();
+			var currentSession = runtime.getCurrentSession();
+			log.debug('departmentEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+			return featureEnabled.toString();
+		} catch(ex) {
+			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
+			log.error(ex.name, ex.message + '; additionalDetails: ' + message);
+			return 'false';
+		}
+	}
+	
+	/**
+	 * function classesEnabled()
+	 * Returns a boolean to indicate whether the Classes feature is enabled.
+	 * @returns {string}
+	 */
+	function classesEnabled() {
+		try{
+			var featureEnabled = runtime.isFeatureInEffect({feature:'CLASSES'});
+			var currentUser = runtime.getCurrentUser();
+			var currentScript = runtime.getCurrentScript();
+			var currentSession = runtime.getCurrentSession();
+			log.debug('classesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+			return featureEnabled.toString();
+		} catch(ex) {
+			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
+			log.error(ex.name, ex.message + '; additionalDetails: ' + message);
+			return 'false';
+		}
+	}
     
 	/**
      * function getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB})
@@ -174,7 +234,10 @@ function(search, record, util) {
     	getActualQty : getActualQty,
     	getLiability : getLiability,
     	getSpend : getSpend,
-    	getPrefrenceValues:getPrefrenceValues
+    	getPrefrenceValues:getPrefrenceValues,
+    	locationsEnabled : locationsEnabled,
+    	departmentsEnabled : departmentsEnabled,
+    	classesEnabled : classesEnabled
     };
     
 });
