@@ -20,20 +20,24 @@ function(search,runtime) {
 			//check the allowance are exist for promotion deal before estimate volume create
 			var estVolumeRec = scriptContext.newRecord;
 			var scriptObj = runtime.getCurrentScript();
+			var promoDealId = scriptObj.getParameter({name:'custscript_itpm_hasallownce_promotion'});
+			var itemId = scriptObj.getParameter({name:'custscript_itpm_hasallowance_item'});
 			
-			var promoDealId = scriptObj.getParameter({name:'custscript_itpm_estqty_hasallownce_promo'}),
-			estVolumeItemId = scriptObj.getParameter({name:'custscript_itpm_estqty_hasallowance_item'});
+			var allSearchFilter = [['custrecord_itpm_all_promotiondeal','anyof',promoDealId],'and',
+				['isinactive','is',false]
+			];
 			
-			var promoDealAllowanceSearch = search.create({
-				type:'customrecord_itpm_promotiondeal',
-				columns:['custrecord_itpm_all_promotiondeal.internalid'],
-				filters:[['internalid','anyof',promoDealId],'and',
-					['isinactive','is',false],'and',
-					['custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item','anyof',estVolumeItemId],'and',
-					['custrecord_itpm_all_promotiondeal.isinactive','is',false]]
-			});
-
-			return (promoDealAllowanceSearch.run().getRange(0,10).length > 0)?'T':'F';
+			if(itemId){
+				allSearchFilter.push('and',['custrecord_itpm_all_item','anyof',itemId]);
+			}
+			
+			var hasAllowance = search.create({
+				type:'customrecord_itpm_promoallowance',
+				columns:['internalid'],
+				filters:allSearchFilter
+			}).run().getRange(0,10).length > 0;
+			
+			return (hasAllowance)?'T':'F';
 			
 		}catch(e){
 			log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);

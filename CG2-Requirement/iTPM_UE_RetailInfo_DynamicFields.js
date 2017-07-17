@@ -23,11 +23,12 @@ function(search, serverWidget, runtime) {
     function beforeLoad(scriptContext) {
     	try{
     		if(runtime.executionContext === runtime.ContextType.USER_INTERFACE){
-    			var type = scriptContext.type,
-    			retailRec = scriptContext.newRecord,
-    			promoId = retailRec.getValue('custrecord_itpm_rei_promotiondeal'),
-    			reiItem = retailRec.getValue('custrecord_itpm_rei_item'),
-    			retailItems = [];
+    			var type = scriptContext.type;
+    			var retailRec = scriptContext.newRecord;
+    			var promoId = retailRec.getValue('custrecord_itpm_rei_promotiondeal');
+    			var reiItem = retailRec.getValue('custrecord_itpm_rei_item');
+    			var selectedActivities = retailRec.getValue('custrecord_itpm_rei_activity');
+    			var retailItems = [];
     			
     			if(type == 'create' || type == 'edit' || type == 'copy'){
     				var itemField = scriptContext.form.addField({
@@ -83,6 +84,41 @@ function(search, serverWidget, runtime) {
     					})
     					return true;
     				});
+    				
+    				
+    			   //Activity Dynamic field
+    			   var promotionLookup = search.lookupFields({
+    				   type:'customrecord_itpm_promotiondeal',
+    				   id:promoId,
+    				   columns:['custrecord_itpm_p_type.custrecord_itpm_pt_merchtypes']
+    			   });
+    				
+    			   var ptMerchantList = promotionLookup['custrecord_itpm_p_type.custrecord_itpm_pt_merchtypes'].map(function(e){
+    				   return e.value
+    			   });
+    			   log.debug('ptMerchantList',ptMerchantList)
+    			   //creating the dynamic field for ACTIVITY field.
+    			   var activityField = scriptContext.form.addField({
+    				   id : 'custpage_itpm_activity_field',
+    				   type : serverWidget.FieldType.MULTISELECT,
+    				   label : 'ACTIVITY'
+    			   });
+    			   activityField.setHelpText({help:'Select the Activity for this Retail Event Information'});
+    				
+    			   search.create({
+						type:'customrecord_itpm_promotionactivity',
+						columns:['internalid','name'],
+						filters:[['custrecord_itpm_activity_type','anyof',ptMerchantList],'and',['isinactive','is',false]]
+					}).run().each(function(activity){
+						activityField.addSelectOption({
+							value : activity.getValue('internalid'),
+							text : activity.getValue('name'),
+							isSelected:selectedActivities.some(function(selectList){
+								return selectList == activity.getValue('internalid') 
+							})
+						});
+						return true;
+					});
     			}
     		}
     	}catch(e){
