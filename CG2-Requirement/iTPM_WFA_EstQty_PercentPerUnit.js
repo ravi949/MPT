@@ -50,7 +50,8 @@ function(runtime,search) {
     		log.debug('percentRateUnit',percentRateUnit)
     		return percentRateUnit;
     	}catch(e){
-    		log.error('exception in percent per unit',e);
+			log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
+			return 0;
     	}
     }
 
