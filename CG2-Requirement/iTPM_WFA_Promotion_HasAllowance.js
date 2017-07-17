@@ -36,7 +36,7 @@ function(search,runtime) {
 				columns:['internalid'],
 				filters:allSearchFilter
 			}).run().getRange(0,10).length > 0;
-			
+			log.debug('hasAllowance',hasAllowance);
 			return (hasAllowance)?'T':'F';
 			
 		}catch(e){

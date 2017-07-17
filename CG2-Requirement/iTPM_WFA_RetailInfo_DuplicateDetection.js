@@ -35,7 +35,7 @@ function(search) {
     			filters:reatailFilter
     		}).run().getRange(0,2).length > 0;
 
-    		return duplicateDetected.toString();	
+    		return duplicateDetected?'T':'F';	
     	}catch (e) {
     		log.error(e.name,e.message);
     	}
