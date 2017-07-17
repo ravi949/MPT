@@ -38,6 +38,7 @@ function(search) {
     		return duplicateDetected?'T':'F';	
     	}catch (e) {
     		log.error(e.name,e.message);
+    		return 'F';
     	}
     	
     }
