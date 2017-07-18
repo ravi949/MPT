@@ -25,16 +25,16 @@ function(config, record, search, runtime, iTPM_Module) {
 				var deductionRec = record.load({
 					type:'customtransaction_itpm_deduction',
 					id:params.custom_itpm_st_appliedtransction
-				}),
-				ddnOpenBal = deductionRec.getValue('custbody_itpm_ddn_openbal');
+				});
+				var ddnOpenBal = deductionRec.getValue('custbody_itpm_ddn_openbal');
 			}
 
 			//iTPM prefernce record values.
 			var prefObj = iTPM_Module.getPrefrenceValues();
-			var perferenceLS = prefObj.perferenceLS,
-			perferenceBB = prefObj.perferenceBB,
-			dednExpAccnt = prefObj.dednExpAccnt,
-			accountPayable = prefObj.accountPayable;
+			var perferenceLS = prefObj.perferenceLS;
+			var perferenceBB = prefObj.perferenceBB;
+			var dednExpAccnt = prefObj.dednExpAccnt;
+			var accountPayable = prefObj.accountPayable;
 
 
 			//Since the settlement record will be created with the Lump Sum, Off-Invoice and BIll Back request values set to zero, the system to should check to see whether there already exists a settlement record for the same promotion with ALL these three field values at zero. If yes, then prevent submit and return a user error - "There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion."
@@ -53,22 +53,23 @@ function(config, record, search, runtime, iTPM_Module) {
 				type:'customrecord_itpm_promotiondeal',
 				id:params['custom_itpm_st_promotion_no'],
 				columns:['custrecord_itpm_p_lumpsum','custrecord_itpm_p_netbillbackle','custrecord_itpm_p_netlsle','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_account','custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount']
-			}),
+			});
 			//loading the record for NET PROMOTIONAL LIABLIITY, INCURRED PROMOTIONAL LIABILITY fields(These are did not return a value in lookupFields method)
-			promotionRec = record.load({
+			var promotionRec = record.load({
 				type:'customrecord_itpm_promotiondeal',
 				id:params['custom_itpm_st_promotion_no']
-			}),//
-			promoRectypeId = record.create({type:'customrecord_itpm_promotiondeal'}).getValue('rectype'),
-			promoNetBBLiablty = loadedPromoRec['custrecord_itpm_p_netbillbackle'],
-			promoLS = loadedPromoRec['custrecord_itpm_p_lumpsum'],
-			netPromoLSLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netlsle'}),
-			netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'}),
-			promoTypeDefaultAccnt = loadedPromoRec['custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount'][0].value,
-			promoDealLumsumAccnt = (loadedPromoRec['custrecord_itpm_p_account'].length >0)?loadedPromoRec['custrecord_itpm_p_account'][0].value:promoTypeDefaultAccnt,
-					customerRec = record.load({type:record.Type.CUSTOMER,id:params.custom_itpm_st_cust}),
-					creditAccnt = customerRec.getValue('receivablesaccount');
-			creditAccnt = (creditAccnt != "-10")?creditAccnt:config.load({
+			});//
+			var promoRectypeId = record.create({type:'customrecord_itpm_promotiondeal'}).getValue('rectype');
+			var promoNetBBLiablty = loadedPromoRec['custrecord_itpm_p_netbillbackle'];
+			var promoLS = loadedPromoRec['custrecord_itpm_p_lumpsum'];
+			var netPromoLSLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netlsle'});
+			var netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'});
+			var promoTypeDefaultAccnt = loadedPromoRec['custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount'][0].value;
+			var promoDealLumsumAccnt = (loadedPromoRec['custrecord_itpm_p_account'].length >0)?loadedPromoRec['custrecord_itpm_p_account'][0].value:promoTypeDefaultAccnt;
+			var customerRec = record.load({type:record.Type.CUSTOMER,id:params.custom_itpm_st_cust});
+			var	creditAccnt = customerRec.getValue('receivablesaccount');
+			
+			var creditAccnt = (creditAccnt != "-10")?creditAccnt:config.load({
 				type:config.Type.ACCOUNTING_PREFERENCES
 			}).getValue('ARACCOUNT');
 
@@ -102,9 +103,10 @@ function(config, record, search, runtime, iTPM_Module) {
 			//Scenario 2: Preference set to Match Bill Back (this means overpay is posted on Lump Sum by default)
 			//If Promotion HAS Lump Sum then Bill Back Request = LESSER OF [Net Bill Back Liability OR Settlement Request] AND Lump Sum Request = Settlement Request - Bill Back Request
 			//If Promotion DOES NOT HAVE Lump Sum, then Bill Back Request = Settlement Request
-			var lumsumSetReq = params['custpage_lumsum_setreq'].replace(/,/g,''),billbackSetReq = params['custpage_billback_setreq'].replace(/,/g,''),
-			offinvoiceSetReq = params['custpage_offinvoice_setreq'].replace(/,/g,''), 
-			setReqAmount = params['custom_itpm_st_reql'].replace(/,/g,'');
+			var lumsumSetReq = params['custpage_lumsum_setreq'].replace(/,/g,'');
+			var billbackSetReq = params['custpage_billback_setreq'].replace(/,/g,'');
+			var offinvoiceSetReq = params['custpage_offinvoice_setreq'].replace(/,/g,''); 
+			var setReqAmount = params['custom_itpm_st_reql'].replace(/,/g,'');
 
 			if(createdFromDDN){
 				newSettlementRecord.setValue({

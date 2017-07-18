@@ -58,12 +58,13 @@ function(record, runtime, redirect) {
     			}
    			
     			for(var i = 0;i < lineCount;i++){
-    				var account = SetRec.getSublistValue({sublistId:'line',fieldId:'account',line:i}),
-    				credit = SetRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i}),
-    				debit = SetRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i}),
-    				lumsumType = SetRec.getSublistValue({sublistId:'line',fieldId:'custcol_itpm_lsbboi',line:i});
+    				var account = SetRec.getSublistValue({sublistId:'line',fieldId:'account',line:i});
+    				var credit = SetRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i});
+    				var debit = SetRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i});
+    				var lumsumType = SetRec.getSublistValue({sublistId:'line',fieldId:'custcol_itpm_lsbboi',line:i});
+
     				log.debug(i,'account ='+account+' credit='+credit+' debit='+debit+' lumsumType='+lumsumType);
-    				log.debug('JERec',JERec)
+    				log.debug('JERec',JERec);
        			
     				JERec.setSublistValue({
     					sublistId:'line',
@@ -94,7 +95,7 @@ function(record, runtime, redirect) {
     				ignoreMandatoryFields:true
     			});
        		
-    			log.debug('JERecId',JERecId)
+    			log.debug('JERecId',JERecId);
        		
     			if(JERecId){
     				SetRec.setValue({

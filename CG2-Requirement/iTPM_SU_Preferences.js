@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  * It shows the preferences record.If user have no preferences then user can creates the preferences.
  */
 define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search','N/runtime'],
@@ -36,7 +36,8 @@ function(record, redirect, serverWidget, search, runtime) {
 				//getting the total number of records in Accounts of type Expense
 				var totalExpRecCount = 0,
 				expRecCount = 0, expRecMax = 1000,
-				expRecCurrentIndex = 0, finalExpenseResult=[]
+				expRecCurrentIndex = 0, finalExpenseResult = [];
+				
 				do{
 					var res = expenseResult.getRange(expRecCurrentIndex, expRecCurrentIndex + expRecMax);
 					finalExpenseResult=finalExpenseResult.concat(res);
@@ -53,7 +54,8 @@ function(record, redirect, serverWidget, search, runtime) {
 				//getting the total number of records in Accounts
 				var totalAccRecCount = 0,
 				accRecCount = 0, accRecMax = 1000,
-				accRecCurrentIndex = 0, finalAccountResult=[]
+				accRecCurrentIndex = 0, finalAccountResult = [];
+				
 				do{
 					var res = accountResult.getRange(accRecCurrentIndex, accRecCurrentIndex + accRecMax);
 					finalAccountResult=finalAccountResult.concat(res);
@@ -72,7 +74,8 @@ function(record, redirect, serverWidget, search, runtime) {
 				//getting the account payables list
 				var totalAccRecCount = 0,
 				accRecCount = 0, accRecMax = 1000,
-				accRecCurrentIndex = 0, accountPaysbles=[]
+				accRecCurrentIndex = 0, accountPaysbles = [];
+				
 				do{
 					var res = accountPayResult.getRange(accRecCurrentIndex, accRecCurrentIndex + accRecMax);
 					accountPaysbles=accountPaysbles.concat(res);
@@ -169,8 +172,7 @@ function(record, redirect, serverWidget, search, runtime) {
 					type:'customrecord_itpm_preferences',
 					columns:['internalid'],
 					filters: []
-				}).run().getRange(0,1),
-				AccountRecordId,DdnExpenseId,ExpenseId,matchls,matchbb;
+				}).run().getRange(0,1);
 				//if The user have Preferences then showing his Preferences 
 				if(prefSearchRes.length > 0){
 					var prefSearchResId = prefSearchRes[0].getValue('internalid');
@@ -180,12 +182,12 @@ function(record, redirect, serverWidget, search, runtime) {
 					    isDynamic: true,
 					});
 					
-					AccountRecordId = preferanceRecord.getValue('custrecord_itpm_pref_overpayaccount'),
-					DdnExpenseId = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount'),
-					ExpenseId = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount'),
-					accountPayableId =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount'),
-					matchls = preferanceRecord.getValue('custrecord_itpm_pref_matchls'),
-					matchbb = preferanceRecord.getValue('custrecord_itpm_pref_matchbb');
+					var AccountRecordId = preferanceRecord.getValue('custrecord_itpm_pref_overpayaccount');
+					var DdnExpenseId = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount');
+					var ExpenseId = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount');
+					var accountPayableId =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount');
+					var matchls = preferanceRecord.getValue('custrecord_itpm_pref_matchls');
+					var matchbb = preferanceRecord.getValue('custrecord_itpm_pref_matchbb');
 					radioBtn.defaultValue = (matchls == true)?'custpage_ls':'custpage_bb';
 				}
 				
@@ -252,7 +254,7 @@ function(record, redirect, serverWidget, search, runtime) {
 						 type: 'customrecord_itpm_preferences',
 						 isDynamic: true
 					});
-					savePreferenceRecord(preferanceRecord,request)
+					savePreferenceRecord(preferanceRecord,request);
 				}
 				//if preferences record is available then updates the preferences record 
 				if(prefSearchRes.length > 0){
@@ -262,7 +264,7 @@ function(record, redirect, serverWidget, search, runtime) {
 					    id: prefSearchResId,
 					    isDynamic: true,
 					});
-					savePreferenceRecord(preferanceRecord,request)
+					savePreferenceRecord(preferanceRecord,request);
 				}
 				
 				redirect.toSuitelet({
@@ -271,18 +273,18 @@ function(record, redirect, serverWidget, search, runtime) {
 				});
 				
 			}catch(e){
-				log.error('Exeception',e);
+				log.error(e.name,e.message);
 			}			
 		}
 
 	}
 	
 	function savePreferenceRecord(preferanceRecord,request){
-		var deductionAccount = request.parameters.custpage_itpm_pref_ddnaccount,
-		overpayAccount = request.parameters.custpage_itpm_pref_overpayaccount,
-		expenseAccount = request.parameters.custpage_itpm_pref_expenseaccount,
-		settlementsType = request.parameters.custpage_matc,
-		accountPayableId = request.parameters.custpage_itpm_pref_accountpayable;
+		var deductionAccount = request.parameters.custpage_itpm_pref_ddnaccount;
+		var overpayAccount = request.parameters.custpage_itpm_pref_overpayaccount;
+		var expenseAccount = request.parameters.custpage_itpm_pref_expenseaccount;
+		var settlementsType = request.parameters.custpage_matc;
+		var accountPayableId = request.parameters.custpage_itpm_pref_accountpayable;
 		
 		preferanceRecord.setValue({
 		    fieldId: 'custrecord_itpm_pref_ddnaccount',
@@ -300,7 +302,7 @@ function(record, redirect, serverWidget, search, runtime) {
 			fieldId:'custrecord_itpm_pref_settlementsaccount',
 			value:accountPayableId,
 			ignoreFieldChange:true
-		})
+		});
 		
 		
 		if(settlementsType == 'custpage_ls'){
