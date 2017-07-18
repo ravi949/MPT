@@ -18,7 +18,8 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 	 */
 	function onRequest(context) {
 		try{
-			var request = context.request,response = context.response;
+			var request = context.request;
+			var response = context.response;
 
 			if(request.method == 'GET'){
 
@@ -28,7 +29,6 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 				var form = serverWidget.createForm({
 					title : 'Actual Sales'
 				});
-				log.error('yearResult',yearResult);
 
 				var promotionField=form.addField({
 					id : 'custpage_promotion',
@@ -99,13 +99,11 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 					label : 'ITEM'
 				});
 
-
 				actualSalesSublist.addField({
 					id : 'custpage_item_description',
 					type : serverWidget.FieldType.TEXT,
 					label : 'ITEM DESCRIPTION'
 				});
-
 
 				actualSalesSublist.addField({
 					id : 'custpage_invoiceid',
@@ -131,14 +129,11 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 					label : 'ACTUAL PRICE'
 				});
 
-
 				actualSalesSublist.addField({
 					id : 'custpage_actual_revenue',
 					type : serverWidget.FieldType.TEXT,
 					label : 'ACTUAL REVENUE'
 				});
-
-
 
 				//promoDeal Record Load
 				var promoDealRecord = search.lookupFields({
@@ -147,8 +142,8 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 					columns: ['internalid','name','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_customer']
 				});
 
-				var startDate = new Date(promoDealRecord['custrecord_itpm_p_shipstart']),
-				endDate = new Date(promoDealRecord['custrecord_itpm_p_shipend']);
+				var startDate = new Date(promoDealRecord['custrecord_itpm_p_shipstart']);
+				var endDate = new Date(promoDealRecord['custrecord_itpm_p_shipend']);
 
 				if(yearResult == 1){
 					startDate.setFullYear(startDate.getFullYear()-1);
@@ -157,8 +152,8 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 				var startDateYear = format.format({
 					value: startDate,
 					type: format.Type.DATE
-				}),
-				endDateYear = format.format({
+				});
+				var endDateYear = format.format({
 					value: endDate,
 					type: format.Type.DATE
 				});
@@ -168,8 +163,8 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 				promotionStdate.defaultValue = startDateYear;
 				promotionEndate.defaultValue = endDateYear;    		
 
-				var CustId = promoDealRecord['custrecord_itpm_p_customer'][0].value,
-				customerRecord = record.load({
+				var CustId = promoDealRecord['custrecord_itpm_p_customer'][0].value;
+				var customerRecord = record.load({
 					type : record.Type.CUSTOMER,
 					id : CustId
 				});    		    		    		
@@ -246,9 +241,9 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 					for(var i = 0;dataCount != null,i < dataCount;i++){
 						
 						if(page.data[i].getValue('item') != ''){
-							var quantity = page.data[i].getValue('quantity'),
-							rate = page.data[i].getValue('rate'),
-							unit = page.data[i].getValue('unit');
+							var quantity = page.data[i].getValue('quantity');
+							var rate = page.data[i].getValue('rate');
+							var unit = page.data[i].getValue('unit');
 							actualSalesSublist.setSublistValue({
 								id:'custpage_item',
 								line:i,
@@ -306,7 +301,6 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 
 		}catch(e){
 			log.error(e.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+e.message);
-//			throw Error(e.message)
 		}
 
 	}
