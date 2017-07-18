@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
- * Based on Methods of payment field value in Promotion type record show/hiding Bill-Back related fields
+ * Based on Methods of payment field value in Promotion type record show/hiding Net-Bill related fields
  */
 define(['N/record'],
 
@@ -20,14 +20,15 @@ define(['N/record'],
 			var promoTypeRec = record.load({
 				type:'customrecord_itpm_promotiontype',
 				id:scriptContext.newRecord.getValue('custrecord_itpm_p_type')
-			})
+			});
 
 			var MOPCondition = promoTypeRec.getValue('custrecord_itpm_pt_validmop').some(function(e){
-				return (e == 1);
+				return (e == 2);
 			});
 			return (MOPCondition)?'T':'F';
 		}catch(e){
-			log.error('exception',e)
+			log.error(e.name,e.message);
+			return 'F';
 		}
 	}
 
