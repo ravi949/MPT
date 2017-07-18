@@ -18,7 +18,8 @@ function(serverWidget,search,record,runtime,format) {
 	 */
 	function onRequest(context) {
 		try{
-			var request = context.request,response = context.response;
+			var request = context.request;
+			var response = context.response;
 
 			if(request.method == 'GET'){
 
@@ -81,7 +82,6 @@ function(serverWidget,search,record,runtime,format) {
 					label:'Actual Shipments'
 				});
 
-
 				//Actual Sales subtab and fields
 				var actualSalesSublist = form.addSublist({
 					id : 'custpage_actual_shippments_subtab',
@@ -96,13 +96,11 @@ function(serverWidget,search,record,runtime,format) {
 					label : 'ITEM'
 				});
 
-
 				actualSalesSublist.addField({
 					id : 'custpage_item_description',
 					type : serverWidget.FieldType.TEXT,
 					label : 'ITEM DESCRIPTION'
 				});
-
 
 				actualSalesSublist.addField({
 					id : 'custpage_shippmentid',
@@ -121,7 +119,6 @@ function(serverWidget,search,record,runtime,format) {
 					type : serverWidget.FieldType.TEXT,
 					label : 'SHIPPMENT QTY'
 				});
-
 
 				//promoDeal Record Load
 				var promoDealRecord = search.lookupFields({
@@ -197,21 +194,20 @@ function(serverWidget,search,record,runtime,format) {
 						var paginationField = form.addField({
 							id : 'custpage_ss_pagination',
 							type : serverWidget.FieldType.SELECT,
-							label : 'Pages',
+							label : 'Rows',
 							container:'custpage_actualshippments'
 						});
 
-
 						paginationField.updateDisplaySize({
 							height:50,
-							width : 120
+							width : 140
 						});
 						
 						for(var i = 0;i < numberOfPages;i++){
 							var paginationTextEnd = (totalResultCount >= (i*20)+20)?((i * 20)+20):totalResultCount;
 							paginationField.addSelectOption({
 								value :listOfPages[i].index,
-								text : ((i*20)+1)+' to '+paginationTextEnd,
+								text : ((i*20)+1)+' to '+paginationTextEnd+' of '+totalResultCount,
 								isSelected:(startno == i)
 							});
 						}
@@ -222,7 +218,6 @@ function(serverWidget,search,record,runtime,format) {
 						
 						dataCount = page.data.length;
 					}
-					
 					
 					for(var i = 0;dataCount != null,i < dataCount;i++){
 						if(page.data[i].getValue('item') != ''){
@@ -274,7 +269,6 @@ function(serverWidget,search,record,runtime,format) {
 		}catch(ex){
 			log.error(ex.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+ex.message);
 		}
-
 	}
 
 	return{
