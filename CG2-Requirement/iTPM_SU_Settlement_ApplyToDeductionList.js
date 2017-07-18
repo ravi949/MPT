@@ -27,7 +27,9 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 	function onRequest(context) 
 	{
 		try{
-			var request = context.request,response = context.response,parameters = request.parameters;
+			var request = context.request;
+			var response = context.response;
+			var parameters = request.parameters;
 
 			var output = url.resolveScript({
 			    scriptId: 'customscript_itpm_set_applytodeduction',
@@ -98,7 +100,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 				listcolumn.addParamToURL({
 				    param : 'sid',
 				    value : parameters.sid
-				})
+				});
 				list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'});
 				list.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js';
 				
@@ -161,7 +163,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 					listcolumn.addParamToURL({
 					    param : 'ddn',
 					    value : k.getValue('internalid')
-					})
+					});
 					list.addRow({
 						row:{ 
 							 'custpage_ddnid':k.getValue('internalid')
@@ -173,7 +175,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 								,'custpage_parentddn': k.getText('custbody_itpm_ddn_originalddn')
 								,'custpage_invoice' :  k.getText('custbody_itpm_ddn_invoice')
 						 }
-					})
+					});
 				}
 				
 				response.writePage(list); 
