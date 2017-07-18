@@ -31,7 +31,6 @@ function(runtime, serverWidget) {
     			setOffInv = settlementRec.getValue('custbody_itpm_set_reqoi');
     			
     			if(setStatus == 'A' && setReqAmount > 0 && (setLumSum > 0 || setBB > 0 || setOffInv > 0)){
-    				scriptContext.form.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
     				scriptContext.form.addButton({
     					id:'custpage_itpm_applytoddn',
     					label:'Apply To Deduction',
@@ -43,6 +42,17 @@ function(runtime, serverWidget) {
     					functionName:'redirectToCheck('+scriptContext.newRecord.id+')'
     				});
     			}
+    			
+    			
+    			if(setStatus == 'A' || setStatus == 'B'){
+    				scriptContext.form.addButton({
+    					id:'custpage_itpm_settlemevoid',
+    					label:'Void',
+    					functionName:'voidSettlement('+scriptContext.newRecord.id+')'
+    				});
+    			}
+    			
+    			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
     		}
     	}catch(e){
     		log.error(e.name,'record type = iTPM Settlement, record id='+scriptContext.newRecord.id+', message='+e.message);
