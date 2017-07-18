@@ -99,15 +99,16 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 				    param : 'sid',
 				    value : parameters.sid
 				})
-				list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'})
-				list.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js'
+				list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'});
+				list.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js';
 				
 				//getting the settlement request amount from the settlement record.
 				var settlementRec = record.load({
 					type:'customtransaction_itpm_settlement',
 					id:parameters.sid
-				}),a = [],
-				DeductionSearch = search.create({
+				});
+				var a = [];
+				var DeductionSearch = search.create({
 					type:'customtransaction_itpm_deduction',
 					columns:['internalid'
 					         ,'tranid'
@@ -126,7 +127,8 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 						,['custbody_itpm_ddn_openbal','greaterthanorequalto',settlementRec.getValue('custbody_itpm_set_amount')],'and'
 						,['custbody_itpm_ddn_customer','anyof',settlementRec.getValue('custbody_itpm_set_customer')]
 						]		    		
-				}),searchLength = DeductionSearch.run().getRange(0,2).length;
+				});
+				var searchLength = DeductionSearch.run().getRange(0,2).length;
 				
 				if(searchLength > 1){
 
@@ -134,7 +136,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 					    param : 'ddn',
 					    value : 'custpage_ddnid',
 					    dynamic:true
-					})
+					});
 					
 					DeductionSearch.run().each(function(k){
 						if(k.getValue('statusRef') == 'statusA'){					 
@@ -147,7 +149,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 									,'custpage_ddntotalamount' :  k.getValue('custbody_itpm_ddn_amount')
 									,'custpage_parentddn': k.getText('custbody_itpm_ddn_originalddn')
 									,'custpage_invoice' :  k.getText('custbody_itpm_ddn_invoice')
-						       })
+						       });
 						}
 						return true;
 					});
