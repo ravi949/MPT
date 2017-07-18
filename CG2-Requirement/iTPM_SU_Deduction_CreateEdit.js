@@ -36,12 +36,12 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 					var invoiceRec = record.load({
 						type:record.Type.INVOICE,
 						id:params.fid
-					}),
-					invoiceId = invoiceRec.id,
-					invoiceText = invoiceRec.getText('tranid'),
-					customerId = invoiceRec.getValue('entity'),
-					customerEntity = invoiceRec.getText('entity'),
-					invAmount = invoiceRec.getValue('amountremainingtotalbox');
+					});
+					var invoiceId = invoiceRec.id;
+					var invoiceText = invoiceRec.getText('tranid');
+					var customerId = invoiceRec.getValue('entity');
+					var customerEntity = invoiceRec.getText('entity');
+					var invAmount = invoiceRec.getValue('amountremainingtotalbox');
 					
 				}else if(params.from == 'ddn'){
 					var deductionRec = record.load({
@@ -51,17 +51,16 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 
 					//taking the values from the parent deduction record.
 					var originalDddno = deductionRec.getValue('custbody_itpm_ddn_originalddn');
-					var deductnNo = deductionRec.getValue('tranid'),
-					invoiceId = deductionRec.getValue('custbody_itpm_ddn_invoice'),
-					invoiceText = deductionRec.getText('custbody_itpm_ddn_invoice'),
-					customerId = deductionRec.getValue('custbody_itpm_ddn_customer'), 
-					customerEntity = deductionRec.getText('custbody_itpm_ddn_customer'), 
-					invAmount = deductionRec.getValue('custbody_itpm_ddn_amount');
+					var deductnNo = deductionRec.getValue('tranid');
+					var invoiceId = deductionRec.getValue('custbody_itpm_ddn_invoice');
+					var invoiceText = deductionRec.getText('custbody_itpm_ddn_invoice');
+					var customerId = deductionRec.getValue('custbody_itpm_ddn_customer'); 
+					var customerEntity = deductionRec.getText('custbody_itpm_ddn_customer'); 
+					var invAmount = deductionRec.getValue('custbody_itpm_ddn_amount');
 				}
 				
 				//reading the values same intenralid values from the deduciton or invoice record.
 				var recObj = (params.from == 'ddn')?deductionRec:invoiceRec;
-				
 				var invclass = recObj.getValue('class');
 				var invdept = recObj.getValue('department');
 				var invlocation = recObj.getValue('location');
@@ -722,20 +721,22 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 							type:search.Type.INVOICE,
 							columns:['internalid','account.type','account.name','account.internalid'],
 							filters:[['internalid','anyof',invoiceno],'and',['account.type','anyof',["AcctRec","Expense"]]]
-						}),recievableAccntId;
-
+						});
+						
 						lineMemo = 'Deduction applied on Invoice #'+invoiceLookup.tranid;
-
+						
+						var recievableAccntId;
 						recieveableAccnts.run().each(function(e){
 							if(e.getValue({name:'type',join:'account'}) == 'AcctRec')
 								recievableAccntId = e.getValue({name:'internalid',join:'account'});
 							return true
-						})
+						});
 
 						var configObj = config.load({
 							type:config.Type.ACCOUNTING_PREFERENCES
-						}),
-						itpmPreferenceSearch = search.create({
+						});
+						
+						var itpmPreferenceSearch = search.create({
 							type:'customrecord_itpm_preferences',
 							columns:['custrecord_itpm_pref_ddnaccount'],
 							filters:[]
@@ -766,9 +767,8 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 						fieldId:'memo',
 						value:(memo!='')?memo:lineMemo,
 						ignoreFieldChange:true
-					})
-					log.debug('customerno',customerno);
-					log.debug('receivableAccntsList',receivbaleAccntsList);
+					});
+					
 					receivbaleAccntsList.forEach(function(e){
 						deductionRec.selectNewLine({sublistId: 'line'});
 						deductionRec.setCurrentSublistValue({
