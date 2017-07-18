@@ -18,12 +18,16 @@ function(record) {
      * @Since 2016.1
      */
     function onAction(scriptContext) {
-    	var newRec = scriptContext.newRecord;
-//    	oldRecId = scriptContext.oldRecord;
-//    	log.debug('newRec',newRec.getValue('entryformquerystring').split('&')[1].split('=')[1]);
-//    	log.debug('scriptContext',newRec.getValue('linenumber'));
-    	
-    	return newRec.getValue('linenumber').toString()
+    	try{
+    		var newRec = scriptContext.newRecord;
+//  		log.debug('newRec',newRec.getValue('entryformquerystring').split('&')[1].split('=')[1]);
+//  		log.debug('scriptContext',newRec.getValue('linenumber'));
+
+    		return newRec.getValue('linenumber').toString();
+    	}catch(e){
+    		log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
+    		return '';
+    	}
     }
 
     return {
