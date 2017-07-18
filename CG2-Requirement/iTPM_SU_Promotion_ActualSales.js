@@ -217,21 +217,21 @@ define(['N/ui/serverWidget','N/search','N/record','N/runtime','N/format'],
 						var paginationField = form.addField({
 							id : 'custpage_ss_pagination',
 							type : serverWidget.FieldType.SELECT,
-							label : 'Pages',
+							label : 'Rows',
 							container:'custpage_actualsales'
 						});
 
 
 						paginationField.updateDisplaySize({
 							height:50,
-							width : 120
+							width : 140
 						});
 						
 						for(var i = 0;i < numberOfPages;i++){
 							var paginationTextEnd = (totalResultCount >= (i*20)+20)?((i * 20)+20):totalResultCount;
 							paginationField.addSelectOption({
 								value :listOfPages[i].index,
-								text : ((i*20)+1)+' to '+paginationTextEnd,
+								text : ((i*20)+1)+' to '+paginationTextEnd+' of '+totalResultCount,
 								isSelected:(startno == i)
 							});
 						}
