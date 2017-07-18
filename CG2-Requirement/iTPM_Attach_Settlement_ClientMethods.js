@@ -53,9 +53,26 @@ function(message, url) {
 	   }
    }
    
+   function voidSettlement(settlementId){
+	   try{
+		   var msg = displayMessage('Voiding the settlement','Please wait while void the settlement and redirect to JE.');
+		   msg.show();
+		   var deductionListURL = url.resolveScript({
+	   			scriptId:'customscript_itpm_set_void',
+	   			deploymentId:'customdeploy_itpm_set_void',
+	   			params:{sid:settlementId}
+	   	   }); 
+		   window.open(deductionListURL,'_self');
+	   }catch(e){
+		   console.log(e.name,'error in void the settlement, function name = voidTheSettlement, message = '+e.message);
+	   }
+   }
+   
+   
     return {
         redirectToDeductionList:redirectToDeductionList,
-        redirectToCheck:redirectToCheck
+        redirectToCheck:redirectToCheck,
+        voidSettlement:voidSettlement
     };
     
 });
