@@ -945,7 +945,18 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				fieldId:'account',
 				value:ddnExpnseAccount,
 				line:i
-			}).setSublistValue({
+			});
+			
+			if(i == 0){
+				copiedDeductionRec.setSublistValue({
+					sublistId:'line',
+					fieldId:'entity',
+					value:parentDdnRec.getValue('custbody_itpm_ddn_customer'),
+					line:i
+				});
+			}
+			
+			copiedDeductionRec.setSublistValue({
 				sublistId:'line',
 				fieldId:(i==0)?'credit':'debit',
 				value:remainingAmount,
