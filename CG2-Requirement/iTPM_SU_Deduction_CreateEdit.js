@@ -890,7 +890,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 		}catch(e){
 			if(e.message == 'you cannot make a deduction from this invoice'){
 				throw Error(e.message);
-			}else if(e.message == 'you cannot make a deduction from this deduction'){
+			}else if(e.message == 'you cannot make a split from this deduction'){
 				throw Error(e.message);
 			}else if(e.message == 'invalid parameters'){
 				throw Error(e.message);
@@ -1036,7 +1036,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
     				type:'customtransaction_itpm_deduction',
     				id:id
     			});
-    			return (loadedRec.getValue('transtatus') == 'A')?{success:true}:{success:false,errormessage:'you cannot make a deduction from this deduction'};
+    			return (loadedRec.getValue('transtatus') == 'A')?{success:true}:{success:false,errormessage:'you cannot make a split from this deduction'};
 
     		}
     		return {success:true}   		
