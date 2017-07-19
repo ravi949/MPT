@@ -26,12 +26,12 @@ function(search,runtime,iTPM_Module) {
     			var itemSearch = search.lookupFields({
         			type:search.Type.ITEM,
         			id:itemId,
-        			columns:['averagecost','saleunit']
+        			columns:['averagecost','stockunit']
         		});
     			unitsList = unitsList.unitArray;
         		var itemAvgCost = parseFloat(itemSearch["averagecost"]).toFixed(2);
         		var baseUnitRate = unitsList.filter(function(e){return e.isBase})[0].conversionRate;
-        		var itemUnitRate = unitsList.filter(function(e){return e.id == itemSearch["saleunit"][0].value})[0].conversionRate;
+        		var itemUnitRate = unitsList.filter(function(e){return e.id == itemSearch["stockunit"][0].value})[0].conversionRate;
         		convertedAvgCost = (baseUnitRate/itemUnitRate)*itemAvgCost;
         		
     		}else{

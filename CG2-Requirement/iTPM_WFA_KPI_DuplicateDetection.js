@@ -19,36 +19,36 @@ function(search, runtime) {
 		try{
 			
 			var itpmKPISearchObj = search.create({
-    		     type: 'customrecord_itpm_kpi',
-    		     
-    		     filters : [
-    		             search.createFilter({
-    		        	  name     : 'custrecord_itpm_kpi_promotiondeal',
-    	                  operator : 'anyof',
-    	                  values   : runtime.getCurrentScript().getParameter({
-										name  : 'custscript_itpm_kpi_dupdetection_promo'
-									})  
-    		          }),
-                          search.createFilter({
-    		        	  name     : 'custrecord_itpm_kpi_item',
-    	                  operator : 'anyof',
-    	                  values   : runtime.getCurrentScript().getParameter({
-										name  : 'custscript_itpm_kpi_dupdetection_item'
-								   })
-    		          }),
-                          search.createFilter({
-    		        	  name     : 'isinactive',
-    	                  operator : 'is',
-    	                  values   : false
-    		          })
-                 ],
-    		     
-    		     columns : [
-    		         search.createColumn({
-    		        	name: 'internalid'
-    		        })
-    		     ]
-    		});
+				type: 'customrecord_itpm_kpi',
+
+				filters : [
+					search.createFilter({
+						name     : 'custrecord_itpm_kpi_promotiondeal',
+						operator : 'anyof',
+						values   : runtime.getCurrentScript().getParameter({
+							name  : 'custscript_itpm_kpi_dupdetection_promo'
+						})  
+					}),
+					search.createFilter({
+						name     : 'custrecord_itpm_kpi_item',
+						operator : 'anyof',
+						values   : runtime.getCurrentScript().getParameter({
+							name  : 'custscript_itpm_kpi_dupdetection_item'
+						})
+					}),
+					search.createFilter({
+						name     : 'isinactive',
+						operator : 'is',
+						values   : false
+					})
+				  ],
+
+				  columns : [
+					 search.createColumn({
+					  name: 'internalid'
+					 })
+				  ]
+			});
 
     		var itpmKPISearchResults = itpmKPISearchObj.run().getRange({
     			start: 0,
@@ -56,12 +56,11 @@ function(search, runtime) {
     		});
 
 			log.debug('itpmKPISearchResults Length', itpmKPISearchResults.length);
-    		var duplicateKPI = (itpmKPISearchResults.length > 0) ? 'T' : 'F';
-				
-			return duplicateKPI;
+    		return (itpmKPISearchResults.length > 0) ? 'T' : 'F';
+			
 		}catch(e){
 			log.error(e.name,e.message);
-			return 'F';
+			return 'T';
 		}
 	}
 
