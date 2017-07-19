@@ -3,9 +3,9 @@
  * @NScriptType workflowactionscript
  * If user change the values in iTPM Allowance and submit record than it will load and save the appropriate EstimateQty and RetailInfo Records
  */
-define(['N/record','N/search'],
+define(['N/record','N/search','N/runtime'],
 
-function(record,search) {
+function(record,search,runtime) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -17,9 +17,10 @@ function(record,search) {
 	 */
 	function onAction(scriptContext) {
 		try{
-			var allowanceRec = scriptContext.newRecord,
-			promoDealId = allowanceRec.getValue('custrecord_itpm_all_promotiondeal'),
-			promoItem = allowanceRec.getValue('custrecord_itpm_all_item');
+			var allowanceRec = scriptContext.newRecord;
+			var scriptObj = runtime.getCurrentScript();
+			var promoDealId = scriptObj.getParameter({name:'custscript_itpm_all_updateestqty_promo'});
+			var promoItem = scriptObj.getParameter({name:'custscript_itpm_all_updateestqty_item'});
 
 			var estVolumeResult = search.create({
 				type:'customrecord_itpm_estquantity',

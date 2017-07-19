@@ -2,12 +2,12 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/record', 'N/search'],
+define(['N/record', 'N/search', 'N/runtime'],
 /**
  * @param {record} record
  * @param {search} search
 */
-function(record, search) {
+function(record, search, runtime) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -20,8 +20,9 @@ function(record, search) {
 	function onAction(scriptContext) {
 		try{
 			var allowanceRec = scriptContext.newRecord;
-			var promoDealId = allowanceRec.getValue('custrecord_itpm_all_promotiondeal');
-			var promoItem = allowanceRec.getValue('custrecord_itpm_all_item');
+			var scriptObj = runtime.getCurrentScript();
+			var promoDealId = scriptObj.getParameter({name:'custscript_itpm_all_updateretail_promo'});
+			var promoItem = scriptObj.getParameter({name:'custscript_itpm_all_updateretail_item'});
 
 			//edit the Retail info record	
 			var retailInfoSearch = search.create({
