@@ -348,7 +348,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
 	    var appliedToTransactionField = settlementForm.addField({
 	    	id : 'custom_itpm_st_appliedtransction',
 	    	type : serverWidget.FieldType.SELECT,
-	    	label : 'APPLIED TO',
+	    	label : 'APPLIED TO TRANSACTION',
 	    	container:'custom_primaryinfo_group',
 	    	source:'transaction'
 	    }).updateBreakType({

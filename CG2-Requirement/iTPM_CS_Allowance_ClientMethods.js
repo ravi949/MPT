@@ -49,7 +49,7 @@ function(message,url,https, search,dialog) {
 				}
 				if(mode == 'edit'){
 					var disableADD = checkForAllowaceDuplicates(mode,rec);
-					if(disableADD != 0){
+					if(disableADD != 0 && disableADD != -1){
 						var checkBoxField = rec.getField('custrecord_itpm_all_allowaddnaldiscounts');
 						checkBoxField.isDisabled = disableADD;
 					}

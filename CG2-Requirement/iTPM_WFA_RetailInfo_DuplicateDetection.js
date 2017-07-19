@@ -3,9 +3,9 @@
  * @NScriptType workflowactionscript
  * Retail info duplicate detection.
  */
-define(['N/search'],
+define(['N/search', 'N/runtime'],
 
-function(search) {
+function(search,runtime) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -18,8 +18,9 @@ function(search) {
     function onAction(scriptContext) {
     	try{    	
     		var reatailRec = scriptContext.newRecord;
-    		var promoDeal = reatailRec.getValue('custrecord_itpm_rei_promotiondeal');
-    		var item = reatailRec.getValue('custrecord_itpm_rei_item');
+    		var scriptObj = runtime.getCurrentScript();
+    		var promoDeal = scriptObj.getParameter({name:'custscript_itpm_rei_dupdetection_promo'});
+    		var item = scriptObj.getParameter({name:'custscript_itpm_rei_dupdetection_item'});
 
     		var reatailFilter = [['custrecord_itpm_rei_promotiondeal','anyof',promoDeal],'and',
     		                     ['custrecord_itpm_rei_item','anyof',item],'and',
