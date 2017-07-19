@@ -268,7 +268,7 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 				var aplydToTrans = ddnForm.addField({
 					id : 'custom_itpm_ddn_appliedto',
 					type : serverWidget.FieldType.SELECT,
-					label:'APPLIED TO',
+					label:'APPLIED TO TRANSACTION',
 					container:'custom_primry_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
