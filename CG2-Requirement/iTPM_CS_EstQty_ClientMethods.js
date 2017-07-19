@@ -87,9 +87,9 @@ function(https, url) {
     function fieldChanged(sc) {
     	try{
     		var fieldId = sc.fieldId, estqty = sc.currentRecord;
+    		var dynItemField = estqty.getValue({fieldId:'custpage_itpm_estqty_item'}),
+			itemField = estqty.getValue({fieldId:'custrecord_itpm_estqty_item'});
     		if (fieldId == 'custpage_itpm_estqty_item'){
-    			var dynItemField = estqty.getValue({fieldId:'custpage_itpm_estqty_item'}),
-    				itemField = estqty.getValue({fieldId:'custrecord_itpm_estqty_item'});
     			if(itemField != dynItemField){
 	    			estqty.setValue({
 	    				fieldId: 'custrecord_itpm_estqty_item',
@@ -134,10 +134,10 @@ function(https, url) {
     				var unitField = estqty.getField({fieldId:'custpage_itpm_estqty_unit'});
     				unitField.removeSelectOption({value:null});
     				var unitsList = objResponse.unitsList;
-
+    				
     				if(mode == null){
     					unitField.insertSelectOption({
-    						value: 0,
+    						value: " ",
     						text: " "
     					});
     				}
