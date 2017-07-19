@@ -94,6 +94,11 @@ function(record, redirect, runtime, search, ST_Module) {
         			value:  settlementRec.getValue('custbody_itpm_set_promo'),
         			ignoreFieldChange: true
         		});
+        		checkRecord.setValue({
+        			fieldId: 'tobeprinted',
+        			value:  true,
+        			ignoreFieldChange: true
+        		});
         		
         		//adding line items in the check record    		
         		var expenseLineCount = 0;//increasing line count after adding record

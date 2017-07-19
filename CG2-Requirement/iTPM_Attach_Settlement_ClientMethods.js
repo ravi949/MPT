@@ -42,12 +42,12 @@ function(message, url) {
 	   try{
 		  var msg = displayMessage('Applying to Check','Please wait while the check is created and applied.');
 		  msg.show();
-		  var deductionListURL = url.resolveScript({
+		  var ApplyToCheckURL = url.resolveScript({
 	   			scriptId:'customscript_itpm_set_applytocheck',
 	   			deploymentId:'customdeploy_itpm_set_applytocheck',
 	   			params:{sid:settlementId}
 	   		  }); 
-			  window.open(deductionListURL,'_self');
+			  window.open(ApplyToCheckURL,'_self');
 	   }catch(e){
 		   console.log(e.name,'error in apply settlement to check, function name = redirectToCheck, message='+e.message);
 	   }
@@ -57,12 +57,12 @@ function(message, url) {
 	   try{
 		   var msg = displayMessage('Voiding the settlement','Please wait while void the settlement and redirect to JE.');
 		   msg.show();
-		   var deductionListURL = url.resolveScript({
+		   var voidSetlmntURL = url.resolveScript({
 	   			scriptId:'customscript_itpm_set_void',
 	   			deploymentId:'customdeploy_itpm_set_void',
 	   			params:{sid:settlementId}
 	   	   }); 
-		   window.open(deductionListURL,'_self');
+		   window.open(voidSetlmntURL,'_self');
 	   }catch(e){
 		   console.log(e.name,'error in void the settlement, function name = voidTheSettlement, message = '+e.message);
 	   }
