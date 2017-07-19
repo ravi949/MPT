@@ -19,9 +19,9 @@ function(record, search) {
 	 */
 	function onAction(scriptContext) {
 		try{
-			var allowanceRec = scriptContext.newRecord,
-			promoDealId = allowanceRec.getValue('custrecord_itpm_all_promotiondeal'),
-			promoItem = allowanceRec.getValue('custrecord_itpm_all_item');
+			var allowanceRec = scriptContext.newRecord;
+			var promoDealId = allowanceRec.getValue('custrecord_itpm_all_promotiondeal');
+			var promoItem = allowanceRec.getValue('custrecord_itpm_all_item');
 
 			//edit the Retail info record	
 			var retailInfoSearch = search.create({
@@ -31,7 +31,6 @@ function(record, search) {
 					['custrecord_itpm_rei_promotiondeal','anyof',promoDealId],'and',
 					['isinactive','is',false]]
 			}).run().getRange(0,1);
-
 			if(retailInfoSearch.length > 0){
 				record.load({
 					type:'customrecord_itpm_promoretailevent',
@@ -42,7 +41,7 @@ function(record, search) {
 				});
 			}
 		}catch(e){
-			log.error('exception',e.message);
+			log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
 		}
 	}
 
