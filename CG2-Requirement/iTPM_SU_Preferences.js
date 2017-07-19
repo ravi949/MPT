@@ -34,9 +34,11 @@ function(record, redirect, serverWidget, search, runtime) {
 					]
 				}).run();
 				//getting the total number of records in Accounts of type Expense
-				var totalExpRecCount = 0,
-				expRecCount = 0, expRecMax = 1000,
-				expRecCurrentIndex = 0, finalExpenseResult = [];
+				var totalExpRecCount = 0;
+				var expRecCount = 0;
+				var expRecMax = 1000;
+				var expRecCurrentIndex = 0;
+				var finalExpenseResult = [];
 				
 				do{
 					var res = expenseResult.getRange(expRecCurrentIndex, expRecCurrentIndex + expRecMax);
@@ -52,9 +54,11 @@ function(record, redirect, serverWidget, search, runtime) {
 					filters: [['isinactive','is',false]]
 				}).run();
 				//getting the total number of records in Accounts
-				var totalAccRecCount = 0,
-				accRecCount = 0, accRecMax = 1000,
-				accRecCurrentIndex = 0, finalAccountResult = [];
+				var totalAccRecCount = 0;
+				var accRecCount = 0;
+				var accRecMax = 1000;
+				var accRecCurrentIndex = 0;
+				var finalAccountResult = [];
 				
 				do{
 					var res = accountResult.getRange(accRecCurrentIndex, accRecCurrentIndex + accRecMax);
@@ -72,9 +76,11 @@ function(record, redirect, serverWidget, search, runtime) {
 				}).run();
 				
 				//getting the account payables list
-				var totalAccRecCount = 0,
-				accRecCount = 0, accRecMax = 1000,
-				accRecCurrentIndex = 0, accountPaysbles = [];
+				var totalAccRecCount = 0;
+				var accRecCount = 0;
+				var accRecMax = 1000;
+				var accRecCurrentIndex = 0;
+				var accountPaysbles = [];
 				
 				do{
 					var res = accountPayResult.getRange(accRecCurrentIndex, accRecCurrentIndex + accRecMax);
