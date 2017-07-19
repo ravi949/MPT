@@ -2,11 +2,11 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/search', './iTPM_Module'],
+define(['N/search', 'N/runtime', './iTPM_Module'],
 /**
  * @param {search} search
  */
-function(search,iTPM_Module) {
+function(search,runtime,iTPM_Module) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -18,7 +18,7 @@ function(search,iTPM_Module) {
      */
     function onAction(scriptContext) {
     	try{
-    		var itemId = scriptContext.newRecord.getValue('custrecord_itpm_rei_item');
+    		var itemId = runtime.getCurrentScript().getParameter({name:'custscript_itpm_rei_baseavgcost_item'});
     		var unitsList = iTPM_Module.getItemUnits(itemId);
     		var convertedAvgCost = 0;
     		

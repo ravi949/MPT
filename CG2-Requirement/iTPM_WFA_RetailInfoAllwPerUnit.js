@@ -3,9 +3,9 @@
  * @NScriptType workflowactionscript
  * retail merge margin calculation,setting the values to the %Discount at Retail
  */
-define(['N/search','N/record', './iTPM_Module'],
+define(['N/search','N/record','N/runtime','./iTPM_Module'],
 
-function(search,record,iTPM_Module) {
+function(search,record,runtime,iTPM_Module) {
 
 /**
 * Definition of the Suitelet script trigger point.
@@ -19,8 +19,9 @@ function(search,record,iTPM_Module) {
 		try{
 			//before record submit we calculation the values
 			var retailRec = scriptContext.newRecord;
-			var promoId = retailRec.getValue('custrecord_itpm_rei_promotiondeal');
-			var itemId = retailRec.getValue('custrecord_itpm_rei_item');
+			var scriptObj = runtime.getCurrentScript();
+			var promoId = scriptObj.getParameter({name:'custscript_itpm_rei_calculation_promo'});
+			var itemId = scriptObj.getParameter({name:'custscript_itpm_rei_calculation_item'});
 			//setting the value to the Allowance Per Unit
 			if(promoId != '' && itemId != ''){				
 				var unitsList = iTPM_Module.getItemUnits(itemId);
