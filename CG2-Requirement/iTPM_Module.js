@@ -65,6 +65,26 @@ function(search, record, util, runtime) {
 			return 'false';
 		}
 	}
+	
+	/**
+	 * function subsidiariesEnabled()
+	 * Returns a boolean to indicate whether the Subsidiaries feature is enabled.
+	 * @returns {string}
+	 */
+	function subsidiariesEnabled() {
+		try{
+			var featureEnabled = runtime.isFeatureInEffect({feature:'SUBSIDIARIES'});
+			var currentUser = runtime.getCurrentUser();
+			var currentScript = runtime.getCurrentScript();
+			var currentSession = runtime.getCurrentSession();
+			log.debug('subsidiariesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+			return featureEnabled.toString();
+		} catch(ex) {
+			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
+			log.error(ex.name, ex.message + '; additionalDetails: ' + message);
+			return 'false';
+		}
+	}
     
 	/**
      * function getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB})
