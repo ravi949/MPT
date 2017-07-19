@@ -23,20 +23,25 @@ function(search,record,iTPM_Module) {
 			var itemId = retailRec.getValue('custrecord_itpm_rei_item');
 			//setting the value to the Allowance Per Unit
 			if(promoId != '' && itemId != ''){				
-				var unitsList = iTPM_Module.getItemUnits(itemId).unitArray;
-				var baseConversionRate = unitsList.filter(function(e){return e.isBase})[0].conversionRate;
-				var allowancePerUnit = 0;
-				search.create({
-					type:'customrecord_itpm_promoallowance',
-					columns:['custrecord_itpm_all_uom','custrecord_itpm_all_rateperuom','custrecord_itpm_all_item.unitstype'],
-					filters:[['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
-						['custrecord_itpm_all_item','anyof',itemId],'and',
-						['isinactive','is',false]]
-				}).run().each(function(result){
-					var allowanceUOMRate = unitsList.filter(function(e){return e.id == result.getValue('custrecord_itpm_all_uom')})[0].conversionRate;
-					var conversionFactor = baseConversionRate/allowanceUOMRate;
-					allowancePerUnit += conversionFactor * parseFloat(result.getValue('custrecord_itpm_all_rateperuom'));
-				});
+				var unitsList = iTPM_Module.getItemUnits(itemId);
+				if(!unitsList.error){
+					unitsList = unitsList.unitArray;
+					var baseConversionRate = unitsList.filter(function(e){return e.isBase})[0].conversionRate;
+					var allowancePerUnit = 0;
+					search.create({
+						type:'customrecord_itpm_promoallowance',
+						columns:['custrecord_itpm_all_uom','custrecord_itpm_all_rateperuom'],
+						filters:[['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
+							['custrecord_itpm_all_item','anyof',itemId],'and',
+							['isinactive','is',false]]
+					}).run().each(function(result){
+						var allowanceUOMRate = unitsList.filter(function(e){return e.id == result.getValue('custrecord_itpm_all_uom')})[0].conversionRate;
+						var conversionFactor = baseConversionRate/allowanceUOMRate;
+						allowancePerUnit += conversionFactor * parseFloat(result.getValue('custrecord_itpm_all_rateperuom'));
+					});
+				}else{
+					log.error('unitslist',unitsList);
+				}
 			}
 			return allowancePerUnit;
 		}catch(e){
