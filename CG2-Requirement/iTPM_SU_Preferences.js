@@ -220,7 +220,7 @@ function(record, redirect, serverWidget, search, runtime) {
 				id : 'custpage_itpm_cancelbtn',
 				functionName:"redirectToBack"
 			});
-			form.clientScriptModulePath =  './iTPM_CS_Preferences_ClientMethods.js';
+			form.clientScriptModulePath =  './iTPM_Attach_Preferences_ClientMethods.js';
 			
 			return {error: false, form: form}
 		} catch(ex) {

@@ -43,6 +43,10 @@
     <file name="iTPMSettlement_ToDeduction_Redirect_TOListOfPromotions_wf_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMSettlement_ValidationAndRedirection_ue_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPMSettlement_ViewFor_ListOut_AvailablePromotions_su_script.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="iTPM_Attach_Deduction_Buttons.js" bundleable="true" hideInBundle="false" isOnline="false" textFileEncoding="_utf8">
+      <description>Client script to be attached to the iTPM Deduction record, via UE, for Deduction Buttons.</description>
+      <altTagCaption></altTagCaption>
+    </file>
     <file name="iTPM_Bundle_Installation.js" bundleable="true" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_CS_ALL_AddUOMOptions.js" bundleable="true" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_CS_Allowance_SetImpact_Price.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
@@ -54,7 +58,7 @@
       <description>Suitelet to return units based on item, or conversion rate based on unit and item.</description>
     </file>
     <file name="iTPM_SU_Overlapping_Promotions_Frontend.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
-    <file name="iTPM_SU_Preferences.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
+    <file name="iTPM_SU_Preferences_OLD.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_SU_PromotionType_Assistant.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_UE_ALL_DynamicUnitField.js" bundleable="true" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>
     <file name="iTPM_UE_Allowance_Dynamic_UOM_and_Account.js" bundleable="false" hideInBundle="false" isOnline="false" textFileEncoding="_utf8"/>

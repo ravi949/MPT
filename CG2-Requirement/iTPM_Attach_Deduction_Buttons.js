@@ -1,6 +1,6 @@
 /**
  * @NApiVersion 2.x
- * @NModuleScope Public
+ * @NModuleScope TargetAccount
  * This will call the respective suitelet scripts upon button click.
  * Client script to be attached to the iTPM Deduction record, via UE, for Deduction Buttons.
  */
