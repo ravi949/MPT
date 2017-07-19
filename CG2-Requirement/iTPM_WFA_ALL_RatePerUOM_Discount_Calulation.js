@@ -30,14 +30,12 @@ function(record) {
     		case '1': //Rate per UOM calculate %Discount price
     			var allowanceRateValue = parseFloat(allRec.getValue('custrecord_itpm_all_allowancerate'));
     			var percentBasePrice = (allUnitPrice !='' && allUnitPrice != 0) ? (allowanceRateValue/allUnitPrice)*100:0;
-    			allRec.setValue('custrecord_itpm_all_percentperuom',parseFloat(percentBasePrice));
     			allRec.setValue('custrecord_itpm_all_allowancepercent',parseFloat(percentBasePrice));
     			break;
     		case '2': //%Discount calculate rate UOM
     			var percentBasePrice = parseFloat(allRec.getValue('custrecord_itpm_all_allowancepercent'))/100;
     			var ratePerUOM = percentBasePrice * allUnitPrice * redemptionFactor;
     			allRec.setValue('custrecord_itpm_all_rateperuom',ratePerUOM);
-    			allRec.setValue('custrecord_itpm_all_allowancerate',ratePerUOM);
     			break;
     		}
     		
