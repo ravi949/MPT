@@ -22,7 +22,8 @@ function(url, record, widget, runtime, redirect) {
 		try{
 			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
 				status = sc.newRecord.getValue({fieldId:'transtatus'}),
-				clientScriptPath = runtime.getCurrentScript().getParameter({name:'custscript_itpm_ue_ddn_cspath'}),
+//				clientScriptPath = runtime.getCurrentScript().getParameter({name:'custscript_itpm_ue_ddn_cspath'}),
+				clientScriptPath = './iTPM_Attach_Deduction_Buttons.js',
 				eventType = sc.type,
 				runtimeContext = runtime.executionContext; 
 			log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
@@ -73,9 +74,52 @@ function(url, record, widget, runtime, redirect) {
 			throw ex;
 		}
 	}
+	
+	 /**
+     * Function definition to be triggered before record is loaded.
+     *
+     * @param {Object} sc
+     * @param {Record} sc.newRecord - New record
+     * @param {Record} sc.oldRecord - Old record
+     * @param {string} sc.type - Trigger type
+     * @Since 2015.2
+     */
+    function beforeSubmit(sc) {
+    	try{
+    		if (sc.type == sc.UserEventType.EDIT || sc.type == sc.UserEventType.XEDIT){
+        		var exc = runtime.executionContext;
+        		log.debug('UserEventType: ' + sc.type + '; ExecutionContext: ' + exc + '; RecordId: ' + sc.newRecord.id);
+        		if (exc == runtime.ContextType.USEREVENT || exc == runtime.ContextType.SUITELET){
+        			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'});
+        			var status = sc.oldRecord.getValue({fieldId:'transtatus'});
+        			log.debug('OpenBal: ' + openBalance + '; Status: ' + status);
+        			openBalance = parseFloat(openBalance);
+        			log.debug('Parsed Open Balance', openBalance);
+    				if (openBalance > 0 && status != 'A'){
+    					log.debug('Setting status to OPEN (status Ref A)');
+    					sc.newRecord.setValue({
+    						fieldId: 'transtatus',
+    						value: 'A'
+    					});
+    					log.debug('OpenBal: ' + openBalance + '; New Status: ' + sc.newRecord.getValue({fieldId: 'transtatus'}));
+    				} else if (openBalance == 0 && status != 'C'){
+    					log.debug('Setting status to RESOLVED (status Ref C)');
+    					sc.newRecord.setValue({
+    						fieldId: 'transtatus',
+    						value: 'C'
+    					});
+    					log.debug('OpenBal: ' + openBalance + '; New Status: ' + sc.newRecord.getValue({fieldId: 'transtatus'}));
+    				}
+        		}
+        	}
+    	} catch(ex) {
+    		log.error(ex.name, ex.message + '; RecordId: ' + sc.newRecord.id);
+    	}
+    }
 
 	return {
-		beforeLoad: beforeLoad
+		beforeLoad: beforeLoad,
+		beforeSubmit:beforeSubmit
 	};
 
 });

@@ -4,7 +4,11 @@
  * @NModuleScope TargetAccount
  * Suitelet script to create an expense Journal Entry and link it to an iTPM Deduction record.
  */
-define(['N/record', 'N/search', 'N/runtime', './iTPM_Module.js'],
+define(['N/record',
+		'N/search',
+		'N/runtime',
+		'./iTPM_Module.js'
+		],
 
 function(record, search, runtime, iTPM) {
    
@@ -25,10 +29,11 @@ function(record, search, runtime, iTPM) {
 				});
 
 				if(deductionRec.getValue('transtatus') != 'A'){
-					throw {
-						name:'DEDUCTION_INVALID_STATUS',
-						message:'You cannot expense this deduction'
-					};
+					context.response.write(JSON.stringify({
+						error:true,
+						message:'Expense can be created if the deduction status is OPEN. Please refresh the page to check the status.'
+					}));
+					return;
 				}
 				
 				var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
@@ -154,13 +159,10 @@ function(record, search, runtime, iTPM) {
 						message: 'Journal Entry not created successfully. Journal ID empty.'
 					}
 				}
-				context.response.write(journalId);
+				context.response.write(JSON.stringify({error:false,journalId:journalId}));
 			}
 		} catch(ex) {
 			log.error(ex.name, ex.message + '; Deduction: ' + context.request.parameters.ddn );
-			if(ex.name == 'DEDUCTION_INVALID_STATUS'){
-				throw Error(ex.message);
-			}
 		}
     }
 

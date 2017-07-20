@@ -9,10 +9,10 @@ define(['N/url', 'N/https', 'N/ui/message'],
 
 function(url, https, message) {
 	
-	function displayMessage(title,text){
+	function displayMessage(type,title,text){
 		try{
 			var msg = message.create({
-				type: message.Type.INFORMATION,
+				type: (type == 'info')?message.Type.INFORMATION:message.Type.ERROR,
 				title: title,
 				message: text
 			});
@@ -24,7 +24,7 @@ function(url, https, message) {
 	
 	function iTPMsplit(id) {
 		try{
-			var msg = displayMessage('Splitting Deduction','Please wait while you are redirected to the split deduction screen.');
+			var msg = displayMessage('info','Splitting Deduction','Please wait while you are redirected to the split deduction screen.');
 			msg.show();
 			var suiteletUrl = url.resolveScript({
 				scriptId:'customscript_itpm_ddn_createeditsuitelet',
@@ -39,7 +39,7 @@ function(url, https, message) {
 	
 	function iTPMexpense(id) {
 		try{
-			var msg = displayMessage('Expensing Deduction','Please wait while the expense is created and applied.');
+			var msg = displayMessage('info','Expensing Deduction','Please wait while the expense is created and applied.');
 			msg.show();
 			var suiteletUrl = url.resolveScript({
 				scriptId:'customscript_itpm_ddn_expense',
@@ -51,12 +51,18 @@ function(url, https, message) {
 				url: suiteletUrl
 			}).then(function(response){
 				msg.hide();
-				var recUrl = url.resolveRecord({
-					recordType: 'customtransaction_itpm_deduction',
-					recordId: id,
-					params:{itpm:'expense'}
-				});
-				window.open(recUrl, '_self');
+				var bodyObj = JSON.parse(response.body);
+				if(bodyObj.error){
+					var errMsg = displayMessage('error','Error',bodyObj.message);
+					errMsg.show({duration: 5000});
+				}else{
+					var recUrl = url.resolveRecord({
+						recordType: 'customtransaction_itpm_deduction',
+						recordId: id,
+						params:{itpm:'expense'}
+					});
+					window.open(recUrl, '_self');
+				}
 			}).catch(function(ex){
 				console.log(ex);
 			});
@@ -67,7 +73,7 @@ function(url, https, message) {
 	
 	function iTPMinvoice(id) {
 		try{
-			var msg = displayMessage('Re-Invoicing Deduction','Please wait while the open balance is moved to A/R.');
+			var msg = displayMessage('info','Re-Invoicing Deduction','Please wait while the open balance is moved to A/R.');
 			msg.show();
 			var suiteletUrl = url.resolveScript({
 				scriptId:'customscript_itpm_ddn_reinvoice_script',
@@ -78,12 +84,18 @@ function(url, https, message) {
 				url: suiteletUrl
 			}).then(function(response){
 				msg.hide();
-				var recUrl = url.resolveRecord({
-					recordType: 'customtransaction_itpm_deduction',
-					recordId: id,
-					params:{itpm:'invoice'}
-				});
-				window.open(recUrl, '_self');
+				var bodyObj = JSON.parse(response.body);
+				if(bodyObj.error){
+					var errMsg = displayMessage('error','Error',bodyObj.message);
+					errMsg.show({duration: 5000});
+				}else{
+					var recUrl = url.resolveRecord({
+						recordType: 'customtransaction_itpm_deduction',
+						recordId: id,
+						params:{itpm:'invoice'}
+					});
+					window.open(recUrl, '_self');
+				}
 			}).catch(function(ex){
 				console.log(ex);
 			});
@@ -94,7 +106,7 @@ function(url, https, message) {
 	
 	function iTPMsettlement(id) {
 		try{
-			var msg = displayMessage('New Settlement','Please wait while the iTPM Settlement screen is loaded.');
+			var msg = displayMessage('info','New Settlement','Please wait while the iTPM Settlement screen is loaded.');
 			msg.show();
 			var suiteletUrl = url.resolveScript({
 				scriptId:'customscript_itpm_set_promotionlist',
