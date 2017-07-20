@@ -54,7 +54,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 				if(settlementRec.getValue('transtatus') != 'A'){
 	    			throw {
 						name:'SETTLEMENT_INVALID_STATUS',
-						message:'This settlement cannot apply to dedcution'
+						message:'This settlement cannot be apply to dedcution'
 					};
 	    		}
 			
