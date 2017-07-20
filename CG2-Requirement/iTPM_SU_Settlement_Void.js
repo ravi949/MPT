@@ -123,7 +123,7 @@ function(record, runtime, redirect) {
     	}catch(e){
     		log.error(e.name,'record id = '+context.request.parameters.sid+', message = '+e.message);
     		if(e.name == 'SETTLEMENT_INVALID_STATUS'){
-    			throw Error(e.message);
+    			throw Error(e.message.replace(/Error: /g,''));
     		}
     	}
     }

@@ -19,6 +19,20 @@ function(record, search, runtime, iTPM) {
     function onRequest(context) {
     	if(context.request.method == 'GET'){
     		try{
+    			
+    			var deductionRec = record.load({
+    				type:'',
+    				id:context.request.parameters.ddn
+    			});
+    			
+    			if(deductionRec.getValue('transtatus') != 'A'){
+    				throw {
+    					name:'DEDUCTION_INVALID_STATUS',
+    					message:'You cannot expense this deduction'
+    				};
+    			}
+    			
+    			
     			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
     			var itpmPreferences = iTPM.getPrefrenceValues(),
         		expAccount = itpmPreferences.expenseAccnt,
@@ -145,6 +159,9 @@ function(record, search, runtime, iTPM) {
         		context.response.write(journalId);
     		} catch(ex) {
     			log.error(ex.name, ex.message + '; Deduction: ' + context.request.parameters.ddn );
+    			if(e.name == 'DEDUCTION_INVALID_STATUS'){
+    				throw Error(e.message.replace(/Error: /g,''));
+    			}
     		}
     	}
     }

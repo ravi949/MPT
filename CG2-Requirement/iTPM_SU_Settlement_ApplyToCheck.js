@@ -347,7 +347,7 @@ function(record, redirect, runtime, search, ST_Module) {
     	}catch(e){
     		log.error(e.name,'record type = iTPM Settlement, record id='+request.parameters.sid+', message='+e.message);
     		if(e.name == 'SETTLEMENT_INVALID_STATUS'){
-    			throw Error(e.message);
+    			throw Error(e.message.replace(/Error: /g,''));
     		}
     	}
     }
