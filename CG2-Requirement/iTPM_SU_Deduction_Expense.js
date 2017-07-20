@@ -36,7 +36,8 @@ function(record, search, runtime, iTPM) {
 					return;
 				}
 				
-				var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
+				var subsidiaryExists = iTPM.subsidiariesEnabled();
+				var currencyExists = iTPM.currenciesEnabled();
 				var itpmPreferences = iTPM.getPrefrenceValues(),
 				expAccount = itpmPreferences.expenseAccnt,
 				ddnAccount = null,
@@ -65,6 +66,9 @@ function(record, search, runtime, iTPM) {
 					openBalance = parseFloat(ddnFields.custbody_itpm_ddn_openbal)
 					if (subsidiaryExists){
 						subsidiary = ddnFields.subsidiary[0].value;
+					}
+					
+					if(currencyExists){
 						currency = ddnFields['subsidiary.currency'];
 						currency = currency[0].value;
 					}
@@ -97,11 +101,16 @@ function(record, search, runtime, iTPM) {
 					journalEntry.setValue({
 						fieldId:'subsidiary',
 						value:subsidiary
-					}).setValue({
+					});
+				}
+				
+				if(currencyExists){
+					journalEntry.setValue({
 						fieldId:'currency',
 						value:currency
 					});
 				}
+				
 				//CREDIT LINE ON DDN ACCOUNT
 				journalEntry.selectNewLine({
 					sublistId: 'line'

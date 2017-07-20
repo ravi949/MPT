@@ -18,7 +18,6 @@ function(record, search, runtime, iTPM) {
     function onRequest(context) {
     	if (context.request.method == 'GET'){
     		try{
-    			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
     			var ddnId = context.request.parameters.ddn;
     			if (!ddnId) throw {name:'SU_DDN_Invoice_DDNID', message:'Deduction ID not specified.'};
     			
@@ -35,7 +34,8 @@ function(record, search, runtime, iTPM) {
 					return;
 				}
     			
-    			
+				var subsidiaryExists = iTPM.subsidiariesEnabled();
+				var currencyExists = iTPM.currenciesEnabled();
     			var ddnAccount = null,
     			journalEntry = null,
     			journalId = null,
@@ -56,6 +56,9 @@ function(record, search, runtime, iTPM) {
     			
     			if (subsidiaryExists){
     				ddnFields.push('subsidiary');
+    			}
+    			
+    			if(currencyExists){
     				ddnFields.push('subsidiary.currency');
     			}
     			
@@ -82,6 +85,9 @@ function(record, search, runtime, iTPM) {
     				}
     				if (subsidiaryExists){
     					subsidiary = ddnFields.subsidiary[0].value;
+    				}
+    				
+    				if(currencyExists){
     					currency = ddnFields['subsidiary.currency'];
     					currency = currency[0].value;
     				}
@@ -111,11 +117,16 @@ function(record, search, runtime, iTPM) {
     				journalEntry.setValue({
         				fieldId:'subsidiary',
         				value:subsidiary
-        			}).setValue({
+        			});
+    			}
+    			
+    			if(currencyExists){
+    				journalEntry.setValue({
         				fieldId:'currency',
         				value:currency
         			});
     			}
+    			
         		//DEBIT LINE ON A/R
         		journalEntry.selectNewLine({
         			sublistId: 'line'

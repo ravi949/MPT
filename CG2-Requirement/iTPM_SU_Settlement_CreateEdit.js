@@ -10,12 +10,11 @@ define(['N/ui/serverWidget',
 		'N/redirect',
 		'N/format',
 		'N/url',
-		'N/runtime',
 		'./iTPM_Module_Settlement.js',
 		'./iTPM_Module'
 		],
 
-function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_Module) {
+function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -94,8 +93,8 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
     //adding the fields to the settlement form
     function addFieldsToTheSettlementForm(settlementForm,params){
     	var eventType = params.type;
-    	var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
-		var currencyExists = runtime.isFeatureInEffect('multicurrency');
+    	var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
+		var currencyExists = iTPM_Module.currenciesEnabled();
 		var isEdit = (eventType == 'edit');
 		var displayTypeSetup = (isEdit)?serverWidget.FieldDisplayType.INLINE:serverWidget.FieldDisplayType.DISABLED;
 		

@@ -3,9 +3,12 @@
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
  */
-define(['N/record', 'N/runtime', 'N/redirect'],
+define(['N/record',
+		'N/redirect',
+		'./iTPM_Module'
+	   ],
 
-function(record, runtime, redirect) {
+function(record, redirect, iTPM_Module) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -32,9 +35,8 @@ function(record, runtime, redirect) {
     				};
     			}
     			
-    			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
-    			var currencyExists = runtime.isFeatureInEffect('multicurrency');
-    				
+    			var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
+    			var currencyExists = iTPM_Module.currenciesEnabled();
     			var lineCount = SetRec.getLineCount('line');
        		
     			if(lineCount > 0){

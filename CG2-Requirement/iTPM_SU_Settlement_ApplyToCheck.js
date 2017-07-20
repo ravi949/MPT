@@ -3,14 +3,18 @@
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
  */
-define(['N/record', 'N/redirect', 'N/runtime', 'N/search', './iTPM_Module_Settlement.js'],
+define(['N/record',
+		'N/redirect',
+		'N/search',
+		'./iTPM_Module_Settlement.js',
+		'./iTPM_Module.js'
+		],
 /**
  * @param {record} record
  * @param {redirect} redirect
- * @param {runtime} runtime
  * @param {search} search
  */
-function(record, redirect, runtime, search, ST_Module) {
+function(record, redirect, search, ST_Module,iTPM_Module) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -25,8 +29,8 @@ function(record, redirect, runtime, search, ST_Module) {
     		var request = context.request;
     		var response = context.response;
     		var parameters = request.parameters;
-    		var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
-    		var currencyExists = runtime.isFeatureInEffect('multicurrency');
+    		var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
+			var currencyExists = iTPM_Module.currenciesEnabled();
     		//loading the settlement record
     		var settlementRec = record.load({
     		     type: 'customtransaction_itpm_settlement',
