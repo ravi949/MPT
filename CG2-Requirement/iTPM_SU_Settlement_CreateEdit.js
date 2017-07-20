@@ -125,7 +125,7 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
     				id:params.ddn
     			});
     			
-    			if(deductionRec.getValue('transtatus') != 'A' || deductionRec.getValue('custbody_itpm_ddn_openbal') <= 0){
+    			if(deductionRec.getValue('transtatus') != 'A'){
     				throw {
     					name:'DEDUCTION_INVALID_STATUS',
     					message:'You cannot create a settlement for this deduction'

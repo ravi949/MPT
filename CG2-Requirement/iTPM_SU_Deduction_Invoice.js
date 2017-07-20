@@ -21,6 +21,20 @@ function(record, search, runtime, iTPM) {
     			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
     			var ddnId = context.request.parameters.ddn;
     			if (!ddnId) throw {name:'SU_DDN_Invoice_DDNID', message:'Deduction ID not specified.'};
+    			
+    			var deductionRec = record.load({
+					type:'customtransaction_itpm_deduction',
+					id:ddnId
+				});
+
+				if(deductionRec.getValue('transtatus') != 'A'){
+					throw {
+						name:'DEDUCTION_INVALID_STATUS',
+						message:'You cannot re-invoice this deduction'
+					};
+				}
+    			
+    			
     			var ddnAccount = null,
     			journalEntry = null,
     			journalId = null,

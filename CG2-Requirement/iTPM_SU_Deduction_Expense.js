@@ -24,7 +24,7 @@ function(record, search, runtime, iTPM) {
 					id:context.request.parameters.ddn
 				});
 
-				if(deductionRec.getValue('transtatus') != 'A' || deductionRec.getValue('custbody_itpm_ddn_openbal') <= 0){
+				if(deductionRec.getValue('transtatus') != 'A'){
 					throw {
 						name:'DEDUCTION_INVALID_STATUS',
 						message:'You cannot expense this deduction'
@@ -155,7 +155,6 @@ function(record, search, runtime, iTPM) {
 					}
 				}
 				context.response.write(journalId);
-
 			}
 		} catch(ex) {
 			log.error(ex.name, ex.message + '; Deduction: ' + context.request.parameters.ddn );
