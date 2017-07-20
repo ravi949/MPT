@@ -30,7 +30,7 @@ function(record, search, runtime, iTPM) {
 				if(deductionRec.getValue('transtatus') != 'A'){
 					context.response.write(JSON.stringify({
 						error:true,
-						message:'You cannot re-invoice this deduction'
+						message:'Re-invoice can be created if the deduction status is OPEN. Please refresh the page to check the status.'
 					}));
 					return;
 				}
@@ -177,7 +177,7 @@ function(record, search, runtime, iTPM) {
         				message: 'Journal Entry not created successfully. Journal ID empty.'
         			}
         		}
-        		context.response.write(journalId);
+        		context.response.write(JSON.stringify({error:false,journalId:journalId}));
     		} catch(ex) {
     			log.error(ex.name, ex.message + '; ddnId: ' + ddnId);
     		}

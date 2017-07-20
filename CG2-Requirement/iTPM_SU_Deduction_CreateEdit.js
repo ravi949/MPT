@@ -821,9 +821,6 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 						parentRec.setValue({
 							fieldId:'custbody_itpm_ddn_openbal',
 							value:0 
-						}).setValue({
-							fieldId:'transtatus',
-							value:'C'  //changed the parent status to Resolved
 						}).save({
 							enableSourcing: false,
 							ignoreMandatoryFields : true

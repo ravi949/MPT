@@ -54,7 +54,7 @@ function(url, https, message) {
 				var bodyObj = JSON.parse(response.body);
 				if(bodyObj.error){
 					var errMsg = displayMessage('error','Error',bodyObj.message);
-					errMsg.show();
+					errMsg.show({duration: 5000});
 				}else{
 					var recUrl = url.resolveRecord({
 						recordType: 'customtransaction_itpm_deduction',
@@ -87,7 +87,7 @@ function(url, https, message) {
 				var bodyObj = JSON.parse(response.body);
 				if(bodyObj.error){
 					var errMsg = displayMessage('error','Error',bodyObj.message);
-					errMsg.show();
+					errMsg.show({duration: 5000});
 				}else{
 					var recUrl = url.resolveRecord({
 						recordType: 'customtransaction_itpm_deduction',
