@@ -23,12 +23,12 @@ function(runtime, serverWidget) {
     function beforeLoad(scriptContext) {
     	try{
     		if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
-    			var settlementRec = scriptContext.newRecord,
-    			setStatus = settlementRec.getValue('transtatus'), //Requested / Unapplied => A
-    			setReqAmount = settlementRec.getValue('custbody_itpm_set_amount'),
-    			setLumSum = settlementRec.getValue('custbody_itpm_set_reqls'),
-    			setBB = settlementRec.getValue('custbody_itpm_set_reqbb'),
-    			setOffInv = settlementRec.getValue('custbody_itpm_set_reqoi');
+    			var settlementRec = scriptContext.newRecord;
+    			var setStatus = settlementRec.getValue('transtatus'); //Requested / Unapplied => A
+    			var setReqAmount = settlementRec.getValue('custbody_itpm_set_amount');
+    			var setLumSum = settlementRec.getValue('custbody_itpm_set_reqls');
+    			var setBB = settlementRec.getValue('custbody_itpm_set_reqbb');
+    			var setOffInv = settlementRec.getValue('custbody_itpm_set_reqoi');
     			
     			if(setStatus == 'A' && setReqAmount > 0 && (setLumSum > 0 || setBB > 0 || setOffInv > 0)){
     				scriptContext.form.addButton({
@@ -43,7 +43,6 @@ function(runtime, serverWidget) {
     				});
     			}
     			
-    			
     			if(setStatus == 'A' || setStatus == 'B'){
     				scriptContext.form.addButton({
     					id:'custpage_itpm_settlemevoid',
@@ -52,7 +51,7 @@ function(runtime, serverWidget) {
     				});
     			}
     			
-    			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
+    			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js';
     		}
     	}catch(e){
     		log.error(e.name,'record type = iTPM Settlement, record id='+scriptContext.newRecord.id+', message='+e.message);
