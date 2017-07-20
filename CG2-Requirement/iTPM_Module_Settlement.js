@@ -89,17 +89,6 @@ function(config, record, search, runtime, iTPM_Module) {
 				value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+params['custom_itpm_st_promotion_no']
 			});
 
-			newSettlementRecord.setValue({
-				fieldId:'custbody_itpm_set_fromtype',
-				value:(createdFromDDN)?'- iTPM Deduction':'- iTPM Promotion'
-			}).setValue({
-				fieldId:'custbody_itpm_set_fromtypeid',
-				value:(createdFromDDN)?deductionRec.getValue('ntype'):promoRectypeId
-			}).setValue({
-				fieldId:'custbody_itpm_set_fromid',
-				value:(createdFromDDN)?String(deductionRec.id):String(params['custom_itpm_st_promotion_no'])
-			})
-
 			//it's creating from the dedcution record
 			//Scenario 1: Preference set to Match Lump Sum (this means overpay is posted on Bill Back by default)
 			//If Promotion HAS Lump Sum then Lump Sum Request = LESSER OF [Net Lump Sum Liability OR Settlement Request] AND Bill Back Request = Settlement Request - Lump Sum Request
