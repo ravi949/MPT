@@ -4,7 +4,11 @@
  * @NModuleScope TargetAccount
  * Suitelet script to create an expense Journal Entry and link it to an iTPM Deduction record.
  */
-define(['N/record', 'N/search', 'N/runtime', './iTPM_Module.js'],
+define(['N/record',
+		'N/search',
+		'N/runtime',
+		'./iTPM_Module.js'
+		],
 
 function(record, search, runtime, iTPM) {
    
@@ -24,7 +28,7 @@ function(record, search, runtime, iTPM) {
 					id:context.request.parameters.ddn
 				});
 
-				if(deductionRec.getValue('transtatus') != 'A'){
+				if(deductionRec.getValue('transtatus') != 'A' || deductionRec.getValue('custbody_itpm_ddn_openbal')){
 					throw {
 						name:'DEDUCTION_INVALID_STATUS',
 						message:'You cannot expense this deduction'
@@ -159,6 +163,7 @@ function(record, search, runtime, iTPM) {
 		} catch(ex) {
 			log.error(ex.name, ex.message + '; Deduction: ' + context.request.parameters.ddn );
 			if(ex.name == 'DEDUCTION_INVALID_STATUS'){
+				log.error('yes','ys')
 				throw Error(ex.message);
 			}
 		}
