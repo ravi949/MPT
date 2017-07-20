@@ -195,7 +195,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 		}catch (e) {
     		log.error(e.name,'record type = iTPM Settlement, record id='+parameters.sid+', message='+e.messsage);
     		if(e.name == 'SETTLEMENT_INVALID_STATUS'){
-    			throw Error(e.message.replace(/Error: /g,''));
+    			throw Error(e.message);
     		}
     	}
 	}

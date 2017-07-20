@@ -83,6 +83,8 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
     			throw Error("There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion.");
     		else if(errObj && errObj.error == 'custom')
     			throw Error(errObj.message);
+    		else if(e.name == "DEDUCTION_INVALID_STATUS")
+    			throw Error(e.message);
     		else
     			log.error(e.name,'record type = -iTPM Settlement, record id = '+params.sid+', message = '+e.message);
     	}
@@ -115,6 +117,21 @@ function(serverWidget,search,record,redirect,format,url,runtime,ST_Module,iTPM_M
     	
     	if(params.from == 'promo' || params.from == 'ddn'){    		
     		var pid = params.pid,createdFromDDN = (params.from == 'ddn');
+    		
+    		//it checks for deduction record status
+    		if(createdFromDDN){
+    			var deductionRec = record.load({
+    				type:'customtransaction_itpm_deduction',
+    				id:params.ddn
+    			});
+    			
+    			if(deductionRec.getValue('transtatus') != 'A' || deductionRec.getValue('custbody_itpm_ddn_openbal') <= 0){
+    				throw {
+    					name:'DEDUCTION_INVALID_STATUS',
+    					message:'You cannot create a settlement for this deduction'
+    				};
+    			}
+    		}
         	
     		var promoDealRec = search.lookupFields({
         		type:'customrecord_itpm_promotiondeal',
