@@ -18,11 +18,11 @@ function(search, record, util, runtime) {
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
 			log.debug('locationEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
-			return featureEnabled.toString();
+			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
 			log.error(ex.name, ex.message + '; additionalDetails: ' + message);
-			return 'false';
+			return false;
 		}
 	}
 	
@@ -38,11 +38,11 @@ function(search, record, util, runtime) {
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
 			log.debug('departmentEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
-			return featureEnabled.toString();
+			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
 			log.error(ex.name, ex.message + '; additionalDetails: ' + message);
-			return 'false';
+			return false;
 		}
 	}
 	
@@ -58,11 +58,11 @@ function(search, record, util, runtime) {
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
 			log.debug('classesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
-			return featureEnabled.toString();
+			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
 			log.error(ex.name, ex.message + '; additionalDetails: ' + message);
-			return 'false';
+			return false;
 		}
 	}
 	
@@ -78,13 +78,35 @@ function(search, record, util, runtime) {
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
 			log.debug('subsidiariesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
-			return featureEnabled.toString();
+			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
 			log.error(ex.name, ex.message + '; additionalDetails: ' + message);
-			return 'false';
+			return false;
 		}
 	}
+	
+	/**
+	 * function currenciesEnabled()
+	 * Returns a boolean to indicate whether the Subsidiaries feature is enabled.
+	 * @returns {string}
+	 */
+	function currenciesEnabled() {
+		try{
+			var featureEnabled = runtime.isFeatureInEffect({feature:'MULTICURRENCY'});
+			var currentUser = runtime.getCurrentUser();
+			var currentScript = runtime.getCurrentScript();
+			var currentSession = runtime.getCurrentSession();
+			log.debug('subsidiariesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+			return featureEnabled;
+		} catch(ex) {
+			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
+			log.error(ex.name, ex.message + '; additionalDetails: ' + message);
+			return false;
+		}
+	}
+	
+	
     
 	/**
      * function getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB})
@@ -225,7 +247,10 @@ function(search, record, util, runtime) {
     }
     
     
-	//get the iTPM preference record values
+    /**
+	 * function getPrefrenceValues()
+     * @returns {object}
+     */
 	function getPrefrenceValues(){
 		try{
 			var prefObj = {}
@@ -257,7 +282,9 @@ function(search, record, util, runtime) {
     	getPrefrenceValues:getPrefrenceValues,
     	locationsEnabled : locationsEnabled,
     	departmentsEnabled : departmentsEnabled,
-    	classesEnabled : classesEnabled
+    	classesEnabled : classesEnabled,
+    	subsidiariesEnabled:subsidiariesEnabled,
+    	currenciesEnabled:currenciesEnabled
     };
     
 });

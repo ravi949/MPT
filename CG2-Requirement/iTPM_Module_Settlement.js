@@ -13,14 +13,19 @@ define(['N/config', 'N/record', 'N/search','N/runtime','./iTPM_Module.js'],
  */
 function(config, record, search, runtime, iTPM_Module) {
    
-	//create the settlement record.
+	/**
+	 * function createSettlement(params)
+	 * 
+	 * Returns a settlement record id
+	 * @returns {number}
+	 */
 	function createSettlement(params){
 		try{
 			log.debug('params',params);
 			//loading the deduction record
 			var createdFromDDN = (params.custom_itpm_st_created_frm == 'ddn');
-			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
-			var currencyExists = runtime.isFeatureInEffect('multicurrency');
+			var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
+			var currencyExists = iTPM_Module.currenciesEnabled();
 			if(createdFromDDN){
 				var deductionRec = record.load({
 					type:'customtransaction_itpm_deduction',
@@ -322,7 +327,12 @@ function(config, record, search, runtime, iTPM_Module) {
 	}
 	
 	
-	//Apply the Settlement to Deduction record.
+	/**
+	 * function applyToDeduction(parameters)
+	 * 
+	 * Returns a settlement record id
+	 * @returns {number}
+	 */
 	function applyToDeduction(parameters){
 		try{
 
@@ -401,7 +411,12 @@ function(config, record, search, runtime, iTPM_Module) {
 		
 	}
 	
-	//create the Reverse JE for settlement
+	/**
+	 * function createReverseJE(settlementRec)
+	 * 
+	 * Returns a Journal Entry record id
+	 * @returns {number}
+	 */
 	function createReverseJE(settlementRec){
 		try{
 			var lineCount = settlementRec.getLineCount('line'),JELines = [];
@@ -422,7 +437,15 @@ function(config, record, search, runtime, iTPM_Module) {
 		}
 	}
 	
-	//setting the JE lines values
+	/**
+	 * function setJELines(setId,subsId,JELines)
+	 * @params {number} setId Internal Id of the Settlement record
+	 * @params {number} subsId Internal Id of the Subsidiary
+	 * @params {array} array of line values
+	 * 
+	 * Returns a Journal Entry record id
+	 * @returns {number}
+	 */
 	function setJELines(setId,subsId,JELines){
 		try{
 			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
@@ -480,7 +503,12 @@ function(config, record, search, runtime, iTPM_Module) {
 		}
 	}
 	
-	
+	/**
+	 * function editSettlement(params)
+	 * 
+	 * Returns a Settlement record id
+	 * @returns {number}
+	 */
 	function editSettlement(params){
 		try{
 			var loadedSettlementRec = record.load({

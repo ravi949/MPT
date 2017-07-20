@@ -4,9 +4,16 @@
  * @NModuleScope TargetAccount
  * Front-end suitelet script for creating and editing iTPM Deduction records.
  */
-define(['N/ui/serverWidget','N/record','N/search','N/runtime','N/redirect','N/config','N/format'],
+define(['N/ui/serverWidget',
+		'N/record',
+		'N/search',
+		'N/runtime',
+		'N/redirect',
+		'N/config',
+		'N/format',
+		'./iTPM_Module'],
 
-function(serverWidget,record,search,runtime,redirect,config,format) {
+function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -19,8 +26,8 @@ function(serverWidget,record,search,runtime,redirect,config,format) {
 	function onRequest(context) {
 		try{
 			var request = context.request,response = context.response,params = request.parameters;
-			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
-			var currencyExists = runtime.isFeatureInEffect('multicurrency');
+			var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
+			var currencyExists = iTPM_Module.currenciesEnabled();
 			
 			if(request.method == 'GET'){
 
