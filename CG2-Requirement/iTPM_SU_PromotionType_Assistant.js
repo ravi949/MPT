@@ -3,7 +3,12 @@
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
  */
-define(['N/ui/serverWidget','N/search','N/redirect','N/record','N/runtime'],
+define(['N/ui/serverWidget',
+		'N/search',
+		'N/redirect',
+		'N/record',
+		'N/runtime'
+		],
 
 function(serverWidget,search,redirect,record,runtime) {
    
@@ -19,7 +24,7 @@ function(serverWidget,search,redirect,record,runtime) {
     	try{
     		var response = context.response,request = context.request,
     		listId, //this id used to redirect the page to promotype list of records
-    		isSubsidiaryExist = runtime.isFeatureInEffect('SUBSIDIARIES'),
+    		subsidiaryExists = runtime.isFeatureInEffect('SUBSIDIARIES'),
     		userId = runtime.getCurrentUser().id,
     		userSubsidiary = record.load({type:record.Type.EMPLOYEE,id:userId}).getValue('subsidiary');
 
@@ -95,11 +100,11 @@ function(serverWidget,search,redirect,record,runtime) {
     				}).setValue({
     					fieldId:'custrecord_itpm_pt_financialimpact',
     					value:finanImpact == 'income'?11:13,
-    							ignoreFieldChange:true
+    					ignoreFieldChange:true
     				}).setValue({
     					fieldId:'custrecord_itpm_pt_subsidiary',
-    					value:(isSubsidiaryExist)?subsidiaryId:1,
-    							ignoreFieldChange:true
+    					value:(subsidiaryExists)?subsidiaryId:1,
+    					ignoreFieldChange:true
     				}).setValue({
     					fieldId:'custrecord_itpm_pt_defaultaccount',
     					value:defaultAccount,
@@ -159,7 +164,7 @@ function(serverWidget,search,redirect,record,runtime) {
     				id : 'custom_impact_helptext',
     				type : serverWidget.FieldType.INLINEHTML,
     				label:'Help Text'
-    			}).defaultValue = (isSubsidiaryExist)?'<p style="font-size:15px;">Select Financial Impact and Subsidiary.</p>':'<p style="font-size:15px;">Select Financial Impact.</p>';
+    			}).defaultValue = (subsidiaryExists)?'<p style="font-size:15px;">Select Financial Impact and Subsidiary.</p>':'<p style="font-size:15px;">Select Financial Impact.</p>';
 
 
     			//Impact label on assistant view
@@ -190,7 +195,7 @@ function(serverWidget,search,redirect,record,runtime) {
     				assistant.getField('custpage_financial_impact').defaultValue = 'expense'; //changed default value to expense
 
     			//checking the account have the subsidiary or not 
-    			if(isSubsidiaryExist){	
+    			if(subsidiaryExists){	
     				var subsidiaryField = assistant.addField({
     					id : 'custpage_itpm_pt_subsidiary',
     					type : serverWidget.FieldType.SELECT,
@@ -248,7 +253,7 @@ function(serverWidget,search,redirect,record,runtime) {
 
     			//checking the subsidiaries feature is enabled or not
     			var validAccountFilter = [['type','is',finanImpact.charAt(0).toUpperCase()+finanImpact.slice(1)],'and',['isinactive','is',false]];
-    			(isSubsidiaryExist)? validAccountFilter.push('and',['subsidiary','anyof',subsidiaryId]):'';
+    			(subsidiaryExists)? validAccountFilter.push('and',['subsidiary','anyof',subsidiaryId]):'';
 
     			//search all accounts using above filter and added the accounts list to the VALID ACCOUNTS FIELD.
     			search.create({
