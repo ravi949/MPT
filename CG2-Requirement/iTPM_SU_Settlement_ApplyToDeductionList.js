@@ -45,6 +45,18 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 					id : SettlementRecId					
 				});
 			}else if(request.method == 'GET') {
+				
+				var settlementRec = record.load({
+					type: 'customtransaction_itpm_settlement',
+	    		     id: parameters.sid
+				});
+				
+				if(settlementRec.getValue('transtatus') != 'A'){
+	    			throw {
+						name:'SETTLEMENT_INVALID_STATUS',
+						message:'This settlement cannot apply to dedcution'
+					};
+	    		}
 			
 				var list = serverWidget.createList({
 				    title : 'Deductions List'
@@ -182,6 +194,9 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 			}
 		}catch (e) {
     		log.error(e.name,'record type = iTPM Settlement, record id='+parameters.sid+', message='+e.messsage);
+    		if(e.name == 'SETTLEMENT_INVALID_STATUS'){
+    			throw Error(e.message);
+    		}
     	}
 	}
 	return {

@@ -22,7 +22,16 @@ function(record, runtime, redirect) {
        			 	type : 'customtransaction_itpm_settlement',
        			 	id   : context.request.parameters.sid
        		 	});
-       		 
+    			
+    			var settlementStatus = SetRec.getValue('transtatus');
+    			
+    			if(settlementStatus == 'C' || settlementStatus == 'D'){
+    				throw {
+    					name:'SETTLEMENT_INVALID_STATUS',
+    					message:'You cannot void this settlement'
+    				};
+    			}
+    			
     			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
     			var currencyExists = runtime.isFeatureInEffect('multicurrency');
     				
@@ -113,6 +122,9 @@ function(record, runtime, redirect) {
     		}
     	}catch(e){
     		log.error(e.name,'record id = '+context.request.parameters.sid+', message = '+e.message);
+    		if(e.name == 'SETTLEMENT_INVALID_STATUS'){
+    			throw Error(e.message);
+    		}
     	}
     }
 

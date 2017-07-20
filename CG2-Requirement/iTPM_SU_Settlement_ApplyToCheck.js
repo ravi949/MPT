@@ -32,6 +32,15 @@ function(record, redirect, runtime, search, ST_Module) {
     		     type: 'customtransaction_itpm_settlement',
     		     id: parameters.sid
     		 });
+    		
+    		if(settlementRec.getValue('transtatus') != 'A'){
+    			throw {
+					name:'SETTLEMENT_INVALID_STATUS',
+					message:'This settlement cannot apply to check'
+				};
+    		}
+    		
+    		
     		//search the promotion record based on settlement record for the account field and promotion type account field value
     		var promotionRecSer = search.create({
     			type: 'customrecord_itpm_promotiondeal',
@@ -337,6 +346,9 @@ function(record, redirect, runtime, search, ST_Module) {
     		
     	}catch(e){
     		log.error(e.name,'record type = iTPM Settlement, record id='+request.parameters.sid+', message='+e.message);
+    		if(e.name == 'SETTLEMENT_INVALID_STATUS'){
+    			throw Error(e.message);
+    		}
     	}
     }
 
