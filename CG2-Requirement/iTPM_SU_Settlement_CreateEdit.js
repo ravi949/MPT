@@ -222,7 +222,6 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
     		var entryNo = settlementRec.getValue('tranid');
     		var otherRefCode = settlementRec.getValue('custbody_itpm_set_otherrefcode');
     		var defaultDate = settlementRec.getValue('trandate');
-    		var appliedToCheck = settlementRec.getValue('custbody_itpm_set_check');
     		var appliedToTransaction = settlementRec.getValue('custbody_itpm_set_deduction');
     		var status = settlementRec.getText('transtatus');
     		var customerId = settlementRec.getValue('custbody_itpm_set_customer');
