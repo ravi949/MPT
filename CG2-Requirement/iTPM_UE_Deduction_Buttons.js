@@ -22,7 +22,8 @@ function(url, record, widget, runtime, redirect) {
 		try{
 			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
 				status = sc.newRecord.getValue({fieldId:'transtatus'}),
-				clientScriptPath = runtime.getCurrentScript().getParameter({name:'custscript_itpm_ue_ddn_cspath'}),
+//				clientScriptPath = runtime.getCurrentScript().getParameter({name:'custscript_itpm_ue_ddn_cspath'}),
+				clientScriptPath = './iTPM_Attach_Deduction_Buttons.js',
 				eventType = sc.type,
 				runtimeContext = runtime.executionContext; 
 			log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);

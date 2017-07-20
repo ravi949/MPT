@@ -28,11 +28,12 @@ function(record, search, runtime, iTPM) {
 					id:context.request.parameters.ddn
 				});
 
-				if(deductionRec.getValue('transtatus') != 'A' || deductionRec.getValue('custbody_itpm_ddn_openbal')){
-					throw {
-						name:'DEDUCTION_INVALID_STATUS',
+				if(deductionRec.getValue('transtatus') != 'A'){
+					context.response.write(JSON.stringify({
+						error:true,
 						message:'You cannot expense this deduction'
-					};
+					}));
+					return;
 				}
 				
 				var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
@@ -162,10 +163,6 @@ function(record, search, runtime, iTPM) {
 			}
 		} catch(ex) {
 			log.error(ex.name, ex.message + '; Deduction: ' + context.request.parameters.ddn );
-			if(ex.name == 'DEDUCTION_INVALID_STATUS'){
-				log.error('yes','ys')
-				throw Error(ex.message);
-			}
 		}
     }
 

@@ -28,10 +28,11 @@ function(record, search, runtime, iTPM) {
 				});
 
 				if(deductionRec.getValue('transtatus') != 'A'){
-					throw {
-						name:'DEDUCTION_INVALID_STATUS',
+					context.response.write(JSON.stringify({
+						error:true,
 						message:'You cannot re-invoice this deduction'
-					};
+					}));
+					return;
 				}
     			
     			
