@@ -379,7 +379,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 						text:' '
 					});
 
-					getList(subsid, 'location', subsidiaryExists).run().each(function(e){
+					iTPM_Module.getClassifications(subsid, 'location', subsidiaryExists).run().each(function(e){
 						location.addSelectOption({
 							value:e.getValue('internalid'),
 							text:e.getValue('name'),
@@ -405,7 +405,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 						text:' '
 					});
 
-					getList(subsid, 'dept', subsidiaryExists).run().each(function(e){
+					iTPM_Module.getClassifications(subsid, 'dept', subsidiaryExists).run().each(function(e){
 						dept.addSelectOption({
 							value:e.getValue('internalid'),
 							text:e.getValue('name'),
@@ -432,7 +432,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 						text : ' '
 					});
 
-					getList(subsid, 'class', subsidiaryExists).run().each(function(e){
+					iTPM_Module.getClassifications(subsid, 'class', subsidiaryExists).run().each(function(e){
 						classField.addSelectOption({
 							value :e.getValue('internalid'),
 							text : e.getValue('name'),
@@ -1005,32 +1005,32 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 	
 	
 	
-    //getting the Class,Department and Location list based on subsidiary.
-    function getList(subid, rectype, subsidiaryExists){
-    	switch(rectype){
-    	case 'class':
-    		rectype = search.Type.CLASSIFICATION;
-    		break;
-    	case 'dept':
-    		rectype = search.Type.DEPARTMENT;
-    		break;
-    	case 'location':
-    		rectype = search.Type.LOCATION;
-    		break;
-    	}
-    	
-    	var classificationFilter = [['isinactive','is',false]];
-    	
-    	if(subsidiaryExists){
-    		classificationFilter.push('and',['subsidiary','anyof',subid]);
-    	}
-    	
-    	return search.create({
-    		type:rectype,
-    		columns:['internalid','name'],
-    		filters:classificationFilter
-    	});
-    }
+//    //getting the Class,Department and Location list based on subsidiary.
+//    function getClassifications(subid, rectype, subsidiaryExists){
+//    	switch(rectype){
+//    	case 'class':
+//    		rectype = search.Type.CLASSIFICATION;
+//    		break;
+//    	case 'dept':
+//    		rectype = search.Type.DEPARTMENT;
+//    		break;
+//    	case 'location':
+//    		rectype = search.Type.LOCATION;
+//    		break;
+//    	}
+//    	
+//    	var classificationFilter = [['isinactive','is',false]];
+//    	
+//    	if(subsidiaryExists){
+//    		classificationFilter.push('and',['subsidiary','anyof',subid]);
+//    	}
+//    	
+//    	return search.create({
+//    		type:rectype,
+//    		columns:['internalid','name'],
+//    		filters:classificationFilter
+//    	});
+//    }
     
     //getting the Employees list based on subsidiary.
     function getEmployees(subid,subsidiaryExists){

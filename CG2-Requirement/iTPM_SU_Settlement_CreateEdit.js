@@ -476,7 +476,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
 				   text:' '
 			 });
 
-		    getList(subsid, 'location', subsidiaryExists).run().each(function(e){
+		    iTPM_Module.getClassifications(subsid, 'location', subsidiaryExists).run().each(function(e){
 		    	locationField.addSelectOption({
 				   value:e.getValue('internalid'),
 				   text:e.getValue('name'),
@@ -503,7 +503,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
 				   text:' '
 			 });
 
-		    getList(subsid, 'dept', subsidiaryExists).run().each(function(e){
+		    iTPM_Module.getClassifications(subsid, 'dept', subsidiaryExists).run().each(function(e){
 		    	deptField.addSelectOption({
 				   value:e.getValue('internalid'),
 				   text:e.getValue('name'),
@@ -531,7 +531,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
 				   text:' '
 			 });
 
-		    getList(subsid, 'class', subsidiaryExists).run().each(function(e){
+	    	iTPM_Module.getClassifications(subsid, 'class', subsidiaryExists).run().each(function(e){
 		    	classField.addSelectOption({
 	  			   value:e.getValue('internalid'),
 	  			   text:e.getValue('name'),
@@ -725,31 +725,31 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
 	    settlementForm.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js'
     }
     
-    //get the class,location and department
-    function getList(subid, rectype, subsidiaryExists){
-    	switch(rectype){
-    	case 'class':
-    		rectype = search.Type.CLASSIFICATION;
-    		break;
-    	case 'dept':
-    		rectype = search.Type.DEPARTMENT;
-    		break;
-    	case 'location':
-    		rectype = search.Type.LOCATION;
-    		break;
-    	}
-    	
-    	var classificationFilters = [['isinactive','is',false]];
-    	
-    	if(subsidiaryExists){
-    		classificationFilters.push('and',['subsidiary','anyof',subid])
-    	}
-    	return search.create({
-    		type:rectype,
-    		columns:['internalid','name'],
-    		filters:classificationFilters
-    	});
-    }
+//    //get the class,location and department
+//    function getList(subid, rectype, subsidiaryExists){
+//    	switch(rectype){
+//    	case 'class':
+//    		rectype = search.Type.CLASSIFICATION;
+//    		break;
+//    	case 'dept':
+//    		rectype = search.Type.DEPARTMENT;
+//    		break;
+//    	case 'location':
+//    		rectype = search.Type.LOCATION;
+//    		break;
+//    	}
+//    	
+//    	var classificationFilters = [['isinactive','is',false]];
+//    	
+//    	if(subsidiaryExists){
+//    		classificationFilters.push('and',['subsidiary','anyof',subid])
+//    	}
+//    	return search.create({
+//    		type:rectype,
+//    		columns:['internalid','name'],
+//    		filters:classificationFilters
+//    	});
+//    }
     
     return {
         onRequest: onRequest
