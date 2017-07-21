@@ -4,7 +4,12 @@
  * @NModuleScope TargetAccount
  * Front-end suitelet for iTPM Preferences. The preferences record is set to not be available via UI.
  */
-define(['N/record', 'N/redirect', 'N/ui/serverWidget', 'N/search','N/runtime'],
+define(['N/record',
+		'N/redirect',
+		'N/ui/serverWidget',
+		'N/search',
+		'N/runtime'
+		],
 /**
  * @param {record} record
  * @param {redirect} redirect

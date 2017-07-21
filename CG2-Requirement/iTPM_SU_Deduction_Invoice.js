@@ -3,7 +3,11 @@
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
  */
-define(['N/record', 'N/search', 'N/runtime', './iTPM_Module.js'],
+define(['N/record',
+		'N/search',
+		'N/runtime',
+		'./iTPM_Module.js'
+		],
 
 function(record, search, runtime, iTPM) {
    

@@ -5,7 +5,9 @@
  * Client script to perform actions on the iTPM EstimatedQuantity record during Create or Edit.
  * Sets the select options on Item and Unit dynamic fields
  */
-define(['N/https', 'N/url'],
+define(['N/https',
+		'N/url'
+		],
 /**
  * @param {https} https
  * @param {serverWidget} serverWidget

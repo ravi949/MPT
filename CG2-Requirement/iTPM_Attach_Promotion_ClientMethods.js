@@ -2,7 +2,9 @@
  * @NApiVersion 2.x
  * @NModuleScope TargetAccount
  */
-define(['N/url','N/ui/message'],
+define(['N/url',
+		'N/ui/message'
+	   ],
 
 function(url,message) {
 	

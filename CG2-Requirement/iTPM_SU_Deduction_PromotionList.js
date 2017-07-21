@@ -4,7 +4,11 @@
  * @NModuleScope TargetAccount
  * Front-end suitelet script to get and return a list of eligible promotions upon which a new iTPM Settlement record can be created.
  */
-define(['N/ui/serverWidget','N/redirect','N/search','N/record'],
+define(['N/ui/serverWidget',
+		'N/redirect',
+		'N/search',
+		'N/record'
+		],
 
 function(serverWidget,redirect,search,record) {
 

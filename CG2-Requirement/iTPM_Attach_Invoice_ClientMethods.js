@@ -4,7 +4,9 @@
  * Client script to be attached with UserEvent script to iTPM Invoice records.
  * This will call the respective suitelet scripts upon button click.
  */
-define(['N/url','N/ui/message'],
+define(['N/url',
+		'N/ui/message'
+	   ],
 /**
  * @param {url} url
  */

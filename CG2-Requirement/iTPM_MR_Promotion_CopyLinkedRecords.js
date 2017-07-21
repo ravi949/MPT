@@ -4,7 +4,9 @@
  * @NModuleScope TargetAccount
  * Map / Reduce script to copy linked records from original iTPM Promotion record to the new (copied) iTPM Promotion record.
  */
-define(['N/record', 'N/search'],
+define(['N/record',
+		'N/search'
+		],
 /**
  * @param {record} record
  * @param {search} search

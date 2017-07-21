@@ -5,7 +5,10 @@
  * Client script to be attached to the iTPM Deduction record, via UE, for Deduction Buttons.
  */
 
-define(['N/url', 'N/https', 'N/ui/message'],
+define(['N/url',
+		'N/https',
+		'N/ui/message'
+		],
 
 function(url, https, message) {
 	

@@ -4,7 +4,12 @@
  * @NModuleScope TargetAccount
  * Client script to perform actions on the iTPM Allowance record during Create or Edit.
  */
-define(['N/ui/message','N/url','N/https','N/search','N/ui/dialog'],
+define(['N/ui/message',
+		'N/url',
+		'N/https',
+		'N/search',
+		'N/ui/dialog'
+		],
 
 function(message,url,https, search,dialog) {
 	

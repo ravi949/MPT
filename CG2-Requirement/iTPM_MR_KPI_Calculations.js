@@ -6,7 +6,8 @@
 define(['N/search', 
         'N/runtime', 
         'N/record',
-        './iTPM_Module.js'],
+        './iTPM_Module.js'
+        ],
 
 function(search, runtime, record, iTPM) {
    

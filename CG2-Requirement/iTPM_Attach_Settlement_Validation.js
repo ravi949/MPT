@@ -4,11 +4,14 @@
  * @NModuleScope TargetAccount
  * Client script to be attached to the front-end suitelet scripts for iTPM Settlement record Create or Edit.
  */
-define(['N/ui/message','N/record','N/url'],
-		/**
-		 * @param {record} record
-		 * @param {url} url
-		 */
+define(['N/ui/message',
+	    'N/record',
+	    'N/url'
+	    ],
+  /**
+  * @param {record} record
+  * @param {url} url
+  */
   function(message, record, url) {
 
 	/**

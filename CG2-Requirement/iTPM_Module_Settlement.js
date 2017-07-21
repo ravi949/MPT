@@ -4,7 +4,12 @@
  * Custom module for operations related to iTPM Settlement records.
  */
 
-define(['N/config', 'N/record', 'N/search','N/runtime','./iTPM_Module.js'],
+define(['N/config',
+		'N/record',
+		'N/search',
+		'N/runtime',
+		'./iTPM_Module.js'
+		],
 /**
  * @param {config} config
  * @param {record} record

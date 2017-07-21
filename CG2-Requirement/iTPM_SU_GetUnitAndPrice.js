@@ -5,7 +5,11 @@
  * Backend Suitelet script to fetch the price of an Item. Returns value to client script.
  * And It return list of unit of measures which is related to the item unit type.
  */
-define(['N/record', 'N/http', 'N/runtime', 'N/search'],
+define(['N/record',
+		'N/http',
+		'N/runtime',
+		'N/search'
+		],
 
 function(record, http, runtime, search) {
    

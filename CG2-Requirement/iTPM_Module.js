@@ -2,7 +2,11 @@
  * @NApiVersion 2.x
  * @NModuleScope TargetAccount
  */
-define(['N/search', 'N/record', 'N/util', 'N/runtime'],
+define(['N/search',
+		'N/record',
+		'N/util',
+		'N/runtime'
+		],
 
 function(search, record, util, runtime) {
 	
