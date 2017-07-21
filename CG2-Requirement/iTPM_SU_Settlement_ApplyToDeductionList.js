@@ -115,7 +115,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 				    value : parameters.sid
 				});
 				list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'});
-				list.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js';
+				list.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
 				
 				//getting the settlement request amount from the settlement record.
 				var settlementRec = record.load({
