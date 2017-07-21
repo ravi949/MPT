@@ -29,8 +29,8 @@ function(record, redirect, search, ST_Module,iTPM_Module) {
     		var request = context.request;
     		var response = context.response;
     		var parameters = request.parameters;
-    		var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
-			var currencyExists = iTPM_Module.currenciesEnabled();
+    		
+			
     		//loading the settlement record
     		var settlementRec = record.load({
     		     type: 'customtransaction_itpm_settlement',
@@ -44,6 +44,11 @@ function(record, redirect, search, ST_Module,iTPM_Module) {
 				};
     		}
     		
+    		var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
+			var currencyExists = iTPM_Module.currenciesEnabled();
+			var locationsExists = iTPM_Module.locationsEnabled();
+			var departmentsExists = iTPM_Module.departmentsEnabled();
+			var classesExists = iTPM_Module.classesEnabled();
     		
     		//search the promotion record based on settlement record for the account field and promotion type account field value
     		var promotionRecSer = search.create({
@@ -296,24 +301,33 @@ function(record, redirect, search, ST_Module,iTPM_Module) {
         			});
         		}
         		for(var v =0; v<= expenseLineCount; v++){
-        			checkRecord.setSublistValue({
-            			sublistId: 'expense',
-            			fieldId: 'department',
-            			line: v,
-            			value: settlementRec.getValue('department')
-            		});
-            		checkRecord.setSublistValue({
-            			sublistId: 'expense',
-            			fieldId: 'class',
-            			line: v,
-            			value: settlementRec.getValue('class')
-            		});
-            		checkRecord.setSublistValue({
-            			sublistId: 'expense',
-            			fieldId: 'location',
-            			line: v,
-            			value: settlementRec.getValue('location')
-            		});
+        			if(departmentsExists){
+        				checkRecord.setSublistValue({
+                			sublistId: 'expense',
+                			fieldId: 'department',
+                			line: v,
+                			value: settlementRec.getValue('department')
+                		});
+        			}
+        			
+            		if(classesExists){
+            			checkRecord.setSublistValue({
+                			sublistId: 'expense',
+                			fieldId: 'class',
+                			line: v,
+                			value: settlementRec.getValue('class')
+                		});
+            		}
+            		
+            		if(locationsExists){
+            			checkRecord.setSublistValue({
+                			sublistId: 'expense',
+                			fieldId: 'location',
+                			line: v,
+                			value: settlementRec.getValue('location')
+                		});
+            		}
+            		
             		checkRecord.setSublistValue({
             			sublistId: 'expense',
             			fieldId: 'isbillable',

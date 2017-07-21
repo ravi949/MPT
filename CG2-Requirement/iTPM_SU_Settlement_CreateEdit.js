@@ -95,6 +95,10 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
     	var eventType = params.type;
     	var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
 		var currencyExists = iTPM_Module.currenciesEnabled();
+		var locationsExists = iTPM_Module.locationsEnabled();
+		var departmentsExists = iTPM_Module.departmentsEnabled();
+		var classesExists = iTPM_Module.classesEnabled();
+		
 		var isEdit = (eventType == 'edit');
 		var displayTypeSetup = (isEdit)?serverWidget.FieldDisplayType.INLINE:serverWidget.FieldDisplayType.DISABLED;
 		
@@ -227,9 +231,6 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
     		var customerId = settlementRec.getValue('custbody_itpm_set_customer');
     		var customerText = settlementRec.getText('custbody_itpm_set_customer');
     		var memo = settlementRec.getValue('memo');
-    		var classSet = settlementRec.getValue('class');
-    		var deptSet = settlementRec.getValue('department');
-    		var locationSet = settlementRec.getValue('location');
     		var settlementReqValue = settlementRec.getValue('custbody_itpm_set_amount');
     		var incrdPromotionLiablty = settlementRec.getValue('custbody_itpm_set_incrd_promoliability');
 			var netPromotionLiablty = settlementRec.getValue('custbody_itpm_set_netliability');
@@ -459,77 +460,86 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
 	    }
 	    
     	//location
-    	var locationField = settlementForm.addField({
-    		id:'custom_itpm_st_location',
-    		type:serverWidget.FieldType.SELECT,
-    		label:'Location',
-    		container:'custom_classification_group'
-    	}).updateBreakType({
-			breakType : serverWidget.FieldBreakType.STARTCOL
-		});
-	    
-	    locationField.addSelectOption({
-			   value:' ',
-			   text:' '
-		 });
+	    if(locationsExists){
+	    	var locationSet = settlementRec.getValue('location');
+	    	var locationField = settlementForm.addField({
+	    		id:'custom_itpm_st_location',
+	    		type:serverWidget.FieldType.SELECT,
+	    		label:'Location',
+	    		container:'custom_classification_group'
+	    	}).updateBreakType({
+				breakType : serverWidget.FieldBreakType.STARTCOL
+			});
+		    
+		    locationField.addSelectOption({
+				   value:' ',
+				   text:' '
+			 });
 
-	    getList(subsid,'location').run().each(function(e){
-	    	locationField.addSelectOption({
-			   value:e.getValue('internalid'),
-			   text:e.getValue('name'),
-			   isSelected:locationSet == e.getValue('internalid')
-	    	})
-	    	return true;
-	    });
+		    getList(subsid, 'location', subsidiaryExists).run().each(function(e){
+		    	locationField.addSelectOption({
+				   value:e.getValue('internalid'),
+				   text:e.getValue('name'),
+				   isSelected:locationSet == e.getValue('internalid')
+		    	})
+		    	return true;
+		    });
+	    }
 
     	//department
-    	var deptField = settlementForm.addField({
-    		id:'custom_itpm_st_department',
-    		type:serverWidget.FieldType.SELECT,
-    		label:'Department',
-    		container:'custom_classification_group'
-    	}).updateBreakType({
-			breakType : serverWidget.FieldBreakType.STARTCOL
-		});
-    	
-	    deptField.addSelectOption({
-			   value:' ',
-			   text:' '
-		 });
+	    if(departmentsExists){
+	    	var deptSet = settlementRec.getValue('department');
+	    	var deptField = settlementForm.addField({
+	    		id:'custom_itpm_st_department',
+	    		type:serverWidget.FieldType.SELECT,
+	    		label:'Department',
+	    		container:'custom_classification_group'
+	    	}).updateBreakType({
+				breakType : serverWidget.FieldBreakType.STARTCOL
+			});
+	    	
+		    deptField.addSelectOption({
+				   value:' ',
+				   text:' '
+			 });
 
-	    getList(subsid,'dept').run().each(function(e){
-	    	deptField.addSelectOption({
-			   value:e.getValue('internalid'),
-			   text:e.getValue('name'),
-			   isSelected:deptSet == e.getValue('internalid')
-	    	})
-	    	return true;
-	    });
+		    getList(subsid, 'dept', subsidiaryExists).run().each(function(e){
+		    	deptField.addSelectOption({
+				   value:e.getValue('internalid'),
+				   text:e.getValue('name'),
+				   isSelected:deptSet == e.getValue('internalid')
+		    	})
+		    	return true;
+		    });
+	    }
     	
-	  //class
-    	var classField = settlementForm.addField({
-    		id:'custom_itpm_st_class',
-    		type:serverWidget.FieldType.SELECT,
-    		label:'Class',
-    		container:'custom_classification_group'
-    	}).updateBreakType({
-			breakType : serverWidget.FieldBreakType.STARTCOL
-		});
-    	
-    	
-    	classField.addSelectOption({
-			   value:' ',
-			   text:' '
-		 });
-
-	    getList(subsid,'class').run().each(function(e){
+	    //class
+	    if(classesExists){
+	    	var classSet = settlementRec.getValue('class');
+	    	var classField = settlementForm.addField({
+	    		id:'custom_itpm_st_class',
+	    		type:serverWidget.FieldType.SELECT,
+	    		label:'Class',
+	    		container:'custom_classification_group'
+	    	}).updateBreakType({
+				breakType : serverWidget.FieldBreakType.STARTCOL
+			});
+	    	
+	    	
 	    	classField.addSelectOption({
-  			   value:e.getValue('internalid'),
-  			   text:e.getValue('name'),
-  			 isSelected:classSet == e.getValue('internalid')
-	    	})
-	    	return true;
-	    })
+				   value:' ',
+				   text:' '
+			 });
+
+		    getList(subsid, 'class', subsidiaryExists).run().each(function(e){
+		    	classField.addSelectOption({
+	  			   value:e.getValue('internalid'),
+	  			   text:e.getValue('name'),
+	  			 isSelected:classSet == e.getValue('internalid')
+		    	})
+		    	return true;
+		    })
+	    }
     	
 	    /*  CLASSIFICATION end  */
 	   
@@ -716,7 +726,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
     }
     
     //get the class,location and department
-    function getList(subid,rectype){
+    function getList(subid, rectype, subsidiaryExists){
     	switch(rectype){
     	case 'class':
     		rectype = search.Type.CLASSIFICATION;
@@ -729,10 +739,15 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
     		break;
     	}
     	
+    	var classificationFilters = [['isinactive','is',false]];
+    	
+    	if(subsidiaryExists){
+    		classificationFilters.push('and',['subsidiary','anyof',subid])
+    	}
     	return search.create({
     		type:rectype,
     		columns:['internalid','name'],
-    		filters:[['isinactive','is',false],'and',['subsidiary','anyof',subid]]
+    		filters:classificationFilters
     	});
     }
     
