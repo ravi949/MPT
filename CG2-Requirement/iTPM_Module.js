@@ -293,16 +293,22 @@ function(search, record, util, runtime) {
         	}
         	
         	var classificationFilter = [['isinactive','is',false]];
+        	var listOfClassifications = [];
         	
         	if(subsidiaryExists){
         		classificationFilter.push('and',['subsidiary','anyof',subid]);
         	}
-        	
-        	return search.create({
+        	search.create({
         		type:rectype,
         		columns:['internalid','name'],
         		filters:classificationFilter
+        	}).run().each(function(e){
+        		listOfClassifications.push({name:e.getValue('name'),id:e.getValue('internalid')});
+        		return true;
         	});
+        	
+        	return listOfClassifications;
+        	
     	}catch(e){
     		log.error(e.name,'error in classifications '+e.message);
     	}
