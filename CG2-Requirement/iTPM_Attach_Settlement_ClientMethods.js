@@ -32,10 +32,16 @@ define(['N/ui/message',
 			var fieldName = scriptContext.fieldId;
 			var settlementReq = currentRecord.getValue('custom_itpm_st_reql');
 			var billBackSetReq = currentRecord.getValue('custpage_billback_setreq');
+			billBackSetReq = (billBackSetReq)?billBackSetReq:0;
+			
 			var netBillbackLiblty = currentRecord.getValue('custpage_netbillback_liablty');
 			var netPromotionalLiablty = currentRecord.getValue('custpage_netpromo_liablty');
 			var lumpsumSetReqAmnt = currentRecord.getValue('custpage_lumsum_setreq');
+			lumpsumSetReqAmnt = (lumpsumSetReqAmnt)?lumpsumSetReqAmnt:0;
+			
 			var offinvReq = currentRecord.getValue('custpage_offinvoice_setreq')>0?currentRecord.getValue('custpage_offinvoice_setreq'):0;
+			offinvReq = (offinvReq)?offinvReq:0;
+			
 			var totalSettlementReqAmnt = 0;
 			var settlementLS = lumpsumSetReqAmnt > 0?lumpsumSetReqAmnt:0;
 			var settlementBB = billBackSetReq > 0?billBackSetReq:0;
@@ -48,6 +54,10 @@ define(['N/ui/message',
 					fieldId:'custom_itpm_st_reql',
 					value:totalSettlementReqAmnt,
 					ignoreFieldChange:true
+				}).setValue({
+					fieldId:'custpage_lumsum_setreq',
+					value:lumpsumSetReqAmnt,
+					ignoreFieldChange:true
 				});
 			}
 
@@ -57,6 +67,10 @@ define(['N/ui/message',
 					fieldId:'custom_itpm_st_reql',
 					value:totalSettlementReqAmnt,
 					ignoreFieldChange:true
+				}).setValue({
+					fieldId:'custpage_billback_setreq',
+					value:billBackSetReq,
+					ignoreFieldChange:true
 				});
 			}
 			if(fieldName == 'custpage_offinvoice_setreq'){
@@ -65,6 +79,10 @@ define(['N/ui/message',
 				currentRecord.setValue({
 					fieldId:'custom_itpm_st_reql',
 					value:totalSettlementReqAmnt,
+					ignoreFieldChange:true
+				}).setValue({
+					fieldId:'custpage_offinvoice_setreq',
+					value:offinvReq,
 					ignoreFieldChange:true
 				});
 			}
