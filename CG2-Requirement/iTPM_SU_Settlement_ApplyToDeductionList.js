@@ -55,7 +55,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 				if(settlementRec.getValue('transtatus') != 'A'){
 	    			throw {
 						name:'SETTLEMENT_INVALID_STATUS',
-						message:'This settlement cannot be apply to dedcution'
+						message:'This settlement cannot be applied to the dedcution.'
 					};
 	    		}
 			
@@ -115,7 +115,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 				    value : parameters.sid
 				});
 				list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'});
-				list.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
+				list.clientScriptModulePath = './iTPM_Attach_Deduction_ClientMethods.js';
 				
 				//getting the settlement request amount from the settlement record.
 				var settlementRec = record.load({

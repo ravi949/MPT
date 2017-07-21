@@ -31,7 +31,7 @@ function(record, redirect, iTPM_Module) {
     			if(settlementStatus == 'C' || settlementStatus == 'D'){
     				throw {
     					name:'SETTLEMENT_INVALID_STATUS',
-    					message:'You cannot void this settlement'
+    					message:'This settlement has been voided.'
     				};
     			}
     			

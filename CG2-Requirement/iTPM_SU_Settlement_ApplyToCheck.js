@@ -40,7 +40,7 @@ function(record, redirect, search, ST_Module,iTPM_Module) {
     		if(settlementRec.getValue('transtatus') != 'A'){
     			throw {
 					name:'SETTLEMENT_INVALID_STATUS',
-					message:'This settlement cannot be apply to check'
+					message:'This settlement cannot be applied to the check.'
 				};
     		}
     		
