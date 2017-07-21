@@ -5,7 +5,9 @@
  * 
  * Adds a field to the form that will allow the user to select Unit after Item is selected.
  */
-define(['N/runtime', 'N/ui/serverWidget'],
+define(['N/runtime',
+		'N/ui/serverWidget'
+		],
 
 function(runtime, sWidget) {
    

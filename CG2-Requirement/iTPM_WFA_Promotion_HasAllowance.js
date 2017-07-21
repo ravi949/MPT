@@ -3,7 +3,9 @@
  * @NScriptType workflowactionscript
  * check the allowance are exist for promotion deal before estimate volume create
  */
-define(['N/search','N/runtime'],
+define(['N/search',
+		'N/runtime'
+		],
 
 function(search,runtime) {
 

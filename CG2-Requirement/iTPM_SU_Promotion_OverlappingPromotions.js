@@ -5,7 +5,9 @@
  * Showing the overlapping promotions in a list view(comparing with the Estimated quantity items in that promotion to other promotions which are in between start & end Dates of current promotion)
  */
 
-define(['N/render','N/search'],
+define(['N/render',
+		'N/search'
+		],
 
 function(render,search) {
 	function onRequest(context){

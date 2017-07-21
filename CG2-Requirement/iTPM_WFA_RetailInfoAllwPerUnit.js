@@ -3,7 +3,11 @@
  * @NScriptType workflowactionscript
  * retail merge margin calculation,setting the values to the %Discount at Retail
  */
-define(['N/search','N/record','N/runtime','./iTPM_Module'],
+define(['N/search',
+		'N/record',
+		'N/runtime',
+		'./iTPM_Module'
+		],
 
 function(search,record,runtime,iTPM_Module) {
 

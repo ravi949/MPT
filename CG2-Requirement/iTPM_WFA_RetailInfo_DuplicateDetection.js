@@ -3,7 +3,9 @@
  * @NScriptType workflowactionscript
  * Retail info duplicate detection.
  */
-define(['N/search', 'N/runtime'],
+define(['N/search',
+		'N/runtime'
+		],
 
 function(search,runtime) {
    

@@ -4,7 +4,11 @@
  * @NModuleScope TargetAccount
  * Calling suitelet to edit settlement and validate then saving the settlement 
  */
-define(['N/redirect','N/runtime','N/search','N/record'],
+define(['N/redirect',
+		'N/runtime',
+		'N/search',
+		'N/record'
+		],
 
 function(redirect,runtime,search,record) {
    

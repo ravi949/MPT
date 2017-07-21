@@ -4,7 +4,7 @@
  */
 define(['N/runtime',
 	    'N/search'	
-],
+		],
 
 function(runtime,search) {
    

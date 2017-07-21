@@ -4,7 +4,10 @@
  * @NModuleScope TargetAccount
  * Adding the Deduction button on invoice if invoice has atlease on payment and dont have any deduction records(Open and Pending)
  */
-define(['N/search', 'N/ui/serverWidget', 'N/runtime'],
+define(['N/search',
+		'N/ui/serverWidget',
+		'N/runtime'
+		],
 /**
  * @param {search} search
  * @param {serverWidget} serverWidget

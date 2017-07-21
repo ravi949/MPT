@@ -2,7 +2,10 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/search', 'N/runtime', './iTPM_Module'],
+define(['N/search',
+		'N/runtime',
+		'./iTPM_Module'
+		],
 /**
  * @param {search} search
  */

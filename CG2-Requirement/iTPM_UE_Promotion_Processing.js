@@ -3,7 +3,11 @@
  * @NScriptType UserEventScript
  * @NModuleScope TargetAccount
  */
-define(['N/ui/serverWidget','N/record','N/runtime','N/url'],
+define(['N/ui/serverWidget',
+		'N/record',
+		'N/runtime',
+		'N/url'
+		],
 /**
  * @param {serverWidget} serverWidget
  * @param {record} record

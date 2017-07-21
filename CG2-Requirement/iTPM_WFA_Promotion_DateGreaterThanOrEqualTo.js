@@ -2,7 +2,9 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/runtime', 'N/record'],
+define(['N/runtime',
+		'N/record'
+		],
 
 function(runtime, record) {
    

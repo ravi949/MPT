@@ -3,7 +3,10 @@
  * @NScriptType UserEventScript
  * @NModuleScope TargetAccount
  */
-define(['N/search', 'N/ui/serverWidget', 'N/runtime'],
+define(['N/search',
+		'N/ui/serverWidget',
+		'N/runtime'
+		],
 /**
  * @param {search} search
  * @param {serverWidget} serverWidget

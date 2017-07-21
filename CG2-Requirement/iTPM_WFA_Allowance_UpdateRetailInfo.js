@@ -2,7 +2,10 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/record', 'N/search', 'N/runtime'],
+define(['N/record',
+		'N/search',
+		'N/runtime'
+		],
 /**
  * @param {record} record
  * @param {search} search

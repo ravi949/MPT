@@ -4,7 +4,9 @@
  * @NModuleScope TargetAccount
  * Validates whether the Promotion has at least one allowance for that Item before allowing the creation of a KPI record.
  */
-define(['N/search','N/runtime'],
+define(['N/search',
+		'N/runtime'
+		],
 /**
  * @param {search} search
  * @param {runtime} runtime

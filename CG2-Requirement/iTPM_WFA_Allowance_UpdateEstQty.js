@@ -3,7 +3,10 @@
  * @NScriptType workflowactionscript
  * If user change the values in iTPM Allowance and submit record than it will load and save the appropriate EstimateQty and RetailInfo Records
  */
-define(['N/record','N/search','N/runtime'],
+define(['N/record',
+		'N/search',
+		'N/runtime'
+		],
 
 function(record,search,runtime) {
 

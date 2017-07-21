@@ -3,7 +3,9 @@
  * @NScriptType workflowactionscript
  * It is used to detect the duplicate allowance and return the values to workflow.
  */
-define(['N/search','N/runtime'],
+define(['N/search',
+		'N/runtime'
+		],
 
 function(search,runtime) {
 

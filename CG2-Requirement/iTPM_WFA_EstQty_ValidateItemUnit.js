@@ -2,7 +2,9 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/runtime','./iTPM_Module'],
+define(['N/runtime',
+		'./iTPM_Module'
+		],
 
 function(runtime,iTPM_Module) {
    

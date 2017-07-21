@@ -4,7 +4,9 @@
  * @NModuleScope TargetAccount
  * This script add the Apply To Deduction button on settlement based on conditions.
  */
-define(['N/runtime', 'N/ui/serverWidget'],
+define(['N/runtime',
+		'N/ui/serverWidget'
+		],
 /**
  * @param {runtime} runtime
  * @param {serverWidget} serverWidget

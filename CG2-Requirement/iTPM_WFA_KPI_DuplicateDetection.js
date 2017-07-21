@@ -3,7 +3,9 @@
  * @NScriptType workflowactionscript
  * This script is used to return the duplicate detection of KPI record for the allowance ITEM
  */
-define(['N/search', 'N/runtime'],
+define(['N/search',
+		'N/runtime'
+		],
 
 function(search, runtime) {
 
