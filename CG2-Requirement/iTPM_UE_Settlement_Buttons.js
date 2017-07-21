@@ -53,7 +53,7 @@ function(runtime, serverWidget) {
     				});
     			}
     			
-    			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Settlement_Validation.js';
+    			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
     		}
     	}catch(e){
     		log.error(e.name,'record type = iTPM Settlement, record id='+scriptContext.newRecord.id+', message='+e.message);
