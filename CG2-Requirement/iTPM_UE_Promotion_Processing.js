@@ -62,7 +62,7 @@ function(serverWidget,record,runtime,url) {
             					id:'custpage_copyinprg_message',
             					type:serverWidget.FieldType.INLINEHTML,
             					label:'script'
-            			}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Copy In Progress",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+            			}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Copy is in progress",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
             		}
         		}
         		
