@@ -2,11 +2,9 @@
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
  */
-define(['N/runtime',
-		'N/record'
-		],
+define(['N/runtime'],
 
-function(runtime, record) {
+function(runtime) {
    
     /**
      * Definition of the Suitelet script trigger point.

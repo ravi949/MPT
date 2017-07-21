@@ -3,11 +3,11 @@
  * @NScriptType workflowactionscript
  * Copying the old Promotion id and returning to workflow
  */
-define(['N/record'],
+define([],
 /**
  * @param {record} record
  */
-function(record) {
+function() {
    
     /**
      * Definition of the Suitelet script trigger point.
