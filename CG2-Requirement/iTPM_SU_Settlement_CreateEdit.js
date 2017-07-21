@@ -85,7 +85,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
     		else if(e.name == "DEDUCTION_INVALID_STATUS")
     			throw Error(e.message);
     		else
-    			log.error(e.name,'record type = -iTPM Settlement, record id = '+params.sid+', message = '+e.message);
+    			log.error(e.name,'record type = -iTPM Settlement, record id = '+JSON.stringify(params)+', message = '+e.message);
     	}
     }
     
@@ -262,6 +262,15 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
     		}
     		if(currencyExists){
     			var currencyText = settlementRec.getText('currency');
+    		}
+    		if(locationsExists){
+    			var locationSet = settlementRec.getValue('location');
+    		}
+    		if(departmentsExists){
+        		var deptSet = settlementRec.getValue('department');
+    		}
+    		if(classesExists){
+    			var classSet = settlementRec.getValue('class');
     		}
     		
     		settlementForm.addField({
@@ -461,7 +470,6 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
 	    
     	//location
 	    if(locationsExists){
-	    	var locationSet = settlementRec.getValue('location');
 	    	var locationField = settlementForm.addField({
 	    		id:'custom_itpm_st_location',
 	    		type:serverWidget.FieldType.SELECT,
@@ -488,7 +496,6 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
 
     	//department
 	    if(departmentsExists){
-	    	var deptSet = settlementRec.getValue('department');
 	    	var deptField = settlementForm.addField({
 	    		id:'custom_itpm_st_department',
 	    		type:serverWidget.FieldType.SELECT,
@@ -515,7 +522,6 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
     	
 	    //class
 	    if(classesExists){
-	    	var classSet = settlementRec.getValue('class');
 	    	var classField = settlementForm.addField({
 	    		id:'custom_itpm_st_class',
 	    		type:serverWidget.FieldType.SELECT,
