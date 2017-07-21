@@ -25,6 +25,9 @@ function(search,runtime) {
 			var promoDealId = scriptObj.getParameter({name:'custscript_itpm_hasallownce_promotion'});
 			var itemId = scriptObj.getParameter({name:'custscript_itpm_hasallowance_item'});
 			
+			log.debug('itemId',itemId);
+			log.debug('promoDealId',promoDealId);
+			
 			var allSearchFilter = [['custrecord_itpm_all_promotiondeal','anyof',promoDealId],'and',
 				['isinactive','is',false]
 			];
@@ -39,6 +42,7 @@ function(search,runtime) {
 				filters:allSearchFilter
 			}).run().getRange(0,10).length > 0;
 			log.debug('hasAllowance',hasAllowance);
+			
 			return (hasAllowance)?'T':'F';
 			
 		}catch(e){

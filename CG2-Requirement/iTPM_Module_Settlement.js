@@ -31,6 +31,10 @@ function(config, record, search, runtime, iTPM_Module) {
 			var createdFromDDN = (params.custom_itpm_st_created_frm == 'ddn');
 			var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
 			var currencyExists = iTPM_Module.currenciesEnabled();
+			var locationsExists = iTPM_Module.locationsEnabled();
+			var departmentsExists = iTPM_Module.departmentsEnabled();
+			var classesExists = iTPM_Module.classesEnabled();
+
 			if(createdFromDDN){
 				var deductionRec = record.load({
 					type:'customtransaction_itpm_deduction',
@@ -206,20 +210,29 @@ function(config, record, search, runtime, iTPM_Module) {
 			}
 			
 			//class
-			newSettlementRecord.setValue({
-				fieldId:'class',
-				value:params['custom_itpm_st_class']
-			});
+			if(classesExists){
+				newSettlementRecord.setValue({
+					fieldId:'class',
+					value:params['custom_itpm_st_class']
+				});
+			}
+			
 			//department
-			newSettlementRecord.setValue({
-				fieldId:'department',
-				value:params['custom_itpm_st_department']
-			});
+			if(departmentsExists){
+				newSettlementRecord.setValue({
+					fieldId:'department',
+					value:params['custom_itpm_st_department']
+				});
+			}
+			
 			//location
-			newSettlementRecord.setValue({
-				fieldId:'location',
-				value:params['custom_itpm_st_location']
-			});
+			if(locationsExists){
+				newSettlementRecord.setValue({
+					fieldId:'location',
+					value:params['custom_itpm_st_location']
+				});
+			}			
+			
 			//promotion number
 			newSettlementRecord.setValue({
 				fieldId:'custbody_itpm_set_promonum',
@@ -527,16 +540,28 @@ function(config, record, search, runtime, iTPM_Module) {
 			}).setValue({
 				fieldId:'memo',
 				value:params.custpage_memo
-			}).setValue({
-				fieldId:'location',
-				value:params.custom_itpm_st_location
-			}).setValue({
-				fieldId:'class',
-				value:params.custom_itpm_st_class
-			}).setValue({
-				fieldId:'department',
-				value:params.custom_itpm_st_department
 			});
+			
+			if(locationsExists){
+				loadedSettlementRec.setValue({
+					fieldId:'location',
+					value:params.custom_itpm_st_location
+				});
+			}
+			
+			if(classesExists){
+				loadedSettlementRec.setValue({
+					fieldId:'class',
+					value:params.custom_itpm_st_class
+				});
+			}
+			
+			if(departmentsExists){
+				loadedSettlementRec.setValue({
+					fieldId:'department',
+					value:params.custom_itpm_st_department
+				});
+			}
 			
 			var lumpsumSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqls');
         	var bbSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqbb');

@@ -28,6 +28,10 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 			var request = context.request,response = context.response,params = request.parameters;
 			var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
 			var currencyExists = iTPM_Module.currenciesEnabled();
+			var locationsExists = iTPM_Module.locationsEnabled();
+			var departmentsExists = iTPM_Module.departmentsEnabled();
+			var classesExists = iTPM_Module.classesEnabled();
+
 			
 			if(request.method == 'GET'){
 
@@ -68,10 +72,19 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 				
 				//reading the values same intenralid values from the deduciton or invoice record.
 				var recObj = (params.from == 'ddn')?deductionRec:invoiceRec;
-				var invclass = recObj.getValue('class');
-				var invdept = recObj.getValue('department');
-				var invlocation = recObj.getValue('location');
-				var subsid = recObj.getValue('subsidiary');
+				if(classesExists){
+					var invclass = recObj.getValue('class');
+				}
+				if(departmentsExists){
+					var invdept = recObj.getValue('department');
+				}
+				if(locationsExists){
+					var invlocation = recObj.getValue('location');
+				}
+				if(subsidiaryExists){
+					var subsid = recObj.getValue('subsidiary');
+				}
+				
 				var currentUserId = (params.type == 'edit')?recObj.getValue('custbody_itpm_ddn_assignedto'):runtime.getCurrentUser().id;
 				var totalSettlements = 0;
 				var customerRec = record.load({
@@ -351,77 +364,84 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 				
 				
 				//setting the LOCATION value
-				var location = ddnForm.addField({
-					id : 'custom_location',
-					type : serverWidget.FieldType.SELECT,
-					label:'Location',
-					container:'custom_classification'
-				}).updateBreakType({
-					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
+				if(locationsExists){
+					var location = ddnForm.addField({
+						id : 'custom_location',
+						type : serverWidget.FieldType.SELECT,
+						label:'Location',
+						container:'custom_classification'
+					}).updateBreakType({
+						breakType : serverWidget.FieldBreakType.STARTCOL
+					});
 
-				location.addSelectOption({
-					value:' ',
-					text:' '
-				});
-
-				getList(subsid,'location').run().each(function(e){
 					location.addSelectOption({
-						value:e.getValue('internalid'),
-						text:e.getValue('name'),
-						isSelected:(invlocation == e.getValue('internalid'))
-					})
-					return true;
-				});
+						value:' ',
+						text:' '
+					});
 
+					getList(subsid, 'location', subsidiaryExists).run().each(function(e){
+						location.addSelectOption({
+							value:e.getValue('internalid'),
+							text:e.getValue('name'),
+							isSelected:(invlocation == e.getValue('internalid'))
+						})
+						return true;
+					});
+				}
 
 				//setting the DEPARTMENT value
-				var dept = ddnForm.addField({
-					id : 'custom_department',
-					type : serverWidget.FieldType.SELECT,
-					label:'Department',
-					container:'custom_classification'
-				}).updateBreakType({
-					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
+				if(departmentsExists){
+					var dept = ddnForm.addField({
+						id : 'custom_department',
+						type : serverWidget.FieldType.SELECT,
+						label:'Department',
+						container:'custom_classification'
+					}).updateBreakType({
+						breakType : serverWidget.FieldBreakType.STARTCOL
+					});
 
-				dept.addSelectOption({
-					value:' ',
-					text:' '
-				});
-
-				getList(subsid,'dept').run().each(function(e){
 					dept.addSelectOption({
-						value:e.getValue('internalid'),
-						text:e.getValue('name'),
-						isSelected:(invdept == e.getValue('internalid'))
-					})
-					return true;
-				});
+						value:' ',
+						text:' '
+					});
+
+					getList(subsid, 'dept', subsidiaryExists).run().each(function(e){
+						dept.addSelectOption({
+							value:e.getValue('internalid'),
+							text:e.getValue('name'),
+							isSelected:(invdept == e.getValue('internalid'))
+						})
+						return true;
+					});
+				}
+				
 
 				//setting the CLASS value
-				var classField = ddnForm.addField({
-					id : 'custom_class',
-					type : serverWidget.FieldType.SELECT,
-					label:'Class',
-					container:'custom_classification'
-				}).updateBreakType({
-					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
-
-				classField.addSelectOption({
-					value :' ',
-					text : ' '
-				});
-
-				getList(subsid,'class').run().each(function(e){
-					classField.addSelectOption({
-						value :e.getValue('internalid'),
-						text : e.getValue('name'),
-						isSelected:(invclass == e.getValue('internalid'))
+				if(classesExists){
+					var classField = ddnForm.addField({
+						id : 'custom_class',
+						type : serverWidget.FieldType.SELECT,
+						label:'Class',
+						container:'custom_classification'
+					}).updateBreakType({
+						breakType : serverWidget.FieldBreakType.STARTCOL
 					});
-					return true;
-				});
+
+					classField.addSelectOption({
+						value :' ',
+						text : ' '
+					});
+
+					getList(subsid, 'class', subsidiaryExists).run().each(function(e){
+						classField.addSelectOption({
+							value :e.getValue('internalid'),
+							text : e.getValue('name'),
+							isSelected:(invclass == e.getValue('internalid'))
+						});
+						return true;
+					});
+				}
+
 
 				/*------CLASSIFICATION end --------*/
 				
@@ -441,7 +461,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 				});
 
 				assignto.isMandatory = true;
-				getEmployees(subsid).run().each(function(e){
+				getEmployees(subsid,subsidiaryExists).run().each(function(e){
 					assignto.addSelectOption({
 						value :e.getValue('internalid'),
 						text : e.getValue('entityid'),
@@ -549,9 +569,6 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 				}),
 				customerno = params['custom_customer'],
 				parentno = params['custom_parent'],
-				classno = params['custom_class'],
-				deptno = params['custom_department'],
-				locationno = params['custom_location'],
 				assignto = params['custom_itpm_ddn_assignedto'],
 				amount = params['custom_itpm_ddn_amount'].replace(/,/g,''),
 				totalsettlement = params['custom_total_settlements'],
@@ -562,8 +579,17 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 				status = params['custom_status'],
 				defaultRecvAccnt = params['custom_def_accnt_recv'],
 				deductionRec = null;
-
 				
+				if(classesExists){
+					var classno = params['custom_class'];
+				}
+				if(departmentsExists){
+					var deptno = params['custom_department'];
+				}
+				if(locationsExists){
+					var locationno = params['custom_location'];
+				}
+
 				if(params['custom_user_eventype'] != 'edit'){
 					deductionRec = record.create({
 						type:'customtransaction_itpm_deduction',
@@ -662,7 +688,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 					});
 				}
 
-				if(classno != ''){
+				if(classesExists && classno != ''){
 					deductionRec.setValue({
 						fieldId:'class',
 						value:classno,
@@ -670,7 +696,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 					})
 				}
 
-				if(deptno != ''){
+				if(locationsExists && locationno != ''){
 					deductionRec.setValue({
 						fieldId:'location',
 						value:locationno,
@@ -678,7 +704,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 					})
 				}
 
-				if(locationno != ''){
+				if(departmentsExists && deptno != ''){
 					deductionRec.setValue({
 						fieldId:'department',
 						value:deptno,
@@ -838,17 +864,28 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 							toType: record.Type.CUSTOMER_PAYMENT
 						}),
 						transFormRecLineCount = invTransformRec.getLineCount('credit');
-
+						
+						if(classesExists){
+							invTransformRec.setValue({
+								fieldId:'class',
+								value:classno
+							});
+						}
+						if(locationsExists){
+							invTransformRec.setValue({
+								fieldId:'location',
+								value:locationno
+							});
+						}
+						
+						if(departmentsExists){
+							invTransformRec.setValue({
+								fieldId:'department',
+								value:deptno
+							});
+						}
+						
 						invTransformRec.setValue({
-							fieldId:'class',
-							value:classno
-						}).setValue({
-							fieldId:'location',
-							value:locationno
-						}).setValue({
-							fieldId:'department',
-							value:deptno
-						}).setValue({
 							fieldId:'memo',
 							value:'Deduction '+deductionCreatedRec.getValue('tranid')+' applied to Invoice '+invoiceLookup.tranid
 						});
@@ -969,7 +1006,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 	
 	
     //getting the Class,Department and Location list based on subsidiary.
-    function getList(subid,rectype){
+    function getList(subid, rectype, subsidiaryExists){
     	switch(rectype){
     	case 'class':
     		rectype = search.Type.CLASSIFICATION;
@@ -982,19 +1019,29 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
     		break;
     	}
     	
+    	var classificationFilter = [['isinactive','is',false]];
+    	
+    	if(subsidiaryExists){
+    		classificationFilter.push('and',['subsidiary','anyof',subid]);
+    	}
+    	
     	return search.create({
     		type:rectype,
     		columns:['internalid','name'],
-    		filters:[['isinactive','is',false],'and',['subsidiary','anyof',subid]]
+    		filters:classificationFilter
     	});
     }
     
     //getting the Employees list based on subsidiary.
-    function getEmployees(subid){
+    function getEmployees(subid,subsidiaryExists){
+    	var employeeFilter = [['isinactive','is',false]];
+    	if(subsidiaryExists){
+    		employeeFilter.push('and',['subsidiary','anyof',subid]);
+    	}
     	return search.create({
     		type:search.Type.EMPLOYEE,
     		columns:['internalid','entityid'],
-    		filters:[['isinactive','is',false],'and',['subsidiary','anyof',subid]]
+    		filters:employeeFilter
     	});
     }
     
