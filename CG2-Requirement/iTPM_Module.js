@@ -4,11 +4,10 @@
  */
 define(['N/search',
 		'N/record',
-		'N/util',
 		'N/runtime'
 		],
 
-function(search, record, util, runtime) {
+function(search, record, runtime) {
 	
 	/**
 	 * function locationEnabled()

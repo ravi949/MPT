@@ -5,11 +5,10 @@
  */
 define(['N/record',
 		'N/search',
-		'N/runtime',
 		'./iTPM_Module.js'
 		],
 
-function(record, search, runtime, iTPM) {
+function(record, search, iTPM) {
    
     /**
      * Definition of the Suitelet script trigger point.

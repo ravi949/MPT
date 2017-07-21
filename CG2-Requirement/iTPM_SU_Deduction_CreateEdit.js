@@ -11,7 +11,8 @@ define(['N/ui/serverWidget',
 		'N/redirect',
 		'N/config',
 		'N/format',
-		'./iTPM_Module'],
+		'./iTPM_Module'
+		],
 
 function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) {
    

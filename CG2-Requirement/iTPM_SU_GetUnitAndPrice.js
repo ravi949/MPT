@@ -7,11 +7,10 @@
  */
 define(['N/record',
 		'N/http',
-		'N/runtime',
 		'N/search'
 		],
 
-function(record, http, runtime, search) {
+function(record, http, search) {
    
     /**
      * Definition of the Suitelet script trigger point.

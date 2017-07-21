@@ -7,7 +7,6 @@
 define(['N/config',
 		'N/record',
 		'N/search',
-		'N/runtime',
 		'./iTPM_Module.js'
 		],
 /**
@@ -16,7 +15,7 @@ define(['N/config',
  * @param {search} search
  * @param {runtime} runtime
  */
-function(config, record, search, runtime, iTPM_Module) {
+function(config, record, search, iTPM_Module) {
    
 	/**
 	 * function createSettlement(params)
@@ -455,7 +454,7 @@ function(config, record, search, runtime, iTPM_Module) {
 	 */
 	function setJELines(setId,subsId,JELines){
 		try{
-			var subsidiaryExists = runtime.isFeatureInEffect('subsidiaries');
+			var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
 			var journalRecord = record.create({
 				type: record.Type.JOURNAL_ENTRY		
 			});

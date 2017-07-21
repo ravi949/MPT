@@ -6,11 +6,10 @@
  */
 define(['N/ui/serverWidget',
 		'N/redirect',
-		'N/search',
-		'N/record'
+		'N/search'
 		],
 
-function(serverWidget,redirect,search,record) {
+function(serverWidget,redirect,search) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.

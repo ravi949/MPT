@@ -6,11 +6,10 @@
  */
 define(['N/redirect',
 		'N/runtime',
-		'N/search',
-		'N/record'
+		'N/search'
 		],
 
-function(redirect,runtime,search,record) {
+function(redirect,runtime,search) {
    
     /**
      * Function definition to be triggered before record is loaded.

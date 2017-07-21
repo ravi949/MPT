@@ -5,14 +5,12 @@
  * if parent deduction amount is less than new deduction amount then.
  * split the deduction into two and creating the two journal entries for each deduction and changed the parent deduction status to resolved.
  */
-define(['N/url',
-		'N/record',
-		'N/ui/serverWidget',
+define(['N/ui/serverWidget',
 		'N/runtime',
 		'N/redirect'
 		],
 
-function(url, record, widget, runtime, redirect) {
+function(widget, runtime, redirect) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.

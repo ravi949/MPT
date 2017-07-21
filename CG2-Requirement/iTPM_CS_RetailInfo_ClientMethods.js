@@ -3,11 +3,11 @@
  * @NScriptType ClientScript
  * @NModuleScope SameAccount
  */
-define(['N/record'],
+define([],
 /**
  * @param {record} record
  */
-function(record) {
+function() {
     /**
      * Function to be executed when field is changed.
      *

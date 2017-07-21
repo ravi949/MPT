@@ -7,11 +7,10 @@
 define(['N/ui/serverWidget',
 		'N/search',
 		'N/record',
-		'N/runtime',
 		'N/format'
 		],
 
- function(serverWidget,search,record,runtime,format) {
+ function(serverWidget,search,record,format) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -299,7 +298,6 @@ define(['N/ui/serverWidget',
 					}	
 				}
 				
-				log.debug('runtime',runtime.getCurrentScript().getRemainingUsage());
 				form.clientScriptModulePath = './iTPM_Attach_Promotion_ActualSalesShipmentsPagination.js';
 				response.writePage(form);	
 			}

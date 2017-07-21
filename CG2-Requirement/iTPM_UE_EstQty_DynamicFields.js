@@ -4,15 +4,14 @@
  * @NModuleScope TargetAccount
  * Adds two dynamic fields - Item & Unit - to EstQty records.
  */
-define(['N/record',
-		'N/search',
+define(['N/search',
 		'N/ui/serverWidget',
 		'N/runtime',
 		'N/url',
 		'N/https'
 		],
 
-function(record, search, serverWidget, runtime, url, https) {
+function(search, serverWidget, runtime, url, https) {
 	
 	/**
 	 * Function definition to be triggered before record is loaded.
