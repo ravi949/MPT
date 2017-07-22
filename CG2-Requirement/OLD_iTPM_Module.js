@@ -2,9 +2,12 @@
  * @NApiVersion 2.x
  * @NModuleScope TargetAccount
  */
-define(['N/search', 'N/record', 'N/util', 'N/runtime'],
+define(['N/search',
+		'N/record',
+		'N/runtime'
+		],
 
-function(search, record, util, runtime) {
+function(search, record, runtime) {
 	
 	/**
 	 * function locationEnabled()
@@ -17,7 +20,7 @@ function(search, record, util, runtime) {
 			var currentUser = runtime.getCurrentUser();
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
-			log.debug('locationsEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+			log.debug('locationEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
 			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
@@ -37,7 +40,7 @@ function(search, record, util, runtime) {
 			var currentUser = runtime.getCurrentUser();
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
-			log.debug('departmentsEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+			log.debug('departmentEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
 			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
@@ -97,7 +100,7 @@ function(search, record, util, runtime) {
 			var currentUser = runtime.getCurrentUser();
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
-			log.debug('currenciesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+			log.debug('subsidiariesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
 			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
@@ -272,6 +275,44 @@ function(search, record, util, runtime) {
 			return{error:true,name:'Preference error',message:e.message};
 		}
 	}
+	
+	  //getting the Class,Department and Location list based on subsidiary.
+    function getClassifications(subid, rectype, subsidiaryExists){
+    	try{
+    		switch(rectype){
+        	case 'class':
+        		rectype = search.Type.CLASSIFICATION;
+        		break;
+        	case 'dept':
+        		rectype = search.Type.DEPARTMENT;
+        		break;
+        	case 'location':
+        		rectype = search.Type.LOCATION;
+        		break;
+        	}
+        	
+        	var classificationFilter = [['isinactive','is',false]];
+        	var listOfClassifications = [];
+        	
+        	if(subsidiaryExists){
+        		classificationFilter.push('and',['subsidiary','anyof',subid]);
+        	}
+        	search.create({
+        		type:rectype,
+        		columns:['internalid','name'],
+        		filters:classificationFilter
+        	}).run().each(function(e){
+        		listOfClassifications.push({name:e.getValue('name'),id:e.getValue('internalid')});
+        		return true;
+        	});
+        	
+        	return listOfClassifications;
+        	
+    	}catch(e){
+    		log.error(e.name,'error in classifications '+e.message);
+    	}
+    	
+    }
     
     
     return {
@@ -284,7 +325,8 @@ function(search, record, util, runtime) {
     	departmentsEnabled : departmentsEnabled,
     	classesEnabled : classesEnabled,
     	subsidiariesEnabled:subsidiariesEnabled,
-    	currenciesEnabled:currenciesEnabled
+    	currenciesEnabled:currenciesEnabled,
+    	getClassifications:getClassifications
     };
     
 });
