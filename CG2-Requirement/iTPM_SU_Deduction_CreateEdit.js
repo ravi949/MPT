@@ -11,10 +11,9 @@ define(['N/ui/serverWidget',
 		'N/redirect',
 		'N/config',
 		'N/format',
-		'./iTPM_Module'
-		],
+		'./iTPM_Module.js'],
 
-function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) {
+function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -27,12 +26,11 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 	function onRequest(context) {
 		try{
 			var request = context.request,response = context.response,params = request.parameters;
-			var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
-			var currencyExists = iTPM_Module.currenciesEnabled();
-			var locationsExists = iTPM_Module.locationsEnabled();
-			var departmentsExists = iTPM_Module.departmentsEnabled();
-			var classesExists = iTPM_Module.classesEnabled();
-
+			var subsidiariesEnabled = itpm.subsidiariesEnabled();
+			var currenciesEnabled = itpm.currenciesEnabled();
+			var locationsEnabled = itpm.locationsEnabled();
+			var classesEnabled = itpm.classesEnabled();
+			var departmentsEnabled = itpm.departmentsEnabled();
 			
 			if(request.method == 'GET'){
 
@@ -73,18 +71,11 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 				
 				//reading the values same intenralid values from the deduciton or invoice record.
 				var recObj = (params.from == 'ddn')?deductionRec:invoiceRec;
-				if(classesExists){
-					var invclass = recObj.getValue('class');
-				}
-				if(departmentsExists){
-					var invdept = recObj.getValue('department');
-				}
-				if(locationsExists){
-					var invlocation = recObj.getValue('location');
-				}
-				if(subsidiaryExists){
-					var subsid = recObj.getValue('subsidiary');
-				}
+				var invclass, invdept, invlocation, subsid;
+				if (classesEnabled) invclass = recObj.getValue('class');
+				if (departmentsEnabled) invdept = recObj.getValue('department');
+				if (locationsEnabled) invlocation = recObj.getValue('location');
+				if (subsidiariesEnabled) subsid = recObj.getValue('subsidiary');
 				
 				var currentUserId = (params.type == 'edit')?recObj.getValue('custbody_itpm_ddn_assignedto'):runtime.getCurrentUser().id;
 				var totalSettlements = 0;
@@ -326,7 +317,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 				});
 
 				//if subsidiary feature in effect
-				if(subsidiaryExists){
+				if(subsidiariesEnabled){
 					//setting the SUBSIDIARY Value
 					var subsidiary = ddnForm.addField({
 						id : 'custom_subsidiary',
@@ -345,7 +336,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 				}
 
 				//if multicurrnecy feature in effect
-				if(currencyExists){
+				if(currenciesEnabled){
 					//setting the CURRENCY value
 					var currency = ddnForm.addField({
 						id : 'custom_currency',
@@ -363,9 +354,8 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 					});
 				}		
 				
-				
 				//setting the LOCATION value
-				if(locationsExists){
+				if (locationsEnabled){
 					var location = ddnForm.addField({
 						id : 'custom_location',
 						type : serverWidget.FieldType.SELECT,
@@ -380,18 +370,18 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 						text:' '
 					});
 
-					iTPM_Module.getClassifications(subsid, 'location', subsidiaryExists).forEach(function(e){
+					getList(subsid,'location').run().each(function(e){
 						location.addSelectOption({
-							value:e.id,
-							text:e.name,
-							isSelected:(invlocation == e.id)
+							value:e.getValue('internalid'),
+							text:e.getValue('name'),
+							isSelected:(invlocation == e.getValue('internalid'))
 						})
 						return true;
 					});
 				}
 
-				//setting the DEPARTMENT value
-				if(departmentsExists){
+				if (departmentsEnabled){
+					//setting the DEPARTMENT value
 					var dept = ddnForm.addField({
 						id : 'custom_department',
 						type : serverWidget.FieldType.SELECT,
@@ -406,19 +396,18 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 						text:' '
 					});
 
-					iTPM_Module.getClassifications(subsid, 'dept', subsidiaryExists).forEach(function(e){
+					getList(subsid,'dept').run().each(function(e){
 						dept.addSelectOption({
-							value:e.id,
-							text:e.name,
-							isSelected:(invdept == e.id)
+							value:e.getValue('internalid'),
+							text:e.getValue('name'),
+							isSelected:(invdept == e.getValue('internalid'))
 						})
 						return true;
 					});
 				}
 				
-
-				//setting the CLASS value
-				if(classesExists){
+				if (classesEnabled){
+					//setting the CLASS value
 					var classField = ddnForm.addField({
 						id : 'custom_class',
 						type : serverWidget.FieldType.SELECT,
@@ -433,16 +422,15 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 						text : ' '
 					});
 
-					iTPM_Module.getClassifications(subsid, 'class', subsidiaryExists).forEach(function(e){
+					getList(subsid,'class').run().each(function(e){
 						classField.addSelectOption({
-							value :e.id,
-							text : e.name,
-							isSelected:(invclass == e.id)
+							value :e.getValue('internalid'),
+							text : e.getValue('name'),
+							isSelected:(invclass == e.getValue('internalid'))
 						});
 						return true;
 					});
 				}
-
 
 				/*------CLASSIFICATION end --------*/
 				
@@ -462,7 +450,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 				});
 
 				assignto.isMandatory = true;
-				getEmployees(subsid,subsidiaryExists).run().each(function(e){
+				getEmployees(subsid).run().each(function(e){
 					assignto.addSelectOption({
 						value :e.getValue('internalid'),
 						text : e.getValue('entityid'),
@@ -570,6 +558,9 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 				}),
 				customerno = params['custom_customer'],
 				parentno = params['custom_parent'],
+				classno = params['custom_class'],
+				deptno = params['custom_department'],
+				locationno = params['custom_location'],
 				assignto = params['custom_itpm_ddn_assignedto'],
 				amount = params['custom_itpm_ddn_amount'].replace(/,/g,''),
 				totalsettlement = params['custom_total_settlements'],
@@ -580,17 +571,8 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 				status = params['custom_status'],
 				defaultRecvAccnt = params['custom_def_accnt_recv'],
 				deductionRec = null;
-				
-				if(classesExists){
-					var classno = params['custom_class'];
-				}
-				if(departmentsExists){
-					var deptno = params['custom_department'];
-				}
-				if(locationsExists){
-					var locationno = params['custom_location'];
-				}
 
+				
 				if(params['custom_user_eventype'] != 'edit'){
 					deductionRec = record.create({
 						type:'customtransaction_itpm_deduction',
@@ -673,7 +655,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 					})
 				}
 				
-				if(subsidiaryExists){
+				if(subsidiariesEnabled){
 					deductionRec.setValue({
 						fieldId:'subsidiary',
 						value:params['custom_subsidiary'],
@@ -681,7 +663,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 					})
 				}
 				
-				if(currencyExists){
+				if(currenciesEnabled){
 					deductionRec.setValue({
 						fieldId:'currency',
 						value:params['custom_currency'],
@@ -689,7 +671,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 					});
 				}
 
-				if(classesExists && classno != ''){
+				if(classno != ''){
 					deductionRec.setValue({
 						fieldId:'class',
 						value:classno,
@@ -697,7 +679,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 					})
 				}
 
-				if(locationsExists && locationno != ''){
+				if(deptno != ''){
 					deductionRec.setValue({
 						fieldId:'location',
 						value:locationno,
@@ -705,7 +687,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 					})
 				}
 
-				if(departmentsExists && deptno != ''){
+				if(locationno != ''){
 					deductionRec.setValue({
 						fieldId:'department',
 						value:deptno,
@@ -865,28 +847,17 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 							toType: record.Type.CUSTOMER_PAYMENT
 						}),
 						transFormRecLineCount = invTransformRec.getLineCount('credit');
-						
-						if(classesExists){
-							invTransformRec.setValue({
-								fieldId:'class',
-								value:classno
-							});
-						}
-						if(locationsExists){
-							invTransformRec.setValue({
-								fieldId:'location',
-								value:locationno
-							});
-						}
-						
-						if(departmentsExists){
-							invTransformRec.setValue({
-								fieldId:'department',
-								value:deptno
-							});
-						}
-						
+
 						invTransformRec.setValue({
+							fieldId:'class',
+							value:classno
+						}).setValue({
+							fieldId:'location',
+							value:locationno
+						}).setValue({
+							fieldId:'department',
+							value:deptno
+						}).setValue({
 							fieldId:'memo',
 							value:'Deduction '+deductionCreatedRec.getValue('tranid')+' applied to Invoice '+invoiceLookup.tranid
 						});
@@ -1003,16 +974,46 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
 		var newChildDedid = copiedDeductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});		
 	}
 	
+	
+	
+	
+    //getting the Class,Department and Location list based on subsidiary.
+    function getList(subid,rectype){
+    	switch(rectype){
+    	case 'class':
+    		rectype = search.Type.CLASSIFICATION;
+    		break;
+    	case 'dept':
+    		rectype = search.Type.DEPARTMENT;
+    		break;
+    	case 'location':
+    		rectype = search.Type.LOCATION;
+    		break;
+    	}
+    	
+    	var filters = [['isinactive','is',false]];
+    	if (subid) {
+    		filters.push('and');
+    		filters.push(['subsidiary','anyof',subid]);
+    	}
+    	return search.create({
+    		type:rectype,
+    		columns:['internalid','name'],
+    		filters: filters
+    	});
+    }
+    
     //getting the Employees list based on subsidiary.
-    function getEmployees(subid,subsidiaryExists){
-    	var employeeFilter = [['isinactive','is',false]];
-    	if(subsidiaryExists){
-    		employeeFilter.push('and',['subsidiary','anyof',subid]);
+    function getEmployees(subid){
+    	var filters = [['isinactive','is',false]];
+    	if (subid){
+    		filters.push('and');
+    		filters.push(['subsidiary','anyof',subid]);
     	}
     	return search.create({
     		type:search.Type.EMPLOYEE,
     		columns:['internalid','entityid'],
-    		filters:employeeFilter
+    		filters: filters
     	});
     }
     
@@ -1047,28 +1048,40 @@ function(serverWidget,record,search,runtime,redirect,config,format,iTPM_Module) 
     				         ['status','anyof',["Custom100:A","Custom100:B"]]]
     			}).run().getRange(0,5).length == 0;
 
-    			if(invConditionsMet && invoiceDeductionsAreEmpty)
-    				return {success:true}
-    			else
-    				return {success:false,errormessage:'you cannot make a deduction from this invoice'}
+    			if (invConditionsMet && invoiceDeductionsAreEmpty){
+    				return {success:true};
+    			} else {
+    				throw {name: 'checkWhetherIdValidOrNot',
+    						message: 'Invoice conditions not met, OR, Invoice Deductions not empty.'};
+    			}
 
-    		}else if(from == 'ddn'){
+    		} else if(from == 'ddn'){
     			
     			loadedRec = record.load({
     				type:'customtransaction_itpm_deduction',
     				id:id
     			});
-    			return (loadedRec.getValue('transtatus') == 'A')?{success:true}:{success:false,errormessage:'you cannot make a split from this deduction'};
-
+    			if (loadedRec.getValue('transtatus') == 'A') {
+    				return {success:true};
+    			} else {
+    				throw {
+    					name: 'checkWhetherIdValidOrNot', 
+    					message: 'Deduction status not OPEN.'
+    				};
+    			}
     		}
-    		return {success:true}   		
+    		// if neither of the IF statement clauses are satisfied
+    		throw {
+				name: 'checkWhetherIdValidOrNot', 
+				message: 'Could not find required parameter FROM in request.'
+			};
     	}catch(e){
-    		return {success:false,errormessage:'invalid parameters'}
+    		return {success:false,errormessage:e}
     	}
     }
     
     return {
         onRequest: onRequest
-    };
+    }
     
 });
