@@ -2,14 +2,15 @@
  * @NApiVersion 2.x
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
- * Suitelet script to create an expense Journal Entry and link it to an iTPM Deduction record.
+ * Suitelet script to create an expense Journal Entry and link it to an itpm Deduction record.
  */
 define(['N/record',
 		'N/search',
+		'N/runtime',
 		'./iTPM_Module.js'
 		],
 
-function(record, search, iTPM) {
+function(record, search, runtime, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -35,25 +36,28 @@ function(record, search, iTPM) {
 					return;
 				}
 				
-				var subsidiaryExists = iTPM.subsidiariesEnabled();
-				var currencyExists = iTPM.currenciesEnabled();
-				var itpmPreferences = iTPM.getPrefrenceValues(),
-				expAccount = itpmPreferences.expenseAccnt,
-				ddnAccount = null,
-				ddnId = context.request.parameters.ddn,
-				journalEntry = null,
-				journalId = null,
-				subsidiary = null,
-				currency = null,
-				openBalance = null,
-				ddnFields = ['tranid', 
-					'custbody_itpm_ddn_openbal'
-					],
+				var subsidiaryExists = itpm.subsidiariesEnabled();
+				var currencyExists = itpm.currenciesEnabled();
+				var itpmPreferences = itpm.getPrefrenceValues();
+				var expAccount = itpmPreferences.expenseAccnt;
+				var ddnId = context.request.parameters.ddn; 
+				var ddnAccount = null,				
+					journalEntry = null,
+					journalId = null,
+					subsidiary = null,
+					currency = null,
+					openBalance = null,
+					ddnFields = ['tranid',	 
+					             'custbody_itpm_ddn_openbal'],
 					memo = 'Expense for Deduction ';
 
 				if (subsidiaryExists){
 					ddnFields.push('subsidiary');
 					ddnFields.push('subsidiary.currency');
+				}
+				
+				if (currencyExists){
+					ddnFields.push('currency');
 				}
 
 				ddnFields = search.lookupFields({
@@ -61,15 +65,18 @@ function(record, search, iTPM) {
 					id: ddnId,
 					columns: ddnFields
 				});
+				
 				if (util.isObject(ddnFields)){
 					openBalance = parseFloat(ddnFields.custbody_itpm_ddn_openbal)
 					if (subsidiaryExists){
 						subsidiary = ddnFields.subsidiary[0].value;
 					}
 					
-					if(currencyExists){
+					if(currencyExists && subsidiaryExists){
 						currency = ddnFields['subsidiary.currency'];
 						currency = currency[0].value;
+					} else if (currencyExists && !subsidiaryExists){
+						currency = ddnFields.currency[0].value;
 					}
 				} else {
 					throw {
@@ -83,7 +90,9 @@ function(record, search, iTPM) {
 					filters:[['internalid', 'anyof', ddnId],'and',
 						['debitamount', 'greaterthan', '0']],
 						columns:[{name:'account'}]
-				}).run().getRange(0,1)[0].getValue({name:'account'});
+				}).run().getRange(0,1);
+				
+				if (ddnAccount) ddnAccount = ddnAccount[0].getValue({name:'account'});
 
 				journalEntry = record.create({
 					type: record.Type.JOURNAL_ENTRY,
