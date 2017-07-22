@@ -3,12 +3,9 @@
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
  */
-define(['N/record',
-		'N/search',
-		'./iTPM_Module.js'
-		],
+define(['N/record', 'N/search', 'N/runtime', './iTPM_Module.js'],
 
-function(record, search, iTPM) {
+function(record, search, runtime, iTPM) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -40,29 +37,31 @@ function(record, search, iTPM) {
 				var subsidiaryExists = iTPM.subsidiariesEnabled();
 				var currencyExists = iTPM.currenciesEnabled();
     			var ddnAccount = null,
-    			journalEntry = null,
-    			journalId = null,
-    			customerId = null,
-    			invoiceId = null,
-    			accountReceivables = null,
-    			openBalance = null,
-    			subsidiary = null,
-    			currency = null,
-    			ddnRecord = null,
-    			ddnFields = ['tranid',
-    			             'custbody_itpm_ddn_invoice', 
-    			             'custbody_itpm_ddn_customer', 
-    			             'custbody_itpm_ddn_openbal'
-    			             ],
-    			invoiceFields = ['account'],
-    			memo = 'Moving open balance to A/R for Deduction ';
+    				journalEntry = null,
+    				journalId = null,
+	    			customerId = null,
+	    			invoiceId = null,
+	    			accountReceivables = null,
+	    			openBalance = null,
+	    			subsidiary = null,
+	    			currency = null,
+	    			ddnRecord = null,
+	    			ddnFields = ['tranid',
+	    			             'custbody_itpm_ddn_invoice', 
+	    			             'custbody_itpm_ddn_customer', 
+	    			             'custbody_itpm_ddn_openbal'
+	    			             ],
+	    			invoiceFields = ['account'],
+	    			memo = 'Moving open balance to A/R for Deduction ';
     			
     			if (subsidiaryExists){
     				ddnFields.push('subsidiary');
     			}
     			
-    			if(currencyExists){
+    			if(currencyExists && subsidiaryExists){
     				ddnFields.push('subsidiary.currency');
+    			} else if (currencyExists && !subsidiaryExists) {
+    				ddnFields.push('currency');
     			}
     			
     			ddnFields = search.lookupFields({
@@ -91,8 +90,7 @@ function(record, search, iTPM) {
     				}
     				
     				if(currencyExists){
-    					currency = ddnFields['subsidiary.currency'];
-    					currency = currency[0].value;
+    					currency = ddnFields.currency[0].value;
     				}
     			} else {
     				throw {
