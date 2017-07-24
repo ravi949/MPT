@@ -282,7 +282,7 @@ function(search, record, util, runtime) {
 	 * @returns {Array}
 	 */
 	//getting the Class,Department and Location list based on subsidiary.
-    function getClassifications(subid, rectype, subsidiaryExists){
+    function getClassifications(subid, rectype, subsidiariesEnabled){
     	try{
     		switch(rectype){
         	case 'class':
@@ -299,7 +299,7 @@ function(search, record, util, runtime) {
         	var classificationFilter = [['isinactive','is',false]];
         	var listOfClassifications = [];
         	
-        	if(subsidiaryExists){
+        	if(subsidiariesEnabled){
         		classificationFilter.push('and');
         		classificationFilter.push(['subsidiary','anyof',subid]);
         	}

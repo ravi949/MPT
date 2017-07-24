@@ -370,7 +370,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						text:' '
 					});
 
-					itpm.getClassifications(subsid, 'location', subsidiaryExists).forEach(function(e){
+					itpm.getClassifications(subsid, 'location', subsidiariesEnabled).forEach(function(e){
 						location.addSelectOption({
 							value:e.id,
 							text:e.name,
@@ -396,7 +396,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						text:' '
 					});
 
-					itpm.getClassifications(subsid, 'dept', subsidiaryExists).forEach(function(e){
+					itpm.getClassifications(subsid, 'dept', subsidiariesEnabled).forEach(function(e){
 						dept.addSelectOption({
 							value:e.id,
 							text:e.name,
@@ -422,7 +422,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						text : ' '
 					});
 
-					itpm.getClassifications(subsid, 'class', subsidiaryExists).forEach(function(e){
+					itpm.getClassifications(subsid, 'class', subsidiariesEnabled).forEach(function(e){
 						classField.addSelectOption({
 							value :e.id,
 							text : e.name,
