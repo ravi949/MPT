@@ -8,7 +8,7 @@ define([
 	'./iTPM_Module'
 	],
 
-function(runtime,search,iTPM_Module) {
+function(runtime,search,itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -26,7 +26,7 @@ function(runtime,search,iTPM_Module) {
     		estqtyUnitId = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_unit'}),
     		estqtyPromoId = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_promo'}),
     		allMop = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_allmop'}),
-    		unitsList = iTPM_Module.getItemUnits(itemId).unitArray,ratePerUnit = 0,
+    		unitsList = itpm.getItemUnits(itemId).unitArray,ratePerUnit = 0,
     		estqtyRate = unitsList.filter(function(e){return e.id == estqtyUnitId})[0].conversionRate;
     		log.debug('estqtyRate',estqtyRate);
     		//searching for the allowances records with Promo,Item and MOP.

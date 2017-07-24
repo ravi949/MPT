@@ -9,7 +9,7 @@ define(['N/search',
 /**
  * @param {search} search
  */
-function(search,runtime,iTPM_Module) {
+function(search,runtime,itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -22,7 +22,7 @@ function(search,runtime,iTPM_Module) {
     function onAction(scriptContext) {
     	try{
     		var itemId = runtime.getCurrentScript().getParameter({name:'custscript_itpm_rei_baseavgcost_item'});
-    		var unitsList = iTPM_Module.getItemUnits(itemId);
+    		var unitsList = itpm.getItemUnits(itemId);
     		var convertedAvgCost = 0;
     		
     		if(!unitsList.error){

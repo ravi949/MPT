@@ -5,7 +5,7 @@
  */
 define(['N/record', 'N/search', 'N/runtime', './iTPM_Module.js'],
 
-function(record, search, runtime, iTPM) {
+function(record, search, runtime, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -34,8 +34,8 @@ function(record, search, runtime, iTPM) {
 					return;
 				}
     			
-				var subsidiaryExists = iTPM.subsidiariesEnabled();
-				var currencyExists = iTPM.currenciesEnabled();
+				var subsidiaryExists = itpm.subsidiariesEnabled();
+				var currencyExists = itpm.currenciesEnabled();
     			var ddnAccount = null,
     				journalEntry = null,
     				journalId = null,

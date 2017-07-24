@@ -15,7 +15,7 @@ define(['N/config',
  * @param {search} search
  * @param {runtime} runtime
  */
-function(config, record, search, iTPM_Module) {
+function(config, record, search, itpm) {
    
 	/**
 	 * function createSettlement(params)
@@ -28,11 +28,11 @@ function(config, record, search, iTPM_Module) {
 			log.debug('params',params);
 			//loading the deduction record
 			var createdFromDDN = (params.custom_itpm_st_created_frm == 'ddn');
-			var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
-			var currencyExists = iTPM_Module.currenciesEnabled();
-			var locationsExists = iTPM_Module.locationsEnabled();
-			var departmentsExists = iTPM_Module.departmentsEnabled();
-			var classesExists = iTPM_Module.classesEnabled();
+			var subsidiaryExists = itpm.subsidiariesEnabled();
+			var currencyExists = itpm.currenciesEnabled();
+			var locationsExists = itpm.locationsEnabled();
+			var departmentsExists = itpm.departmentsEnabled();
+			var classesExists = itpm.classesEnabled();
 
 			if(createdFromDDN){
 				var deductionRec = record.load({
@@ -43,7 +43,7 @@ function(config, record, search, iTPM_Module) {
 			}
 
 			//iTPM prefernce record values.
-			var prefObj = iTPM_Module.getPrefrenceValues();
+			var prefObj = itpm.getPrefrenceValues();
 			var perferenceLS = prefObj.perferenceLS;
 			var perferenceBB = prefObj.perferenceBB;
 			var dednExpAccnt = prefObj.dednExpAccnt;
@@ -358,7 +358,7 @@ function(config, record, search, iTPM_Module) {
 			var DeductionId = deductionRec.getValue('id');
 			var DeductionNum = deductionRec.getValue('tranid');
 
-			var prefObj = iTPM_Module.getPrefrenceValues();
+			var prefObj = itpm.getPrefrenceValues();
 			var dednExpAccnt = prefObj.dednExpAccnt,
 			accountPayable = prefObj.accountPayable;
 
@@ -454,7 +454,7 @@ function(config, record, search, iTPM_Module) {
 	 */
 	function setJELines(setId,subsId,JELines){
 		try{
-			var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
+			var subsidiaryExists = itpm.subsidiariesEnabled();
 			var journalRecord = record.create({
 				type: record.Type.JOURNAL_ENTRY		
 			});

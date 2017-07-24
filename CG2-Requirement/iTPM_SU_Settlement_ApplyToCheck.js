@@ -14,7 +14,7 @@ define(['N/record',
  * @param {redirect} redirect
  * @param {search} search
  */
-function(record, redirect, search, ST_Module,iTPM_Module) {
+function(record, redirect, search, ST_Module,itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -44,11 +44,11 @@ function(record, redirect, search, ST_Module,iTPM_Module) {
 				};
     		}
     		
-    		var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
-			var currencyExists = iTPM_Module.currenciesEnabled();
-			var locationsExists = iTPM_Module.locationsEnabled();
-			var departmentsExists = iTPM_Module.departmentsEnabled();
-			var classesExists = iTPM_Module.classesEnabled();
+    		var subsidiaryExists = itpm.subsidiariesEnabled();
+			var currencyExists = itpm.currenciesEnabled();
+			var locationsExists = itpm.locationsEnabled();
+			var departmentsExists = itpm.departmentsEnabled();
+			var classesExists = itpm.classesEnabled();
     		
     		//search the promotion record based on settlement record for the account field and promotion type account field value
     		var promotionRecSer = search.create({

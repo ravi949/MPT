@@ -8,7 +8,7 @@ define(['N/search',
 		'./iTPM_Module'
 		],
 
-function(search, runtime, iTPM_Module) {
+function(search, runtime, itpm) {
 
 /**
 * Definition of the Suitelet script trigger point.
@@ -27,7 +27,7 @@ function(search, runtime, iTPM_Module) {
 			var itemId = scriptObj.getParameter({name:'custscript_itpm_rei_calculation_item'});
 			//setting the value to the Allowance Per Unit
 			if(promoId != '' && itemId != ''){				
-				var unitsList = iTPM_Module.getItemUnits(itemId);
+				var unitsList = itpm.getItemUnits(itemId);
 				if(!unitsList.error){
 					unitsList = unitsList.unitArray;
 					var baseConversionRate = unitsList.filter(function(e){return e.isBase})[0].conversionRate;
