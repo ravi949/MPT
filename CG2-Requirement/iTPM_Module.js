@@ -300,7 +300,8 @@ function(search, record, util, runtime) {
         	var listOfClassifications = [];
         	
         	if(subsidiaryExists){
-        		classificationFilter.push('and',['subsidiary','anyof',subid]);
+        		classificationFilter.push('and');
+        		classificationFilter.push(['subsidiary','anyof',subid]);
         	}
         	search.create({
         		type:rectype,
