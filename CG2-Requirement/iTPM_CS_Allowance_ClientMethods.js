@@ -83,7 +83,13 @@ function(message,url,https, search,dialog) {
     	try{
 	    	var fieldId = sc.fieldId, rec = sc.currentRecord;
 			var unitField = rec.getField({fieldId: 'custpage_itpm_all_unit'});
-	    	if (fieldId == 'custpage_itpm_all_unit'){
+			if(fieldId == 'custrecord_itpm_all_allowancepercent'){
+				if(rec.getValue(fieldId) == '')
+					rec.setValue({fieldId:fieldId,value:0});
+			}else if(fieldId == 'custrecord_itpm_all_allowancerate'){
+				if(rec.getValue(fieldId) == '')
+					rec.setValue({fieldId:fieldId,value:0});
+			}else if (fieldId == 'custpage_itpm_all_unit'){
 				var dynFieldValue = rec.getValue({fieldId: 'custpage_itpm_all_unit'});
 				var unitFieldValue = rec.getValue({fieldId: 'custrecord_itpm_all_uom'});
 				if (dynFieldValue != unitFieldValue){
