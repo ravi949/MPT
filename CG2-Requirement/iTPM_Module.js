@@ -273,6 +273,51 @@ function(search, record, util, runtime) {
 		}
 	}
     
+	/**
+	 * function getClassifications(subid, rectype, subsidiaryExists)
+	 * @subid {Number}
+	 * @rectype {String}
+	 * @subsidiaryExists {Boolean}
+	 * 
+	 * @returns {Array}
+	 */
+	//getting the Class,Department and Location list based on subsidiary.
+    function getClassifications(subid, rectype, subsidiaryExists){
+    	try{
+    		switch(rectype){
+        	case 'class':
+        		rectype = search.Type.CLASSIFICATION;
+        		break;
+        	case 'dept':
+        		rectype = search.Type.DEPARTMENT;
+        		break;
+        	case 'location':
+        		rectype = search.Type.LOCATION;
+        		break;
+        	}
+        	
+        	var classificationFilter = [['isinactive','is',false]];
+        	var listOfClassifications = [];
+        	
+        	if(subsidiaryExists){
+        		classificationFilter.push('and',['subsidiary','anyof',subid]);
+        	}
+        	search.create({
+        		type:rectype,
+        		columns:['internalid','name'],
+        		filters:classificationFilter
+        	}).run().each(function(e){
+        		listOfClassifications.push({name:e.getValue('name'),id:e.getValue('internalid')});
+        		return true;
+        	});
+        	
+        	return listOfClassifications;
+        	
+    	}catch(e){
+    		log.error(e.name,'error in classifications '+e.message);
+    	}
+    	
+    }
     
     return {
     	getItemUnits : getItemUnits,
@@ -284,7 +329,8 @@ function(search, record, util, runtime) {
     	departmentsEnabled : departmentsEnabled,
     	classesEnabled : classesEnabled,
     	subsidiariesEnabled:subsidiariesEnabled,
-    	currenciesEnabled:currenciesEnabled
+    	currenciesEnabled:currenciesEnabled,
+    	getClassifications:getClassifications
     };
     
 });
