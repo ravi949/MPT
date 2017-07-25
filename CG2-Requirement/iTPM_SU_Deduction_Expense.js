@@ -53,9 +53,7 @@ function(record, search, runtime, itpm) {
 
 				if (subsidiaryExists){
 					ddnFields.push('subsidiary');
-					ddnFields.push('subsidiary.currency');
 				}
-				
 				if (currencyExists){
 					ddnFields.push('currency');
 				}
@@ -71,13 +69,10 @@ function(record, search, runtime, itpm) {
 					if (subsidiaryExists){
 						subsidiary = ddnFields.subsidiary[0].value;
 					}
-					
-					if(currencyExists && subsidiaryExists){
-						currency = ddnFields['subsidiary.currency'];
-						currency = currency[0].value;
-					} else if (currencyExists && !subsidiaryExists){
+					if (currencyExists){
 						currency = ddnFields.currency[0].value;
 					}
+					
 				} else {
 					throw {
 						name: 'SU_DDN_Expense_DDNFIELDS',
