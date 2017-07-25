@@ -57,10 +57,7 @@ function(record, search, runtime, itpm) {
     			if (subsidiaryExists){
     				ddnFields.push('subsidiary');
     			}
-    			
-    			if(currencyExists && subsidiaryExists){
-    				ddnFields.push('subsidiary.currency');
-    			} else if (currencyExists && !subsidiaryExists) {
+    			if (currencyExists) {
     				ddnFields.push('currency');
     			}
     			
@@ -85,14 +82,11 @@ function(record, search, runtime, itpm) {
         					message: 'DDN Fields did not return Invoice Id for Deduction Id ' + ddnId
     					}
     				}
+    				
     				if (subsidiaryExists){
     					subsidiary = ddnFields.subsidiary[0].value;
     				}
-    				
-    				if(currencyExists && subsidiaryExists){
-						currency = ddnFields['subsidiary.currency'];
-						currency = currency[0].value;
-					} else if (currencyExists && !subsidiaryExists){
+    				if (currencyExists){
 						currency = ddnFields.currency[0].value;
 					}
     				
