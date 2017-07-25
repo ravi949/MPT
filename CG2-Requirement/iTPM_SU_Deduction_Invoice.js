@@ -89,9 +89,13 @@ function(record, search, runtime, itpm) {
     					subsidiary = ddnFields.subsidiary[0].value;
     				}
     				
-    				if(currencyExists){
-    					currency = ddnFields.currency[0].value;
-    				}
+    				if(currencyExists && subsidiaryExists){
+						currency = ddnFields['subsidiary.currency'];
+						currency = currency[0].value;
+					} else if (currencyExists && !subsidiaryExists){
+						currency = ddnFields.currency[0].value;
+					}
+    				
     			} else {
     				throw {
     					name: 'SU_DDN_Invoice_DDNFIELDS',
