@@ -316,6 +316,7 @@ function(serverWidget,search,redirect,record,runtime) {
     		response.writePage(assistant);
     	}catch(e){
     		log.error(e.name,e.message);
+    		throw e.message;
     	}
     }
 
