@@ -517,6 +517,11 @@ function(config, record, search, itpm) {
 	 */
 	function editSettlement(params){
 		try{
+			
+			var locationsExists = itpm.locationsEnabled();
+			var departmentsExists = itpm.departmentsEnabled();
+			var classesExists = itpm.classesEnabled();
+			
 			var loadedSettlementRec = record.load({
 				type:'customtransaction_itpm_settlement',
 				id:params.custom_itpm_st_recordid
