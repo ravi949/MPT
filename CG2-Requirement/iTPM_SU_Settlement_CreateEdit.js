@@ -578,7 +578,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 	    //promotion description
 	    settlementForm.addField({
     		id:'custom_itpm_st_promotion_desc',
-    		type:serverWidget.FieldType.TEXT,
+    		type:serverWidget.FieldType.TEXTAREA,
     		label:'Promotion Description',
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({
