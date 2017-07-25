@@ -14,7 +14,7 @@ define(['N/ui/serverWidget',
 		'./iTPM_Module.js'
 		],
 
-function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
+function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -91,17 +91,17 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
     //adding the fields to the settlement form
     function addFieldsToTheSettlementForm(settlementForm,params){
     	var eventType = params.type;
-    	var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
-		var currencyExists = iTPM_Module.currenciesEnabled();
-		var locationsExists = iTPM_Module.locationsEnabled();
-		var departmentsExists = iTPM_Module.departmentsEnabled();
-		var classesExists = iTPM_Module.classesEnabled();
+    	var subsidiaryExists = itpm.subsidiariesEnabled();
+		var currencyExists = itpm.currenciesEnabled();
+		var locationsExists = itpm.locationsEnabled();
+		var departmentsExists = itpm.departmentsEnabled();
+		var classesExists = itpm.classesEnabled();
 		
 		var isEdit = (eventType == 'edit');
 		var displayTypeSetup = (isEdit)?serverWidget.FieldDisplayType.INLINE:serverWidget.FieldDisplayType.DISABLED;
 		
 		//iTPM prefernce record values.
-		var prefObj = iTPM_Module.getPrefrenceValues();
+		var prefObj = itpm.getPrefrenceValues();
 		var perferenceLS = prefObj.perferenceLS;
 		var perferenceBB = prefObj.perferenceBB;
     	
@@ -482,7 +482,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
 				   text:' '
 			 });
 
-		    iTPM_Module.getClassifications(subsid, 'location', subsidiaryExists).forEach(function(e){
+		    itpm.getClassifications(subsid, 'location', subsidiaryExists).forEach(function(e){
 		    	locationField.addSelectOption({
 				   value:e.id,
 				   text:e.name,
@@ -508,7 +508,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
 				   text:' '
 			 });
 
-		    iTPM_Module.getClassifications(subsid, 'dept', subsidiaryExists).forEach(function(e){
+		    itpm.getClassifications(subsid, 'dept', subsidiaryExists).forEach(function(e){
 		    	deptField.addSelectOption({
 				   value:e.id,
 				   text:e.name,
@@ -535,7 +535,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
 				   text:' '
 			 });
 
-	    	iTPM_Module.getClassifications(subsid, 'class', subsidiaryExists).forEach(function(e){
+	    	itpm.getClassifications(subsid, 'class', subsidiaryExists).forEach(function(e){
 		    	classField.addSelectOption({
 	  			   value:e.id,
 	  			   text:e.name,
@@ -578,7 +578,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,iTPM_Module) {
 	    //promotion description
 	    settlementForm.addField({
     		id:'custom_itpm_st_promotion_desc',
-    		type:serverWidget.FieldType.TEXT,
+    		type:serverWidget.FieldType.TEXTAREA,
     		label:'Promotion Description',
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({

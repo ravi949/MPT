@@ -8,7 +8,7 @@ define(['N/record',
 		'./iTPM_Module'
 	   ],
 
-function(record, redirect, iTPM_Module) {
+function(record, redirect, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -35,8 +35,8 @@ function(record, redirect, iTPM_Module) {
     				};
     			}
     			
-    			var subsidiaryExists = iTPM_Module.subsidiariesEnabled();
-    			var currencyExists = iTPM_Module.currenciesEnabled();
+    			var subsidiaryExists = itpm.subsidiariesEnabled();
+    			var currencyExists = itpm.currenciesEnabled();
     			var lineCount = SetRec.getLineCount('line');
        		
     			if(lineCount > 0){

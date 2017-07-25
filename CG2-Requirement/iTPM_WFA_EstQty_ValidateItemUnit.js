@@ -6,7 +6,7 @@ define(['N/runtime',
 		'./iTPM_Module'
 		],
 
-function(runtime,iTPM_Module) {
+function(runtime,itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -25,7 +25,7 @@ function(runtime,iTPM_Module) {
     		var estVolumeBy = scriptObj.getParameter({name:'custscript_itpm_estqty_validateunit_unit'});
     		var itemId = scriptObj.getParameter({name:'custscript_itpm_estqty_validateunit_item'});
 
-    		var unitsList = iTPM_Module.getItemUnits(itemId).unitArray;
+    		var unitsList = itpm.getItemUnits(itemId).unitArray;
 
     		return unitsList.some(function(e){return e.id == estVolumeBy})?'T':'F';
 

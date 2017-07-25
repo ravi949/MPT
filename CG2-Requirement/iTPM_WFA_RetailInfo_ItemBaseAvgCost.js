@@ -9,7 +9,7 @@ define(['N/search',
 /**
  * @param {search} search
  */
-function(search,runtime,iTPM_Module) {
+function(search,runtime,itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -22,7 +22,7 @@ function(search,runtime,iTPM_Module) {
     function onAction(scriptContext) {
     	try{
     		var itemId = runtime.getCurrentScript().getParameter({name:'custscript_itpm_rei_baseavgcost_item'});
-    		var unitsList = iTPM_Module.getItemUnits(itemId);
+    		var unitsList = itpm.getItemUnits(itemId);
     		var convertedAvgCost = 0;
     		
     		if(!unitsList.error){
@@ -35,8 +35,7 @@ function(search,runtime,iTPM_Module) {
         		var itemAvgCost = parseFloat(itemSearch["averagecost"]).toFixed(2);
         		var baseUnitRate = unitsList.filter(function(e){return e.isBase})[0].conversionRate;
         		var itemUnitRate = unitsList.filter(function(e){return e.id == itemSearch["stockunit"][0].value})[0].conversionRate;
-        		convertedAvgCost = (baseUnitRate/itemUnitRate)*itemAvgCost;
-        		
+        		convertedAvgCost = (parseFloat(baseUnitRate)/parseFloat(itemUnitRate))*itemAvgCost;
     		}else{
     			log.error('units list',unitsList);
     		}

@@ -370,11 +370,11 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						text:' '
 					});
 
-					getList(subsid,'location').run().each(function(e){
+					itpm.getClassifications(subsid, 'location', subsidiariesEnabled).forEach(function(e){
 						location.addSelectOption({
-							value:e.getValue('internalid'),
-							text:e.getValue('name'),
-							isSelected:(invlocation == e.getValue('internalid'))
+							value:e.id,
+							text:e.name,
+							isSelected:(invlocation == e.id)
 						})
 						return true;
 					});
@@ -396,11 +396,11 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						text:' '
 					});
 
-					getList(subsid,'dept').run().each(function(e){
+					itpm.getClassifications(subsid, 'dept', subsidiariesEnabled).forEach(function(e){
 						dept.addSelectOption({
-							value:e.getValue('internalid'),
-							text:e.getValue('name'),
-							isSelected:(invdept == e.getValue('internalid'))
+							value:e.id,
+							text:e.name,
+							isSelected:(invdept == e.id)
 						})
 						return true;
 					});
@@ -422,11 +422,11 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						text : ' '
 					});
 
-					getList(subsid,'class').run().each(function(e){
+					itpm.getClassifications(subsid, 'class', subsidiariesEnabled).forEach(function(e){
 						classField.addSelectOption({
-							value :e.getValue('internalid'),
-							text : e.getValue('name'),
-							isSelected:(invclass == e.getValue('internalid'))
+							value :e.id,
+							text : e.name,
+							isSelected:(invclass == e.id)
 						});
 						return true;
 					});
@@ -800,7 +800,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 							fieldId:'memo',
 							value:e.memo
 						})
-						if(e.fid == 'credit'){
+						if(createdFrom == 'inv' && e.fid == 'credit'){
 							deductionRec.setCurrentSublistValue({
 								sublistId:'line',
 								fieldId:'entity',
@@ -901,17 +901,10 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				});
 			}
 		}catch(e){
-			if(e.message == 'you cannot make a deduction from this invoice'){
-				throw Error(e.message);
-			}else if(e.message == 'you cannot make a split from this deduction'){
-				throw Error(e.message);
-			}else if(e.message == 'invalid parameters'){
-				throw Error(e.message);
-			}else{
-				var recType = (params.from == 'inv')?'Invoice':'iTPM Deduction';
-				var eventType = (params.type != 'edit')?'create':'edit';
-				log.error(e.name,'record type = '+recType+', record id='+params.fid+', event type = '+eventType+' message='+e);
-			}
+			var recType = (params.from == 'inv')?'Invoice':'iTPM Deduction';
+			var eventType = (params.type != 'edit')?'create':'edit';
+			log.error(e.name,'record type = '+recType+', record id='+params.fid+', event type = '+eventType+' message='+e);
+			throw Error(e.message);
 		}
 	}
 
@@ -967,6 +960,11 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				fieldId:'memo',
 				value:'Deduction split from Deduction #'+parentDdnRec.getText('tranid'),
 				line:i
+			}).setSublistValue({
+				sublistId:'line',
+				fieldId:'entity',
+				value:' ',
+				line:i
 			});
 		}
 
@@ -974,35 +972,6 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 		var newChildDedid = copiedDeductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});		
 	}
 	
-	
-	
-	
-    //getting the Class,Department and Location list based on subsidiary.
-    function getList(subid,rectype){
-    	switch(rectype){
-    	case 'class':
-    		rectype = search.Type.CLASSIFICATION;
-    		break;
-    	case 'dept':
-    		rectype = search.Type.DEPARTMENT;
-    		break;
-    	case 'location':
-    		rectype = search.Type.LOCATION;
-    		break;
-    	}
-    	
-    	var filters = [['isinactive','is',false]];
-    	if (subid) {
-    		filters.push('and');
-    		filters.push(['subsidiary','anyof',subid]);
-    	}
-    	return search.create({
-    		type:rectype,
-    		columns:['internalid','name'],
-    		filters: filters
-    	});
-    }
-    
     //getting the Employees list based on subsidiary.
     function getEmployees(subid){
     	var filters = [['isinactive','is',false]];
@@ -1076,7 +1045,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				message: 'Could not find required parameter FROM in request.'
 			};
     	}catch(e){
-    		return {success:false,errormessage:e}
+    		return {success:false,errormessage:e.message}
     	}
     }
     
