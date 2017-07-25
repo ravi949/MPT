@@ -22,6 +22,13 @@ function(record, redirect, serverWidget, search, runtime) {
 	 */
 	function getAccounts(type){
 		try{
+			var perm_accounts = runtime.getCurrentUser().getPermission({name: 'LIST_ACCOUNT'});
+			if (perm_accounts == runtime.Permission.NONE) {
+				throw {
+					name:'getAccounts_Error',
+					message:'The current role does not have permissions to view Accounts list. Minimum permission of VIEW is required.'
+				}
+			}
 			var searchFilters = [['isinactive','is',false]];
 			if (! type){
 				throw{
