@@ -288,7 +288,7 @@ function(record, redirect, serverWidget, search, runtime) {
 			}
 			catch(ex){
 				log.error(ex.name, ex.message + '; Method: ' + request.method);
-				throw ex;
+				throw ex.message + '; Method: ' + request.method;
 			}
 		}
 		if(request.method == 'POST'){
@@ -323,7 +323,7 @@ function(record, redirect, serverWidget, search, runtime) {
 				
 			}catch(e){
 				log.error(ex.name, ex.message + '; Method: ' + request.method);
-				throw ex;
+				throw ex.message + '; Method: ' + request.method;
 			}			
 		}
 
