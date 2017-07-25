@@ -21,9 +21,14 @@ function() {
     		var isFromEdit = window.location.href.search('&type=edit');
         	var deductionAsstRec = scriptContext.currentRecord;
         	if(isFromEdit == -1){
-        		if(deductionAsstRec.getValue('custom_itpm_ddn_openbal') < deductionAsstRec.getValue('custom_itpm_ddn_amount')){
+        		var ddnOpenBal = deductionAsstRec.getValue('custom_itpm_ddn_openbal');
+        		var ddnAmount = deductionAsstRec.getValue('custom_itpm_ddn_amount');
+        		if(ddnAmount == 0){
+        			alert('Amount must be greater than zero');
+        			return false;
+        		}else if(ddnOpenBal < ddnAmount){
             	    alert('Amount must be less than or equal to Parent Deduction Amount');
-            	    return false
+            	    return false;
             	}
         	}
         	return true

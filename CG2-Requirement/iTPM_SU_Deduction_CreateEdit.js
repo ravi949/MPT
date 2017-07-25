@@ -1045,7 +1045,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				message: 'Could not find required parameter FROM in request.'
 			};
     	}catch(e){
-    		return {success:false,errormessage:e}
+    		return {success:false,errormessage:e.message}
     	}
     }
     
