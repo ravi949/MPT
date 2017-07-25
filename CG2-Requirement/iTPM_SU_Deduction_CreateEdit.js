@@ -800,7 +800,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 							fieldId:'memo',
 							value:e.memo
 						})
-						if(e.fid == 'credit'){
+						if(createdFrom == 'inv' && e.fid == 'credit'){
 							deductionRec.setCurrentSublistValue({
 								sublistId:'line',
 								fieldId:'entity',
@@ -959,6 +959,11 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				sublistId:'line',
 				fieldId:'memo',
 				value:'Deduction split from Deduction #'+parentDdnRec.getText('tranid'),
+				line:i
+			}).setSublistValue({
+				sublistId:'line',
+				fieldId:'entity',
+				value:' ',
 				line:i
 			});
 		}
