@@ -7,10 +7,11 @@
  */
 define(['N/record',
 		'N/http',
-		'N/search'
+		'N/search',
+		'N/runtime'
 		],
 
-function(record, http, search) {
+function(record, http, search, runtime) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -117,8 +118,8 @@ function(record, http, search) {
     			
     		}
     	} catch(ex) {
-    		log.error(ex.name, ex.message + '; on parameters = ' + JSON.stringify(context.request.parameters));
-    		console.log(log.error(ex.name, ex.message + '; on parameters = ' + JSON.stringify(context.request.parameters)));
+    		log.error(ex.name, ex.message + '; by User:' + JSON.stringify(runtime.getCurrentUser()) + '; on parameters : ' + JSON.stringify(context.request.parameters));
+    		//console.log(log.error(ex.name, ex.message + '; on parameters = ' + JSON.stringify(context.request.parameters)));
     		context.response.write(JSON.stringify({error:true}));
     	}
     	
