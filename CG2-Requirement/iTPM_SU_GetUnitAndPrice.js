@@ -118,7 +118,6 @@ function(record, http, search) {
     		}
     	} catch(ex) {
     		log.error(ex.name, ex.message + '; on parameters = ' + JSON.stringify(context.request.parameters));
-    		console.log(log.error(ex.name, ex.message + '; on parameters = ' + JSON.stringify(context.request.parameters)));
     		context.response.write(JSON.stringify({error:true}));
     	}
     	
