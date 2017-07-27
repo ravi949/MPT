@@ -321,7 +321,7 @@ function(record, redirect, serverWidget, search, runtime) {
 				    deploymentId: scriptObj.deploymentId
 				});
 				
-			}catch(e){
+			}catch(ex){
 				log.error(ex.name, ex.message + '; Method: ' + request.method);
 				throw ex.message + '; Method: ' + request.method;
 			}			
