@@ -32,7 +32,7 @@ function(search,runtime,util) {
 			];
     		var recordId = scriptContext.newRecord.id;
     		
-    		if(util.isNumber(recordId)){
+    		if(util.isNumber(recordId) && scriptContext.newRecord.type == 'customrecord_itpm_estquantity'){
     			searchFilter.push('and',['internalid','noneof',recordId]);
     		}
     		
