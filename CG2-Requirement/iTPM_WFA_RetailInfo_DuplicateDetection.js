@@ -28,7 +28,7 @@ function(search,runtime) {
     		                     ['custrecord_itpm_rei_item','anyof',item],'and',
     		                     ['isinactive','is',false]];
 
-    		if(reatailRec.id){
+    		if(reatailRec.id && reatailRec.type == 'customrecord_itpm_promoretailevent'){
     			reatailFilter.push('and',['internalid','noneof',reatailRec.id]);
     		}
 
