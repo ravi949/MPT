@@ -49,7 +49,7 @@ function(search, serverWidget, runtime, url, http, itpm) {
 	    		});
 				// add blank value
 				itemField.addSelectOption({
-					value: '0',
+					value: '',
 					text: ' '
 				});
 				
@@ -136,33 +136,6 @@ function(search, serverWidget, runtime, url, http, itpm) {
 					} else {
 						log.error('UnitsList', 'Error retrieving units for selected item. record id = '+sc.newRecord.id);
 					}
-					/*
-					var output = url.resolveScript({
-						scriptId:'customscript_itpm_su_getitemunits',
-						deploymentId:'customdeploy_itpm_su_getitemunits',
-						params: {itemid : estQty.getValue({fieldId: 'custrecord_itpm_estqty_item'}), 
-							unitid: null}
-					});
-					var response = http.request({
-						method: http.Method.GET,
-						url: output
-					});
-					var unitsList = JSON.parse(response.body);
-					if (!unitsList.error){
-						for (x in unitsList.unitsList){
-							unitField.addSelectOption({
-								value: unitsList.unitsList[x].internalId,
-	    						text: unitsList.unitsList[x].name
-							});
-						}
-						estQty.setValue({
-							fieldId: unitField.id,
-							value: estQty.getValue({fieldId:'custrecord_itpm_estqty_qtyby'})
-						});
-					} else {
-						log.error('UnitsList', 'Error retrieving units for selected item. record id = '+sc.newRecord.id);
-					}
-					*/
 				}
 			}
 		}catch(e){
