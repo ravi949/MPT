@@ -16,43 +16,6 @@ define(['N/https',
 function(https, url) {
 	
 	/**
-	 * Function to call a Suitelet and return an array of key:value pairs of units
-	 * @param {number} itemid
-	 * 
-	 * @returns {array}
-	 */
-	function getUnits(id) {
-		try{
-			log.debug('GetItemUnit ID', id);
-			var output = url.resolveScript({
-				scriptId:'customscript_itpm_su_getitemunits',
-				deploymentId:'customdeploy_itpm_su_getitemunits',
-				params: {itemid : id, unitid: null, price:false},
-				returnExternalUrl: true
-			});
-			var jsonResponse = null;
-			var response = https.get.promise({
-				url: output
-			}).then(function(response){
-				log.debug('.then Response', response);
-				log.debug('Response Body', response.body);
-				jsonResponse =  JSON.parse(response.body);
-				log.debug('httpsget Response', response);
-				log.debug('jsonResponse', jsonResponse);
-				//var jsonResponse =  JSON.parse(response.body);
-				return jsonResponse;
-			});
-			log.debug('httpsget Response', response);
-			log.debug('jsonResponse', jsonResponse);
-			//var jsonResponse =  JSON.parse(response.body);
-			return jsonResponse;
-		} catch(ex) {
-			console.log(ex.name,'function name = getUnits, message = '+ex.message);
-		}
-	}
-	
-	
-	/**
 	 * Function to be executed after page is initialized.
 	 *
 	 * @param {Object} sc
@@ -125,8 +88,7 @@ function(https, url) {
     		var output = url.resolveScript({
     			scriptId:'customscript_itpm_su_getitemunits',
     			deploymentId:'customdeploy_itpm_su_getitemunits',
-    			params: {itemid : itemField, unitid: null, price:false},
-    			returnExternalUrl: true
+    			params: {itemid : itemField, unitid: null, price:false}
     		});
     		var response = https.get.promise({
     			url: output
