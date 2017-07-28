@@ -181,6 +181,10 @@ function(record, search) {
 					value:allRec.getValue({fieldId: 'custrecord_itpm_all_account'}),
 					ignoreFieldChange: true
 				}).setValue({
+					fieldId: 'custrecord_itpm_all_mop',
+					value:allRec.getValue({fieldId: 'custrecord_itpm_all_mop'}),
+					ignoreFieldChange: true
+				}).setValue({
 					fieldId: 'custrecord_itpm_all_promotiondeal',
 					value: keyObj.promoID,
 					ignoreFieldChange: true
