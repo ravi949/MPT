@@ -8,10 +8,11 @@ define(['N/search',
 		'N/ui/serverWidget',
 		'N/runtime',
 		'N/url',
-		'N/https'
+		'N/http',
+		'./iTPM_Module.js'
 		],
 
-function(search, serverWidget, runtime, url, https) {
+function(search, serverWidget, runtime, url, http, itpm) {
 	
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -119,13 +120,31 @@ function(search, serverWidget, runtime, url, https) {
 						fieldId: itemField.id,
 						value: estQty.getValue({fieldId: 'custrecord_itpm_estqty_item'})
 					});
+					var recordUnit = estQty.getValue({fieldId: 'custrecord_itpm_estqty_item'});
+					var unitsList = itpm.getItemUnits(recordUnit);
+					if (!unitsList.error){
+						for (x in unitsList.unitArray) {
+							unitField.addSelectOption({
+								value: unitsList.unitArray[x].id,
+								text: unitsList.unitArray[x].name
+							});
+						}
+						estQty.setValue({
+							fieldId: unitField.id,
+							value: estQty.getValue({fieldId:'custrecord_itpm_estqty_qtyby'})
+						});
+					} else {
+						log.error('UnitsList', 'Error retrieving units for selected item. record id = '+sc.newRecord.id);
+					}
+					/*
 					var output = url.resolveScript({
 						scriptId:'customscript_itpm_su_getitemunits',
 						deploymentId:'customdeploy_itpm_su_getitemunits',
 						params: {itemid : estQty.getValue({fieldId: 'custrecord_itpm_estqty_item'}), 
 							unitid: null}
 					});
-					var response = https.get({
+					var response = http.request({
+						method: http.Method.GET,
 						url: output
 					});
 					var unitsList = JSON.parse(response.body);
@@ -143,6 +162,7 @@ function(search, serverWidget, runtime, url, https) {
 					} else {
 						log.error('UnitsList', 'Error retrieving units for selected item. record id = '+sc.newRecord.id);
 					}
+					*/
 				}
 			}
 		}catch(e){
