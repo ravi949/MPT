@@ -83,22 +83,22 @@ function(search, serverWidget, runtime, url, https) {
 				}));
 				
 				//filtering the already existed estimated quantity items from the list
-				var estExistedItems = [];
+				var existingEstItems = [];
 				if(sc.type == 'create'||sc.type=='copy'){
 					search.create({
 						  type:'customrecord_itpm_estquantity',
 						  columns:['internalid','custrecord_itpm_estqty_item'],
 						  filters:[['custrecord_itpm_estqty_promodeal','anyof',promotionId],'and',['isinactive','is',false]]
 					  }).run().each(function(e){
-						  estExistedItems.push(e.getValue('custrecord_itpm_estqty_item'));
+						  existingEstItems.push(e.getValue('custrecord_itpm_estqty_item'));
 						  return true
 					  });
-					log.debug('estExistedItems',estExistedItems)
-					if(estExistedItems.length>0){
+					log.debug('existingEstItems',existingEstItems)
+					if(existingEstItems.length>0){
 						itemSearch.filters.push(search.createFilter({
 							name: 'custrecord_itpm_all_item',
 							operator: search.Operator.NONEOF,
-							values:estExistedItems
+							values:existingEstItems
 						}));
 					}
 
@@ -123,8 +123,7 @@ function(search, serverWidget, runtime, url, https) {
 						scriptId:'customscript_itpm_su_getitemunits',
 						deploymentId:'customdeploy_itpm_su_getitemunits',
 						params: {itemid : estQty.getValue({fieldId: 'custrecord_itpm_estqty_item'}), 
-							unitid: null},
-						returnExternalUrl: true
+							unitid: null}
 					});
 					var response = https.get({
 						url: output
