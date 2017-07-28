@@ -49,7 +49,7 @@ function(search, serverWidget, runtime, url, http, itpm) {
 	    		});
 				// add blank value
 				itemField.addSelectOption({
-					value: '',
+					value: ' ',
 					text: ' '
 				});
 				
