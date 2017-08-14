@@ -177,12 +177,13 @@ define(['N/ui/serverWidget',
 				//estimated volume search to get the items list
 				var estVolumeItems = [];
 				search.create({
-					type:'customrecord_itpm_estquantity',
-					columns:['custrecord_itpm_estqty_item'],
-					filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
-					         ['isinactive','is',false]]
+					//type:'customrecord_itpm_estquantity',
+					type: 'customrecord_itpm_promoallowance',
+					columns:[{name:'custrecord_itpm_all_item', summary: search.Summary.GROUP}],
+					//filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and', ['isinactive','is',false]]
+					filters:[['custrecord_itpm_all_promotiondeal','anyof',request.parameters.pid],'and', ['isinactive','is',false]]
 				}).run().each(function(e){
-					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
+					estVolumeItems.push(e.getValue({name:'custrecord_itpm_all_item', summary: 'GROUP'}));
 					return true;
 				});
 
