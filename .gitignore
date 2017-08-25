@@ -1,3 +1,6 @@
 /.metadata/
 RemoteSystemsTempFiles/
 com.cgsquared.itpm
+/.settings/
+.project
+project.xml
