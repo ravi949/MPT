@@ -87,6 +87,7 @@ function(url, https, message) {
 				url: suiteletUrl
 			}).then(function(response){
 				msg.hide();
+				console.log(response)
 				var bodyObj = JSON.parse(response.body);
 				if(bodyObj.error){
 					var errMsg = displayMessage('error','Error',bodyObj.message);
