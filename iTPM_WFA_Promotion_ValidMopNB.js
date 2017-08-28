@@ -5,7 +5,7 @@
  */
 define(['N/record'],
 
-function(record) {
+		function(record) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.

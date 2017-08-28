@@ -18,7 +18,22 @@ define(['N/record',
 function(record, redirect, serverWidget, search, runtime) {
 	
 	/**
+	 * @param { string } type Discount 
+	 * @return { search } item search
+	 */
+	function getItems(type){
+		if(type == 'Discount'){
+			return search.create({
+				type:search.Type.ITEM,
+				columns:['internalid','itemid'],
+				filters:[['type','is','Discount'],'and',['isinactive','is',false]]
+			}).run();
+		}
+	}
+	
+	/**
 	 * @param {string} type Expense, AcctPay, All
+	 * @return { JSON object }error and accouts array
 	 */
 	function getAccounts(type){
 		try{
@@ -71,9 +86,11 @@ function(record, redirect, serverWidget, search, runtime) {
 	 * @param {Object} expenseAccounts
 	 * @param {Object} deductionAccounts
 	 * @param {Object} settlmentAccounts
-	 * @param {Object} overpayAccounts
+	 * @return { JSON object } error and form values
+	 * 
+	 * @description create the form with fields
 	 */
-	function createPreferenceForm(expenseAccounts, deductionAccounts, settlementAccounts, overpayAccounts){
+	function createPreferenceForm(expenseAccounts, deductionAccounts, settlementAccounts, discountItemSearch){
 		try{
 			var form = serverWidget.createForm({
 				title: 'iTPM Preferences'
@@ -96,6 +113,8 @@ function(record, redirect, serverWidget, search, runtime) {
 				source:'custpage_bb',
 				container:'custpage_setup_preference'
 			});
+			
+			//Expense account
 			var expenseAccntField = form.addField({
 				id: 'custpage_itpm_pref_expenseaccount',
 				type: serverWidget.FieldType.SELECT,
@@ -111,6 +130,7 @@ function(record, redirect, serverWidget, search, runtime) {
 				text : ' '
 			});
 			
+			//Deduction account
 			var selectExpense = form.addField({
 				id: 'custpage_itpm_pref_ddnaccount',
 				type: serverWidget.FieldType.SELECT,
@@ -123,7 +143,20 @@ function(record, redirect, serverWidget, search, runtime) {
 				value : ' ',
 				text : ' '
 			});
-
+			
+			//Apply iTPM Discount Item
+			var discountItemField = form.addField({
+				id: 'custpage_itpm_pref_discountitem',
+				type: serverWidget.FieldType.SELECT,
+				label: 'iTPM Discount Item',
+				container:'custpage_setup_preference'
+			}); 
+			discountItemField.isMandatory = true;
+			discountItemField.addSelectOption({
+				value:' ',
+				text:' '
+			});
+			
 			//Accounts Payable account field
 			var accountPayableField = form.addField({
 				id: 'custpage_itpm_pref_accountpayable',
@@ -140,25 +173,65 @@ function(record, redirect, serverWidget, search, runtime) {
 				text : ' '
 			});
 			
-			//Over pay account field
-			var selectAccountRecords = form.addField({
-				id: 'custpage_itpm_pref_overpayaccount',
-				type: serverWidget.FieldType.SELECT,
-				label: 'Overpay Account',
+			//Apply iTPM Net Bill Discount only on List Price? Field
+			var ApplyiTPMNetBillDiscountChk = form.addField({
+				id: 'custpage_itpm_pref_nblistprice',
+				type: serverWidget.FieldType.CHECKBOX,
+				label: 'Apply iTPM Net Bill Discount only on List Price?',
 				container:'custpage_setup_preference'
 			});
-			selectAccountRecords.isMandatory = true;
-			//add Default items to select field
-			selectAccountRecords.addSelectOption({
-				value : ' ',
-				text : ' '
+			ApplyiTPMNetBillDiscountChk.setHelpText({
+			    help : 'Check this box if the system should apply Net Bill discounts on Sales Transaction lines only if the line\'s Price Level is \"List / Base\" price. This is usually the default price level of an item in NetSuite.'
+			});
+			
+			//iTPM Discount Dates Radio Button (it is a List type on Preference record
+			var discountDatesField = form.addField({
+				id: 'custpage_itpm_ddlabel',
+				type: serverWidget.FieldType.LABEL,
+				label: 'iTPM Discount Dates',
+				container:'custpage_setup_preference'
+			});
+			discountDatesField.setHelpText({
+			    help : 'Select the dates that should be used while searching for promotional off invoice and net bill discounts to apply to a transaction.'
+			});
+			
+			discountDatesField.isMandatory = true;
+			
+			var radioITPMDiscountDate = form.addField({
+				id: 'custpage_itpm_disdate',
+				type: serverWidget.FieldType.RADIO,
+				label: 'Ship Date',
+				source:'custpage_sd',
+				container:'custpage_setup_preference'
+			});
+			form.addField({
+				id: 'custpage_itpm_disdate',
+				type: serverWidget.FieldType.RADIO,
+				label: 'Order Date',
+				source:'custpage_od',
+				container:'custpage_setup_preference'
+			});
+			
+			form.addField({
+				id: 'custpage_itpm_disdate',
+				type: serverWidget.FieldType.RADIO,
+				label: 'Both',
+				source:'custpage_both',
+				container:'custpage_setup_preference'
+			});
+			form.addField({
+				id: 'custpage_itpm_disdate',
+				type: serverWidget.FieldType.RADIO,
+				label: 'Either',
+				source:'custpage_either',
+				container:'custpage_setup_preference'
 			});
 			
 			form.addSubmitButton({
 				label: 'Submit'
 			});
 			
-			var overpayId, deductionId, expenseId, settlementId, matchls, matchbb;
+			var deductionId, expenseId, settlementId, matchls, matchbb, discountItemId;
 			var prefSearchRes = search.create({
 				type:'customrecord_itpm_preferences',
 				columns:['internalid']
@@ -179,26 +252,35 @@ function(record, redirect, serverWidget, search, runtime) {
 				    type: 'customrecord_itpm_preferences', 
 				    id: prefSearchResId
 				});
-				
-				overpayId = preferanceRecord.getValue('custrecord_itpm_pref_overpayaccount');
 				deductionId = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount');
 				expenseId = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount');
 				settlementId =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount');
 				matchls = preferanceRecord.getValue('custrecord_itpm_pref_matchls');
 				matchbb = preferanceRecord.getValue('custrecord_itpm_pref_matchbb');
 				radioBtn.defaultValue = (matchls == true)?'custpage_ls':'custpage_bb';
-			} else {
+				ApplyiTPMNetBillDiscountChk.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_nblistprice')?'T':'F';
+				discountItemId = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
 				
+				switch(preferanceRecord.getValue('custrecord_itpm_pref_discountdates')){
+				case '1' : 
+					radioITPMDiscountDate.defaultValue = 'custpage_sd';
+					break;
+				case '2' : 
+					radioITPMDiscountDate.defaultValue = 'custpage_od';
+					break;
+				case '3' : 
+					radioITPMDiscountDate.defaultValue = 'custpage_both';
+					break;
+				case '4' : 
+					radioITPMDiscountDate.defaultValue = 'custpage_either';
+					break;
+				default : 
+					radioITPMDiscountDate.defaultValue = 'custpage_sd';
+					break;
+				}
 			}
 						
 			//setting the accounts values into the fields
-			overpayAccounts.accounts.forEach(function(e){
-				selectAccountRecords.addSelectOption({
-					value : e.getValue('internalid'),
-					text : e.getValue('name'),
-					isSelected : e.getValue('internalid') == overpayId
-				});					
-			});
 			deductionAccounts.accounts.forEach(function(e){
 				selectExpense.addSelectOption({
 					value : e.getValue('internalid'),
@@ -225,6 +307,14 @@ function(record, redirect, serverWidget, search, runtime) {
 				});
 			});
 			
+			//add discount items to the iTPM Discount Item field
+			discountItemSearch.each(function(e){
+				discountItemField.addSelectOption({
+					value:e.getValue('internalid'),
+					text:e.getValue('itemid'),
+					isSelected:e.getValue('internalid') == discountItemId
+				});
+			});
 			
 			//adding a button to redirecting to the previous form
 			form.addButton({
@@ -236,7 +326,7 @@ function(record, redirect, serverWidget, search, runtime) {
 			
 			return {error: false, form: form}
 		} catch(ex) {
-			return {error: true, errorObject: ex, expenseAccounts: expenseAccounts, deductionAccounts: deductionAccounts, settlementAccounts: settlementAccounts, overpayAccounts: overpayAccounts}
+			return {error: true, errorObject: ex, expenseAccounts: expenseAccounts, deductionAccounts: deductionAccounts, settlementAccounts: settlementAccounts}
 		}
 	}
 
@@ -254,6 +344,7 @@ function(record, redirect, serverWidget, search, runtime) {
 		
 		if(request.method == 'GET'){
 			try{
+				var discountItemSearch = getItems('Discount');
 				var expenseResult = getAccounts('Expense');
 				if (expenseResult.error){
 					throw {
@@ -275,8 +366,7 @@ function(record, redirect, serverWidget, search, runtime) {
 						message: accountPayResult.errorObject.message + '; Type: ' + accountPayResult.type
 					}
 				}
-
-				var form = createPreferenceForm(expenseResult, expenseResult, accountPayResult, expenseResult);
+				var form = createPreferenceForm(expenseResult, expenseResult, accountPayResult, discountItemSearch);
 				if (form.error){
 					throw {
 						name: 'createPreferenceForm_Error',
@@ -303,7 +393,7 @@ function(record, redirect, serverWidget, search, runtime) {
 						 type: 'customrecord_itpm_preferences',
 						 isDynamic: true
 					});
-					savePreferenceRecord(preferanceRecord,request)
+					savePreferenceRecord(preferanceRecord,request);
 				}
 				//if preferences record is available then updates the preferences record 
 				if(prefSearchRes.length > 0){
@@ -313,7 +403,7 @@ function(record, redirect, serverWidget, search, runtime) {
 					    id: prefSearchResId,
 					    isDynamic: true,
 					});
-					savePreferenceRecord(preferanceRecord,request)
+					savePreferenceRecord(preferanceRecord,request);
 				}
 				
 				redirect.toSuitelet({
@@ -330,19 +420,18 @@ function(record, redirect, serverWidget, search, runtime) {
 	}
 	
 	function savePreferenceRecord(preferanceRecord,request){
+		
 		var deductionAccount = request.parameters.custpage_itpm_pref_ddnaccount,
-		overpayAccount = request.parameters.custpage_itpm_pref_overpayaccount,
 		expenseAccount = request.parameters.custpage_itpm_pref_expenseaccount,
 		settlementsType = request.parameters.custpage_match,
-		accountPayableId = request.parameters.custpage_itpm_pref_accountpayable;
+		accountPayableId = request.parameters.custpage_itpm_pref_accountpayable,
+		applyiTPMNetBillDiscount = request.parameters.custpage_itpm_pref_nblistprice,
+		discountItemId = request.parameters.custpage_itpm_pref_discountitem;
+		discountDates = request.parameters.custpage_itpm_disdate;
 		
 		preferanceRecord.setValue({
 		    fieldId: 'custrecord_itpm_pref_ddnaccount',
 		    value: deductionAccount,
-		    ignoreFieldChange: true
-		}).setValue({
-		    fieldId: 'custrecord_itpm_pref_overpayaccount',
-		    value: overpayAccount,
 		    ignoreFieldChange: true
 		}).setValue({
 		    fieldId: 'custrecord_itpm_pref_expenseaccount',
@@ -352,8 +441,53 @@ function(record, redirect, serverWidget, search, runtime) {
 			fieldId:'custrecord_itpm_pref_settlementsaccount',
 			value:accountPayableId,
 			ignoreFieldChange:true
-		})
+		}).setValue({
+			fieldId:'custrecord_itpm_pref_nblistprice',
+			value:(applyiTPMNetBillDiscount == 'T'),
+			ignoreFieldChange:true
+		}).setValue({
+			fieldId:'custrecord_itpm_pref_discountitem',
+			value:discountItemId,
+			ignoreFieldChange:true
+		});
 		
+		switch(discountDates){
+			case 'custpage_sd' : 
+				preferanceRecord.setValue({
+					fieldId:'custrecord_itpm_pref_discountdates',
+					value:1,
+					ignoreFieldChange:true
+				});
+				break;
+			case 'custpage_od' : 
+				preferanceRecord.setValue({
+					fieldId:'custrecord_itpm_pref_discountdates',
+					value:2,
+					ignoreFieldChange:true
+				});
+				break;
+			case 'custpage_both' : 
+				preferanceRecord.setValue({
+					fieldId:'custrecord_itpm_pref_discountdates',
+					value:3,
+					ignoreFieldChange:true
+				});
+				break;
+			case 'custpage_either' : 
+				preferanceRecord.setValue({
+					fieldId:'custrecord_itpm_pref_discountdates',
+					value:4,
+					ignoreFieldChange:true
+				});
+				break;
+			default : 
+				preferanceRecord.setValue({
+					fieldId:'custrecord_itpm_pref_discountdates',
+					value:1,
+					ignoreFieldChange:true
+				});
+				break;
+		}
 		
 		if(settlementsType == 'custpage_ls'){
 			preferanceRecord.setValue({
