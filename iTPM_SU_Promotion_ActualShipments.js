@@ -32,7 +32,9 @@ function(serverWidget,search,record,format) {
 				var form = serverWidget.createForm({
 					title : 'Actual Shipments'
 				});
-				var promotionField=form.addField({
+				
+				//Adding the body fields to the form
+				var promotionField = form.addField({
 					id : 'custpage_promotion',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion #'
@@ -40,7 +42,7 @@ function(serverWidget,search,record,format) {
 				promotionField.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionRefernece=form.addField({
+				var promotionRefernece = form.addField({
 					id : 'custpage_refernce',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion Reference Code'
@@ -48,7 +50,7 @@ function(serverWidget,search,record,format) {
 				promotionRefernece.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionDesc=form.addField({
+				var promotionDesc = form.addField({
 					id : 'custpage_promotiondescription',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion Description'
@@ -56,7 +58,7 @@ function(serverWidget,search,record,format) {
 				promotionDesc.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionStdate=form.addField({
+				var promotionStdate = form.addField({
 					id : 'custpage_promotionstartdate',
 					type : serverWidget.FieldType.DATE,
 					label : 'Promotion Start Date'
@@ -64,7 +66,7 @@ function(serverWidget,search,record,format) {
 				promotionStdate.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionEndate=form.addField({
+				var promotionEndate = form.addField({
 					id : 'custpage_promotionenddate',
 					type : serverWidget.FieldType.DATE,
 					label : 'Promotion End Date'
@@ -72,7 +74,7 @@ function(serverWidget,search,record,format) {
 				promotionEndate.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var customerDescription=form.addField({
+				var customerDescription = form.addField({
 					id : 'custpage_customerdescription',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Customer Description'
@@ -80,45 +82,52 @@ function(serverWidget,search,record,format) {
 				customerDescription.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-
-				var actualSalesTab = form.addSubtab({
+				
+				//Adding the sublists to the form.
+				var actualShipmentTab = form.addSubtab({
 					id:'custpage_actualshippments',
 					label:'Actual Shipments'
 				});
 
 				//Actual Sales subtab and fields
-				var actualSalesSublist = form.addSublist({
+				var actualShipmentSublist = form.addSublist({
 					id : 'custpage_actual_shippments_subtab',
 					tab:'custpage_actualshippments',
 					type : serverWidget.SublistType.LIST,
 					label : 'Actual Shippments'
 				});
+				
+				actualShipmentSublist.addField({
+					id : 'custpage_shippmentid',
+					type : serverWidget.FieldType.TEXT,
+					label : 'SHIPPMENT ID'
+				});
+				
+				actualShipmentSublist.addField({
+					id:'custpage_invoice_date',
+					type:serverWidget.FieldType.DATE,
+					label:'DATE'
+				});
 
-				actualSalesSublist.addField({
+				actualShipmentSublist.addField({
 					id : 'custpage_item',
 					type : serverWidget.FieldType.TEXT,
 					label : 'ITEM'
 				});
 
-				actualSalesSublist.addField({
+				actualShipmentSublist.addField({
 					id : 'custpage_item_description',
 					type : serverWidget.FieldType.TEXT,
 					label : 'ITEM DESCRIPTION'
 				});
-
-				actualSalesSublist.addField({
-					id : 'custpage_shippmentid',
-					type : serverWidget.FieldType.TEXT,
-					label : 'SHIPPMENT ID'
-				});
-
-				actualSalesSublist.addField({
+				
+				actualShipmentSublist.addField({
 					id : 'custpage_shippmentuom',
 					type : serverWidget.FieldType.TEXT,
 					label : 'SHIPPMENT UOM'
 				});
 
-				actualSalesSublist.addField({
+				actualShipmentSublist.addField({
 					id : 'custpage_shippmentqty',
 					type : serverWidget.FieldType.TEXT,
 					label : 'SHIPPMENT QTY'
@@ -163,21 +172,31 @@ function(serverWidget,search,record,format) {
 				//estimated volume search to get the items list
 				var estVolumeItems = [];
 				search.create({
-					//type:'customrecord_itpm_estquantity',
-					type:'customrecord_itpm_promoallowance',
-					columns:[{name: 'custrecord_itpm_all_item', summary: search.Summary.GROUP}],
-					filters:[['custrecord_itpm_all_promotiondeal','anyof',request.parameters.pid],'and',
+					type:'customrecord_itpm_estquantity',
+					columns:['custrecord_itpm_estqty_item'],
+					filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
 						['isinactive','is',false]]
 				}).run().each(function(e){
-					estVolumeItems.push(e.getValue({name:'custrecord_itpm_all_item', summary: 'GROUP'}));
+					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
 					return true;
 				});
 
 				if(estVolumeItems.length>0){
+					//sort the items based on item name in ascending order
+					var sortOnName = search.createColumn({
+					    name: 'itemid',
+					    join:'item',
+					    sort: search.Sort.ASC
+					});
+					//sort the items based on item trandate in descending order
+					var sortOnDate = search.createColumn({
+						name:'trandate',
+						sort:search.Sort.DESC
+					});
 					//search for item fulfillment filters are ship start,end date and est volume items
 					var itemFulResult = search.create({
 						type:search.Type.ITEM_FULFILLMENT,
-						columns:['internalid','item','item.description','quantity','unit'],
+						columns:['internalid','item','item.description','quantity','unit',sortOnName,sortOnDate],
 						filters:[['item','anyof',estVolumeItems],'and',
 							['entity','anyof', customerRecord.getValue('entityid')],'and',
 							['trandate','within',startDateYear,endDateYear],'and',
@@ -231,25 +250,31 @@ function(serverWidget,search,record,format) {
 							var unit = page.data[i].getValue('unit');
 
 //							log.debug('unit',unit) //not getting the uom
-							actualSalesSublist.setSublistValue({
+							actualShipmentSublist.setSublistValue({
 								id:'custpage_item',
 								line:i,
 								value:page.data[i].getText('item')
 							});
-							actualSalesSublist.setSublistValue({
+							actualShipmentSublist.setSublistValue({
 								id:'custpage_item_description',
 								line:i,
 								value:page.data[i].getValue({name:'description',join:'item'})
 							});
 
-							actualSalesSublist.setSublistValue({
+							actualShipmentSublist.setSublistValue({
 								id:'custpage_shippmentid',
 								line:i,
 								value:page.data[i].getValue('internalid')
 							});
+							
+							actualShipmentSublist.setSublistValue({
+								id:'custpage_invoice_date',
+								line:i,
+								value:page.data[i].getValue('trandate')
+							});
 
 							if(quantity != ''){
-								actualSalesSublist.setSublistValue({
+								actualShipmentSublist.setSublistValue({
 									id:'custpage_shippmentqty',
 									line:i,
 									value:quantity
@@ -257,7 +282,7 @@ function(serverWidget,search,record,format) {
 							}
 
 							if(unit != ''){
-								actualSalesSublist.setSublistValue({
+								actualShipmentSublist.setSublistValue({
 									id:'custpage_shippmentuom',
 									line:i,
 									value:unit

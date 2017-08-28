@@ -34,7 +34,8 @@ define(['N/ui/serverWidget',
 					title : 'Actual Sales'
 				});
 
-				var promotionField=form.addField({
+				//Adding body fields to the form
+				var promotionField = form.addField({
 					id : 'custpage_promotion',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion #'
@@ -42,7 +43,7 @@ define(['N/ui/serverWidget',
 				promotionField.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionRefernece=form.addField({
+				var promotionRefernece = form.addField({
 					id : 'custpage_refernce',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion Reference Code'
@@ -50,7 +51,7 @@ define(['N/ui/serverWidget',
 				promotionRefernece.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionDesc=form.addField({
+				var promotionDesc = form.addField({
 					id : 'custpage_promotiondescription',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion Description'
@@ -58,7 +59,7 @@ define(['N/ui/serverWidget',
 				promotionDesc.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionStdate=form.addField({
+				var promotionStdate = form.addField({
 					id : 'custpage_promotionstartdate',
 					type : serverWidget.FieldType.DATE,
 					label : 'Promotion Start Date'
@@ -66,7 +67,7 @@ define(['N/ui/serverWidget',
 				promotionStdate.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionEndate=form.addField({
+				var promotionEndate = form.addField({
 					id : 'custpage_promotionenddate',
 					type : serverWidget.FieldType.DATE,
 					label : 'Promotion End Date'
@@ -74,7 +75,7 @@ define(['N/ui/serverWidget',
 				promotionEndate.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var customerDescription=form.addField({
+				var customerDescription = form.addField({
 					id : 'custpage_customerdescription',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Customer Description'
@@ -83,7 +84,7 @@ define(['N/ui/serverWidget',
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
 
-
+				//Adding the sublists to the form
 				var actualSalesTab = form.addSubtab({
 					id:'custpage_actualsales',
 					label:'Actual Sales'
@@ -96,7 +97,19 @@ define(['N/ui/serverWidget',
 					type : serverWidget.SublistType.LIST,
 					label : 'Actual Sales'
 				});
-
+				
+				actualSalesSublist.addField({
+					id : 'custpage_invoiceid',
+					type : serverWidget.FieldType.TEXT,
+					label : 'INVOICE ID'
+				});
+				
+				actualSalesSublist.addField({
+					id:'custpage_invoice_date',
+					type:serverWidget.FieldType.DATE,
+					label:'DATE'
+				});
+				
 				actualSalesSublist.addField({
 					id : 'custpage_item',
 					type : serverWidget.FieldType.TEXT,
@@ -107,12 +120,6 @@ define(['N/ui/serverWidget',
 					id : 'custpage_item_description',
 					type : serverWidget.FieldType.TEXT,
 					label : 'ITEM DESCRIPTION'
-				});
-
-				actualSalesSublist.addField({
-					id : 'custpage_invoiceid',
-					type : serverWidget.FieldType.TEXT,
-					label : 'INVOICE ID'
 				});
 
 				actualSalesSublist.addField({
@@ -177,23 +184,33 @@ define(['N/ui/serverWidget',
 				//estimated volume search to get the items list
 				var estVolumeItems = [];
 				search.create({
-					//type:'customrecord_itpm_estquantity',
-					type: 'customrecord_itpm_promoallowance',
-					columns:[{name:'custrecord_itpm_all_item', summary: search.Summary.GROUP}],
-					//filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and', ['isinactive','is',false]]
-					filters:[['custrecord_itpm_all_promotiondeal','anyof',request.parameters.pid],'and', ['isinactive','is',false]]
+					type:'customrecord_itpm_estquantity',
+					columns:['custrecord_itpm_estqty_item'],
+					filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
+					         ['isinactive','is',false]]
 				}).run().each(function(e){
-					estVolumeItems.push(e.getValue({name:'custrecord_itpm_all_item', summary: 'GROUP'}));
+					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
 					return true;
 				});
 
 
 				//Actual Sales search
 				if(estVolumeItems.length > 0){
+					//sort the items based on item name in ascending order
+					var sortOnName = search.createColumn({
+					    name: 'itemid',
+					    join:'item',
+					    sort: search.Sort.ASC
+					});
+					//sort the items based on item trandate in descending order
+					var sortOnDate = search.createColumn({
+						name:'trandate',
+						sort:search.Sort.DESC
+					});
 					//search for invoice filters are ship start,end date and est volume items and with status Open and Paid in full
 					var invResult = search.create({
 						type:search.Type.INVOICE,
-						columns:['internalid','item','item.description','amount','rate','quantity','unit'],
+						columns:['internalid','item','item.description','amount','rate','quantity','unit',sortOnName,sortOnDate],
 						filters:[['item','anyof',estVolumeItems],'and',
 						         ['entity','anyof',customerRecord.getValue('entityid')],'and',
 						         ['trandate','within',startDateYear,endDateYear],'and',
@@ -264,6 +281,12 @@ define(['N/ui/serverWidget',
 								id:'custpage_invoiceid',
 								line:i,
 								value:page.data[i].getValue('internalid')
+							});
+							
+							actualSalesSublist.setSublistValue({
+								id:'custpage_invoice_date',
+								line:i,
+								value:page.data[i].getValue('trandate')
 							});
 
 							if(unit != ''){

@@ -28,7 +28,7 @@ function(runtime,search,itpm) {
     		allMop = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_allmop'}),
     		unitsList = itpm.getItemUnits(itemId).unitArray,ratePerUnit = 0,
     		estqtyRate = unitsList.filter(function(e){return e.id == estqtyUnitId})[0].conversionRate;
-    		log.debug('Conversion_Rate',estqtyRate);
+    		log.debug('estqtyRate',estqtyRate);
     		//searching for the allowances records with Promo,Item and MOP.
     		var allSearch = search.create({
     			type:'customrecord_itpm_promoallowance',
@@ -54,16 +54,14 @@ function(runtime,search,itpm) {
     				ratePerUnit += allRatePerUnit;
     			}else{
     				allRate = unitsList.filter(function(e){return e.id == allUnitId})[0].conversionRate;
-    				allRate = (allRate)? (allrate!=0)? allRate : 1 : 1;
     				ratePerUnit += allRatePerUnit * (estqtyRate/allRate);
     			}
     		});
     		
-    		//log.debug('ratePerUnit',ratePerUnit);
-    		log.debug('EstQty_Rate', 'Record: ' + estqtyRec.id + '; Item: ' + itemId + '; Unit: ' + estqtyUnitId + '; Promotion: ' + estqtyPromoId + '; MOP: ' + allMop + '; Conversion Rate: ' + estqtyRate + '; Rate: ' + ratePerUnit);
+    		log.debug('ratePerUnit',ratePerUnit)
     		return ratePerUnit;
     	}catch(e){
-    		log.error(e.name,e.message + '; RecordId: ' + scriptContext.newRecord.id);
+    		log.error(e.name,e.message);
     		return 0;
     	}
     }
