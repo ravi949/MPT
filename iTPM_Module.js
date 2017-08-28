@@ -172,7 +172,7 @@ function(search, record, util, runtime) {
     	try{
     		var unitArray = [];
     		var unitsType = search.lookupFields({
-        		type: search.Type.ITEM,
+        		type: search.Type.INVENTORY_ITEM,
         		id: itemId,
         		columns: 'unitstype'
         	});
