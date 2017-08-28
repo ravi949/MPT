@@ -11,7 +11,7 @@ define(['N/ui/serverWidget',
 		'N/format',
 		'N/url',
 		'./iTPM_Module_Settlement.js',
-		'./iTPM_Module'
+		'./iTPM_Module.js'
 		],
 
 function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
