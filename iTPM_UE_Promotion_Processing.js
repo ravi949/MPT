@@ -77,6 +77,7 @@ function(serverWidget,record,runtime,url) {
     					deploymentId: 'customdeploy_itpm_promo_overlaplist',
     					returnExternalUrl: false,
     					params: {
+    						rectype:promoRec.getValue('rectype'),
     						cid:customerId,
     						pdid:promoRec.id,
     						start:startDate,
