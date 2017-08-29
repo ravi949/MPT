@@ -133,76 +133,6 @@ function(serverWidget,search,record,format) {
 				});
 				
 				
-				/***********Item Summary Subtab**********/
-				//Adding the sublists to the form
-				var itemSummaryTab = form.addSubtab({
-					id:'custpage_itemsummary',
-					label:'Item Summary'
-				});
-				//Adding the item summary subtab to the form
-				var itemSummarySublist = form.addSublist({
-					id : 'custpage_itemsummary_subtab',
-					tab:'custpage_itemsummary',
-					type : serverWidget.SublistType.LIST,
-					label : 'Item Summary'
-				});
-				
-				itemSummarySublist.addField({
-					id:'custpage_itemsummary_item',
-					type:serverWidget.FieldType.TEXT,
-					label:'Item'
-				});
-				itemSummarySublist.addField({
-					id:'custpage_itemsummary_description',
-					type:serverWidget.FieldType.TEXT,
-					label:'Item Description'
-				});
-				itemSummarySublist.addField({
-					id:'custpage_itemsummary_quantity',
-					type:serverWidget.FieldType.TEXT,
-					label:'Quantity'
-				});
-				
-				var searchColumn = [search.createColumn({
-				    name: 'item',
-				    summary:search.Summary.GROUP
-				}),search.createColumn({
-				    name: 'description',
-				    join:'item',
-				    summary:search.Summary.GROUP
-				}),search.createColumn({
-				    name: 'quantity',
-				    summary:search.Summary.SUM
-				})];
-				
-				//searching for the items which present in the promotion est qty.
-				var itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
-				var i = 0;
-				itemFulResult.run().each(function(e){
-					itemSummarySublist.setSublistValue({
-						id:'custpage_itemsummary_item',
-						line:i,
-						value:e.getText({name:'item',summary:search.Summary.GROUP})
-					});
-					itemSummarySublist.setSublistValue({
-						id:'custpage_itemsummary_description',
-						line:i,
-						value:e.getValue({name:'description',join:'item',summary:search.Summary.GROUP})
-					});
-					itemSummarySublist.setSublistValue({
-						id:'custpage_itemsummary_quantity',
-						line:i,
-						value:e.getValue({name:'quantity',summary:search.Summary.SUM})
-					});
-					i++;
-					return true;
-				});
-				
-				/*********Item Summary Subtab End*********/
-				
-				
-				
-				
 				/************Actual Shipments*******/
 				
 				//Adding the sublists to the form.
@@ -268,8 +198,8 @@ function(serverWidget,search,record,format) {
 						sort:search.Sort.DESC
 					});
 					//search for item fulfillment filters are ship start,end date and est volume items
-					searchColumn = ['internalid','item','item.description','quantity','unit',sortOnName,sortOnDate];
-					itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
+					var searchColumn = ['internalid','item','item.description','quantity','unit',sortOnName,sortOnDate];
+					var itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
 
 					var pagedData = itemFulResult.runPaged({
 					    pageSize:20
@@ -357,6 +287,75 @@ function(serverWidget,search,record,format) {
 					}
 				}
 				/*************Actual Shipments End****************/
+				
+				/***********Item Summary Subtab**********/
+				//Adding the sublists to the form
+				var itemSummaryTab = form.addSubtab({
+					id:'custpage_itemsummary',
+					label:'Item Summary'
+				});
+				//Adding the item summary subtab to the form
+				var itemSummarySublist = form.addSublist({
+					id : 'custpage_itemsummary_subtab',
+					tab:'custpage_itemsummary',
+					type : serverWidget.SublistType.LIST,
+					label : 'Item Summary'
+				});
+				
+				itemSummarySublist.addField({
+					id:'custpage_itemsummary_item',
+					type:serverWidget.FieldType.TEXT,
+					label:'Item'
+				});
+				itemSummarySublist.addField({
+					id:'custpage_itemsummary_description',
+					type:serverWidget.FieldType.TEXT,
+					label:'Item Description'
+				});
+				itemSummarySublist.addField({
+					id:'custpage_itemsummary_quantity',
+					type:serverWidget.FieldType.TEXT,
+					label:'Quantity'
+				});
+				
+				searchColumn = [search.createColumn({
+				    name: 'item',
+				    summary:search.Summary.GROUP
+				}),search.createColumn({
+				    name: 'description',
+				    join:'item',
+				    summary:search.Summary.GROUP
+				}),search.createColumn({
+				    name: 'quantity',
+				    summary:search.Summary.SUM
+				})];
+				
+				//searching for the items which present in the promotion est qty.
+				itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
+				var i = 0;
+				itemFulResult.run().each(function(e){
+					itemSummarySublist.setSublistValue({
+						id:'custpage_itemsummary_item',
+						line:i,
+						value:e.getText({name:'item',summary:search.Summary.GROUP})
+					});
+					itemSummarySublist.setSublistValue({
+						id:'custpage_itemsummary_description',
+						line:i,
+						value:e.getValue({name:'description',join:'item',summary:search.Summary.GROUP})
+					});
+					itemSummarySublist.setSublistValue({
+						id:'custpage_itemsummary_quantity',
+						line:i,
+						value:e.getValue({name:'quantity',summary:search.Summary.SUM})
+					});
+					i++;
+					return true;
+				});
+				
+				/*********Item Summary Subtab End*********/
+				
+				
 				form.clientScriptModulePath = './iTPM_Attach_Promotion_ActualSalesShipmentsPagination.js';
 				response.writePage(form);	
 			}
