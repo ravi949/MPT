@@ -284,7 +284,7 @@ define(['N/ui/serverWidget',
 					searchColumn = ['internalid','item','item.description','amount','rate','quantity','unit',sortOnName,sortOnDate];
 					invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
 					
-					var pagedData = invResult.runPaged({
+					var pagedData = invSearchResult.runPaged({
 					    pageSize:20
 				    });
 					
