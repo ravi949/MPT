@@ -6,10 +6,11 @@
 define(['N/search', 
         'N/runtime', 
         'N/record',
+        'N/format',
         './iTPM_Module.js'
         ],
 
-function(search, runtime, record, itpm) {
+function(search, runtime, record, format, itpm) {
    
     /**
      * Marks the beginning of the Map/Reduce process and generates input data.
@@ -270,6 +271,16 @@ function(search, runtime, record, itpm) {
         	} else if (maxLiability.error){
         		throw {name: maxLiability.name, message: maxLiability.message};
         	}
+        	
+        	//creating the comment for last update message
+        	var lastUpdateMsg = "Last calculated on "+format.format({
+        			value: new Date(),
+        			type: format.Type.DATE
+        	    })+" at time "+format.format({
+        	    	value: new Date(),
+        	    	type: format.Type.TIMEOFDAY
+        	    })+".";
+        	
         	/**** SET KPI FIELD VALUES ****/
         	var kpiUpdated = record.submitFields({
         		type: 'customrecord_itpm_kpi',
@@ -291,7 +302,8 @@ function(search, runtime, record, itpm) {
         			'custrecord_itpm_kpi_lespendnb' : leSpend.nb,
         			'custrecord_itpm_kpi_actualspendbb' :actualSpend.bb,
         			'custrecord_itpm_kpi_actualspendoi' :actualSpend.oi,
-        			'custrecord_itpm_kpi_actualspendnb' :actualSpend.nb
+        			'custrecord_itpm_kpi_actualspendnb' :actualSpend.nb,
+        			'custrecord_itpm_kpi_lastupdatemessage':lastUpdateMsg
         		},
         		options: {enablesourcing: true, ignoreMandatoryFields: true}
         	});
