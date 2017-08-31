@@ -213,7 +213,7 @@ define(['N/ui/serverWidget',
 					});
 					
 					//search for invoice filters are ship start,end date and est volume items and with status Open and Paid in full
-					var searchColumn = ['internalid','item','item.description','amount','rate','quantity','unit',sortOnName,sortOnDate];
+					var searchColumn = ['internalid','tranid','item','item.description','amount','rate','quantity','unit',sortOnName,sortOnDate];
 					var invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
 					
 					var pagedData = invSearchResult.runPaged({
@@ -273,7 +273,7 @@ define(['N/ui/serverWidget',
 							actualSalesSublist.setSublistValue({
 								id:'custpage_invoiceid',
 								line:i,
-								value:page.data[i].getValue('internalid')
+								value:page.data[i].getValue('tranid')
 							});
 							
 							actualSalesSublist.setSublistValue({

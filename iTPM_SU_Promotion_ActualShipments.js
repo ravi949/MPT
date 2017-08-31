@@ -198,7 +198,7 @@ function(serverWidget,search,record,format) {
 						sort:search.Sort.DESC
 					});
 					//search for item fulfillment filters are ship start,end date and est volume items
-					var searchColumn = ['internalid','item','item.description','quantity','unit',sortOnName,sortOnDate];
+					var searchColumn = ['internalid','tranid','item','item.description','quantity','unit',sortOnName,sortOnDate];
 					var itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
 
 					var pagedData = itemFulResult.runPaged({
@@ -259,7 +259,7 @@ function(serverWidget,search,record,format) {
 							actualShipmentSublist.setSublistValue({
 								id:'custpage_shippmentid',
 								line:i,
-								value:page.data[i].getValue('internalid')
+								value:page.data[i].getValue('tranid')
 							});
 							
 							actualShipmentSublist.setSublistValue({
