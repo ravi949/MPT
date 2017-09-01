@@ -30,7 +30,7 @@ function(serverWidget,search,record,format) {
 				var startno = request.parameters.st;
 				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var form = serverWidget.createForm({
-					title : 'Actual Shipments'+((yearResult == 1)?(' ( Last Year )'):'')
+					title : 'Actual Shipments'+((yearResult == 1)?(' (Last Year)'):'')
 				});
 				
 				//Adding the body fields to the form

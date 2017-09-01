@@ -31,7 +31,7 @@ define(['N/ui/serverWidget',
 				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var endno = parseInt(startno)+20;
 				var form = serverWidget.createForm({
-					title : 'Actual Sales'+((yearResult == 1)?(' ( Last Year )'):'')
+					title : 'Actual Sales'+((yearResult == 1)?(' (Last Year)'):'')
 				});
 
 				//Adding body fields to the form
