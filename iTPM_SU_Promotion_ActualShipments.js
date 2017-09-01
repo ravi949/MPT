@@ -30,7 +30,7 @@ function(serverWidget,search,record,format) {
 				var startno = request.parameters.st;
 				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var form = serverWidget.createForm({
-					title : 'Actual Shipments'+((yearResult == 1)?(' (Last Year)'):'')
+					title : 'Actual Shipments'+((yearResult == 1)?(' (Previous Year)'):'')
 				});
 				
 				//Adding the body fields to the form
@@ -61,7 +61,7 @@ function(serverWidget,search,record,format) {
 				var promotionStdate = form.addField({
 					id : 'custpage_promotionstartdate',
 					type : serverWidget.FieldType.DATE,
-					label : 'Promotion Start Date'
+					label : 'Start Date'
 				});
 				promotionStdate.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
@@ -69,7 +69,7 @@ function(serverWidget,search,record,format) {
 				var promotionEndate = form.addField({
 					id : 'custpage_promotionenddate',
 					type : serverWidget.FieldType.DATE,
-					label : 'Promotion End Date'
+					label : 'End Date'
 				});
 				promotionEndate.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
