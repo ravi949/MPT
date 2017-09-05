@@ -171,6 +171,7 @@ function(serverWidget,record,runtime,url,search) {
 		}
     }
     
+    
     /**
      * @param promoForm
      * @param params customerid,promotionid,startdate,enddate
@@ -397,7 +398,7 @@ function(serverWidget,record,runtime,url,search) {
 					   ['custrecord_itpm_p_customer','anyof',params.cid],'and',
 					   ['custrecord_itpm_p_status','noneof',[5,7]]
 					]	    		
-		})
+		});
     }
     
 
