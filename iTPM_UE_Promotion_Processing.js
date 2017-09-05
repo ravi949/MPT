@@ -6,7 +6,8 @@
 define(['N/ui/serverWidget',
 		'N/record',
 		'N/runtime',
-		'N/url'
+		'N/url',
+		'N/search'
 		],
 /**
  * @param {serverWidget} serverWidget
@@ -14,7 +15,7 @@ define(['N/ui/serverWidget',
  * @param {runtime} runtime
  * @param {url} url
  */
-function(serverWidget,record,runtime,url) {
+function(serverWidget,record,runtime,url,search) {
    
     /**
      * Function definition to be triggered before record is loaded.
@@ -68,26 +69,15 @@ function(serverWidget,record,runtime,url) {
         		
     			//this block for showing the overlapping promotions in promotion record subtab
         		if(scriptContext.type == 'view' || scriptContext.type == 'edit'){
-        			var customerId = promoRec.getValue('custrecord_itpm_p_customer');
-        			var startDate = promoRec.getText('custrecord_itpm_p_shipstart');
-        			var endDate = promoRec.getText('custrecord_itpm_p_shipend');
-        			//setting the overlap promotion suitelet url as value to inline html field.
-        			var overlapSuiteletURL = url.resolveScript({
-    					scriptId: 'customscript_itpm_promo_overlaplist',
-    					deploymentId: 'customdeploy_itpm_promo_overlaplist',
-    					returnExternalUrl: false,
-    					params: {
-    						rectype:promoRec.getValue('rectype'),
-    						cid:customerId,
-    						pdid:promoRec.id,
-    						start:startDate,
-    						end:endDate
-    					}
-    				});
-        			promoRec.setValue({
-    					fieldId:'custrecord_itpm_p_overlappingpromotions',
-    					value:'<iframe id="boxnet_widget_frame" src="'+overlapSuiteletURL+'" align="center" style="width: 100%; height:600px; margin:0; border:0; padding:0" frameborder="0"></iframe>'
-    				});
+        			var params = {
+        				rectype:promoRec.getValue('rectype'),
+        				cid:promoRec.getValue('custrecord_itpm_p_customer'),
+        				pdid:promoRec.id,
+        				start:promoRec.getText('custrecord_itpm_p_shipstart'),
+        				end:promoRec.getText('custrecord_itpm_p_shipend')
+        			}   
+        			//Add the overlap promotion to the new subtab
+        			addOverlapSublists(promoForm,params);
         		}
     		}
     	}catch(e){
@@ -180,6 +170,284 @@ function(serverWidget,record,runtime,url) {
 			log.error(e.name,'record type = iTPM promotion, record id = '+scriptContext.newRecord.id+', message = '+e.message);
 		}
     }
+    
+    /**
+     * @param promoForm
+     * @param params customerid,promotionid,startdate,enddate
+     * @description add the new subtab called overlap promotions
+     */
+    function addOverlapSublists(promoForm,params){
+    	//Adding the overlap promotions to the form
+		var tab = promoForm.addTab({
+		    id : 'custpage_overlappromotions',
+		    label : 'Overlapping Promotions'
+		});
+		var sublist = promoForm.addSublist({
+		    id : 'custpage_sublist_overlapromotions',
+		    type : serverWidget.SublistType.LIST,
+		    tab:'custpage_overlappromotions',
+		    label : 'overlapping promotions'
+		});
+		sublist.addField({
+		    id : 'custpage_overlappromo_item',
+		    type : serverWidget.FieldType.SELECT,
+		    label : 'Item',
+		    source:'item'
+		 });
+		
+		sublist.addField({
+		    id : 'custpage_overlappromo_itemcode',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'Item Code'
+		 });
+		sublist.addField({
+		    id : 'custpage_overlappromo_promo',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'Promotion/Deal'
+		 });
+		sublist.addField({
+		    id : 'custpage_overlappromo_shipstart',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'Ship Start'
+		 });
+		sublist.addField({
+		    id : 'custpage_overlappromo_shipend',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'Ship End'
+		 });
+		sublist.addField({
+		    id : 'custpage_overlappromo_lapdays',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'Days Overlapping'
+		 });
+		sublist.addField({
+		    id : 'custpage_overlappromo_status',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'Promotion/Deal Status'
+		 });
+		sublist.addField({
+		    id : 'custpage_overlappromo_condition',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'Promotion/Deal Condition'
+		 });
+		sublist.addField({
+		    id : 'custpage_overlappromo_id',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'Promotion/Deal ID'
+		 });
+		sublist.addField({
+		    id : 'custpage_overlappromo_ptype',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'Promotion type'
+		 });
+		sublist.addField({
+		    id : 'custpage_overlappromo_totalallpercent',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'Total Allowances As %'
+		 });
+		sublist.addField({
+		    id : 'custpage_overlappromo_totalallrate',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'Total Allowance Per UOM'
+		 });
+		sublist.addField({
+		    id : 'custpage_overlappromo_alluom',
+		    type : serverWidget.FieldType.TEXT,
+		    label : 'UOM'
+		 });
+		
+		//getting the Promotion/Deal Estimated Qty list
+		var estQtyItems = [];
+		search.create({
+			type:'customrecord_itpm_estquantity',
+			columns:['custrecord_itpm_estqty_item'],
+			filters:[['custrecord_itpm_estqty_promodeal','anyof',params.pdid]]
+		}).run().each(function(e){
+			estQtyItems.push(e.getValue('custrecord_itpm_estqty_item'));
+			return true;
+		});
+		
+		if(estQtyItems.length>0){
+			var i = 0;
+			getOverlappedPromos(params).run().each(function(e){
+				var promoDealSearchId = e.getValue('internalid'),
+				promoDealStatus = e.getText('custrecord_itpm_p_status'),
+				promoDealCondition = e.getText('custrecord_itpm_p_condition'),
+				promoStartDate = e.getValue('custrecord_itpm_p_shipstart'),
+				promotEndDate = e.getValue('custrecord_itpm_p_shipend');
+				
+				//getting the overlapping days
+				overlappedDays = getOverlappingDays(params.start,params.end,promoStartDate,promotEndDate);
+				
+				//if over lapped days are 0 than reversing the date and calculate the overlapped days again.
+				if(overlappedDays == 0){
+					overlappedDays = getOverlappingDays(promoStartDate,promotEndDate,params.start,params.end);
+				}
+
+				search.create({
+					type:'customrecord_itpm_estquantity',
+					columns:['custrecord_itpm_estqty_item',
+							 'custrecord_itpm_estqty_qtyby',
+							 'custrecord_itpm_estqty_totalrate',
+							 'custrecord_itpm_estqty_totalpercent'
+							 ],
+					filters:[
+							 ['custrecord_itpm_estqty_promodeal','anyof',promoDealSearchId],'and',
+						     ['isinactive','is',false],'and',
+						     ['custrecord_itpm_estqty_item','anyof',estQtyItems]
+							]
+				}).run().each(function(estQty){
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_item',
+						line : i,
+						value : estQty.getValue('custrecord_itpm_estqty_item')
+					});
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_itemcode',
+						line : i,
+						value : estQty.getValue('custrecord_itpm_estqty_item')
+					});
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_promo',
+						line : i,
+						value : e.getValue('name')
+					});
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_shipstart',
+						line : i,
+						value : e.getValue('custrecord_itpm_p_shipstart')
+					});
+
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_shipend',
+						line : i,
+						value : e.getValue('custrecord_itpm_p_shipend')
+					});
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_lapdays',
+						line : i,
+						value : overlappedDays.toString()
+					});
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_status',
+						line : i,
+						value : promoDealStatus
+					});
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_condition',
+						line : i,
+						value : promoDealCondition
+					});
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_id',
+						line : i,
+						value : promoDealSearchId
+					});
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_ptype',
+						line : i,
+						value : e.getValue({name:'name',join:'custrecord_itpm_p_type'})
+					});
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_totalallpercent',
+						line : i,
+						value : estQty.getValue('custrecord_itpm_estqty_totalpercent')
+					});
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_totalallrate',
+						line : i,
+						value : estQty.getValue('custrecord_itpm_estqty_totalrate')
+					});
+					sublist.setSublistValue({
+						id : 'custpage_overlappromo_alluom',
+						line : i,
+						value : estQty.getText('custrecord_itpm_estqty_qtyby')
+					});
+					i++;
+					return true;
+				});
+				return true;
+			});
+		}
+    }
+    
+    /**
+     * @param params
+     * @return {Object} search object
+     * @description search form overlapped promotions.
+     */
+    function getOverlappedPromos(params){
+    	return search.create({
+			type:'customrecord_itpm_promotiondeal',
+			columns:['internalid',
+					 'name',
+					 'custrecord_itpm_p_status',
+					 'custrecord_itpm_p_condition',
+					 'custrecord_itpm_p_type.name',
+					 'custrecord_itpm_p_shipstart',
+					 'custrecord_itpm_p_shipend'
+					 ],
+			filters:[
+					   [['custrecord_itpm_p_shipstart','before', params.start],'and',
+						['custrecord_itpm_p_shipend','after', params.end]],'or',
+					   [['custrecord_itpm_p_shipstart','within', params.start, params.end],'or',
+						['custrecord_itpm_p_shipend','within', params.start, params.end]],'and',
+					   ['isinactive','is',false],'and',
+					   ['internalid','noneof', params.pdid],'and',
+					   ['custrecord_itpm_p_customer','anyof',params.cid],'and',
+					   ['custrecord_itpm_p_status','noneof',[5,7]]
+					]	    		
+		})
+    }
+    
+
+	/**
+	 * @param start1
+	 * @param end1
+	 * @param start2
+	 * @param end2
+	 * @returns {String}
+	 * @description to get overlapping days
+	 */
+	function getOverlappingDays(start1,end1,start2,end2){
+		var startIsBetween = false,EndIsBetween = false,diffDays=0;
+
+		if(Date.parse(start1) <= Date.parse(start2) && Date.parse(end1) >= Date.parse(start2)){
+			startIsBetween = true;
+		}
+
+		if(Date.parse(start1) <= Date.parse(end2) && Date.parse(end1) >= Date.parse(end2)){
+			EndIsBetween = true;
+		}
+
+		if(startIsBetween && EndIsBetween){
+			//difference between s2 date and e2 date
+			diffDays = getDifference(end2,start2)
+		}else if(!startIsBetween && EndIsBetween){
+			//difference between s1 date and e2 date
+			diffDays = getDifference(end2,start1)
+		}else if(startIsBetween && !EndIsBetween){
+			//difference between s2 date and e1 date
+			diffDays = getDifference(end1,start2)
+		}
+		return diffDays;
+	}
+
+
+	/**
+	 * @param date1
+	 * @param date2
+	 * @returns {String} 
+	 * @description to get the no of days
+	 */
+	function getDifference(date1,date2){
+		var date1 = new Date(date1),date2 = new Date(date2),
+		timeDiff = Math.abs(date2.getTime() - date1.getTime());
+		diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
+		return diffDays;
+	}	
+    
+    
 
     return {
         beforeLoad: beforeLoad,
