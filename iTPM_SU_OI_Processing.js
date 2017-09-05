@@ -29,9 +29,6 @@ function(search, runtime, record, redirect, itpm) {
     			var prefDatesType = prefData.discountdates;
     			var prefDiscountItem = prefData.discountitem;
     			
-    			//log.debug('prefDatesType', prefDatesType);
-    			//log.debug('prefDiscountItem', prefDiscountItem);
-    			
     			//newRecord: used to apply all discounts and commit
     			var newTranRecObj = record.load({
     			    type: context.request.parameters.type, 
@@ -47,11 +44,7 @@ function(search, runtime, record, redirect, itpm) {
     			});
     			
     			var trandate = tranRecObj.getText({fieldId : 'trandate'});
-    			//log.debug('trandate', trandate);
-    			
     			var customer = tranRecObj.getValue({fieldId : 'entity'});
-    			//log.debug('customer', customer);
-    			
     			var itemCount = tranRecObj.getLineCount({
     			    sublistId: 'item'
     			});
@@ -64,46 +57,40 @@ function(search, runtime, record, redirect, itpm) {
     				    fieldId   : 'item',
     				    line      : i
     				});
-    				//log.debug('lineItem', lineItem+' @Line: '+i);
     				
     				var quantity = tranRecObj.getSublistValue({
     				    sublistId : 'item',
     				    fieldId   : 'quantity',
     				    line      : i
     				});
-    				//log.debug('Quantity', quantity+' @Line: '+i);
     				
     				var priceLevel = tranRecObj.getSublistValue({
     				    sublistId : 'item',
     				    fieldId   : 'price',
     				    line      : i
     				});
-    				//log.debug('priceLevel', priceLevel+' @Line: '+i);
     				
     				var lineUnit = tranRecObj.getSublistValue({
     				    sublistId : 'item',
     				    fieldId   : 'units',
     				    line      : i
     				});
-    				//log.debug('lineUnit', lineUnit+' @Line: '+i);
     				
     				var lineRate = tranRecObj.getSublistValue({
     				    sublistId : 'item',
     				    fieldId   : 'rate',
     				    line      : i
     				});
-    				//log.debug('lineRate', lineRate+' @Line: '+i);
     				
     				var lineAmount = tranRecObj.getSublistValue({
     				    sublistId : 'item',
     				    fieldId   : 'amount',
     				    line      : i
     				});
-    				//log.debug('lineAmount', lineAmount+' @Line: '+i);
     				
     				//Calculating Conversion
     				var unitsList = itpm.getItemUnits(lineItem).unitArray;
-    				log.debug('unitsList', unitsList);
+    				//log.debug('unitsList', unitsList);
     				var transconversionRate = unitsList.filter(function(e){return e.id == lineUnit})[0].conversionRate;
      				log.debug('transconversionRate', transconversionRate);
      				
@@ -118,11 +105,13 @@ function(search, runtime, record, redirect, itpm) {
     					var allowanceType = result.getValue({name:'custrecord_itpm_all_type'});
      					var allowanceUnitId = result.getValue('custrecord_itpm_all_uom');
      					var allowancePercentperuom =  parseFloat(result.getValue('custrecord_itpm_all_percentperuom'));
+     					var allowanceRateperuom = result.getValue({name:'custrecord_itpm_all_rateperuom'});
      					var tranItemFinalRate = 0;
      					
      					if(allowanceType == 1){
-             				var allConversionRate = unitsList.filter(function(e){return e.id == allowanceUnitId})[0].conversionRate;
-             				tranItemFinalRate = parseFloat(lineRate * transconversionRate/allConversionRate);
+     						var allConversionRate = unitsList.filter(function(e){return e.id == allowanceUnitId})[0].conversionRate;
+     						log.debug('allConversionRate', allConversionRate);
+             				tranItemFinalRate = parseFloat(allowanceRateperuom * transconversionRate/allConversionRate);
      					}else{
      						tranItemFinalRate = (allowancePercentperuom/100) * lineRate;
      					}
@@ -141,8 +130,8 @@ function(search, runtime, record, redirect, itpm) {
     						'sline_alltype' : allowanceType,
     						'sline_allunit' : allowanceUnitId,
     						'sline_allpercent' : allowancePercentperuom,
-    						'sline_allrate' : result.getValue({name:'custrecord_itpm_all_rateperuom'}),
-    						//'sline_calcrate' : tranItemFinalRate.toFixed(4),
+    						'sline_allrate' : allowanceRateperuom,
+    						'sline_calcrate' : tranItemFinalRate,
     						'sline_item' : lineItem,
     						'sline_tranqty' : quantity,
     						'sline_tranunit' : lineUnit,
@@ -154,7 +143,7 @@ function(search, runtime, record, redirect, itpm) {
     					//it means that the line has Net Bill allowances applied)
     					if(discountRecExists['recordExists'])
     					{
-    						log.debug('IF: discountRec Exists',discountRecExists['recordExists']+' & '+discountRecExists['discountId']);
+    						//log.debug('IF: discountRec Exists',discountRecExists['recordExists']+' & '+discountRecExists['discountId']);
     						//Adding lines to the existed Discount Log record
     						addDiscountLogLine(discountRecExists['discountId'], discountLogLineValues);
     					}
@@ -162,7 +151,7 @@ function(search, runtime, record, redirect, itpm) {
     					//Then create the sales discount line records (custom record, child of sales discount log)
     					else
     					{
-    						log.debug('ELSE: discountRec NOT Exists',discountRecExists['recordExists']);
+    						//log.debug('ELSE: discountRec NOT Exists',discountRecExists['recordExists']);
     						var discountLogValues = {
     							'name' : 'iTPM_DL_'+(i+1),
     							'slog_customer'      : customer,
@@ -200,7 +189,7 @@ function(search, runtime, record, redirect, itpm) {
     					newTranRecObj.setCurrentSublistValue({
     		                sublistId: "item",
     		                fieldId: "rate",
-    		                value: -(tranItemFinalRate.toFixed(4))
+    		                value: -tranItemFinalRate
     		            });
     					newTranRecObj.commitLine({
     		                sublistId:"item"
@@ -208,7 +197,7 @@ function(search, runtime, record, redirect, itpm) {
     					
     		            //increment the next line within tranItem loop for each allowance
     		            insertAtLine++;
-    		            log.debug('insertAtLine', insertAtLine);
+    		            //log.debug('insertAtLine', insertAtLine);
     					
     					j++;
     					return true;
@@ -216,7 +205,7 @@ function(search, runtime, record, redirect, itpm) {
     	        	
     	        	//Adding the global line by 1 after completion of every tranItem iteration
     	        	insertAtLine++;
-		            log.debug('insertAtLine<after Loop>', insertAtLine);
+		            //log.debug('insertAtLine<after Loop>', insertAtLine);
     	        }
     			
     			//Saving the transaction record after applying all discounts
@@ -372,11 +361,11 @@ function(search, runtime, record, redirect, itpm) {
             value: discountLogLineValues.sline_allrate,
             ignoreFieldChange: true
         });
-//		discountLogLineRecObj.setValue({
-//            fieldId: 'custrecord_itpm_sline_calcrate',
-//            value: discountLogLineValues.sline_calcrate,
-//            ignoreFieldChange: true
-//        });
+		discountLogLineRecObj.setValue({
+            fieldId: 'custrecord_itpm_sline_calcrate',
+            value: discountLogLineValues.sline_calcrate,
+            ignoreFieldChange: true
+        });
 		discountLogLineRecObj.setValue({
             fieldId: 'custrecord_itpm_sline_item',
             value: discountLogLineValues.sline_item,
@@ -537,7 +526,7 @@ function(search, runtime, record, redirect, itpm) {
     	      columns: tranColumns
     	});
 
-    	log.debug('search Count', searchObj.runPaged().count);
+    	//log.debug('search Count', searchObj.runPaged().count);
     	
     	return searchObj.run();
     }
