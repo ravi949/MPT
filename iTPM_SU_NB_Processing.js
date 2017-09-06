@@ -31,8 +31,10 @@ function(record, search,redirect,runtime,itpm) {
     			    id: request.parameters.id,
     			    isDynamic: true
     			});
-//    			 log.debug('request.transRec.type',transRec);
+//    			 log.debug('Usage: After Loading TranRec ', runtime.getCurrentScript().getRemainingUsage());
+    			 log.debug('request.transRec.type',runtime.getCurrentScript().getRemainingUsage());
     			 var prefDatesType = getPrefDiscountDateValue();
+    			 log.debug('Usage: After getPrefDiscountDateValue ', runtime.getCurrentScript().getRemainingUsage());
     			 var tranCustomer = transRec.getValue('entity');
     			 var trandate = transRec.getText('trandate');  
     			 var itemCount = transRec.getLineCount({
@@ -41,6 +43,7 @@ function(record, search,redirect,runtime,itpm) {
 //     			log.debug('Item Count', itemCount);
      			
      			for(var i=0; i<itemCount; i++){
+     				log.debug('Usage: For loop  '+i, runtime.getCurrentScript().getRemainingUsage());
      				//Fetching transaction line item values
     				var lineItem = transRec.getSublistValue({
     				    sublistId : 'item',
@@ -74,16 +77,20 @@ function(record, search,redirect,runtime,itpm) {
     				});
     				
      				var unitsList = itpm.getItemUnits(lineItem).unitArray;
+//     				log.debug('Usage: After Unit List', runtime.getCurrentScript().getRemainingUsage());
 //    				log.debug('unitsList', unitsList);
      				var transconversionRate = unitsList.filter(function(e){return e.id == lineUnit})[0].conversionRate;
-     				log.debug('transconversionRate', transconversionRate);
+//     				log.debug('Usage: transconversionRate', runtime.getCurrentScript().getRemainingUsage());
+//     				log.debug('transconversionRate', transconversionRate);
     				//Fetching allowances related to the each item which is coming from Transaction Line
      				var itemResults = getAllowanceItems(prefDatesType, lineItem, tranCustomer, trandate);
+//     				log.debug('Usage: After getAllowanceItems ', runtime.getCurrentScript().getRemainingUsage());
     				var j = 0;
     				var tranItemFinalRate = 0;
     				var tranItemFinalRatePer = 0;
      				//Adding the search results to the UI on sublist
      				itemResults.each(function(result){
+     					log.debug('Usage: For each  '+i, runtime.getCurrentScript().getRemainingUsage());
 //    					log.debug('result: '+i,result);
      					var allowanceType = result.getValue({name:'custrecord_itpm_all_type'});
      					var allowanceUnitId = result.getValue('custrecord_itpm_all_uom');
@@ -91,34 +98,35 @@ function(record, search,redirect,runtime,itpm) {
      					var allowanceRateperuom = result.getValue({name:'custrecord_itpm_all_rateperuom'});
      					if(allowanceType == 1){     					
                  			var allConversionRate = unitsList.filter(function(e){return e.id == allowanceUnitId})[0].conversionRate;
-         					log.debug('allConversionRate', allConversionRate);
+//                 			log.debug('Usage:  allConversionRate', runtime.getCurrentScript().getRemainingUsage());
+//         					log.debug('allConversionRate', allConversionRate);
              				tranItemFinalRate = tranItemFinalRate + parseFloat(allowanceRateperuom * transconversionRate/allConversionRate);
      					}else{
      						tranItemFinalRatePer = tranItemFinalRatePer + allowancePercentperuom;
      					}
-         				log.debug('tranItemFinalRate', tranItemFinalRate);
-         	    		log.debug('tranItemFinalRatePer',tranItemFinalRatePer);
-         	    		log.debug('Allowance Id ',result.getValue({name:'id'}));
+//         				log.debug('tranItemFinalRate', tranItemFinalRate);
+//         	    		log.debug('tranItemFinalRatePer',tranItemFinalRatePer);
+//         	    		log.debug('Allowance Id ',result.getValue({name:'id'}));
     					//Validating the Discount log custom record whether exist or not for the current transaction internalid
     					var discountRecExists = validateDiscountLogRecord(context.request.parameters.id, lineItem, i);
-    					
+//    					log.debug('Usage: After discountRecExists ', runtime.getCurrentScript().getRemainingUsage());
          				var discountLogLineValues = {
         						'sline_log' : discountRecExists['discountId'],
         						'name' : 'iTPM_DL_'+(i+1)+'_'+(j+1),
         						'sline_allpromotion' : result.getValue({name:'internalid', join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL'}),
         						'sline_allowance' : result.getValue({name:'id'}),
-        						'sline_allid' : result.getValue({name:'id'}),
+//        						'sline_allid' : result.getValue({name:'id'}),
         						'sline_allmop' : result.getValue({name:'custrecord_itpm_all_mop'}),
         						'sline_alltype' : allowanceType,
         						'sline_allunit' : allowanceUnitId,
         						'sline_allpercent' : allowancePercentperuom,
         						'sline_allrate' : allowanceRateperuom,
         						'sline_calcrate' : (allowanceType == 1)?(allowanceRateperuom * transconversionRate/allConversionRate):((allowancePercentperuom/100) * lineRate),
-        						'sline_item' : lineItem,
-        						'sline_tranqty' : quantity,
-        						'sline_tranunit' : lineUnit,
-        						'sline_tranrate' : lineRate,
-        						'sline_tranamt' : lineAmount
+//        						'sline_item' : lineItem,
+//        						'sline_tranqty' : quantity,
+//        						'sline_tranunit' : lineUnit,
+//        						'sline_tranrate' : lineRate,
+//        						'sline_tranamt' : lineAmount
         					};
          				//If it exists, then add record lines to the record(If the sales discount log record exists, 
     					//it means that the line has Net Bill allowances applied)
@@ -127,6 +135,7 @@ function(record, search,redirect,runtime,itpm) {
 //    						log.debug('IF: discountRec Exists',discountRecExists['recordExists']+' & '+discountRecExists['discountId']);
     						//Adding lines to the existed Discount Log record
     						addDiscountLogLine(discountRecExists['discountId'], discountLogLineValues);
+//    						log.debug('Usage: After addDiscountLogLine if', runtime.getCurrentScript().getRemainingUsage());
     					}
     					//If not exists, then create a sales discount log (custom record). Populate the fields. 
     					//Then create the sales discount line records (custom record, child of sales discount log)
@@ -147,17 +156,19 @@ function(record, search,redirect,runtime,itpm) {
     	    				};
     						//Creating Discount Log record
     						var discountLogRecInternalID = addDiscountLog(discountLogValues);
-    						
+//    						log.debug('Usage: After discountLogRecInternalID else', runtime.getCurrentScript().getRemainingUsage());
     						//Adding Discount Log Lines
     						addDiscountLogLine(discountLogRecInternalID, discountLogLineValues);
+//    						log.debug('Usage: After addDiscountLogLine else', runtime.getCurrentScript().getRemainingUsage());
     					}    					
     					j++;
+    					log.debug('Usage: For each END  '+i, runtime.getCurrentScript().getRemainingUsage());
     					return true; 
     	        	});
      				
-     				log.debug('lineRate', lineRate );
+//     				log.debug('lineRate', lineRate );
      				var itemDiscRate = lineRate - tranItemFinalRate - ((tranItemFinalRatePer/100) * lineRate);
-     				log.debug('itemDiscRate', itemDiscRate );
+//     				log.debug('itemDiscRate', itemDiscRate );
      				var line = transRec.selectLine({
      				    sublistId: 'item',
      				    line: i
@@ -170,13 +181,16 @@ function(record, search,redirect,runtime,itpm) {
      				transRec.commitLine({
      				    sublistId: 'item'
      				});
+//     				log.debug('Usage: transRec.commitLine', runtime.getCurrentScript().getRemainingUsage());
+     				log.debug('Usage: For loop  END '+i, runtime.getCurrentScript().getRemainingUsage());
      			}
      			
-     			log.debug('Available Usage:' + i, runtime.getCurrentScript().getRemainingUsage());
+//     			log.debug('Final Available Usage:' + i, runtime.getCurrentScript().getRemainingUsage());
      			transRec.save({
      			    enableSourcing: true,
      			    ignoreMandatoryFields: true
      			});
+     			log.debug('Usage Final: After transRec.save ', runtime.getCurrentScript().getRemainingUsage());
         	/*	redirect.toRecord({
         		    type :request.parameters.type,
         		    id : request.parameters.id
@@ -257,7 +271,7 @@ function(record, search,redirect,runtime,itpm) {
         	enableSourcing: true,
 	        ignoreMandatoryFields: true
         });
-		
+//		log.debug('Usage: addDiscountLog', runtime.getCurrentScript().getRemainingUsage());
 		return discountLogRecID;
     }
     
@@ -293,11 +307,11 @@ function(record, search,redirect,runtime,itpm) {
             value: discountLogLineValues.sline_allowance,
             ignoreFieldChange: true
         });
-		discountLogLineRecObj.setValue({
-            fieldId: 'custrecord_itpm_sline_allid',
-            value: discountLogLineValues.sline_allid,
-            ignoreFieldChange: true
-        });
+//		discountLogLineRecObj.setValue({
+//            fieldId: 'custrecord_itpm_sline_allid',
+//            value: discountLogLineValues.sline_allid,
+//            ignoreFieldChange: true
+//        });
 		discountLogLineRecObj.setValue({
             fieldId: 'custrecord_itpm_sline_allmop',
             value: discountLogLineValues.sline_allmop,
@@ -328,36 +342,37 @@ function(record, search,redirect,runtime,itpm) {
             value: discountLogLineValues.sline_calcrate,
             ignoreFieldChange: true
         });
-		discountLogLineRecObj.setValue({
-            fieldId: 'custrecord_itpm_sline_item',
-            value: discountLogLineValues.sline_item,
-            ignoreFieldChange: true
-        });
-		discountLogLineRecObj.setValue({
-            fieldId: 'custrecord_itpm_sline_tranqty',
-            value: discountLogLineValues.sline_tranqty,
-            ignoreFieldChange: true
-        });
-		discountLogLineRecObj.setValue({
-            fieldId: 'custrecord_itpm_sline_tranunit',
-            value: discountLogLineValues.sline_tranunit,
-            ignoreFieldChange: true
-        });
-		discountLogLineRecObj.setValue({
-            fieldId: 'custrecord_itpm_sline_tranrate',
-            value: discountLogLineValues.sline_tranrate,
-            ignoreFieldChange: true
-        });
-		discountLogLineRecObj.setValue({
-            fieldId: 'custrecord_itpm_sline_tranamt',
-            value: discountLogLineValues.sline_tranamt,
-            ignoreFieldChange: true
-        });
+//		discountLogLineRecObj.setValue({
+//            fieldId: 'custrecord_itpm_sline_item',
+//            value: discountLogLineValues.sline_item,
+//            ignoreFieldChange: true
+//        });
+//		discountLogLineRecObj.setValue({
+//            fieldId: 'custrecord_itpm_sline_tranqty',
+//            value: discountLogLineValues.sline_tranqty,
+//            ignoreFieldChange: true
+//        });
+//		discountLogLineRecObj.setValue({
+//            fieldId: 'custrecord_itpm_sline_tranunit',
+//            value: discountLogLineValues.sline_tranunit,
+//            ignoreFieldChange: true
+//        });
+//		discountLogLineRecObj.setValue({
+//            fieldId: 'custrecord_itpm_sline_tranrate',
+//            value: discountLogLineValues.sline_tranrate,
+//            ignoreFieldChange: true
+//        });
+//		discountLogLineRecObj.setValue({
+//            fieldId: 'custrecord_itpm_sline_tranamt',
+//            value: discountLogLineValues.sline_tranamt,
+//            ignoreFieldChange: true
+//        });
 		
 		discountLogLineRecObj.save({
         	enableSourcing: true,
 	        ignoreMandatoryFields: true
         });
+//		log.debug('Usage: addDiscountLogLine', runtime.getCurrentScript().getRemainingUsage());
     }
     
     function getPrefDiscountDateValue(){
@@ -371,12 +386,12 @@ function(record, search,redirect,runtime,itpm) {
     		    start: 0,
     		    end  : 2
     		 });
-
+//    		log.debug('Usage: PrefData(After Search)', runtime.getCurrentScript().getRemainingUsage());
     		var loadedRec = record.load({
 				type:'customrecord_itpm_preferences',	 
 				id:searchResults[0].getValue('internalid')
 			 });
- 
+//    		log.debug('Usage: PrefData(After Record load)', runtime.getCurrentScript().getRemainingUsage());
     		return loadedRec.getText({fieldId: 'custrecord_itpm_pref_discountdates'});
     	}catch(e){
     		log.error(e.name, e.message);
@@ -443,6 +458,7 @@ function(record, search,redirect,runtime,itpm) {
     	      filters: tranFilters,
     	      columns: tranColumns
     	});    	
+//    	log.debug('Usage: Search getAllowanceItems', runtime.getCurrentScript().getRemainingUsage());
     	return searchObj.run();
     }
     /**
@@ -475,7 +491,7 @@ function(record, search,redirect,runtime,itpm) {
                 validation['recordExists'] = true;
                 validation['discountId'] = searchResults[0].getValue('internalid');
             }
-    	
+//    		log.debug('Usage: validateDiscountLogRecord', runtime.getCurrentScript().getRemainingUsage());
     	return validation;
     }
     
