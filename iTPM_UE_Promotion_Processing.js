@@ -185,7 +185,7 @@ function(serverWidget,record,runtime,url,search) {
 		});
 		var sublist = promoForm.addSublist({
 		    id : 'custpage_sublist_overlapromotions',
-		    type : serverWidget.SublistType.LIST,
+		    type : serverWidget.SublistType.INLINEEDITOR,
 		    tab:'custpage_overlappromotions',
 		    label : 'overlapping promotions'
 		});
@@ -203,8 +203,9 @@ function(serverWidget,record,runtime,url,search) {
 		 });
 		sublist.addField({
 		    id : 'custpage_overlappromo_promo',
-		    type : serverWidget.FieldType.TEXT,
-		    label : 'Promotion/Deal'
+		    type : serverWidget.FieldType.SELECT,
+		    label : 'Promotion/Deal',
+		    source:'customrecord_itpm_promotiondeal'
 		 });
 		sublist.addField({
 		    id : 'custpage_overlappromo_shipstart',
@@ -238,8 +239,9 @@ function(serverWidget,record,runtime,url,search) {
 		 });
 		sublist.addField({
 		    id : 'custpage_overlappromo_ptype',
-		    type : serverWidget.FieldType.TEXT,
-		    label : 'Promotion type'
+		    type : serverWidget.FieldType.SELECT,
+		    label : 'Promotion type',
+		    source:'customrecord_itpm_promotiontype'
 		 });
 		sublist.addField({
 		    id : 'custpage_overlappromo_totalallpercent',
@@ -311,7 +313,7 @@ function(serverWidget,record,runtime,url,search) {
 					sublist.setSublistValue({
 						id : 'custpage_overlappromo_promo',
 						line : i,
-						value : e.getValue('name')
+						value : promoDealSearchId
 					});
 					sublist.setSublistValue({
 						id : 'custpage_overlappromo_shipstart',
@@ -347,7 +349,7 @@ function(serverWidget,record,runtime,url,search) {
 					sublist.setSublistValue({
 						id : 'custpage_overlappromo_ptype',
 						line : i,
-						value : e.getValue({name:'name',join:'custrecord_itpm_p_type'})
+						value : e.getValue({name:'internalid',join:'custrecord_itpm_p_type'})
 					});
 					sublist.setSublistValue({
 						id : 'custpage_overlappromo_totalallpercent',
@@ -384,7 +386,7 @@ function(serverWidget,record,runtime,url,search) {
 					 'name',
 					 'custrecord_itpm_p_status',
 					 'custrecord_itpm_p_condition',
-					 'custrecord_itpm_p_type.name',
+					 'custrecord_itpm_p_type.internalid',
 					 'custrecord_itpm_p_shipstart',
 					 'custrecord_itpm_p_shipend'
 					 ],
