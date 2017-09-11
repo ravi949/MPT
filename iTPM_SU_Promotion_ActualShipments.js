@@ -30,7 +30,7 @@ function(serverWidget,search,record,format) {
 				var startno = request.parameters.st;
 				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var form = serverWidget.createForm({
-					title : 'Actual Shipments'
+					title : 'Actual Shipments'+((yearResult == 1)?(' (Previous Year)'):'')
 				});
 				
 				//Adding the body fields to the form
@@ -61,7 +61,7 @@ function(serverWidget,search,record,format) {
 				var promotionStdate = form.addField({
 					id : 'custpage_promotionstartdate',
 					type : serverWidget.FieldType.DATE,
-					label : 'Promotion Start Date'
+					label : 'Start Date'
 				});
 				promotionStdate.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
@@ -69,7 +69,7 @@ function(serverWidget,search,record,format) {
 				var promotionEndate = form.addField({
 					id : 'custpage_promotionenddate',
 					type : serverWidget.FieldType.DATE,
-					label : 'Promotion End Date'
+					label : 'End Date'
 				});
 				promotionEndate.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
@@ -82,6 +82,58 @@ function(serverWidget,search,record,format) {
 				customerDescription.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
+				
+				//promoDeal Record Load
+				var promoDealRecord = search.lookupFields({
+					type: 'customrecord_itpm_promotiondeal',
+					id: request.parameters.pid,
+					columns: ['internalid','name','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_customer']
+				});
+
+				var startDate = new Date(promoDealRecord['custrecord_itpm_p_shipstart']);
+				var endDate = new Date(promoDealRecord['custrecord_itpm_p_shipend']);
+
+				if(yearResult == 1){
+					startDate.setFullYear(startDate.getFullYear()-1);
+					endDate.setFullYear(endDate.getFullYear()-1);
+				}
+				var startDateYear = format.format({
+					value: startDate,
+					type: format.Type.DATE
+				});
+				var endDateYear = format.format({
+					value: endDate,
+					type: format.Type.DATE
+				});
+				promotionField.defaultValue=promoDealRecord.internalid[0].value;
+				promotionRefernece.defaultValue = promoDealRecord["name"];
+				promotionDesc.defaultValue = promoDealRecord["custrecord_itpm_p_description"];
+				promotionStdate.defaultValue = startDateYear;
+				promotionEndate.defaultValue = endDateYear;
+				
+				var CustId = promoDealRecord['custrecord_itpm_p_customer'][0].value;
+
+				var customerRecord = record.load({
+					type : record.Type.CUSTOMER,
+					id : CustId
+				});
+				var custEntityId = customerRecord.getValue('entityid');
+				customerDescription.defaultValue = custEntityId;
+
+				//estimated volume search to get the items list
+				var estVolumeItems = [];
+				search.create({
+					type:'customrecord_itpm_estquantity',
+					columns:['custrecord_itpm_estqty_item'],
+					filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
+						['isinactive','is',false]]
+				}).run().each(function(e){
+					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
+					return true;
+				});
+				
+				
+				/************Actual Shipments*******/
 				
 				//Adding the sublists to the form.
 				var actualShipmentTab = form.addSubtab({
@@ -96,7 +148,7 @@ function(serverWidget,search,record,format) {
 					type : serverWidget.SublistType.LIST,
 					label : 'Actual Shippments'
 				});
-				
+			
 				actualShipmentSublist.addField({
 					id : 'custpage_shippmentid',
 					type : serverWidget.FieldType.TEXT,
@@ -133,54 +185,6 @@ function(serverWidget,search,record,format) {
 					label : 'SHIPPMENT QTY'
 				});
 
-				//promoDeal Record Load
-				var promoDealRecord = search.lookupFields({
-					type: 'customrecord_itpm_promotiondeal',
-					id: request.parameters.pid,
-					columns: ['internalid','name','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_customer']
-				});
-
-				var startDate = new Date(promoDealRecord['custrecord_itpm_p_shipstart']);
-				var endDate = new Date(promoDealRecord['custrecord_itpm_p_shipend']);
-
-				if(yearResult == 1){
-					startDate.setFullYear(startDate.getFullYear()-1);
-					endDate.setFullYear(endDate.getFullYear()-1);
-				}
-				var startDateYear = format.format({
-					value: startDate,
-					type: format.Type.DATE
-				});
-				var endDateYear = format.format({
-					value: endDate,
-					type: format.Type.DATE
-				});
-				promotionField.defaultValue=promoDealRecord.internalid[0].value;
-				promotionRefernece.defaultValue = promoDealRecord["name"];
-				promotionDesc.defaultValue = promoDealRecord["custrecord_itpm_p_description"];
-				promotionStdate.defaultValue = startDateYear;
-				promotionEndate.defaultValue = endDateYear;
-				
-				var CustId = promoDealRecord['custrecord_itpm_p_customer'][0].value;
-
-				var customerRecord = record.load({
-					type : record.Type.CUSTOMER,
-					id : CustId
-				});    		    		    		
-				customerDescription.defaultValue = customerRecord.getValue('entityid');
-
-				//estimated volume search to get the items list
-				var estVolumeItems = [];
-				search.create({
-					type:'customrecord_itpm_estquantity',
-					columns:['custrecord_itpm_estqty_item'],
-					filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
-						['isinactive','is',false]]
-				}).run().each(function(e){
-					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
-					return true;
-				});
-
 				if(estVolumeItems.length>0){
 					//sort the items based on item name in ascending order
 					var sortOnName = search.createColumn({
@@ -194,17 +198,8 @@ function(serverWidget,search,record,format) {
 						sort:search.Sort.DESC
 					});
 					//search for item fulfillment filters are ship start,end date and est volume items
-					var itemFulResult = search.create({
-						type:search.Type.ITEM_FULFILLMENT,
-						columns:['internalid','item','item.description','quantity','unit',sortOnName,sortOnDate],
-						filters:[['item','anyof',estVolumeItems],'and',
-							['entity','anyof', customerRecord.getValue('entityid')],'and',
-							['trandate','within',startDateYear,endDateYear],'and',
-							['taxline','is',false],'and',
-							['cogs','is',false],'and',
-							['shipping','is',false],'and',
-							['item.isinactive','is',false]]
-					});
+					var searchColumn = ['internalid','tranid','item','item.description','quantity','unit',sortOnName,sortOnDate];
+					var itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
 
 					var pagedData = itemFulResult.runPaged({
 					    pageSize:20
@@ -264,7 +259,7 @@ function(serverWidget,search,record,format) {
 							actualShipmentSublist.setSublistValue({
 								id:'custpage_shippmentid',
 								line:i,
-								value:page.data[i].getValue('internalid')
+								value:page.data[i].getValue('tranid')
 							});
 							
 							actualShipmentSublist.setSublistValue({
@@ -291,7 +286,76 @@ function(serverWidget,search,record,format) {
 						}
 					}
 				}
-
+				/*************Actual Shipments End****************/
+				
+				/***********Item Summary Subtab**********/
+				//Adding the sublists to the form
+				var itemSummaryTab = form.addSubtab({
+					id:'custpage_itemsummary',
+					label:'Item Summary'
+				});
+				//Adding the item summary subtab to the form
+				var itemSummarySublist = form.addSublist({
+					id : 'custpage_itemsummary_subtab',
+					tab:'custpage_itemsummary',
+					type : serverWidget.SublistType.LIST,
+					label : 'Item Summary'
+				});
+				
+				itemSummarySublist.addField({
+					id:'custpage_itemsummary_item',
+					type:serverWidget.FieldType.TEXT,
+					label:'Item'
+				});
+				itemSummarySublist.addField({
+					id:'custpage_itemsummary_description',
+					type:serverWidget.FieldType.TEXT,
+					label:'Item Description'
+				});
+				itemSummarySublist.addField({
+					id:'custpage_itemsummary_quantity',
+					type:serverWidget.FieldType.TEXT,
+					label:'Quantity'
+				});
+				
+				searchColumn = [search.createColumn({
+				    name: 'item',
+				    summary:search.Summary.GROUP
+				}),search.createColumn({
+				    name: 'description',
+				    join:'item',
+				    summary:search.Summary.GROUP
+				}),search.createColumn({
+				    name: 'quantity',
+				    summary:search.Summary.SUM
+				})];
+				
+				//searching for the items which present in the promotion est qty.
+				itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
+				var i = 0;
+				itemFulResult.run().each(function(e){
+					itemSummarySublist.setSublistValue({
+						id:'custpage_itemsummary_item',
+						line:i,
+						value:e.getText({name:'item',summary:search.Summary.GROUP})
+					});
+					itemSummarySublist.setSublistValue({
+						id:'custpage_itemsummary_description',
+						line:i,
+						value:e.getValue({name:'description',join:'item',summary:search.Summary.GROUP})
+					});
+					itemSummarySublist.setSublistValue({
+						id:'custpage_itemsummary_quantity',
+						line:i,
+						value:e.getValue({name:'quantity',summary:search.Summary.SUM})
+					});
+					i++;
+					return true;
+				});
+				
+				/*********Item Summary Subtab End*********/
+				
+				
 				form.clientScriptModulePath = './iTPM_Attach_Promotion_ActualSalesShipmentsPagination.js';
 				response.writePage(form);	
 			}
@@ -301,6 +365,30 @@ function(serverWidget,search,record,format) {
 		}
 	}
 
+	/**
+	 * @param {Array} searchColumn
+	 * @param {String} items - estimated qty items
+	 * @param {String} entityId - customerId
+	 * @param {String} st - start date
+	 * @param {String} end - end date
+	 * @returns {Object} search
+	 */
+	function getInvoiceSearch(searchColumn,items,entityId,st,end){
+		return search.create({
+			type:search.Type.ITEM_FULFILLMENT,
+			columns:searchColumn,
+			filters:[
+				['item','anyof',items],'and',
+				['entity','anyof', entityId],'and',
+				['trandate','within',st,end],'and',
+				['taxline','is',false],'and',
+				['cogs','is',false],'and',
+				['shipping','is',false],'and',
+				['item.isinactive','is',false]
+				]
+		});
+	}
+	
 	return{
 		onRequest:onRequest
 	}
