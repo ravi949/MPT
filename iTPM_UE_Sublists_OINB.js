@@ -36,12 +36,12 @@ function(runtime, serverWidget, search, record) {
         	var transhipdate = sc.newRecord.getText('shipdate');
         	var showShipDates = (prefDatesType == "Ship Date" || prefDatesType == "Both" || prefDatesType == "Either");
         	var showOrderDates = (prefDatesType == "Order Date" || prefDatesType == "Both" || prefDatesType == "Either");
-        	
+        	var orderStartDate,orderEndDate;
         	
         	//Adding tab(iTPM) to the form
         	sc.form.addTab({
         	    id    : 'custpage_itpm_tab',
-        	    label : 'iTPM'
+        	    label : 'iTPM Discounts'
         	});
         	
         	//#############################  Promotions (UI) - START ###############################
@@ -128,17 +128,23 @@ function(runtime, serverWidget, search, record) {
         		}
         		
         		if(showOrderDates){
-        			sublistPromotions.setSublistValue({
-        				id : 'custpage_psl_order_sd',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_orderstart'})
-                	});
-            		
-        			sublistPromotions.setSublistValue({
-        				id : 'custpage_psl_order_ed',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_orderend'})
-                	});
+        			orderStartDate = result.getValue({name:'custrecord_itpm_p_orderstart'});
+        			orderEndDate = result.getValue({name:'custrecord_itpm_p_orderend'});
+        			
+        			if(orderStartDate){
+        				sublistPromotions.setSublistValue({
+            				id : 'custpage_psl_order_sd',
+                    	    line : i,
+                    	    value : orderStartDate
+                    	});
+        			}
+            		if(orderEndDate){
+            			sublistPromotions.setSublistValue({
+            				id : 'custpage_psl_order_ed',
+                    	    line : i,
+                    	    value : orderEndDate
+                    	});
+            		}
         		}
         		i++;
         		return true;
@@ -262,17 +268,24 @@ function(runtime, serverWidget, search, record) {
         		}
         		
         		if(showOrderDates){
-        			sublistOffInvoice.setSublistValue({
-        				id : 'custpage_oisl_order_sd',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_orderstart'})
-                	});
-            		
-        			sublistOffInvoice.setSublistValue({
-        				id : 'custpage_oisl_order_ed',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_orderend'})
-                	});
+        			orderStartDate = result.getValue({name:'custrecord_itpm_p_orderstart'});
+        			orderEndDate = result.getValue({name:'custrecord_itpm_p_orderend'});
+        			
+        			if(orderStartDate){
+        				sublistOffInvoice.setSublistValue({
+            				id : 'custpage_oisl_order_sd',
+                    	    line : i,
+                    	    value : orderStartDate
+                    	});
+        			}
+            		if(orderEndDate){
+            			sublistOffInvoice.setSublistValue({
+            				id : 'custpage_oisl_order_ed',
+                    	    line : i,
+                    	    value : orderEndDate
+                    	});
+            		}
+        			
         		}
         		
         		sublistOffInvoice.setSublistValue({
@@ -417,17 +430,23 @@ function(runtime, serverWidget, search, record) {
         		}
         		
         		if(showOrderDates){
-        			sublistNetBill.setSublistValue({
-                  	    id : 'custpage_nbsl_order_sd',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_orderstart'})
-                	});
+        			orderStartDate = result.getValue({name:'custrecord_itpm_p_orderstart'});
+        			orderEndDate = result.getValue({name:'custrecord_itpm_p_orderend'});
+        			if(orderStartDate){
+        				sublistNetBill.setSublistValue({
+                      	    id : 'custpage_nbsl_order_sd',
+                    	    line : i,
+                    	    value : orderStartDate
+                    	});
+        			}
+            		if(orderEndDate){
+            			sublistNetBill.setSublistValue({
+                      	    id : 'custpage_nbsl_order_ed',
+                    	    line : i,
+                    	    value : orderEndDate
+                    	});
+            		}
             		
-            		sublistNetBill.setSublistValue({
-                  	    id : 'custpage_nbsl_order_ed',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_orderend'})
-                	});
         		}
         		
         		sublistNetBill.setSublistValue({
