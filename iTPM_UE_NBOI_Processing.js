@@ -20,13 +20,14 @@ define(['N/redirect', 'N/search', 'N/runtime', 'N/record'],
 	function afterSubmit(scriptContext) {
 		try{
 			
-			var transRecord =record.load({
+			/*var transRecord =record.load({
 				type: scriptContext.newRecord.type, 
 				id: scriptContext.newRecord.id,
 				isDynamic: true
-			});
-//			if(scriptContext.type == 'create' && transRec.getValue('custbody_itpm_applydiscounts')){
-			if(scriptContext.type == 'create'){
+			});*/
+			var transRecord = scriptContext.newRecord;
+			if(scriptContext.type == 'create' && transRecord.getValue('custbody_itpm_applydiscounts')){
+//			if(scriptContext.type == 'create'){
 
 				//fetching Preferance data
 				var prefDatesType = getPrefDiscountDateValue();

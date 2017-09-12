@@ -47,6 +47,7 @@ define(['N/search',
 				log.debug('Usage: After Loading TranRec 2nd', runtime.getCurrentScript().getRemainingUsage());
 
 				var trandate = tranRecObj.getText({fieldId : 'trandate'});
+				var tranId = tranRecObj.getText({fieldId : 'tranid'});
 				var customer = tranRecObj.getValue({fieldId : 'entity'});
 				var itemCount = tranRecObj.getLineCount({
 					sublistId: 'item'
@@ -130,7 +131,7 @@ define(['N/search',
 
 						var discountLogLineValues = {
 								'sline_log' : discountRecExists['discountId'],
-								'name' : 'iTPM_DL_'+(i+1)+'_'+(j+1),
+								'name' : tranId+'_iTPM_DLL_'+(i+1)+'_'+(j+1),
 								'sline_allpromotion' : result.getValue({name:'internalid', join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL'}),
 								'sline_allowance' : result.getValue({name:'id'}),
 								//'sline_allid' : result.getValue({name:'id'}),
@@ -161,7 +162,7 @@ define(['N/search',
 						{
 //							log.debug('ELSE: discountRec NOT Exists',discountRecExists['recordExists']);
 							var discountLogValues = {
-									'name' : 'iTPM_DL_'+(i+1),
+									'name' : tranId+'_iTPM_DL_'+(i+1),
 									'slog_customer'      : customer,
 									'slog_transaction'   : context.request.parameters.id,
 									'slog_linenumber'    : (i+1),
