@@ -330,29 +330,30 @@ function(serverWidget,search,record,format) {
 				    summary:search.Summary.SUM
 				})];
 				
-				//searching for the items which present in the promotion est qty.
-				itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
-				var i = 0;
-				itemFulResult.run().each(function(e){
-					itemSummarySublist.setSublistValue({
-						id:'custpage_itemsummary_item',
-						line:i,
-						value:e.getText({name:'item',summary:search.Summary.GROUP})
+				if(estVolumeItems.length > 0){
+					//searching for the items which present in the promotion est qty.
+					itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
+					var i = 0;
+					itemFulResult.run().each(function(e){
+						itemSummarySublist.setSublistValue({
+							id:'custpage_itemsummary_item',
+							line:i,
+							value:e.getText({name:'item',summary:search.Summary.GROUP})
+						});
+						itemSummarySublist.setSublistValue({
+							id:'custpage_itemsummary_description',
+							line:i,
+							value:e.getValue({name:'description',join:'item',summary:search.Summary.GROUP})
+						});
+						itemSummarySublist.setSublistValue({
+							id:'custpage_itemsummary_quantity',
+							line:i,
+							value:e.getValue({name:'quantity',summary:search.Summary.SUM})
+						});
+						i++;
+						return true;
 					});
-					itemSummarySublist.setSublistValue({
-						id:'custpage_itemsummary_description',
-						line:i,
-						value:e.getValue({name:'description',join:'item',summary:search.Summary.GROUP})
-					});
-					itemSummarySublist.setSublistValue({
-						id:'custpage_itemsummary_quantity',
-						line:i,
-						value:e.getValue({name:'quantity',summary:search.Summary.SUM})
-					});
-					i++;
-					return true;
-				});
-				
+				}
 				/*********Item Summary Subtab End*********/
 				
 				
