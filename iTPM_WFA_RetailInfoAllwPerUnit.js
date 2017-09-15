@@ -25,13 +25,14 @@ function(search, runtime, itpm) {
 			var scriptObj = runtime.getCurrentScript();
 			var promoId = scriptObj.getParameter({name:'custscript_itpm_rei_calculation_promo'});
 			var itemId = scriptObj.getParameter({name:'custscript_itpm_rei_calculation_item'});
+			var allowancePerUnit = 0,allowanceUOMRate = 0,conversionFactor = 0;
+			
 			//setting the value to the Allowance Per Unit
 			if(promoId != '' && itemId != ''){				
 				var unitsList = itpm.getItemUnits(itemId);
 				if(!unitsList.error){
 					unitsList = unitsList.unitArray;
 					var baseConversionRate = unitsList.filter(function(e){return e.isBase})[0].conversionRate;
-					var allowancePerUnit = 0;
 					search.create({
 						type:'customrecord_itpm_promoallowance',
 						columns:['custrecord_itpm_all_uom','custrecord_itpm_all_rateperuom'],
@@ -39,9 +40,10 @@ function(search, runtime, itpm) {
 							['custrecord_itpm_all_item','anyof',itemId],'and',
 							['isinactive','is',false]]
 					}).run().each(function(result){
-						var allowanceUOMRate = unitsList.filter(function(e){return e.id == result.getValue('custrecord_itpm_all_uom')})[0].conversionRate;
-						var conversionFactor = baseConversionRate/allowanceUOMRate;
+						allowanceUOMRate = unitsList.filter(function(e){return e.id == result.getValue('custrecord_itpm_all_uom')})[0].conversionRate;
+						conversionFactor = baseConversionRate/allowanceUOMRate;
 						allowancePerUnit += conversionFactor * parseFloat(result.getValue('custrecord_itpm_all_rateperuom'));
+						return true;
 					});
 				}else{
 					log.error('unitslist',unitsList);
