@@ -77,7 +77,7 @@ function(serverWidget,record,runtime,url,search) {
         				end:promoRec.getText('custrecord_itpm_p_shipend')
         			}   
         			//Add the overlap promotion to the new subtab
-        			addOverlapSublists(promoForm,params);
+        			addOverlapSublists(promoForm,params,scriptContext.type);
         		}
     		}
     	}catch(e){
@@ -173,11 +173,12 @@ function(serverWidget,record,runtime,url,search) {
     
     
     /**
-     * @param promoForm
-     * @param params customerid,promotionid,startdate,enddate
+     * @param {Object} promoForm
+     * @param {Object} params customerid,promotionid,startdate,enddate
+     * @param {String} eventType (userevent type)
      * @description add the new subtab called overlap promotions
      */
-    function addOverlapSublists(promoForm,params){
+    function addOverlapSublists(promoForm,params,eventType){
     	//Adding the overlap promotions to the form
 		var tab = promoForm.addTab({
 		    id : 'custpage_overlappromotions',
@@ -185,11 +186,11 @@ function(serverWidget,record,runtime,url,search) {
 		});
 		var sublist = promoForm.addSublist({
 		    id : 'custpage_sublist_overlapromotions',
-		    type : serverWidget.SublistType.INLINEEDITOR,
+		    type : (eventType == 'view')?serverWidget.SublistType.INLINEEDITOR:serverWidget.SublistType.LIST,
 		    tab:'custpage_overlappromotions',
 		    label : 'overlapping promotions'
 		});
-		sublist.addField({
+		var itemField = sublist.addField({
 		    id : 'custpage_overlappromo_item',
 		    type : serverWidget.FieldType.SELECT,
 		    label : 'Item',
@@ -201,7 +202,7 @@ function(serverWidget,record,runtime,url,search) {
 		    type : serverWidget.FieldType.TEXT,
 		    label : 'Item Code'
 		 });
-		sublist.addField({
+		var promoField = sublist.addField({
 		    id : 'custpage_overlappromo_promo',
 		    type : serverWidget.FieldType.SELECT,
 		    label : 'Promotion/Deal',
@@ -237,7 +238,7 @@ function(serverWidget,record,runtime,url,search) {
 		    type : serverWidget.FieldType.TEXT,
 		    label : 'Promotion/Deal ID'
 		 });
-		sublist.addField({
+		var promotTypeField = sublist.addField({
 		    id : 'custpage_overlappromo_ptype',
 		    type : serverWidget.FieldType.SELECT,
 		    label : 'Promotion type',
@@ -259,6 +260,19 @@ function(serverWidget,record,runtime,url,search) {
 		    label : 'UOM'
 		 });
 		
+		//if event type is edit Field display type is set to INLINE
+		if(eventType == 'edit'){
+			itemField.updateDisplayType({
+				 displayType:serverWidget.FieldDisplayType.INLINE
+			});
+			promoField.updateDisplayType({
+				 displayType:serverWidget.FieldDisplayType.INLINE
+			});
+			promotTypeField.updateDisplayType({
+				 displayType:serverWidget.FieldDisplayType.INLINE
+			});
+		}
+		
 		//getting the Promotion/Deal Estimated Qty list
 		var estQtyItems = [];
 		search.create({
@@ -270,6 +284,7 @@ function(serverWidget,record,runtime,url,search) {
 			return true;
 		});
 		
+		//if estqty have items then only it going to search for the results
 		if(estQtyItems.length>0){
 			var i = 0;
 			getOverlappedPromos(params).run().each(function(e){
@@ -375,7 +390,7 @@ function(serverWidget,record,runtime,url,search) {
     }
     
     /**
-     * @param params
+     * @param params startdate,enddate,customer id,promotion id
      * @return {Object} search object
      * @description search form overlapped promotions.
      */
