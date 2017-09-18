@@ -9,7 +9,7 @@ define(['N/runtime',
 		'N/ui/serverWidget',
 		'N/search',
 		'N/record',
-		'./iTPM_Module'
+		'./iTPM_Module.js'
 	],
 
 function(runtime, serverWidget, search, record, itpm) {

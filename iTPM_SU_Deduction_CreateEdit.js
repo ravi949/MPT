@@ -64,9 +64,9 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					var deductnNo = deductionRec.getValue('tranid');
 					var invoiceId = deductionRec.getValue('custbody_itpm_ddn_invoice');
 					var invoiceText = deductionRec.getText('custbody_itpm_ddn_invoice');
-					var customerId = deductionRec.getValue('custbody_itpm_ddn_customer'); 
-					var customerEntity = deductionRec.getText('custbody_itpm_ddn_customer'); 
-					var invAmount = deductionRec.getValue('custbody_itpm_ddn_amount');
+					var customerId = deductionRec.getValue('custbody_itpm_customer'); 
+					var customerEntity = deductionRec.getText('custbody_itpm_customer'); 
+					var invAmount = deductionRec.getValue('custbody_itpm_amount');
 				}
 				
 				//reading the values same intenralid values from the deduciton or invoice record.
@@ -196,7 +196,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					type : serverWidget.FieldType.TEXT,
 					label:'OTHER REFERENCE CODE',
 					container:'custom_primry_information'
-				}).defaultValue = (params.from == 'inv' || params.type != 'edit')?'':deductionRec.getValue('custbody_itpm_ddn_otherrefcode');
+				}).defaultValue = (params.from == 'inv' || params.type != 'edit')?'':deductionRec.getValue('custbody_itpm_otherrefcode');
 
 				
 				if(customerParentId != ''){
@@ -288,10 +288,10 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				
 				
 				//If deduction is edited then we are setting the parent and apply to deduction values
-				if(params.type == 'edit' && deductionRec.getValue('custbody_itpm_set_deduction') != ''){
+				if(params.type == 'edit' && deductionRec.getValue('custbody_itpm_appliedto') != ''){
 					var selectionObj = {
-							value:deductionRec.getValue('custbody_itpm_set_deduction'),
-							text:deductionRec.getText('custbody_itpm_set_deduction')
+							value:deductionRec.getValue('custbody_itpm_appliedto'),
+							text:deductionRec.getText('custbody_itpm_appliedto')
 					};
 					aplydToTrans.addSelectOption(selectionObj);
 					parentDDNField.addSelectOption(selectionObj);
@@ -588,7 +588,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				
 
 				deductionRec.setValue({
-					fieldId:'custbody_itpm_ddn_otherrefcode',
+					fieldId:'custbody_itpm_otherrefcode',
 					value:otherrefno,
 					ignoreFieldChange:true
 				}).setValue({
@@ -596,7 +596,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					value:memo,
 					ignoreFieldChange:true
 				}).setValue({
-					fieldId:'custbody_itpm_ddn_amount',
+					fieldId:'custbody_itpm_amount',
 					value:amount,
 					ignoreFieldChange:true
 				}).setValue({
@@ -618,7 +618,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 							value:params['custom_parent_recid'],
 							ignoreFieldChange:true
 						}).setValue({
-							fieldId:'custbody_itpm_set_deduction',
+							fieldId:'custbody_itpm_appliedto',
 							value:params['custom_parent_recid'],
 							ignoreFieldChange:true
 						});
@@ -642,7 +642,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				}
 				if(customerno != ''){
 					deductionRec.setValue({
-						fieldId:'custbody_itpm_ddn_customer',
+						fieldId:'custbody_itpm_customer',
 						value:customerno,
 						ignoreFieldChange:true
 					})
@@ -736,7 +736,10 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						var recieveableAccnts = search.create({
 							type:search.Type.INVOICE,
 							columns:['internalid','account.type','account.name','account.internalid'],
-							filters:[['internalid','anyof',invoiceno],'and',['account.type','anyof',["AcctRec","Expense"]]]
+							filters:[
+								['internalid','anyof',invoiceno],'and',
+								['account.type','anyof',["AcctRec","Expense"]]
+							]
 						});
 						
 						lineMemo = 'Deduction applied on Invoice #'+invoiceLookup.tranid;
@@ -819,7 +822,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					if(deductionId && createdFrom == 'ddn'){
 						var parentRec = record.load({type:'customtransaction_itpm_deduction',id:params['custom_parent_recid']});
 						var parentDdnId = params['custom_itpm_ddn_parentddn'];
-						var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_ddn_amount'));
+						var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_amount'));
 						var newDdnAmount = parseFloat(amount);
 						if(parentDdnAmount > newDdnAmount){
 							createAutomatedDeductionRecord(parentRec,parentDdnAmount - newDdnAmount,expenseId);
@@ -908,8 +911,13 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 		}
 	}
 
-	
-	//creating the automated Deduction record
+	/**
+	 * @param parentDdnRec
+	 * @param remainingAmount
+	 * @param ddnExpnseAccount
+	 * @returns {Number} child deduction record id
+	 * @description creating the automated Deduction record 
+	 */
 	function createAutomatedDeductionRecord(parentDdnRec,remainingAmount,ddnExpnseAccount){
 		remainingAmount = remainingAmount.toFixed(2);
 		//copying the previous child into the new child deduction record
@@ -923,16 +931,16 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			fieldId:'custbody_itpm_ddn_parentddn',
 			value:parentDdnRec.id
 		}).setValue({
-			fieldId:'custbody_itpm_set_deduction',
+			fieldId:'custbody_itpm_appliedto',
 			value:parentDdnRec.id
 		}).setValue({
-			fieldId:'custbody_itpm_ddn_otherrefcode',
+			fieldId:'custbody_itpm_otherrefcode',
 			value:''
 		}).setValue({
 			fieldId:'custbody_itpm_ddn_disputed',
 			value:false //when split the deduction if first one checked second set to false
 		}).setValue({
-			fieldId:'custbody_itpm_ddn_amount',
+			fieldId:'custbody_itpm_amount',
 			value:remainingAmount  //setting the remaining the amount value to the Amount field
 		}).setValue({
 			fieldId:'custbody_itpm_ddn_openbal',
@@ -944,7 +952,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 		log.debug('remaining amount',remainingAmount)
 		//setting the line values to copied deduction record
 		var lineCount = copiedDeductionRec.getLineCount('line');
-		for(var i = 0;i<lineCount;i++){
+		for(var i = 0;i < lineCount;i++){
 			copiedDeductionRec.setSublistValue({
 				sublistId:'line',
 				fieldId:'account',
@@ -972,7 +980,11 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 		var newChildDedid = copiedDeductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});		
 	}
 	
-    //getting the Employees list based on subsidiary.
+	/**
+	 * @param subid
+	 * @returns {search} search object
+	 * @description getting the Employees list based on subsidiary.
+	 */
     function getEmployees(subid){
     	var filters = [['isinactive','is',false]];
     	if (subid){
@@ -986,8 +998,12 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
     	});
     }
     
-    
-    //check id is equal to deduction or invoice
+    /**
+     * @param id record id
+     * @param from created from (invoice or deduction)
+     * @returns {Object} error
+     * @description checking for the id valid or not
+     */
     function checkWhetherIdValidOrNot(id,from){
     	try{
     		var loadedRec;
@@ -1001,31 +1017,33 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
     				type:search.Type.INVOICE,
     				columns:['internalid'],
     				filters:[
-    				         ['internalid','anyof',id],'and',
-    				         ['applyingtransaction','noneof','none'],'and',
-    				         ['applyingtransaction.type','anyof','CustPymt'],'and',
-    				         ['mainline','is','T'],'and',
-    				         ['status','noneof','CustInvc:B']
-    				         ] 
+    					['internalid','anyof',id],'and',
+    					['applyingtransaction','noneof','none'],'and',
+    					['applyingtransaction.type','anyof','CustPymt'],'and',
+    					['mainline','is','T'],'and',
+    					['status','noneof','CustInvc:B']
+    				] 
     			}).run().getRange(0,5).length>0;
 
     			//invoice dont have any ITPM DEDUCTION records
     			var invoiceDeductionsAreEmpty = search.create({
     				type:'customtransaction_itpm_deduction',
     				columns:['internalid'],
-    				filters:[['custbody_itpm_ddn_invoice','anyof',id],'and',
-    				         ['status','anyof',["Custom100:A","Custom100:B"]]]
+    				filters:[
+    					['custbody_itpm_ddn_invoice','anyof',id],'and',
+    					['status','anyof',["Custom100:A","Custom100:B"]]
+    				]
     			}).run().getRange(0,5).length == 0;
 
     			if (invConditionsMet && invoiceDeductionsAreEmpty){
     				return {success:true};
     			} else {
-    				throw {name: 'checkWhetherIdValidOrNot',
-    						message: 'Invoice conditions not met, OR, Invoice Deductions not empty.'};
+    				throw {
+    					name: 'checkWhetherIdValidOrNot',
+    					message: 'Invoice conditions not met, OR, Invoice Deductions not empty.'
+    				};
     			}
-
     		} else if(from == 'ddn'){
-    			
     			loadedRec = record.load({
     				type:'customtransaction_itpm_deduction',
     				id:id
