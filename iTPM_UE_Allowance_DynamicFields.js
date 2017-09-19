@@ -6,10 +6,11 @@
  * Adds a field to the form that will allow the user to select Unit after Item is selected.
  */
 define(['N/runtime',
-		'N/ui/serverWidget'
+		'N/ui/serverWidget',
+		'N/search'
 		],
 
-function(runtime, sWidget) {
+function(runtime, sWidget, search) {
    
     /**
      * Function definition to be triggered before record is loaded.
@@ -24,7 +25,7 @@ function(runtime, sWidget) {
     	try{
 	    	if (runtime.executionContext != runtime.ContextType.USER_INTERFACE) return;
 	    	if(sc.newRecord.getValue({fieldId: 'custrecord_itpm_all_promotiondeal'})== '') return;
-	    	if (sc.type == 'create' || sc.type == 'edit' || sc.type == 'copy'){
+	    	if (sc.type == 'create' || sc.type == 'edit' || sc.type == 'copy'){	    		
 	    		var dynamicUnitField = sc.form.addField({
 	    			id : 'custpage_itpm_all_unit',
 	        		type : sWidget.FieldType.SELECT,
@@ -44,6 +45,22 @@ function(runtime, sWidget) {
 	    			field: dynamicUnitField,
 	    			nextfield : 'custrecord_itpm_all_uom'
 	    		});
+	    		//setting the Allowance Type field value based on the Preferences
+	    		if (sc.type == 'create'){
+	    			prefSearchRes = search.create({
+						type:'customrecord_itpm_preferences',
+						columns:['custrecord_itpm_pref_defaultalltype']
+					}).run().getRange(0,1);
+	    			log.error('prefSearchRes',prefSearchRes);
+	    			if(prefSearchRes.length > 0){
+	    				log.error('prefSearchRes',prefSearchRes[0].getValue('custrecord_itpm_pref_defaultalltype'));
+	    				//custrecord_itpm_all_type
+	    				sc.newRecord.setValue({
+	    				    fieldId: 'custrecord_itpm_all_type',
+	    				    value: prefSearchRes[0].getValue('custrecord_itpm_pref_defaultalltype')
+	    				});
+	    			}
+	    		}
 	    	}
     	} catch(ex){
     		log.error(ex.name, ex.message);
