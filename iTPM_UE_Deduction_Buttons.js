@@ -25,7 +25,7 @@ function(widget, runtime, redirect) {
 		try{
 			
 			if(sc.type == 'copy')
-				throw new Error("You don't have permission to copy this record.");
+				throw new Error("Copying a deduction is not allowed.");
 			
 			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
 				status = sc.newRecord.getValue({fieldId:'transtatus'}),
