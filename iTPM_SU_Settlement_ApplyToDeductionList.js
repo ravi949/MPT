@@ -128,19 +128,19 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 					columns:['internalid'
 					         ,'tranid'
 					         ,'custbody_itpm_ddn_openbal'
-					         ,'custbody_itpm_ddn_customer'
-					         ,'custbody_itpm_ddn_otherrefcode'
+					         ,'custbody_itpm_customer'
+					         ,'custbody_itpm_otherrefcode'
 					         ,'custbody_itpm_ddn_openbal'
-					         ,'custbody_itpm_ddn_amount'
+					         ,'custbody_itpm_amount'
 					         ,'custbody_itpm_ddn_originalddn'
 					         ,'custbody_itpm_ddn_invoice'
 					         ,'statusRef'
 					         ],
 					filters:[
-						['custbody_itpm_ddn_openbal','GREATERTHAN', 0],'and'
+						 ['custbody_itpm_ddn_openbal','GREATERTHAN', 0],'and'
 						,['mainline','is','T'],'and'
-						,['custbody_itpm_ddn_openbal','greaterthanorequalto',settlementRec.getValue('custbody_itpm_set_amount')],'and'
-						,['custbody_itpm_ddn_customer','anyof',settlementRec.getValue('custbody_itpm_set_customer')]
+						,['custbody_itpm_ddn_openbal','greaterthanorequalto',settlementRec.getValue('custbody_itpm_amount')],'and'
+						,['custbody_itpm_customer','anyof',settlementRec.getValue('custbody_itpm_customer')]
 						]		    		
 				});
 				var searchLength = DeductionSearch.run().getRange(0,2).length;
@@ -158,10 +158,10 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 							 a.push({ 
 								     'custpage_ddnid':k.getValue('internalid')
 									,'custpage_ddnnum' : k.getValue('tranid')
-									,'custpage_customer' :  k.getText('custbody_itpm_ddn_customer')
-									,'custpage_ddnotherrefcode': k.getValue('custbody_itpm_ddn_otherrefcode')
+									,'custpage_customer' :  k.getText('custbody_itpm_customer')
+									,'custpage_ddnotherrefcode': k.getValue('custbody_itpm_otherrefcode')
 									,'custpage_ddnopenbalance' :  k.getValue('custbody_itpm_ddn_openbal')
-									,'custpage_ddntotalamount' :  k.getValue('custbody_itpm_ddn_amount')
+									,'custpage_ddntotalamount' :  k.getValue('custbody_itpm_amount')
 									,'custpage_parentddn': k.getText('custbody_itpm_ddn_originalddn')
 									,'custpage_invoice' :  k.getText('custbody_itpm_ddn_invoice')
 						       });
@@ -181,10 +181,10 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 						row:{ 
 							 'custpage_ddnid':k.getValue('internalid')
 								,'custpage_ddnnum' : k.getValue('tranid')
-								,'custpage_customer' :  k.getText('custbody_itpm_ddn_customer')
-								,'custpage_ddnotherrefcode': k.getValue('custbody_itpm_ddn_otherrefcode')
+								,'custpage_customer' :  k.getText('custbody_itpm_customer')
+								,'custpage_ddnotherrefcode': k.getValue('custbody_itpm_otherrefcode')
 								,'custpage_ddnopenbalance' :  k.getValue('custbody_itpm_ddn_openbal')
-								,'custpage_ddntotalamount' :  k.getValue('custbody_itpm_ddn_amount')
+								,'custpage_ddntotalamount' :  k.getValue('custbody_itpm_amount')
 								,'custpage_parentddn': k.getText('custbody_itpm_ddn_originalddn')
 								,'custpage_invoice' :  k.getText('custbody_itpm_ddn_invoice')
 						 }

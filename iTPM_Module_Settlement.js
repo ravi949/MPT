@@ -112,7 +112,7 @@ function(config, record, search, itpm) {
 
 			if(createdFromDDN){
 				newSettlementRecord.setValue({
-					fieldId:'custbody_itpm_set_deduction',
+					fieldId:'custbody_itpm_appliedto',
 					value:params.custom_itpm_st_appliedtransction
 				}).setValue({
 					fieldId:'custbody_itpm_ddn_openbal',
@@ -178,12 +178,12 @@ function(config, record, search, itpm) {
 			}
 			//other reference code value
 			newSettlementRecord.setValue({
-				fieldId:'custbody_itpm_set_otherrefcode',
+				fieldId:'custbody_itpm_otherrefcode',
 				value:params['custom_itpm_st_otherref_code']
 			})
 			//customer value
 			newSettlementRecord.setValue({
-				fieldId:'custbody_itpm_set_customer',
+				fieldId:'custbody_itpm_customer',
 				value:params['custom_itpm_st_cust']
 			})
 			//customer parent
@@ -267,7 +267,7 @@ function(config, record, search, itpm) {
 			//settlement request 
 			log.debug('params[custom_itpm_st_reql]',params['custom_itpm_st_reql']);   	
 			newSettlementRecord.setValue({
-				fieldId:'custbody_itpm_set_amount',
+				fieldId:'custbody_itpm_amount',
 				value:setReqAmount
 			}).setValue({
 				fieldId:'custbody_itpm_set_reqls',
@@ -354,7 +354,7 @@ function(config, record, search, itpm) {
 			});
 
 
-			var customer = deductionRec.getValue('custbody_itpm_ddn_customer');
+			var customer = deductionRec.getValue('custbody_itpm_customer');
 			var DeductionId = deductionRec.getValue('id');
 			var DeductionNum = deductionRec.getValue('tranid');
 
@@ -401,7 +401,7 @@ function(config, record, search, itpm) {
 					fieldId : 'transtatus',
 					value	: "B"
 				}).setValue({
-					fieldId : 'custbody_itpm_set_deduction',
+					fieldId : 'custbody_itpm_appliedto',
 					value	: DeductionId
 				}).setValue({
 					fieldId:'custbody_itpm_ddn_openbal',
@@ -470,7 +470,7 @@ function(config, record, search, itpm) {
 				fieldId:'memo',
 				value:JELines[0].memo
 			}).setValue({
-				fieldId:'custbody_itpm_set_deduction',
+				fieldId:'custbody_itpm_appliedto',
 				value:setId
 			});
 
@@ -527,10 +527,10 @@ function(config, record, search, itpm) {
 				id:params.custom_itpm_st_recordid
 			}),linecount = loadedSettlementRec.getLineCount({sublistId:'line'});
 			loadedSettlementRec.setValue({
-				fieldId:'custbody_itpm_set_otherrefcode',
+				fieldId:'custbody_itpm_otherrefcode',
 				value:params.custom_itpm_st_otherref_code
 			}).setValue({
-				fieldId:'custbody_itpm_set_amount',
+				fieldId:'custbody_itpm_amount',
 				value:parseFloat(params.custom_itpm_st_reql.replace(/,/g,''))
 			}).setValue({
 				fieldId:'custbody_itpm_set_reqls',
