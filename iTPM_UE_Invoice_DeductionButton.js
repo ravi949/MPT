@@ -54,10 +54,11 @@ function(search, serverWidget, runtime) {
     				
     				if(invCount >= 2){
     					log.error('INVOICES COUNT', invCount);
+    					scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
     					scriptContext.form.addButton({
         					id:'custpage_itpm_ddnmulti',
-        					label:'Deduction Multi'
-        					//functionName:'iTPMDeductionMultiInv('+scriptContext.newRecord.id+')'
+        					label:'Deduction Multi',
+        					functionName:'iTPMDeductionMultiInv('+scriptContext.newRecord.id+')'
         				})
     				}
     				else{

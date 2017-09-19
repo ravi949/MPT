@@ -43,9 +43,9 @@ function(url,message) {
 	function iTPMDeductionMultiInv(invId){
 		try{
 			var ddnSuiteletURL = url.resolveScript({
-				scriptId:'',
-				deploymentId:''
-				//params:{fid:invId,from:'inv',type:'create'}
+				scriptId:'customscript_itpm_ddn_mulinvlist',
+				deploymentId:'customdeploy_itpm_ddn_mulinvlist',
+				params:{fid:invId}
 			});
 			window.open(ddnSuiteletURL,'_self');
 		}catch(e){
