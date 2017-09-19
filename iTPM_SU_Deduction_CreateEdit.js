@@ -754,14 +754,8 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						var configObj = config.load({
 							type:config.Type.ACCOUNTING_PREFERENCES
 						});
-						
-						var itpmPreferenceSearch = search.create({
-							type:'customrecord_itpm_preferences',
-							columns:['custrecord_itpm_pref_ddnaccount'],
-							filters:[]
-						}).run().getRange(0,1);
-
-						expenseId = itpmPreferenceSearch[0].getValue('custrecord_itpm_pref_ddnaccount');
+						//getting the itpm preference deduction account
+						expenseId = itpm.getPrefrenceValues().dednExpAccnt;
 
 						if(defaultRecvAccnt == "-10"){
 							defaultRecvAccnt = configObj.getValue('ARACCOUNT');	
@@ -773,7 +767,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					}else if(createdFrom == 'ddn'){
 						var dedRec = record.load({
 							type:'customtransaction_itpm_deduction',
-							id:originalno
+							id:(params['custom_itpm_ddn_parentddn'] == "")?originalno:params['custom_itpm_ddn_parentddn']
 						});					
 						lineMemo = 'Deduction split from Deduction #'+dedRec.getText({fieldId:'tranid'});
 						expenseId = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:1});
@@ -821,7 +815,6 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					//creating the other deduction record when click the split
 					if(deductionId && createdFrom == 'ddn'){
 						var parentRec = record.load({type:'customtransaction_itpm_deduction',id:params['custom_parent_recid']});
-						var parentDdnId = params['custom_itpm_ddn_parentddn'];
 						var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_amount'));
 						var newDdnAmount = parseFloat(amount);
 						if(parentDdnAmount > newDdnAmount){
@@ -920,14 +913,41 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 	 */
 	function createAutomatedDeductionRecord(parentDdnRec,remainingAmount,ddnExpnseAccount){
 		remainingAmount = remainingAmount.toFixed(2);
-		//copying the previous child into the new child deduction record
-		var copiedDeductionRec = record.copy({
-			type:'customtransaction_itpm_deduction',
-			id:parentDdnRec.id //scriptContext.newRecord.id
+
+		//creating the Deduction record for remaining amount
+		var copiedDeductionRec = record.create({
+			type:'customtransaction_itpm_deduction'
 		});
 
 		//setting the applied to and parent deduction values and other main values.
 		copiedDeductionRec.setValue({
+			fieldId:'custbody_itpm_ddn_invoice',
+			value:parentDdnRec.getValue('custbody_itpm_ddn_invoice')
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_originalddn',
+			value:parentDdnRec.getValue('custbody_itpm_ddn_originalddn')
+		}).setValue({
+			fieldId:'class',
+			value:parentDdnRec.getValue('class')
+		}).setValue({
+			fieldId:'department',
+			value:parentDdnRec.getValue('department')
+		}).setValue({
+			fieldId:'location',
+			value:parentDdnRec.getValue('location')
+		}).setValue({
+			fieldId:'subsidiary',
+			value:parentDdnRec.getValue('subsidiary')
+		}).setValue({
+			fieldId:'currecny',
+			value:parentDdnRec.getValue('currency')
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_assignedto',
+			value:parentDdnRec.getValue('custbody_itpm_ddn_assignedto')
+		}).setValue({
+			fieldId:'custbody_itpm_customer',
+			value:parentDdnRec.getValue('custbody_itpm_customer')
+		}).setValue({
 			fieldId:'custbody_itpm_ddn_parentddn',
 			value:parentDdnRec.id
 		}).setValue({
@@ -949,10 +969,11 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			fieldId:'memo',
 			value:'Deduction split from Deduction #'+parentDdnRec.getText('tranid')
 		});
+		
 		log.debug('remaining amount',remainingAmount)
+		
 		//setting the line values to copied deduction record
-		var lineCount = copiedDeductionRec.getLineCount('line');
-		for(var i = 0;i < lineCount;i++){
+		for(var i = 0;i < 2;i++){
 			copiedDeductionRec.setSublistValue({
 				sublistId:'line',
 				fieldId:'account',

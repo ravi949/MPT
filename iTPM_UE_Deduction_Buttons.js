@@ -23,6 +23,10 @@ function(widget, runtime, redirect) {
 	 */
 	function beforeLoad(sc) {
 		try{
+			
+			if(sc.type == 'copy')
+				throw new Error("You don't have permission to copy this record.");
+			
 			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
 				status = sc.newRecord.getValue({fieldId:'transtatus'}),
 //				clientScriptPath = runtime.getCurrentScript().getParameter({name:'custscript_itpm_ue_ddn_cspath'}),
