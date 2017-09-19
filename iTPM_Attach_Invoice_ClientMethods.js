@@ -40,8 +40,22 @@ function(url,message) {
 		}
 	}
    
+	function iTPMDeductionMultiInv(invId){
+		try{
+			var ddnSuiteletURL = url.resolveScript({
+				scriptId:'',
+				deploymentId:''
+				//params:{fid:invId,from:'inv',type:'create'}
+			});
+			window.open(ddnSuiteletURL,'_self');
+		}catch(e){
+			console.log(e.name,' record type = invoice, record id='+invId+', function name = iTPMDeductionMultiInv, message='+e.message);
+		}
+	}
+	
     return {
-       iTPMDeduction:iTPMDeduction
+       iTPMDeduction:iTPMDeduction,
+       iTPMDeductionMultiInv : iTPMDeductionMultiInv
     };
     
 });
