@@ -6,11 +6,11 @@
  */
 define(['N/url',
 		'N/ui/message'
-	   ],
+		],
 /**
  * @param {url} url
  */
-function(url,message) {
+function(url,message, redirect, record) {
 	
 	function displayMessage(title,text){
 		try{
@@ -53,9 +53,18 @@ function(url,message) {
 		}
 	}
 	
+	function iTPMDeductionRedirectToHome(){
+		try{
+			history.go(-1);
+		}catch(e){
+			console.log(e.name,'iTPMDeductionRedirectToHome, message='+e.message);
+		}
+	}
+	
     return {
        iTPMDeduction:iTPMDeduction,
-       iTPMDeductionMultiInv : iTPMDeductionMultiInv
+       iTPMDeductionMultiInv : iTPMDeductionMultiInv,
+       iTPMDeductionRedirectToHome : iTPMDeductionRedirectToHome
     };
     
 });
