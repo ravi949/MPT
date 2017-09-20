@@ -26,7 +26,7 @@ function(runtime, serverWidget) {
     	try{
     		if(scriptContext.type == 'copy'){
         		throw {
-    			    name: 'Copying Record',
+    			    name: 'copy settlement',
     			    message: "You don't have permission to copy this record."
         		}
         	}
@@ -64,8 +64,8 @@ function(runtime, serverWidget) {
     			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
     		}
     	}catch(e){
-    		if(e.name == 'Copying Record')
-    			throw e.message
+    		if(e.name == 'copy settlement')
+    			throw new Error(e.message);
     		else
     			log.error(e.name,'record type = iTPM Settlement, record id='+scriptContext.newRecord.id+', message='+e.message);
     	}
