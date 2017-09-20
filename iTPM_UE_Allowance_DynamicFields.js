@@ -46,25 +46,29 @@ function(runtime, sWidget, search) {
 	    			nextfield : 'custrecord_itpm_all_uom'
 	    		});
 	    		//setting the Allowance Type field value based on the Preferences
-	    		if (sc.type == 'create'){
-	    			prefSearchRes = search.create({
-						type:'customrecord_itpm_preferences',
-						columns:['custrecord_itpm_pref_defaultalltype']
-					}).run().getRange(0,1);
-	    			log.error('prefSearchRes',prefSearchRes);
-	    			if(prefSearchRes.length > 0){
-	    				log.error('prefSearchRes',prefSearchRes[0].getValue('custrecord_itpm_pref_defaultalltype'));
-	    				//custrecord_itpm_all_type
-	    				sc.newRecord.setValue({
-	    				    fieldId: 'custrecord_itpm_all_type',
-	    				    value: prefSearchRes[0].getValue('custrecord_itpm_pref_defaultalltype')
-	    				});
-	    			}
+	    		if (sc.type == 'create'|| sc.type == 'copy'){
+	    			defaultValForAllType(sc);
 	    		}
 	    	}
     	} catch(ex){
     		log.error(ex.name, ex.message);
     	}
+    }
+    
+    /**
+     *  @param {Object} sc
+     */
+    function defaultValForAllType(sc){
+		var prefSearchRes = search.create({
+			type:'customrecord_itpm_preferences',
+			columns:['custrecord_itpm_pref_defaultalltype']
+		}).run().getRange(0,1);
+		if(prefSearchRes.length > 0){
+			sc.newRecord.setValue({
+			    fieldId: 'custrecord_itpm_all_type',
+			    value: prefSearchRes[0].getValue('custrecord_itpm_pref_defaultalltype')
+			});
+		}	
     }
 
     return {
