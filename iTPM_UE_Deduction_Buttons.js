@@ -25,7 +25,10 @@ function(widget, runtime, redirect) {
 		try{
 			
 			if(sc.type == 'copy')
-				throw new Error("Copying a deduction is not allowed.");
+				throw{
+					name:'copy deduction',
+					message:'Copying a deduction is not allowed.'
+				};
 			
 			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
 				status = sc.newRecord.getValue({fieldId:'transtatus'}),
@@ -78,7 +81,9 @@ function(widget, runtime, redirect) {
 			}
 		} catch(ex) {
 			log.error('DDN_UE_BeforeLoad', ex.name + '; message: ' + ex.message +'; Id:' + sc.newRecord.id);
-			throw ex;
+			if(ex.name == 'copy deduction'){
+				throw new Error(ex.message);
+			}
 		}
 	}
 	
