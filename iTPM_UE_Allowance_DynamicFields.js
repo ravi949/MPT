@@ -60,31 +60,32 @@ function(runtime, sWidget, search) {
      * @description it sets the default valid mop
      */
     function setDefaultValidMOP(sc){
-    	var ptMOP = search.lookupFields({
-			type:'customrecord_itpm_promotiontype',
-			id:sc.newRecord.getValue('custrecord_itpm_all_promotiontype'),
-			columns:['custrecord_itpm_pt_validmop']
-		});
-		var defaultMOP;
-		
-		ptMOP['custrecord_itpm_pt_validmop'].forEach(function(e){
-			
-			switch(e.value){
-			case '1':
-				defaultMOP = 1;
-				break;
-			case '2':
-				defaultMOP = (defaultMOP != 1)?2:defaultMOP;
-				break;
-			case '3':
-				defaultMOP = (defaultMOP != 1)?3:defaultMOP;
-				break;
-			}
-			sc.newRecord.setValue({
-				fieldId:'custrecord_itpm_all_mop',
-				value:defaultMOP
-			});
-		});
+    	if(sc.type == 'create' || sc.type == 'copy'){
+    		var ptMOP = search.lookupFields({
+    			type:'customrecord_itpm_promotiontype',
+    			id:sc.newRecord.getValue('custrecord_itpm_all_promotiontype'),
+    			columns:['custrecord_itpm_pt_validmop']
+    		});
+    		var defaultMOP;
+    		
+    		ptMOP['custrecord_itpm_pt_validmop'].forEach(function(e){
+    			switch(e.value){
+    			case '1':
+    				defaultMOP = 1;
+    				break;
+    			case '2':
+    				defaultMOP = (defaultMOP != 1)?2:defaultMOP;
+    				break;
+    			case '3':
+    				defaultMOP = (defaultMOP != 1)?3:defaultMOP;
+    				break;
+    			}
+    			sc.newRecord.setValue({
+    				fieldId:'custrecord_itpm_all_mop',
+    				value:defaultMOP
+    			});
+    		});
+    	}
     }
 
     return {
