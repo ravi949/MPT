@@ -49,115 +49,19 @@ function(search, serverWidget, runtime) {
     			log.debug('asdf',invConditionsMet && invoiceDeductionsAreEmpty)
     			
     			if(invConditionsMet && invoiceDeductionsAreEmpty){
-    				//Checking for multiple Invoice
-    				var invCount = multiInvoices(scriptContext.newRecord.id);
-    				
-    				if(invCount >= 2){
-    					log.error('INVOICES COUNT', invCount);
-    					scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
-    					scriptContext.form.addButton({
-        					id:'custpage_itpm_ddnmulti',
-        					label:'Deduction Multi',
-        					functionName:'iTPMDeductionMultiInv('+scriptContext.newRecord.id+')'
-        				})
-    				}
-    				else{
-    					scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
-        				scriptContext.form.addButton({
-        					id:'custpage_itpm_newddn',
-        					label:'Deduction',
-        					functionName:'iTPMDeduction('+scriptContext.newRecord.id+')'
-        				})
-    				}
+    				scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
+    				scriptContext.form.addButton({
+    					id:'custpage_itpm_newddn',
+    					label:'Deduction',
+    					functionName:'iTPMDeduction('+scriptContext.newRecord.id+')'
+    				});
     			}
-    			
     		}
     	}catch(e){
     		log.error(e.name,' record type = invoice, record id='+scriptContext.newRecord.id+' message='+e.message);
     	}
     }
 
-    /**
-     * @param {String} invId
-     * 
-     * @return {Integer} count
-     */
-    function multiInvoices(invId){
-    	try{
-    		var custPayId;
-        	log.debug('invId', invId);
-        	var invoiceSearchObj = search.create({
-        		type: search.Type.INVOICE,
-        		filters: [
-        			["internalid","anyof",invId], 
-        			"AND", 
-        			["applyingtransaction","noneof","@NONE@"], 
-        			"AND", 
-        			["applyingtransaction.type","anyof","CustPymt"], 
-        			"AND", 
-        			["mainline","is","T"], 
-        			"AND", 
-        			["status","noneof","CustInvc:B"]
-        			],
-        			columns: [
-        				search.createColumn({
-        					name: "type",
-        					join: "applyingTransaction"
-        				}),
-        				search.createColumn({
-        					name: "trandate",
-        					join: "applyingTransaction",
-        					sort: search.Sort.DESC
-        				}),
-        				search.createColumn({
-        					name: "internalid",
-        					join: "applyingTransaction",
-        					sort: search.Sort.DESC
-        				})
-        				]
-        	});
-
-        	invoiceSearchObj.run().each(function(result){
-        		custPayId = result.getValue({name:'internalid', join:'applyingTransaction'});
-        	});
-        	log.debug('custPayId', custPayId);
-        	var customerpaymentSearchObj = search.create({
-        		type: "customerpayment",
-        		filters: [
-        			["type","anyof","CustPymt"], 
-        			"AND", 
-        			["internalid","anyof",custPayId], 
-        			"AND", 
-        			["mainline","is","F"],
-        			"AND", 
-        			["appliedtotransaction.status","anyof","CustInvc:A"]
-        			],
-        			columns: [
-        				search.createColumn({
-        					name: "internalid",
-        					sort: search.Sort.ASC
-        				}),
-        				search.createColumn({
-        					name: "type",
-        					join: "appliedToTransaction"
-        				}),
-        				search.createColumn({
-        					name: "trandate",
-        					join: "appliedToTransaction"
-        				}),
-        				search.createColumn({
-        					name: "internalid",
-        					join: "appliedToTransaction"
-        				})
-        				]
-        	});
-
-        	return customerpaymentSearchObj.runPaged().count;
-    	}catch(e){
-    		log.error(e.name, e.message);
-    	}
-    }
-    
     return {
         beforeLoad: beforeLoad
     };

@@ -23,20 +23,111 @@ function(ui, search, url, record) {
     		var totalamount = 0;
     		
     		if (context.request.method === 'GET'){
+    			//Fetching all info from the Invoice record
+    			var invoiceFieldsLookUp = search.lookupFields({
+    			    type: search.Type.INVOICE,
+    			    id: params.fid,
+    			    columns: ['entity', 'trandate', 'amount', 'amountremaining']
+    			});
+    			
+    			log.debug('invoiceFieldsLookUp', invoiceFieldsLookUp);
+    			log.debug('entity', invoiceFieldsLookUp.entity[0].value);
+    			log.debug('trandate', invoiceFieldsLookUp.trandate);
+    			log.debug('amount', invoiceFieldsLookUp.amount);
+    			log.debug('amountremaining', invoiceFieldsLookUp.amountremaining);
+    			
     			var form = ui.createForm({
     				title : '- iTPM Deduction'
     			});
     			
-    			var messageField = form.addField({
+    			form.addFieldGroup({
+					id:'custpage_fieldgroup_message',
+					label:' '
+				}).isBorderHidden = true;
+    			
+    			form.addField({
     			    id : 'custpage_message',
     			    type : ui.FieldType.INLINEHTML,
-    			    label : ' '
-    			});
+    			    label : ' ',
+    			    container:'custpage_fieldgroup_message'
+    			}).defaultValue ="<html><h1><font size='2'>The payment applied to this Invoice was also applied to other Invoices. "
+                    +"The list below shows the other Invoices to which the payment was applied, but were not paid in full. "
+                    +"Would you like to apply the iTPM Deduction to all related open Invoices?</font></h1></html>";
+    			
+    			form.addFieldGroup({
+					id:'custpage_fieldgroup_curinv',
+					label:'Current Invoice'
+				});
+    			
+    			form.addField({
+					id : 'custpage_invoiceno',
+					type : ui.FieldType.SELECT,
+					label:'Invoice Number',
+					source : 'invoice',
+					container:'custpage_fieldgroup_curinv'
+				}).updateDisplayType({
+					displayType : ui.FieldDisplayType.INLINE
+				}).defaultValue =params.fid;
+    			
+    			form.addField({
+					id : 'custpage_customer',
+					type : ui.FieldType.SELECT,
+					label:'Customer',
+					source : 'customer',
+					container:'custpage_fieldgroup_curinv'
+				}).updateDisplayType({
+					displayType : ui.FieldDisplayType.INLINE
+				}).defaultValue =invoiceFieldsLookUp.entity[0].value;
+    			
+    			form.addField({
+					id : 'custpage_date',
+					type : ui.FieldType.DATE,
+					label:'Date',
+					container:'custpage_fieldgroup_curinv'
+				}).updateDisplayType({
+					displayType : ui.FieldDisplayType.INLINE
+				}).defaultValue =invoiceFieldsLookUp.trandate;
+    			
+    			form.addField({
+					id : 'custpage_amountrem',
+					type : ui.FieldType.CURRENCY,
+					label:'Amount Remaining',
+					container:'custpage_fieldgroup_curinv'
+				}).updateDisplayType({
+					displayType : ui.FieldDisplayType.INLINE
+				}).defaultValue =invoiceFieldsLookUp.amountremaining;
+    			
+    			form.addField({
+					id : 'custpage_amount',
+					type : ui.FieldType.CURRENCY,
+					label:'Total Amount',
+					container:'custpage_fieldgroup_curinv'
+				}).updateDisplayType({
+					displayType : ui.FieldDisplayType.INLINE
+				}).defaultValue =invoiceFieldsLookUp.amount;
+    			
+    			form.addField({
+					id : 'custpage_dedamountsingleinv',
+					type : ui.FieldType.CURRENCY,
+					label:'Deduction Amount if Applied to THIS Invoice',
+					container:'custpage_fieldgroup_curinv'
+				}).updateDisplayType({
+					displayType : ui.FieldDisplayType.INLINE
+				}).defaultValue =invoiceFieldsLookUp.amountremaining;
+    			
+    			var totalMultiInvDedAmount = form.addField({
+					id : 'custpage_dedamountmultiinv',
+					type : ui.FieldType.CURRENCY,
+					label:'Deduction Amount if Applied To All Invoices',
+					container:'custpage_fieldgroup_curinv'
+				}).updateDisplayType({
+					displayType : ui.FieldDisplayType.INLINE
+				});
     			
     			var invlist = form.addSublist({
             	    id : 'custpage_invoicelist',
             	    type : ui.SublistType.LIST,
-            	    label : 'Invoice List'
+            	    label : 'Other Related Invoices'
             	});
     			
     			invlist.addField({
@@ -81,59 +172,64 @@ function(ui, search, url, record) {
 				});
 				
     			results.each(function(result){
-    				invlist.setSublistValue({
-            			id : 'custpage_date',
-                	    line : i,
-                	    value : result.getValue({name: "trandate", join: "appliedToTransaction"})
-                	});
-    				
-//    				var recURL = url.resolveRecord({
-//    				    recordType: 'invoice',
-//    				    recordId: result.getValue({name: "internalid", join: "appliedToTransaction"})
-//    				});
-//    				
-//    				invlist.setSublistValue({
-//            			id : 'custpage_url',
-//                	    line : i,
-//                	    value : 'https://'+domain+''+recURL
-//                	});
-//    				
-    				invlist.setSublistValue({
-            			id : 'custpage_invnum',
-                	    line : i,
-                	    value : result.getValue({name: "internalid", join: "appliedToTransaction"})
-                	});
-    				
-    				invlist.setSublistValue({
-            			id : 'custpage_amounttotal',
-                	    line : i,
-                	    value : result.getValue({name: "amount", join: "appliedToTransaction"})
-                	});
-    				
-    				invlist.setSublistValue({
-            			id : 'custpage_amountremaining',
-                	    line : i,
-                	    value : result.getValue({name: "amountremaining", join: "appliedToTransaction"})
-                	});
-    				
     				totalamount = totalamount + parseFloat(result.getValue({name: "amountremaining", join: "appliedToTransaction"}));
-    				
-    				i++;
+    				if(result.getValue({name: "internalid", join: "appliedToTransaction"}) != params.fid){
+    					invlist.setSublistValue({
+                			id : 'custpage_date',
+                    	    line : i,
+                    	    value : result.getValue({name: "trandate", join: "appliedToTransaction"})
+                    	});
+        				
+//        				var recURL = url.resolveRecord({
+//        				    recordType: 'invoice',
+//        				    recordId: result.getValue({name: "internalid", join: "appliedToTransaction"})
+//        				});
+//        				
+//        				invlist.setSublistValue({
+//                			id : 'custpage_url',
+//                    	    line : i,
+//                    	    value : 'https://'+domain+''+recURL
+//                    	});
+//        				
+        				invlist.setSublistValue({
+                			id : 'custpage_invnum',
+                    	    line : i,
+                    	    value : result.getValue({name: "internalid", join: "appliedToTransaction"})
+                    	});
+        				
+        				invlist.setSublistValue({
+                			id : 'custpage_amounttotal',
+                    	    line : i,
+                    	    value : result.getValue({name: "amount", join: "appliedToTransaction"})
+                    	});
+        				
+        				invlist.setSublistValue({
+                			id : 'custpage_amountremaining',
+                    	    line : i,
+                    	    value : result.getValue({name: "amountremaining", join: "appliedToTransaction"})
+                    	});
+        				
+        				
+        				
+        				i++;
+    				}
     				return true;
     			});
     			
-    			messageField.defaultValue = "<html><h1><font size='2'>There are other short-pays associated with the payment on this invoice. Do you want to create only ONE deduction for $"+totalamount.toFixed(2)+"?</font></h1></html>";
-    			
-    			form.addSubmitButton({
-					label : 'Yes'
-				});
+    			totalMultiInvDedAmount.defaultValue = totalamount;
     			
     			form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
     			
     			form.addButton({
+    			    id : 'custpage_button_yes',
+    			    label : 'Yes',
+    			    functionName : 'iTPMDeduction('+params.fid+', "yes")'
+    			});
+    			
+    			form.addButton({
     			    id : 'custpage_button_no',
     			    label : 'No',
-    			    functionName : 'iTPMDeduction('+params.fid+')'
+    			    functionName : 'iTPMDeduction('+params.fid+', "no")'
     			});
     			
     			form.addButton({
@@ -171,22 +267,22 @@ function(ui, search, url, record) {
         			"AND", 
         			["status","noneof","CustInvc:B"]
         			],
-        			columns: [
-        				search.createColumn({
-        					name: "type",
-        					join: "applyingTransaction"
-        				}),
-        				search.createColumn({
-        					name: "trandate",
-        					join: "applyingTransaction",
-        					sort: search.Sort.DESC
-        				}),
-        				search.createColumn({
-        					name: "internalid",
-        					join: "applyingTransaction",
-        					sort: search.Sort.DESC
-        				})
-        				]
+        		columns: [
+        			search.createColumn({
+        				name: "type",
+        				join: "applyingTransaction"
+        			}),
+        			search.createColumn({
+        				name: "trandate",
+        				join: "applyingTransaction",
+        				sort: search.Sort.DESC
+        			}),
+        			search.createColumn({
+        				name: "internalid",
+        				join: "applyingTransaction",
+        				sort: search.Sort.DESC
+        			})
+        		]
         	});
 
         	invoiceSearchObj.run().each(function(result){
@@ -205,32 +301,32 @@ function(ui, search, url, record) {
         			"AND", 
         			["appliedtotransaction.status","anyof","CustInvc:A"]
         			],
-        			columns: [
-        				search.createColumn({
-        					name: "internalid",
-        					sort: search.Sort.ASC
-        				}),
-        				search.createColumn({
-        					name: "type",
-        					join: "appliedToTransaction"
-        				}),
-        				search.createColumn({
-        					name: "trandate",
-        					join: "appliedToTransaction"
-        				}),
-        				search.createColumn({
-        					name: "internalid",
-        					join: "appliedToTransaction"
-        				}),
-        				search.createColumn({
-        					name: "amount",
-        					join: "appliedToTransaction"
-        				}),
-        				search.createColumn({
-        					name: "amountremaining",
-        					join: "appliedToTransaction"
-        				})
-        			]
+        		columns: [
+        			search.createColumn({
+        				name: "internalid",
+        				sort: search.Sort.ASC
+        			}),
+        			search.createColumn({
+        				name: "type",
+        				join: "appliedToTransaction"
+        			}),
+        			search.createColumn({
+        				name: "trandate",
+       					join: "appliedToTransaction"
+       				}),
+       				search.createColumn({
+       					name: "internalid",
+       					join: "appliedToTransaction"
+       				}),
+       				search.createColumn({
+       					name: "amount",
+       					join: "appliedToTransaction"
+       				}),
+       				search.createColumn({
+       					name: "amountremaining",
+       					join: "appliedToTransaction"
+       				})
+       			]
         	});
 
         	return customerpaymentSearchObj.run();
