@@ -73,11 +73,11 @@ function(runtime, sWidget, search) {
     			case '1':
     				defaultMOP = 1;
     				break;
-    			case '2':
-    				defaultMOP = (defaultMOP != 1)?2:defaultMOP;
-    				break;
     			case '3':
     				defaultMOP = (defaultMOP != 1)?3:defaultMOP;
+    				break;
+    			default:
+    				defaultMOP = (defaultMOP != 1 && defaultMOP != 3)?2:defaultMOP;
     				break;
     			}
     			sc.newRecord.setValue({
