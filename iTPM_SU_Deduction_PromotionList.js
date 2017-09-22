@@ -6,10 +6,11 @@
  */
 define(['N/ui/serverWidget',
 		'N/redirect',
-		'N/search'
+		'N/search',
+		'N/record'
 		],
 
-function(serverWidget,redirect,search) {
+function(serverWidget,redirect,search,record) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -103,7 +104,25 @@ function(serverWidget,redirect,search) {
 					id:params.ddn,
 					columns:['custbody_itpm_ddn_customer']
 				});
-				
+				//Create hierarchical promotions
+				var iteratorVal = false;
+				var cid = deductionRec.custbody_itpm_ddn_customer[0].value;
+				var custrecIds = [];
+				custrecIds.push(cid); 
+				do{
+					//loading the customer record to get the parent customer
+					var custrec = record.load({
+						type: record.Type.CUSTOMER,
+						id: cid
+					});
+					cid = custrec.getValue('parent');
+					if(cid){ 
+						iteratorVal = true;
+						custrecIds.push(cid);
+					}
+					else
+						iteratorVal = false;
+				}while(iteratorVal);
 				var promoDealRecord = search.create({
 					type:'customrecord_itpm_promotiondeal',
 					columns:['internalid','name','custrecord_itpm_p_status','custrecord_itpm_p_condition','custrecord_itpm_p_customer','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
@@ -114,7 +133,7 @@ function(serverWidget,redirect,search) {
 					    	['custrecord_itpm_p_condition','anyof',2]],'or', //active if promotion type allow for settlemen in active
 					    	['custrecord_itpm_p_condition','anyof', 3]  //completed
 					    ],'and',
-						['custrecord_itpm_p_customer','anyof', deductionRec.custbody_itpm_ddn_customer[0].value],'and',
+						['custrecord_itpm_p_customer','anyof', custrecIds],'and',
 						['custrecord_itpm_p_type.custrecord_itpm_pt_validmop','is',1],'and',  //mop is bill-back
 						['isinactive','is',false]]	    		
 				}).run().each(function(k){ 
