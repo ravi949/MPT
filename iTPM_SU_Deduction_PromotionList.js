@@ -106,6 +106,7 @@ function(serverWidget,redirect,search,record) {
 				});
 				//Create hierarchical promotions
 				var iteratorVal = false;
+				var custRange = 4;//Variable to limit the customer relations to a maximum of 4. 
 				var cid = deductionRec.custbody_itpm_ddn_customer[0].value;
 				var custrecIds = [];
 				custrecIds.push(cid); 
@@ -122,7 +123,8 @@ function(serverWidget,redirect,search,record) {
 					}
 					else
 						iteratorVal = false;
-				}while(iteratorVal);
+					custRange--
+				}while(iteratorVal && custRange > 0);
 				var promoDealRecord = search.create({
 					type:'customrecord_itpm_promotiondeal',
 					columns:['internalid','name','custrecord_itpm_p_status','custrecord_itpm_p_condition','custrecord_itpm_p_customer','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
