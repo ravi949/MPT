@@ -167,9 +167,9 @@ function(ui, search, url, record) {
     			var results = multiInvoicesList(params.fid);
     			var i = 0;
     			
-    			var domain = url.resolveDomain({
-				    hostType: url.HostType.APPLICATION
-				});
+//    			var domain = url.resolveDomain({
+//				    hostType: url.HostType.APPLICATION
+//				});
 				
     			results.each(function(result){
     				totalamount = totalamount + parseFloat(result.getValue({name: "amountremaining", join: "appliedToTransaction"}));
