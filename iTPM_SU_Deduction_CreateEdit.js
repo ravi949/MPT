@@ -570,26 +570,21 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			}else if(request.method == 'POST'){
 				var originalno = params['custom_itpm_ddn_originalddn'];
 				var otherrefno = params['custom_itpm_ddn_otherrefcode'];
-				log.debug('STAGE 0.1');
 				var multiinvoices = params['custom_itpm_ddn_invoice'];
 				var invoiceno = multiinvoices.replace(/\u0005/g,',').split(",");
-				log.debug('STAGE 0.2');
 				
-					var invoiceLookup = '';
-					//Fetching tranid's for multiple invoices to set the memo
-					for(var i=0; i<invoiceno.length; i++){
-						invoiceLookups =  search.lookupFields({
-							type: search.Type.INVOICE,
-							id: invoiceno[i],
-							columns: ['tranid']
-						});
+				var invoiceLookup = '';
+				//Fetching tranid's for multiple invoices to set the memo
+				for(var i=0; i<invoiceno.length; i++){
+					invoiceLookups =  search.lookupFields({
+						type: search.Type.INVOICE,
+						id: invoiceno[i],
+						columns: ['tranid']
+					});
 						
-						invoiceLookup = invoiceLookup+invoiceLookups.tranid+' ';
-					}
+					invoiceLookup = invoiceLookup+invoiceLookups.tranid+' ';
+				}
 					
-					log.debug('invoiceLookup', invoiceLookup);
-				
-				
 				customerno = params['custom_customer'];
 				parentno = params['custom_parent'];
 				classno = params['custom_class'];
@@ -606,7 +601,6 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				defaultRecvAccnt = params['custom_def_accnt_recv'];
 				deductionRec = null;
 
-				log.debug('STAGE 1');
 				if(params['custom_user_eventype'] != 'edit'){
 					deductionRec = record.create({
 						type:'customtransaction_itpm_deduction',
@@ -620,7 +614,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					});
 				}
 				
-				log.debug('STAGE  2');
+				
 				deductionRec.setValue({
 					fieldId:'custbody_itpm_ddn_otherrefcode',
 					value:otherrefno,
@@ -639,7 +633,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					ignoreFieldChange:true
 				});
 				
-				log.debug('STAGE  3');
+				
 				if(params['custom_user_eventype'] != 'edit'){
 					deductionRec.setValue({
 						fieldId:'custbody_itpm_ddn_openbal',
@@ -659,7 +653,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						});
 					}
 				}
-				log.debug('STAGE  4');
+				
 				if(originalno != ''){
 					deductionRec.setValue({
 						fieldId:'custbody_itpm_ddn_originalddn',
