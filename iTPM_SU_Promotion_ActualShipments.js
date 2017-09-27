@@ -119,13 +119,44 @@ function(serverWidget,search,record,format) {
 				});
 				var custEntityId = customerRecord.getValue('entityid');
 				customerDescription.defaultValue = custEntityId;
-
+				//Create hierarchical promotions
+				var iteratorVal = false;
+				var custRange = 4;//Variable to limit the customer relations to a maximum of 4. 
+				var custrecIds = [];
+				custrecIds.push(CustId); 
+				do{
+					//loading the customer record to get the parent customer
+					customerRecord = record.load({
+						type: record.Type.CUSTOMER,
+						id: CustId
+					});
+					CustId = customerRecord.getValue('parent');
+					if(CustId){ 
+						iteratorVal = true;
+						custrecIds.push(CustId);
+					}
+					else
+						iteratorVal = false;
+					custRange--
+				}while(iteratorVal && custRange > 0);
+				//getting parent customer Promotion deals
+				var promoDealRecordIds = [];
+					search.create({
+					type:'customrecord_itpm_promotiondeal',
+					columns:['internalid'],
+					filters:[
+						['custrecord_itpm_p_customer','anyof', custrecIds],'and',
+						['isinactive','is',false]]	    		
+				}).run().each(function(k){ 
+					promoDealRecordIds.push(k.getValue('internalid'));	
+					return true;
+				});
 				//estimated volume search to get the items list
 				var estVolumeItems = [];
 				search.create({
 					type:'customrecord_itpm_estquantity',
 					columns:['custrecord_itpm_estqty_item'],
-					filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
+					filters:[['custrecord_itpm_estqty_promodeal','anyof',promoDealRecordIds],'and',
 						['isinactive','is',false]]
 				}).run().each(function(e){
 					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));

@@ -107,19 +107,19 @@ function(serverWidget,redirect,search,record) {
 				//Create hierarchical promotions
 				var iteratorVal = false;
 				var custRange = 4;//Variable to limit the customer relations to a maximum of 4. 
-				var cid = deductionRec.custbody_itpm_ddn_customer[0].value;
+				var CustId = deductionRec.custbody_itpm_ddn_customer[0].value;
 				var custrecIds = [];
-				custrecIds.push(cid); 
+				custrecIds.push(CustId); 
 				do{
 					//loading the customer record to get the parent customer
-					var custrec = record.load({
+					var customerRecord = record.load({
 						type: record.Type.CUSTOMER,
-						id: cid
+						id: CustId
 					});
-					cid = custrec.getValue('parent');
-					if(cid){ 
+					CustId = customerRecord.getValue('parent');
+					if(CustId){ 
 						iteratorVal = true;
-						custrecIds.push(cid);
+						custrecIds.push(CustId);
 					}
 					else
 						iteratorVal = false;
