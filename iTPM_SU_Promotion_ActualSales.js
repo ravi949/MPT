@@ -31,10 +31,11 @@ define(['N/ui/serverWidget',
 				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var endno = parseInt(startno)+20;
 				var form = serverWidget.createForm({
-					title : 'Actual Sales'
+					title : 'Actual Sales'+((yearResult == 1)?(' (Previous Year)'):'')
 				});
 
-				var promotionField=form.addField({
+				//Adding body fields to the form
+				var promotionField = form.addField({
 					id : 'custpage_promotion',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion #'
@@ -42,7 +43,7 @@ define(['N/ui/serverWidget',
 				promotionField.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionRefernece=form.addField({
+				var promotionRefernece = form.addField({
 					id : 'custpage_refernce',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion Reference Code'
@@ -50,7 +51,7 @@ define(['N/ui/serverWidget',
 				promotionRefernece.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionDesc=form.addField({
+				var promotionDesc = form.addField({
 					id : 'custpage_promotiondescription',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion Description'
@@ -58,23 +59,23 @@ define(['N/ui/serverWidget',
 				promotionDesc.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionStdate=form.addField({
+				var promotionStdate = form.addField({
 					id : 'custpage_promotionstartdate',
 					type : serverWidget.FieldType.DATE,
-					label : 'Promotion Start Date'
+					label : 'Start Date'
 				});
 				promotionStdate.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var promotionEndate=form.addField({
+				var promotionEndate = form.addField({
 					id : 'custpage_promotionenddate',
 					type : serverWidget.FieldType.DATE,
-					label : 'Promotion End Date'
+					label : 'End Date'
 				});
 				promotionEndate.updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
-				var customerDescription=form.addField({
+				var customerDescription = form.addField({
 					id : 'custpage_customerdescription',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Customer Description'
@@ -83,62 +84,7 @@ define(['N/ui/serverWidget',
 					displayType : serverWidget.FieldDisplayType.INLINE
 				});
 
-
-				var actualSalesTab = form.addSubtab({
-					id:'custpage_actualsales',
-					label:'Actual Sales'
-				});
-
-				//Actual Sales subtab and fields
-				var actualSalesSublist = form.addSublist({
-					id : 'custpage_actual_sales_subtab',
-					tab:'custpage_actualsales',
-					type : serverWidget.SublistType.LIST,
-					label : 'Actual Sales'
-				});
-
-				actualSalesSublist.addField({
-					id : 'custpage_item',
-					type : serverWidget.FieldType.TEXT,
-					label : 'ITEM'
-				});
-
-				actualSalesSublist.addField({
-					id : 'custpage_item_description',
-					type : serverWidget.FieldType.TEXT,
-					label : 'ITEM DESCRIPTION'
-				});
-
-				actualSalesSublist.addField({
-					id : 'custpage_invoiceid',
-					type : serverWidget.FieldType.TEXT,
-					label : 'INVOICE ID'
-				});
-
-				actualSalesSublist.addField({
-					id : 'custpage_invoice_uom',
-					type : serverWidget.FieldType.TEXT,
-					label : 'INVOICE UOM'
-				});
-
-				actualSalesSublist.addField({
-					id : 'custpage_invoice_qty',
-					type : serverWidget.FieldType.TEXT,
-					label : 'INVOICE QTY'
-				});
-
-				actualSalesSublist.addField({
-					id : 'custpage_actual_price',
-					type : serverWidget.FieldType.TEXT,
-					label : 'ACTUAL PRICE'
-				});
-
-				actualSalesSublist.addField({
-					id : 'custpage_actual_revenue',
-					type : serverWidget.FieldType.TEXT,
-					label : 'ACTUAL REVENUE'
-				});
-
+				
 				//promoDeal Record Load
 				var promoDealRecord = search.lookupFields({
 					type: 'customrecord_itpm_promotiondeal',
@@ -172,39 +118,105 @@ define(['N/ui/serverWidget',
 					type : record.Type.CUSTOMER,
 					id : CustId
 				});    		    		    		
-				customerDescription.defaultValue = customerRecord.getValue('entityid');
+
+				var custEntityId = customerRecord.getValue('entityid');
+				customerDescription.defaultValue = custEntityId;
 
 				//estimated volume search to get the items list
 				var estVolumeItems = [];
 				search.create({
-					//type:'customrecord_itpm_estquantity',
-					type: 'customrecord_itpm_promoallowance',
-					columns:[{name:'custrecord_itpm_all_item', summary: search.Summary.GROUP}],
-					//filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and', ['isinactive','is',false]]
-					filters:[['custrecord_itpm_all_promotiondeal','anyof',request.parameters.pid],'and', ['isinactive','is',false]]
+					type:'customrecord_itpm_estquantity',
+					columns:['custrecord_itpm_estqty_item'],
+					filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
+					         ['isinactive','is',false]]
 				}).run().each(function(e){
-					estVolumeItems.push(e.getValue({name:'custrecord_itpm_all_item', summary: 'GROUP'}));
+					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
 					return true;
 				});
+				
+				/*************Actual Sales****************/
+				//Adding the sublists to the form
+				var actualSalesTab = form.addSubtab({
+					id:'custpage_actualsales',
+					label:'Actual Sales'
+				});
 
+				//Actual Sales subtab and fields
+				var actualSalesSublist = form.addSublist({
+					id : 'custpage_actual_sales_subtab',
+					tab:'custpage_actualsales',
+					type : serverWidget.SublistType.LIST,
+					label : 'Actual Sales'
+				});
+				
+				actualSalesSublist.addField({
+					id : 'custpage_invoiceid',
+					type : serverWidget.FieldType.TEXT,
+					label : 'INVOICE ID'
+				});
+				
+				actualSalesSublist.addField({
+					id:'custpage_invoice_date',
+					type:serverWidget.FieldType.DATE,
+					label:'DATE'
+				});
+				
+				actualSalesSublist.addField({
+					id : 'custpage_item',
+					type : serverWidget.FieldType.TEXT,
+					label : 'ITEM'
+				});
+
+				actualSalesSublist.addField({
+					id : 'custpage_item_description',
+					type : serverWidget.FieldType.TEXT,
+					label : 'ITEM DESCRIPTION'
+				});
+
+				actualSalesSublist.addField({
+					id : 'custpage_invoice_uom',
+					type : serverWidget.FieldType.TEXT,
+					label : 'INVOICE UOM'
+				});
+
+				actualSalesSublist.addField({
+					id : 'custpage_invoice_qty',
+					type : serverWidget.FieldType.TEXT,
+					label : 'INVOICE QTY'
+				});
+
+				actualSalesSublist.addField({
+					id : 'custpage_actual_price',
+					type : serverWidget.FieldType.TEXT,
+					label : 'ACTUAL PRICE'
+				});
+
+				actualSalesSublist.addField({
+					id : 'custpage_actual_revenue',
+					type : serverWidget.FieldType.TEXT,
+					label : 'ACTUAL REVENUE'
+				});
+		
 
 				//Actual Sales search
 				if(estVolumeItems.length > 0){
-					//search for invoice filters are ship start,end date and est volume items and with status Open and Paid in full
-					var invResult = search.create({
-						type:search.Type.INVOICE,
-						columns:['internalid','item','item.description','amount','rate','quantity','unit'],
-						filters:[['item','anyof',estVolumeItems],'and',
-						         ['entity','anyof',customerRecord.getValue('entityid')],'and',
-						         ['trandate','within',startDateYear,endDateYear],'and',
-						         ['status','anyof',['CustInvc:A','CustInvc:B']],'and',
-						         ['taxline','is',false],'and',
-						         ['cogs','is',false],'and',
-						         ['shipping','is',false],'and',
-						         ['item.isinactive','is',false]]
+					//sort the items based on item name in ascending order
+					var sortOnName = search.createColumn({
+					    name: 'itemid',
+					    join:'item',
+					    sort: search.Sort.ASC
+					});
+					//sort the items based on item trandate in descending order
+					var sortOnDate = search.createColumn({
+						name:'trandate',
+						sort:search.Sort.DESC
 					});
 					
-					var pagedData = invResult.runPaged({
+					//search for invoice filters are ship start,end date and est volume items and with status Open and Paid in full
+					var searchColumn = ['internalid','tranid','item','item.description','amount','rate','quantity','unit',sortOnName,sortOnDate];
+					var invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
+					
+					var pagedData = invSearchResult.runPaged({
 					    pageSize:20
 				    });
 					
@@ -220,8 +232,6 @@ define(['N/ui/serverWidget',
 							label : 'Rows',
 							container:'custpage_actualsales'
 						});
-
-
 						paginationField.updateDisplaySize({
 							height:50,
 							width : 140
@@ -263,7 +273,13 @@ define(['N/ui/serverWidget',
 							actualSalesSublist.setSublistValue({
 								id:'custpage_invoiceid',
 								line:i,
-								value:page.data[i].getValue('internalid')
+								value:page.data[i].getValue('tranid')
+							});
+							
+							actualSalesSublist.setSublistValue({
+								id:'custpage_invoice_date',
+								line:i,
+								value:page.data[i].getValue('trandate')
 							});
 
 							if(unit != ''){
@@ -298,6 +314,75 @@ define(['N/ui/serverWidget',
 						}
 					}	
 				}
+				/*************Actual Sales End****************/
+				
+				/***********Item Summary Subtab**********/
+				//Adding the sublists to the form
+				var itemSummaryTab = form.addSubtab({
+					id:'custpage_itemsummary',
+					label:'Item Summary'
+				});
+				//Adding the item summary subtab to the form
+				var itemSummarySublist = form.addSublist({
+					id : 'custpage_itemsummary_subtab',
+					tab:'custpage_itemsummary',
+					type : serverWidget.SublistType.LIST,
+					label : 'Item Summary'
+				});
+				
+				itemSummarySublist.addField({
+					id:'custpage_itemsummary_item',
+					type:serverWidget.FieldType.TEXT,
+					label:'Item'
+				});
+				itemSummarySublist.addField({
+					id:'custpage_itemsummary_description',
+					type:serverWidget.FieldType.TEXT,
+					label:'Item Description'
+				});
+				itemSummarySublist.addField({
+					id:'custpage_itemsummary_quantity',
+					type:serverWidget.FieldType.TEXT,
+					label:'Quantity'
+				});
+				
+				searchColumn = [search.createColumn({
+				    name: 'item',
+				    summary:search.Summary.GROUP
+				}),search.createColumn({
+				    name: 'description',
+				    join:'item',
+				    summary:search.Summary.GROUP
+				}),search.createColumn({
+				    name: 'quantity',
+				    summary:search.Summary.SUM
+				})];
+				
+				if(estVolumeItems.length > 0){
+					//searching for the items which present in the promotion est qty.
+					invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
+					var i = 0;
+					invSearchResult.run().each(function(e){
+						itemSummarySublist.setSublistValue({
+							id:'custpage_itemsummary_item',
+							line:i,
+							value:e.getText({name:'item',summary:search.Summary.GROUP})
+						});
+						itemSummarySublist.setSublistValue({
+							id:'custpage_itemsummary_description',
+							line:i,
+							value:e.getValue({name:'description',join:'item',summary:search.Summary.GROUP})
+						});
+						itemSummarySublist.setSublistValue({
+							id:'custpage_itemsummary_quantity',
+							line:i,
+							value:e.getValue({name:'quantity',summary:search.Summary.SUM})
+						});
+						i++;
+						return true;
+					});
+				}
+				/*********Item Summary Subtab End*********/
 				
 				form.clientScriptModulePath = './iTPM_Attach_Promotion_ActualSalesShipmentsPagination.js';
 				response.writePage(form);	
@@ -307,6 +392,31 @@ define(['N/ui/serverWidget',
 			log.error(e.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+e.message);
 		}
 
+	}
+	
+	/**
+	 * @param {Array} searchColumn
+	 * @param {String} items - estimated qty items
+	 * @param {String} entityId - customerId
+	 * @param {String} st - start date
+	 * @param {String} end - end date
+	 * @returns {Object} search
+	 */
+	function getInvoiceSearch(searchColumn,items,entityId,st,end){
+		return search.create({
+			type:search.Type.INVOICE,
+			columns:searchColumn,
+				filters:[
+					['item','anyof',items],'and',
+					['entity','anyof',entityId],'and',
+					['trandate','within',st,end],'and',
+					['status','anyof',['CustInvc:A','CustInvc:B']],'and',
+					['taxline','is',false],'and',
+					['cogs','is',false],'and',
+					['shipping','is',false],'and',
+					['item.isinactive','is',false]
+					]
+		});
 	}
 
 	return{

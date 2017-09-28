@@ -23,14 +23,14 @@ function(serverWidget,search,redirect,record,runtime) {
     function onRequest(context) {
     	try{
     		var response = context.response,
-    			request = context.request,
-    			listId, //this id used to redirect the page to promotype list of records
-    			userSubsidiary;
-    		var subsidiaryExists = runtime.isFeatureInEffect('SUBSIDIARIES');
-    		var userId = runtime.getCurrentUser().id;
-    		if (subsidiaryExists) {
-    			userSubsidiary = runtime.getCurrentUser().subsidiary;
-    		}
+		    request = context.request,
+		    listId, //this id used to redirect the page to promotype list of records
+		    userSubsidiary;
+		var subsidiaryExists = runtime.isFeatureInEffect('SUBSIDIARIES');
+		var userId = runtime.getCurrentUser().id;
+		if (subsidiaryExists){
+			userSubsidiary = runtime.getCurrentUser().subsidiary;
+		}
 
     		var assistant = serverWidget.createAssistant({
     			title: 'New Promotion Type'

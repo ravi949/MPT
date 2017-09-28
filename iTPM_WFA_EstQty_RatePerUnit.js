@@ -54,16 +54,17 @@ function(runtime,search,itpm) {
     				ratePerUnit += allRatePerUnit;
     			}else{
     				allRate = unitsList.filter(function(e){return e.id == allUnitId})[0].conversionRate;
-    				allRate = (allRate)? (allrate!=0)? allRate : 1 : 1;
+				allRate = (allRate)? (allrate!=0)? allRate : 1 : 1;
     				ratePerUnit += allRatePerUnit * (estqtyRate/allRate);
     			}
     		});
     		
-    		//log.debug('ratePerUnit',ratePerUnit);
-    		log.debug('EstQty_Rate', 'Record: ' + estqtyRec.id + '; Item: ' + itemId + '; Unit: ' + estqtyUnitId + '; Promotion: ' + estqtyPromoId + '; MOP: ' + allMop + '; Conversion Rate: ' + estqtyRate + '; Rate: ' + ratePerUnit);
+    		//log.debug('ratePerUnit',ratePerUnit)
+		log.debug('EstQty_Rate', 'Record: ' + estqtyRec.id + '; Item: ' + itemId + '; Unit: ' + estqtyUnitId + '; Promotion: ' + estqtyPromoId + '; MOP: ' + allMop + '; Conversion Rate: ' + estqtyRate + '; Rate: ' + ratePerUnit);
     		return ratePerUnit;
     	}catch(e){
-    		log.error(e.name,e.message + '; RecordId: ' + scriptContext.newRecord.id);
+    		//log.error(e.name,e.message);
+		log.error(e.name,e.message + '; RecordId: ' + scriptContext.newRecord.id);
     		return 0;
     	}
     }

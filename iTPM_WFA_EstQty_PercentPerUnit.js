@@ -50,11 +50,13 @@ function(runtime,search) {
     			percentRateUnit += (allPercentUnit)? allPercentUnit : 0;
     		});
 
-    		log.debug('EstQty_Percent', 'Record: ' + estqtyRec.id + '; Item: ' + itemId + '; Unit: ' + estqtyUnitId + '; Promotion: ' + estqtyPromoId + '; MOP: ' + allMop + '; Percent: ' + percentRateUnit);
+    		//log.debug('percentRateUnit',percentRateUnit);
+		log.debug('EstQty_Percent', 'Record: ' + estqtyRec.id + '; Item: ' + itemId + '; Unit: ' + estqtyUnitId + '; Promotion: ' + estqtyPromoId + '; MOP: ' + allMop + '; Percent: ' + percentRateUnit);
     		return percentRateUnit;
     	}catch(e){
-			log.error(e.name, e.message + '; RecordId: ' + scriptContext.newRecord.id);
-			return 0;
+			//log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
+		log.error(e.name, e.message + '; RecordId: ' + scriptContext.newRecord.id);
+		return 0;
     	}
     }
 

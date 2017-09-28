@@ -17,7 +17,7 @@ function(config) {
 	
 	function checkRequirements() {
 		try{
-			var objConfig = congif.load({type: config.Type.FEATURES});
+			var objConfig = config.load({type: config.Type.FEATURES});
 			var accounting = objConfig.getValue({fieldId: 'accounting'});
 			var receivables = objConfig.getValue({fieldId: 'receivables'});
 			var payables = objConfig.getValue({fieldId: 'payables'});
