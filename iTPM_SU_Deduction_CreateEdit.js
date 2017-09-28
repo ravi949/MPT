@@ -733,44 +733,33 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					var expenseId,lineMemo,createdFrom = params['custom_cfrom'],
 					receivbaleAccntsList;
 					if(createdFrom == 'inv'){
-						var recieveableAccnts = search.create({
+						var recievableAccntId = search.lookupFields({
 							type:search.Type.INVOICE,
-							columns:['internalid','account.type','account.name','account.internalid'],
-							filters:[
-								['internalid','anyof',invoiceno],'and',
-								['mainline','is',true]
-							]
-						});
-						
-						lineMemo = 'Deduction applied on Invoice #'+invoiceLookup.tranid;
-						
-						var recievableAccntId;
-						recieveableAccnts.run().each(function(e){
-							recievableAccntId = e.getValue({name:'internalid',join:'account'});
-							return true
-						});
-
+							id:invoiceno,
+							columns:['internalid','account']
+						})['account'][0].value;
 						var configObj = config.load({
 							type:config.Type.ACCOUNTING_PREFERENCES
 						});
+
 						//getting the itpm preference deduction account
 						expenseId = itpm.getPrefrenceValues().dednExpAccnt;
+						lineMemo = 'Deduction applied on Invoice #'+invoiceLookup.tranid;
 
 						if(defaultRecvAccnt == "-10"){
 							defaultRecvAccnt = configObj.getValue('ARACCOUNT');
 							defaultRecvAccnt = (defaultRecvAccnt == '')?recievableAccntId:defaultRecvAccnt;
 						}
-
 						receivbaleAccntsList = [{accountId:defaultRecvAccnt,amount:amount,fid:'credit',memo:lineMemo},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo}];
 
 					}else if(createdFrom == 'ddn'){
 						var dedRec = record.load({
 							type:'customtransaction_itpm_deduction',
 							id:(params['custom_itpm_ddn_parentddn'] == "")?originalno:params['custom_itpm_ddn_parentddn']
-						});					
+						});		
+						
 						lineMemo = 'Deduction split from Deduction #'+dedRec.getText({fieldId:'tranid'});
 						expenseId = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:1});
-
 						receivbaleAccntsList = [{accountId:expenseId,amount:amount,fid:'credit',memo:lineMemo},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo}];
 					}
 
