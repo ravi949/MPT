@@ -117,46 +117,40 @@ function(serverWidget,search,record,format) {
 					type : record.Type.CUSTOMER,
 					id : CustId
 				});
-				var custEntityId = customerRecord.getValue('entityid');
-				customerDescription.defaultValue = custEntityId;
+				customerDescription.defaultValue = customerRecord.getValue('entityid');
 				//Create hierarchical promotions
+				// for customer search
 				var iteratorVal = false;
-				var custRange = 4;//Variable to limit the customer relations to a maximum of 4. 
-				var custrecIds = [];
-				custrecIds.push(CustId); 
+				var custRange = 4;//Variable to limit the customer relations to a maximum of 4.
+				var custIds = [CustId];
+				var tempCustIds = [];
+				tempCustIds.push(CustId); 
 				do{
-					//loading the customer record to get the parent customer
-					customerRecord = record.load({
-						type: record.Type.CUSTOMER,
-						id: CustId
-					});
-					CustId = customerRecord.getValue('parent');
-					if(CustId){ 
-						iteratorVal = true;
-						custrecIds.push(CustId);
-					}
-					else
-						iteratorVal = false;
-					custRange--
-				}while(iteratorVal && custRange > 0);
-				//getting parent customer Promotion deals
-				var promoDealRecordIds = [];
+					var iterateCustIds = tempCustIds;
+					tempCustIds = [];
 					search.create({
-					type:'customrecord_itpm_promotiondeal',
-					columns:['internalid'],
-					filters:[
-						['custrecord_itpm_p_customer','anyof', custrecIds],'and',
-						['isinactive','is',false]]	    		
-				}).run().each(function(k){ 
-					promoDealRecordIds.push(k.getValue('internalid'));	
-					return true;
-				});
+						type: "customer",
+						filters: [["internalid","anyof",iterateCustIds],"and",["subCustomer.internalid","noneof","@NONE@"]],
+						columns: [{name: "internalid",join: "subCustomer"}]
+					}).run().each(function(k){ 
+						tempCustIds.push(k.getValue({name:'internalid', join:'subCustomer'}));	
+						return true;
+					});
+					if(tempCustIds.length > 0){ 
+						iteratorVal = true;
+						custIds = custIds.concat(tempCustIds);
+					}else{
+						iteratorVal = false;
+					}
+					custRange--;
+				}while(iteratorVal && custRange > 0);
+
 				//estimated volume search to get the items list
 				var estVolumeItems = [];
 				search.create({
 					type:'customrecord_itpm_estquantity',
 					columns:['custrecord_itpm_estqty_item'],
-					filters:[['custrecord_itpm_estqty_promodeal','anyof',promoDealRecordIds],'and',
+					filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
 						['isinactive','is',false]]
 				}).run().each(function(e){
 					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
@@ -230,7 +224,7 @@ function(serverWidget,search,record,format) {
 					});
 					//search for item fulfillment filters are ship start,end date and est volume items
 					var searchColumn = ['internalid','tranid','item','item.description','quantity','unit',sortOnName,sortOnDate];
-					var itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
+					var itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custIds,startDateYear,endDateYear);
 
 					var pagedData = itemFulResult.runPaged({
 					    pageSize:20
@@ -363,7 +357,7 @@ function(serverWidget,search,record,format) {
 				
 				if(estVolumeItems.length > 0){
 					//searching for the items which present in the promotion est qty.
-					itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
+					itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custIds,startDateYear,endDateYear);
 					var i = 0;
 					itemFulResult.run().each(function(e){
 						itemSummarySublist.setSublistValue({
@@ -405,13 +399,13 @@ function(serverWidget,search,record,format) {
 	 * @param {String} end - end date
 	 * @returns {Object} search
 	 */
-	function getInvoiceSearch(searchColumn,items,entityId,st,end){
+	function getInvoiceSearch(searchColumn,items,custIds,st,end){
 		return search.create({
 			type:search.Type.ITEM_FULFILLMENT,
 			columns:searchColumn,
 			filters:[
 				['item','anyof',items],'and',
-				['entity','anyof', entityId],'and',
+				['entity','anyof', custIds],'and',
 				['trandate','within',st,end],'and',
 				['taxline','is',false],'and',
 				['cogs','is',false],'and',

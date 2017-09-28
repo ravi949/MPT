@@ -121,9 +121,10 @@ function(serverWidget,redirect,search,record) {
 						iteratorVal = true;
 						custrecIds.push(CustId);
 					}
-					else
+					else{
 						iteratorVal = false;
-					custRange--
+					}
+					custRange--;
 				}while(iteratorVal && custRange > 0);
 				var promoDealRecord = search.create({
 					type:'customrecord_itpm_promotiondeal',
