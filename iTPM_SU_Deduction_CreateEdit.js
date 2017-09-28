@@ -738,7 +738,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 							columns:['internalid','account.type','account.name','account.internalid'],
 							filters:[
 								['internalid','anyof',invoiceno],'and',
-								['account.type','anyof',["AcctRec","Expense"]]
+								['mainline','is',true]
 							]
 						});
 						
@@ -746,8 +746,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						
 						var recievableAccntId;
 						recieveableAccnts.run().each(function(e){
-							if(e.getValue({name:'type',join:'account'}) == 'AcctRec')
-								recievableAccntId = e.getValue({name:'internalid',join:'account'});
+							recievableAccntId = e.getValue({name:'internalid',join:'account'});
 							return true
 						});
 
@@ -758,7 +757,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						expenseId = itpm.getPrefrenceValues().dednExpAccnt;
 
 						if(defaultRecvAccnt == "-10"){
-							defaultRecvAccnt = configObj.getValue('ARACCOUNT');	
+							defaultRecvAccnt = configObj.getValue('ARACCOUNT');
 							defaultRecvAccnt = (defaultRecvAccnt == '')?recievableAccntId:defaultRecvAccnt;
 						}
 
@@ -781,7 +780,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						value:(memo!='')?memo:lineMemo,
 						ignoreFieldChange:true
 					});
-					
+
 					receivbaleAccntsList.forEach(function(e){
 						deductionRec.selectNewLine({sublistId: 'line'});
 						deductionRec.setCurrentSublistValue({
