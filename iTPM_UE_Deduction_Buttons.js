@@ -24,11 +24,13 @@ function(widget, runtime, redirect) {
 	function beforeLoad(sc) {
 		try{
 			
-			if(sc.type == 'copy')
+			//prevent copy of the deduction record
+			if(sc.type == 'copy'){
 				throw{
 					name:'copy deduction',
 					message:'Copying a deduction is not allowed.'
 				};
+			}
 			
 			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
 				status = sc.newRecord.getValue({fieldId:'transtatus'}),
