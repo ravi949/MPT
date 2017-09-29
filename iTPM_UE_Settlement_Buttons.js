@@ -27,7 +27,7 @@ function(runtime, serverWidget) {
     		if(scriptContext.type == 'copy'){
         		throw {
     			    name: 'copy settlement',
-    			    message: "You don't have permission to copy this record."
+    			    message: "Copying a settlement is not allowed."
         		}
         	}
     		if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
