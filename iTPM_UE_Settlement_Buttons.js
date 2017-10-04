@@ -24,6 +24,12 @@ function(runtime, serverWidget) {
      */
     function beforeLoad(scriptContext) {
     	try{
+    		if(scriptContext.type == 'copy'){
+        		throw {
+    			    name: 'copy settlement',
+    			    message: "Copying a settlement is not allowed."
+        		}
+        	}
     		if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
     			var settlementRec = scriptContext.newRecord;
     			var setStatus = settlementRec.getValue('transtatus'); //Requested / Unapplied => A
@@ -58,7 +64,10 @@ function(runtime, serverWidget) {
     			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
     		}
     	}catch(e){
-    		log.error(e.name,'record type = iTPM Settlement, record id='+scriptContext.newRecord.id+', message='+e.message);
+    		if(e.name == 'copy settlement')
+    			throw new Error(e.message);
+    		else
+    			log.error(e.name,'record type = iTPM Settlement, record id='+scriptContext.newRecord.id+', message='+e.message);
     	}
     }
 

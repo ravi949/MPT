@@ -117,11 +117,36 @@ define(['N/ui/serverWidget',
 				var customerRecord = record.load({
 					type : record.Type.CUSTOMER,
 					id : CustId
-				});    		    		    		
-
-				var custEntityId = customerRecord.getValue('entityid');
-				customerDescription.defaultValue = custEntityId;
-
+				}); 
+				customerDescription.defaultValue = customerRecord.getValue('entityid');
+				
+				//Create hierarchical promotions
+				// for customer search
+				var iteratorVal = false;
+				var custRange = 4;//Variable to limit the customer relations to a maximum of 4.
+				var custIds = [CustId];
+				var tempCustIds = [];
+				tempCustIds.push(CustId); 
+				do{
+					var iterateCustIds = tempCustIds;
+					tempCustIds = [];
+					search.create({
+						type: "customer",
+						filters: [["internalid","anyof",iterateCustIds],"and",["subCustomer.internalid","noneof","@NONE@"]],
+						columns: [{name: "internalid",join: "subCustomer"}]
+					}).run().each(function(k){ 
+						tempCustIds.push(k.getValue({name:'internalid', join:'subCustomer'}));	
+						return true;
+					});
+					if(tempCustIds.length > 0){ 
+						iteratorVal = true;
+						custIds = custIds.concat(tempCustIds);
+					}else{
+						iteratorVal = false;
+					}
+					custRange--;
+				}while(iteratorVal && custRange > 0);
+				
 				//estimated volume search to get the items list
 				var estVolumeItems = [];
 				search.create({
@@ -214,7 +239,7 @@ define(['N/ui/serverWidget',
 					
 					//search for invoice filters are ship start,end date and est volume items and with status Open and Paid in full
 					var searchColumn = ['internalid','tranid','item','item.description','amount','rate','quantity','unit',sortOnName,sortOnDate];
-					var invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
+					var invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custIds,startDateYear,endDateYear);
 					
 					var pagedData = invSearchResult.runPaged({
 					    pageSize:20
@@ -360,7 +385,7 @@ define(['N/ui/serverWidget',
 				
 				if(estVolumeItems.length > 0){
 					//searching for the items which present in the promotion est qty.
-					invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custEntityId,startDateYear,endDateYear);
+					invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custIds,startDateYear,endDateYear);
 					var i = 0;
 					invSearchResult.run().each(function(e){
 						itemSummarySublist.setSublistValue({
@@ -402,13 +427,13 @@ define(['N/ui/serverWidget',
 	 * @param {String} end - end date
 	 * @returns {Object} search
 	 */
-	function getInvoiceSearch(searchColumn,items,entityId,st,end){
+	function getInvoiceSearch(searchColumn,items,custIds,st,end){
 		return search.create({
 			type:search.Type.INVOICE,
 			columns:searchColumn,
 				filters:[
 					['item','anyof',items],'and',
-					['entity','anyof',entityId],'and',
+					['entity','anyof',custIds],'and',
 					['trandate','within',st,end],'and',
 					['status','anyof',['CustInvc:A','CustInvc:B']],'and',
 					['taxline','is',false],'and',

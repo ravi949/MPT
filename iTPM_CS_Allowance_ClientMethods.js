@@ -22,7 +22,7 @@ function(message,url,https, search,dialog) {
 			var rec = sc.currentRecord;
 			mode = sc.mode;
 			//clear the allowance type field value when get the error duplicate
-			if(rec.id==''){
+			if(rec.id=='' && mode != 'create'){
 				rec.setValue({
 					fieldId:'custrecord_itpm_all_type',
 					value:''
