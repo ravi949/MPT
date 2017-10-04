@@ -38,7 +38,7 @@ function(runtime,search) {
     		var start = 0;
     		var end = 1000;
     		var result;
-    		var allPercentUnit;
+    		var allPercentUnit = 0;
     		do{
     			result = allSearch.getRange(start,end);
     			allResult = allResult.concat(result);
@@ -47,14 +47,16 @@ function(runtime,search) {
 
     		allResult.forEach(function(result){
     			allPercentUnit = parseFloat(result.getValue({name:'custrecord_itpm_all_percentperuom'}));
-    			percentRateUnit += allPercentUnit;
+    			percentRateUnit += (allPercentUnit)? allPercentUnit : 0;
     		});
 
-    		log.debug('percentRateUnit',percentRateUnit);
+    		//log.debug('percentRateUnit',percentRateUnit);
+		log.debug('EstQty_Percent', 'Record: ' + estqtyRec.id + '; Item: ' + itemId + '; Unit: ' + estqtyUnitId + '; Promotion: ' + estqtyPromoId + '; MOP: ' + allMop + '; Percent: ' + percentRateUnit);
     		return percentRateUnit;
     	}catch(e){
-			log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
-			return 0;
+			//log.error(e.name,'record id = '+scriptContext.newRecord.id+', message = '+e.message);
+		log.error(e.name, e.message + '; RecordId: ' + scriptContext.newRecord.id);
+		return 0;
     	}
     }
 

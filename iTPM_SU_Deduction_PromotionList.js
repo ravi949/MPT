@@ -102,12 +102,12 @@ function(serverWidget,redirect,search,record) {
 				var deductionRec = search.lookupFields({
 					type:'customtransaction_itpm_deduction',
 					id:params.ddn,
-					columns:['custbody_itpm_ddn_customer']
+					columns:['custbody_itpm_customer']
 				});
 				//Create hierarchical promotions
 				var iteratorVal = false;
 				var custRange = 4;//Variable to limit the customer relations to a maximum of 4. 
-				var CustId = deductionRec.custbody_itpm_ddn_customer[0].value;
+				var CustId = deductionRec.custbody_itpm_customer[0].value;
 				var custrecIds = [];
 				custrecIds.push(CustId); 
 				do{

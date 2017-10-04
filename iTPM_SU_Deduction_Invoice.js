@@ -48,7 +48,7 @@ function(record, search, runtime, itpm) {
 	    			ddnRecord = null,
 	    			ddnFields = ['tranid',
 	    			             'custbody_itpm_ddn_invoice', 
-	    			             'custbody_itpm_ddn_customer', 
+	    			             'custbody_itpm_customer', 
 	    			             'custbody_itpm_ddn_openbal'
 	    			             ],
 	    			invoiceFields = ['account'],
@@ -67,7 +67,7 @@ function(record, search, runtime, itpm) {
     				columns: ddnFields
     			});
     			if (util.isObject(ddnFields)){
-    				customerId = ddnFields.custbody_itpm_ddn_customer[0].value;
+    				customerId = ddnFields.custbody_itpm_customer[0].value;
     				invoiceId = ddnFields.custbody_itpm_ddn_invoice[0].value;
     				openBalance = parseFloat(ddnFields.custbody_itpm_ddn_openbal)
     				if (invoiceId){
@@ -106,7 +106,7 @@ function(record, search, runtime, itpm) {
     				type: record.Type.JOURNAL_ENTRY,
     				isDynamic: true
     			}).setValue({
-    				fieldId:'custbody_itpm_set_deduction',
+    				fieldId:'custbody_itpm_appliedto',
     				value:ddnId
     			}).setValue({
     				fieldId:'memo',

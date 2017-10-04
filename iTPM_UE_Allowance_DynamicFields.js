@@ -23,7 +23,10 @@ function(runtime, sWidget, search) {
      */
     function beforeLoad(sc) {
     	try{
-	    	if (runtime.executionContext != runtime.ContextType.USER_INTERFACE) return;
+    		
+    		setDefaultValidMOP(sc);
+    		
+    		if (runtime.executionContext != runtime.ContextType.USER_INTERFACE) return;
 	    	if(sc.newRecord.getValue({fieldId: 'custrecord_itpm_all_promotiondeal'})== '') return;
 	    	if (sc.type == 'create' || sc.type == 'edit' || sc.type == 'copy'){	    		
 	    		var dynamicUnitField = sc.form.addField({
@@ -69,6 +72,39 @@ function(runtime, sWidget, search) {
 			    value: prefSearchRes[0].getValue('custrecord_itpm_pref_defaultalltype')
 			});
 		}	
+      
+    /**
+     * @param sc record object
+     * @returns NONE
+     * @description it sets the default valid mop
+     */
+    function setDefaultValidMOP(sc){
+    	if(sc.type == 'create' || sc.type == 'copy'){
+    		var ptMOP = search.lookupFields({
+    			type:'customrecord_itpm_promotiontype',
+    			id:sc.newRecord.getValue('custrecord_itpm_all_promotiontype'),
+    			columns:['custrecord_itpm_pt_validmop']
+    		});
+    		var defaultMOP;
+    		
+    		ptMOP['custrecord_itpm_pt_validmop'].forEach(function(e){
+    			switch(e.value){
+    			case '1':
+    				defaultMOP = 1;
+    				break;
+    			case '3':
+    				defaultMOP = (defaultMOP != 1)?3:defaultMOP;
+    				break;
+    			default:
+    				defaultMOP = (defaultMOP != 1 && defaultMOP != 3)?2:defaultMOP;
+    				break;
+    			}
+    			sc.newRecord.setValue({
+    				fieldId:'custrecord_itpm_all_mop',
+    				value:defaultMOP
+    			});
+    		});
+    	}
     }
 
     return {
