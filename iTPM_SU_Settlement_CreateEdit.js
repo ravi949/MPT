@@ -222,14 +222,14 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     			id:params.sid
     		});
     		var entryNo = settlementRec.getValue('tranid');
-    		var otherRefCode = settlementRec.getValue('custbody_itpm_set_otherrefcode');
+    		var otherRefCode = settlementRec.getValue('custbody_itpm_otherrefcode');
     		var defaultDate = settlementRec.getValue('trandate');
-    		var appliedToTransaction = settlementRec.getValue('custbody_itpm_set_deduction');
+    		var appliedToTransaction = settlementRec.getValue('custbody_itpm_appliedto');
     		var status = settlementRec.getText('transtatus');
-    		var customerId = settlementRec.getValue('custbody_itpm_set_customer');
-    		var customerText = settlementRec.getText('custbody_itpm_set_customer');
+    		var customerId = settlementRec.getValue('custbody_itpm_customer');
+    		var customerText = settlementRec.getText('custbody_itpm_customer');
     		var memo = settlementRec.getValue('memo');
-    		var settlementReqValue = settlementRec.getValue('custbody_itpm_set_amount');
+    		var settlementReqValue = settlementRec.getValue('custbody_itpm_amount');
     		var incrdPromotionLiablty = settlementRec.getValue('custbody_itpm_set_incrd_promoliability');
 			var netPromotionLiablty = settlementRec.getValue('custbody_itpm_set_netliability');
 			var promotionDesc = settlementRec.getValue('custbody_itpm_set_promodesc');

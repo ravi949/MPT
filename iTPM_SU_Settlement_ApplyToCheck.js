@@ -72,12 +72,12 @@ function(record, redirect, search, ST_Module,itpm) {
         		//setting the body fields of the check record
         		checkRecord.setValue({
         			fieldId: 'entity',
-        			value:  settlementRec.getValue('custbody_itpm_set_customer'),
+        			value:  settlementRec.getValue('custbody_itpm_customer'),
         			ignoreFieldChange: true
         		});
         		checkRecord.setValue({
         			fieldId: 'usertotal',
-        			value:  settlementRec.getValue('custbody_itpm_set_amount'),
+        			value:  settlementRec.getValue('custbody_itpm_amount'),
         			ignoreFieldChange: true
         		});
         		
@@ -347,7 +347,7 @@ function(record, redirect, search, ST_Module,itpm) {
         		    ignoreFieldChange: true
         		});
         		settlementRec.setValue({
-        		    fieldId: 'custbody_itpm_set_deduction',
+        		    fieldId: 'custbody_itpm_appliedto',
         		    value: checkRecordId,
         		    ignoreFieldChange: true
         		});

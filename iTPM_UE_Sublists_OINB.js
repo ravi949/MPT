@@ -8,10 +8,11 @@
 define(['N/runtime',
 		'N/ui/serverWidget',
 		'N/search',
-		'N/record'
+		'N/record',
+		'./iTPM_Module.js'
 	],
 
-function(runtime, serverWidget, search, record) {
+function(runtime, serverWidget, search, record, itpm) {
    
     /**
      * Function definition to be triggered before record is loaded.
@@ -30,7 +31,7 @@ function(runtime, serverWidget, search, record) {
         	//log.debug('iTPMSublists', 'Mode: '+sc.UserEventType.VIEW+' & Execution Context: '+runtime.ContextType.USER_INTERFACE);
         	
         	
-        	var prefDatesType = getPrefDiscountDateValue();
+        	var prefDatesType = itpm.getPrefrenceValues().prefDiscountDate;
         	var customerId = sc.newRecord.getValue('entity');
         	var trandate = sc.newRecord.getText('trandate');
         	var transhipdate = sc.newRecord.getText('shipdate');
@@ -472,32 +473,6 @@ function(runtime, serverWidget, search, record) {
         	});
         	//=====================================  Net Bill (UI) - END ===================================
         	
-    	}catch(e){
-    		log.error(e.name, e.message);
-    	}
-    }
-    
-    /**
-     * return {String} Preference Discount Date Type
-     */
-    function getPrefDiscountDateValue(){
-    	try{
-    		var searchObj = search.create({
-    		    type: 'customrecord_itpm_preferences',
-    		    columns : [{name: 'internalid'}]
-    		});
-    		
-    		var searchResults = searchObj.run().getRange({
-    		    start: 0,
-    		    end  : 2
-    		 });
-
-    		var loadedRec = record.load({
-				type:'customrecord_itpm_preferences',	 
-				id:searchResults[0].getValue('internalid')
-			 });
- 
-    		return loadedRec.getText({fieldId: 'custrecord_itpm_pref_discountdates'});
     	}catch(e){
     		log.error(e.name, e.message);
     	}

@@ -63,7 +63,7 @@ function(record, redirect, itpm) {
         			}
     				
         			JERec.setValue({
-    					fieldId:'custbody_itpm_set_deduction',
+    					fieldId:'custbody_itpm_appliedto',
     					value:SetRec.id
     				});
     			}

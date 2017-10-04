@@ -31,56 +31,6 @@ function(record, redirect, serverWidget, search, runtime) {
 		}
 	}
 	
-	/**
-	 * @param {string} type Expense, AcctPay, All
-	 * @return { JSON object }error and accouts array
-	 */
-	function getAccounts(type){
-		try{
-			var perm_accounts = runtime.getCurrentUser().getPermission({name: 'LIST_ACCOUNT'});
-			if (perm_accounts == runtime.Permission.NONE) {
-				throw {
-					name:'getAccounts_Error',
-					message:'The current role does not have permissions to view Accounts list. Minimum permission of VIEW is required.'
-				}
-			}
-			var searchFilters = [['isinactive','is',false]];
-			if (! type){
-				throw{
-					name:'getAccounts_Error',
-					message:'Type not specified for getAccounts(type)'
-				}
-			} else if (type == 'Expense'){
-				searchFilters.push('and');
-				searchFilters.push(['type', 'is', type]);
-			} else if (type == 'AcctPay'){
-				searchFilters.push('and');
-				searchFilters.push(['type', 'is', type]);
-			} else {type == 'All'
-				
-			}
-			var searchResult = search.create({
-				type: search.Type.ACCOUNT,
-				columns: ['internalid','name'],
-				filters: searchFilters
-			}).run();
-			if (! searchResult) {
-				throw{
-					name:'getAccounts_Error',
-					message:'Search create failed.'
-				}
-			} else {
-				var results = null, returnObject = [], resultStep = 999, resultIndex = 0;
-				do {
-					results = searchResult.getRange(resultIndex, resultIndex + resultStep);
-					returnObject = returnObject.concat(results);
-				} while (results && results.length == resultStep)
-				return {error: false, accounts: returnObject}
-			}
-		} catch(ex) {
-			return {error: true, errorObject:ex, type: type}
-		}
-	}
 	
 	/**
 	 * @param {Object} expenseAccounts
@@ -90,7 +40,7 @@ function(record, redirect, serverWidget, search, runtime) {
 	 * 
 	 * @description create the form with fields
 	 */
-	function createPreferenceForm(expenseAccounts, deductionAccounts, settlementAccounts, discountItemSearch){
+	function createPreferenceForm(discountItemSearch){
 		try{
 			var form = serverWidget.createForm({
 				title: 'iTPM Preferences'
@@ -119,30 +69,22 @@ function(record, redirect, serverWidget, search, runtime) {
 				id: 'custpage_itpm_pref_expenseaccount',
 				type: serverWidget.FieldType.SELECT,
 				label: 'Expense Account',
-				container:'custpage_setup_preference'
+				container:'custpage_setup_preference',
+				source:'account'
 			}).updateBreakType({
 			    breakType : serverWidget.FieldBreakType.STARTCOL
 			});
 			expenseAccntField.isMandatory = true;
-			//add Default items to select field
-			expenseAccntField.addSelectOption({
-				value : ' ',
-				text : ' '
-			});
 			
 			//Deduction account
-			var selectExpense = form.addField({
+			var deductionAccntField = form.addField({
 				id: 'custpage_itpm_pref_ddnaccount',
 				type: serverWidget.FieldType.SELECT,
 				label: 'Deduction Account',
-				container:'custpage_setup_preference'
+				container:'custpage_setup_preference',
+				source:'account'
 			});
-			selectExpense.isMandatory = true;
-			//add Default items to select field
-			selectExpense.addSelectOption({
-				value : ' ',
-				text : ' '
-			});
+			deductionAccntField.isMandatory = true;
 			
 			//Apply iTPM Discount Item
 			var discountItemField = form.addField({
@@ -162,16 +104,12 @@ function(record, redirect, serverWidget, search, runtime) {
 				id: 'custpage_itpm_pref_accountpayable',
 				type: serverWidget.FieldType.SELECT,
 				label: 'Accounts Payable',
-				container:'custpage_setup_preference'
+				container:'custpage_setup_preference',
+				source:'account'
 			}).updateBreakType({
 			    breakType : serverWidget.FieldBreakType.STARTCOL
 			});
 			accountPayableField.isMandatory = true;
-			//add Default items to select field
-			accountPayableField.addSelectOption({
-				value : ' ',
-				text : ' '
-			});
 			
 			//Apply iTPM Net Bill Discount only on List Price? Field
 			var ApplyiTPMNetBillDiscountChk = form.addField({
@@ -252,9 +190,9 @@ function(record, redirect, serverWidget, search, runtime) {
 				    type: 'customrecord_itpm_preferences', 
 				    id: prefSearchResId
 				});
-				deductionId = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount');
-				expenseId = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount');
-				settlementId =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount');
+				deductionAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount');
+				expenseAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount');
+				accountPayableField.defaultValue =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount');
 				matchls = preferanceRecord.getValue('custrecord_itpm_pref_matchls');
 				matchbb = preferanceRecord.getValue('custrecord_itpm_pref_matchbb');
 				radioBtn.defaultValue = (matchls == true)?'custpage_ls':'custpage_bb';
@@ -279,34 +217,6 @@ function(record, redirect, serverWidget, search, runtime) {
 					break;
 				}
 			}
-						
-			//setting the accounts values into the fields
-			deductionAccounts.accounts.forEach(function(e){
-				selectExpense.addSelectOption({
-					value : e.getValue('internalid'),
-					text : e.getValue('name'),
-					isSelected : e.getValue('internalid') == deductionId
-				});
-			});
-			
-			//add items of type Expense in Account records to select field
-			expenseAccounts.accounts.forEach(function(e){
-				expenseAccntField.addSelectOption({
-					value : e.getValue('internalid'),
-					text : e.getValue('name'),
-					isSelected : e.getValue('internalid') == expenseId
-				});
-			});
-			
-			//add items of type Account Payable in Account records to select field
-			settlementAccounts.accounts.forEach(function(e){
-				accountPayableField.addSelectOption({
-					value : e.getValue('internalid'),
-					text : e.getValue('name'),
-					isSelected : e.getValue('internalid') == settlementId
-				});
-			});
-			
 			//add discount items to the iTPM Discount Item field
 			discountItemSearch.each(function(e){
 				discountItemField.addSelectOption({
@@ -345,28 +255,7 @@ function(record, redirect, serverWidget, search, runtime) {
 		if(request.method == 'GET'){
 			try{
 				var discountItemSearch = getItems('Discount');
-				var expenseResult = getAccounts('Expense');
-				if (expenseResult.error){
-					throw {
-						name: expenseResult.errorObject.name,
-						message: expenseResult.errorObject.message + '; Type: ' + expenseResult.type
-					}
-				}
-				var accountResult = getAccounts('All');
-				if (accountResult.error){
-					throw {
-						name: accountResult.errorObject.name,
-						message: accountResult.errorObject.message + '; Type: ' + accountResult.type
-					}
-				}
-				var accountPayResult = getAccounts('AcctPay');
-				if (accountPayResult.error){
-					throw {
-						name: accountPayResult.errorObject.name,
-						message: accountPayResult.errorObject.message + '; Type: ' + accountPayResult.type
-					}
-				}
-				var form = createPreferenceForm(expenseResult, expenseResult, accountPayResult, discountItemSearch);
+				var form = createPreferenceForm(discountItemSearch);
 				if (form.error){
 					throw {
 						name: 'createPreferenceForm_Error',

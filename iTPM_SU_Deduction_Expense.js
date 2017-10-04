@@ -94,7 +94,7 @@ function(record, search, runtime, itpm) {
 					isDynamic: true
 				});
 				journalEntry.setValue({
-					fieldId:'custbody_itpm_set_deduction',
+					fieldId:'custbody_itpm_appliedto',
 					value:ddnId
 				}).setValue({
 					fieldId:'memo',
