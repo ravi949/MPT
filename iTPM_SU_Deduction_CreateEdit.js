@@ -31,6 +31,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			var locationsEnabled = itpm.locationsEnabled();
 			var classesEnabled = itpm.classesEnabled();
 			var departmentsEnabled = itpm.departmentsEnabled();
+			var results;
 			
 			if(request.method == 'GET'){
 
@@ -47,12 +48,28 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						type:record.Type.INVOICE,
 						id:params.fid
 					});
-					var invoiceId = invoiceRec.id;
-					var invoiceText = invoiceRec.getText('tranid');
+
+					
 					var customerId = invoiceRec.getValue('entity');
 					var customerEntity = invoiceRec.getText('entity');
-					var invAmount = invoiceRec.getValue('amountremainingtotalbox');
 					
+					if(params.multi == 'yes'){
+						//total amount calculation for single Deduction on multiple Invoices
+						var totalamount = 0;
+						var invoiceIds = [];
+						results = multiInvoicesList(params.fid);
+
+				    	results.each(function(result){
+				    		invoiceIds.push(result.getValue({name: "internalid", join: "appliedToTransaction"}));
+				    		totalamount = totalamount + parseFloat(result.getValue({name: "amountremaining", join: "appliedToTransaction"}));			
+				    		return true;
+				    	});
+				    	
+				    	var invAmount = totalamount;
+					}else{
+						var invoiceIds = invoiceRec.id;
+						var invAmount = invoiceRec.getValue('amountremainingtotalbox');
+					}
 				}else if(params.from == 'ddn'){
 					var deductionRec = record.load({
 						type:'customtransaction_itpm_deduction',
@@ -62,11 +79,10 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					//taking the values from the parent deduction record.
 					var originalDddno = deductionRec.getValue('custbody_itpm_ddn_originalddn');
 					var deductnNo = deductionRec.getValue('tranid');
-					var invoiceId = deductionRec.getValue('custbody_itpm_ddn_invoice');
-					var invoiceText = deductionRec.getText('custbody_itpm_ddn_invoice');
-					var customerId = deductionRec.getValue('custbody_itpm_customer'); 
-					var customerEntity = deductionRec.getText('custbody_itpm_customer'); 
-					var invAmount = deductionRec.getValue('custbody_itpm_amount');
+					var invoiceIds = deductionRec.getValue('custbody_itpm_ddn_invoice');
+					var customerId = deductionRec.getValue('custbody_itpm_customer');  //Conflict resolved
+					var customerEntity = deductionRec.getText('custbody_itpm_customer');  //Conflict resolved 
+					var invAmount = deductionRec.getValue('custbody_itpm_amount');  //Conflict resolved
 				}
 				
 				//reading the values same intenralid values from the deduciton or invoice record.
@@ -107,6 +123,15 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.HIDDEN
 				}).defaultValue = params.from;
+				
+				//Added for multi Invoice Deduction
+				ddnForm.addField({
+					id : 'custom_multi',
+					type : serverWidget.FieldType.TEXT,
+					label:'Multi'
+				}).updateDisplayType({
+					displayType : serverWidget.FieldDisplayType.HIDDEN
+				}).defaultValue = params.multi;
 				
 				ddnForm.addField({
 					id : 'custom_user_eventype',
@@ -150,18 +175,13 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				//setting the INVOICE Value
 				var invoice = ddnForm.addField({
 					id : 'custom_itpm_ddn_invoice',
-					type : serverWidget.FieldType.SELECT,
+					type : serverWidget.FieldType.MULTISELECT,  //Added new line of code as changed from SELECT to MULTISELECT 9/22
 					label:'Invoice',
+					source: 'invoice',
 					container:'custom_primry_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
-				});
-
-				invoice.addSelectOption({
-					value : invoiceId,
-					text : invoiceText,
-					isSelected:true
-				});
+				}).defaultValue = invoiceIds;
 
 				//setting the ORIGINAL NUMBER value
 				var originnoField = ddnForm.addField({
@@ -177,7 +197,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					originnoField.addSelectOption({
 						value:(params.from =='inv')?' ':deductionRec.getValue('custbody_itpm_ddn_originalddn'),
 						text:(params.from =='inv')?' ':deductionRec.getText('custbody_itpm_ddn_originalddn')
-					})
+					});
 				}
 				
 				//parent deduciton field
@@ -258,7 +278,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					container:'custom_primry_information'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.DISABLED
-				})
+				});
 
 				customer.addSelectOption({
 					text:customerEntity,
@@ -375,7 +395,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 							value:e.id,
 							text:e.name,
 							isSelected:(invlocation == e.id)
-						})
+						});
 						return true;
 					});
 				}
@@ -401,7 +421,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 							value:e.id,
 							text:e.name,
 							isSelected:(invdept == e.id)
-						})
+						});
 						return true;
 					});
 				}
@@ -542,51 +562,59 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				/*------- TRANSACTION DETAIL End --------*/
 
 				ddnForm.addSubmitButton({label:'Submit'});
-				ddnForm.addButton({label:'Cancel',id : 'custom_itpm_cancelbtn',functionName:"redirectToBack"})
+				ddnForm.addButton({label:'Cancel',id : 'custom_itpm_cancelbtn',functionName:"redirectToBack"});
 				ddnForm.clientScriptModulePath =  './iTPM_Attach_Deduction_ClientMethods.js';
 				//ddnForm.clientScriptFileId = runtime.getCurrentScript().getParameter({name:'custscript_itpm_su_ddn_csfileid'});
 				response.writePage(ddnForm);
 
 			}else if(request.method == 'POST'){
-				var originalno = params['custom_itpm_ddn_originalddn'],
-				otherrefno = params['custom_itpm_ddn_otherrefcode'],
-				invoiceno = params['custom_itpm_ddn_invoice'],
-				invoiceLookup =  search.lookupFields({
-					type: search.Type.INVOICE,
-					id: invoiceno,
-					columns: ['tranid']
-				}),
-				customerno = params['custom_customer'],
-				parentno = params['custom_parent'],
-				classno = params['custom_class'],
-				deptno = params['custom_department'],
-				locationno = params['custom_location'],
-				assignto = params['custom_itpm_ddn_assignedto'],
-				amount = params['custom_itpm_ddn_amount'].replace(/,/g,''),
-				totalsettlement = params['custom_total_settlements'],
-				disputed = params['custom_itpm_ddn_disputed'],
-				openbal = params['custom_itpm_ddn_openbal'],
-				followup = params['custom_itpm_ddn_nextaction'],
-				memo = params['custom_memo'],
-				status = params['custom_status'],
-				defaultRecvAccnt = params['custom_def_accnt_recv'],
+				var originalno = params['custom_itpm_ddn_originalddn'];
+				var otherrefno = params['custom_itpm_ddn_otherrefcode'];
+				var multiinvoices = params['custom_itpm_ddn_invoice'];
+				var invoiceno = multiinvoices.replace(/\u0005/g,',').split(",");
+				
+				var invoiceLookup = '';
+				//Fetching tranid's for multiple invoices to set the memo
+				for(var i=0; i<invoiceno.length; i++){
+					invoiceLookups =  search.lookupFields({
+						type: search.Type.INVOICE,
+						id: invoiceno[i],
+						columns: ['tranid']
+					});
+						
+					invoiceLookup = invoiceLookup+invoiceLookups.tranid+' ';
+				}
+					
+				customerno = params['custom_customer'];
+				parentno = params['custom_parent'];
+				classno = params['custom_class'];
+				deptno = params['custom_department'];
+				locationno = params['custom_location'];
+				assignto = params['custom_itpm_ddn_assignedto'];
+				amount = params['custom_itpm_ddn_amount'].replace(/,/g,'');
+				totalsettlement = params['custom_total_settlements'];
+				disputed = params['custom_itpm_ddn_disputed'];
+				openbal = params['custom_itpm_ddn_openbal'];
+				followup = params['custom_itpm_ddn_nextaction'];
+				memo = params['custom_memo'];
+				status = params['custom_status'];
+				defaultRecvAccnt = params['custom_def_accnt_recv'];
 				deductionRec = null;
 
-				
 				if(params['custom_user_eventype'] != 'edit'){
 					deductionRec = record.create({
 						type:'customtransaction_itpm_deduction',
 						isDynamic:true
-					})
+					});
 				}else{
 					deductionRec = record.load({
 						type:'customtransaction_itpm_deduction',
 						id:params['custom_parent_recid'],
 						isDynamic:true
-					})
+					});
 				}
 				
-
+				
 				deductionRec.setValue({
 					fieldId:'custbody_itpm_otherrefcode',
 					value:otherrefno,
@@ -604,6 +632,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					value:(disputed == "T")?true:false,
 					ignoreFieldChange:true
 				});
+				
 				
 				if(params['custom_user_eventype'] != 'edit'){
 					deductionRec.setValue({
@@ -624,13 +653,13 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						});
 					}
 				}
-
+				
 				if(originalno != ''){
 					deductionRec.setValue({
 						fieldId:'custbody_itpm_ddn_originalddn',
 						value:originalno,
 						ignoreFieldChange:true
-					})
+					});
 				}
 				
 				if(invoiceno != ''){
@@ -638,21 +667,21 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						fieldId:'custbody_itpm_ddn_invoice',
 						value:invoiceno,
 						ignoreFieldChange:true
-					})
+					});
 				}
 				if(customerno != ''){
 					deductionRec.setValue({
 						fieldId:'custbody_itpm_customer',
 						value:customerno,
 						ignoreFieldChange:true
-					})
+					});
 				}
 				if(parentno != ''){
 					deductionRec.setValue({
 						fieldId:'custbody_itpm_ddn_custparent',
 						value:parentno,
 						ignoreFieldChange:true
-					})
+					});
 				}
 				
 				if(subsidiariesEnabled){
@@ -660,7 +689,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						fieldId:'subsidiary',
 						value:params['custom_subsidiary'],
 						ignoreFieldChange:true
-					})
+					});
 				}
 				
 				if(currenciesEnabled){
@@ -676,7 +705,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						fieldId:'class',
 						value:classno,
 						ignoreFieldChange:true
-					})
+					});
 				}
 
 				if(deptno != ''){
@@ -684,7 +713,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						fieldId:'location',
 						value:locationno,
 						ignoreFieldChange:true
-					})
+					});
 				}
 
 				if(locationno != ''){
@@ -692,7 +721,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						fieldId:'department',
 						value:deptno,
 						ignoreFieldChange:true
-					})
+					});
 				}
 
 				if(assignto != ''){
@@ -700,7 +729,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						fieldId:'custbody_itpm_ddn_assignedto',
 						value:assignto,
 						ignoreFieldChange:true
-					})
+					});
 				}
 
 				if(totalsettlement != ''){
@@ -708,7 +737,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						fieldId:'custbody_itpm_ddn_totsett',
 						value:totalsettlement,
 						ignoreFieldChange:true
-					})
+					});
 				}
 
 				if(followup != ''){
@@ -716,7 +745,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						fieldId:'custbody_itpm_ddn_nextaction',
 						value:new Date(followup),
 						ignoreFieldChange:true
-					})
+					});
 				}
 
 
@@ -737,7 +766,11 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 							type:search.Type.INVOICE,
 							id:invoiceno,
 							columns:['internalid','account']
-						})['account'][0].value;
+						})['account'][0].value; //Conflict resolved
+						
+						//lineMemo = 'Deduction applied on Invoice #'+invoiceLookup.tranid;
+						lineMemo = (params['custom_multi'] == 'yes')?('Deduction applied on Invoices '+invoiceLookup):('Deduction applied on Invoice #'+invoiceLookup);
+						
 						var configObj = config.load({
 							type:config.Type.ACCOUNTING_PREFERENCES
 						});
@@ -784,7 +817,8 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 							sublistId:'line',
 							fieldId:'memo',
 							value:e.memo
-						})
+						});
+						
 						if(createdFrom == 'inv' && e.fid == 'credit'){
 							deductionRec.setCurrentSublistValue({
 								sublistId:'line',
@@ -805,6 +839,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						var parentRec = record.load({type:'customtransaction_itpm_deduction',id:params['custom_parent_recid']});
 						var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_amount'));
 						var newDdnAmount = parseFloat(amount);
+						
 						if(parentDdnAmount > newDdnAmount){
 							createAutomatedDeductionRecord(parentRec,parentDdnAmount - newDdnAmount,expenseId);
 						}
@@ -823,54 +858,125 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					
 					//when a deduction is created from invoice then the invoice is converted into payment fulfillment
 					if(createdFrom == 'inv'){
-						var deductionCreatedRec = record.load({type:'customtransaction_itpm_deduction',id:deductionId}),
-						invId = params['custom_itpm_ddn_invoice'],
-						invTransformRec = record.transform({
-							fromType: record.Type.INVOICE,
-							fromId: invId,
-							toType: record.Type.CUSTOMER_PAYMENT
-						}),
-						transFormRecLineCount = invTransformRec.getLineCount('credit');
+						//payment for multi invoices
+						if(params['custom_multi'] == 'yes'){
+							var deductionCreatedRec = record.load({
+                                type: 'customtransaction_itpm_deduction',
+                                id  : deductionId
+                            });
+							
+							 deductionId = deductionCreatedRec.setValue({
+	                                fieldId:'custbody_itpm_ddn_originalddn',
+	                                value:deductionId
+	                            }).save({enableSourcing:false,ignoreMandatoryFields:true});
 
-						invTransformRec.setValue({
-							fieldId:'class',
-							value:classno
-						}).setValue({
-							fieldId:'location',
-							value:locationno
-						}).setValue({
-							fieldId:'department',
-							value:deptno
-						}).setValue({
-							fieldId:'memo',
-							value:'Deduction '+deductionCreatedRec.getValue('tranid')+' applied to Invoice '+invoiceLookup.tranid
-						});
+                            results = multiInvoicesList(params['custom_parent_recid']);
 
-						deductionId = deductionCreatedRec.setValue({
-							fieldId:'custbody_itpm_ddn_originalddn',
-							value:deductionId
-						}).save({enableSourcing:false,ignoreMandatoryFields:true});
+                            results.each(function(result){
+                                //Customer Payment process for each invoice
+                                invTransformRec = record.transform({
+                                    fromType: record.Type.INVOICE,
+                                    fromId: result.getValue({name: "internalid", join: "appliedToTransaction"}),
+                                    toType: record.Type.CUSTOMER_PAYMENT
+                                });
+                            
+                                transFormRecLineCount = invTransformRec.getLineCount('credit');
 
+                                invTransformRec.setValue({
+                                    fieldId:'class',
+                                    value:classno
+                                }).setValue({
+                                    fieldId:'location',
+                                    value:locationno
+                                }).setValue({
+                                    fieldId:'department',
+                                    value:deptno
+                                }).setValue({
+                                    fieldId:'memo',
+                                    value:'Deduction '+deductionCreatedRec.getValue('tranid')+' applied to Invoice '+result.getValue({name: "internalid", join: "appliedToTransaction"})
+                                });
 
-						for(var v =0; v < transFormRecLineCount;v++){
-							var ddId = invTransformRec.getSublistValue({
-								sublistId: 'credit',
-								fieldId: 'internalid',
-								line: v
+                                for(var v =0; v < transFormRecLineCount;v++){
+                                    var ddId = invTransformRec.getSublistValue({
+                                        sublistId: 'credit',
+                                        fieldId: 'internalid',
+                                        line: v
+                                    });
+
+                                    if(deductionId == ddId){
+                                        invTransformRec.setSublistValue({
+                                            sublistId: 'credit',
+                                            fieldId: 'apply',
+                                            line: v,
+                                            value: true
+                                        });
+                                        
+                                        var lastId =invTransformRec.save({
+                                            enableSourcing: false,
+                                            ignoreMandatoryFields: true
+                                        });
+                                        //log.debug('invTransformRecId ',lastId );
+                                    }
+                                }
+
+                                return true;
+                            });
+                            
+                           
+						}else{  //payment for single invoice
+							var deductionCreatedRec = record.load({type:'customtransaction_itpm_deduction',id:deductionId});
+							multiinvoices = params['custom_itpm_ddn_invoice'];
+							
+							//We are using reg exp. here: while trying to get the multiple invoices from multiselect field result is coming as a string with | character
+							invId = multiinvoices.replace(/\u0005/g,',').split(",");
+							
+							invTransformRec = record.transform({
+								fromType: record.Type.INVOICE,
+								fromId: invId,
+								toType: record.Type.CUSTOMER_PAYMENT
+							});
+							
+							transFormRecLineCount = invTransformRec.getLineCount('credit');
+
+							invTransformRec.setValue({
+								fieldId:'class',
+								value:classno
+							}).setValue({
+								fieldId:'location',
+								value:locationno
+							}).setValue({
+								fieldId:'department',
+								value:deptno
+							}).setValue({
+								fieldId:'memo',
+								value:'Deduction '+deductionCreatedRec.getValue('tranid')+' applied to Invoice '+invoiceLookup
 							});
 
-							if(deductionId == ddId){
-								invTransformRec.setSublistValue({
+							deductionId = deductionCreatedRec.setValue({
+								fieldId:'custbody_itpm_ddn_originalddn',
+								value:deductionId
+							}).save({enableSourcing:false,ignoreMandatoryFields:true});
+							
+							for(var v =0; v < transFormRecLineCount;v++){
+								var ddId = invTransformRec.getSublistValue({
 									sublistId: 'credit',
-									fieldId: 'apply',
-									line: v,
-									value: true
+									fieldId: 'internalid',
+									line: v
 								});
-								var lastId =invTransformRec.save({
-									enableSourcing: false,
-									ignoreMandatoryFields: true
-								});
-								log.debug('invTransformRecId ',lastId );
+
+								if(deductionId == ddId){
+									invTransformRec.setSublistValue({
+										sublistId: 'credit',
+										fieldId: 'apply',
+										line: v,
+										value: true
+									});
+									var lastId = invTransformRec.save({
+										enableSourcing: false,
+										ignoreMandatoryFields: true
+									});
+									log.debug('invTransformRecId ',lastId );
+								}
 							}
 						}
 					}
@@ -957,9 +1063,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			fieldId:'memo',
 			value:'Deduction split from Deduction #'+parentDdnRec.getText('tranid')
 		});
-		
-		log.debug('remaining amount',remainingAmount)
-		
+
 		//setting the line values to copied deduction record
 		for(var i = 0;i < 2;i++){
 			copiedDeductionRec.setSublistValue({
@@ -1073,6 +1177,96 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			};
     	}catch(e){
     		return {success:false,errormessage:e.message}
+    	}
+    }
+    
+    /**
+     * @param {String} invId
+     * 
+     * @return {Integer} count
+     */
+    function multiInvoicesList(invId){
+    	try{
+    		var custPayId;
+        	//log.debug('invId', invId);
+        	var invoiceSearchObj = search.create({
+        		type: search.Type.INVOICE,
+        		filters: [
+        			["internalid","anyof",invId], 
+        			"AND", 
+        			["applyingtransaction","noneof","@NONE@"], 
+        			"AND", 
+        			["applyingtransaction.type","anyof","CustPymt"], 
+        			"AND", 
+        			["mainline","is","T"], 
+        			"AND", 
+        			["status","noneof","CustInvc:B"]
+        			],
+        		columns: [
+        			search.createColumn({
+        				name: "type",
+        				join: "applyingTransaction"
+        			}),
+        			search.createColumn({
+        				name: "trandate",
+        				join: "applyingTransaction",
+        				sort: search.Sort.DESC
+        			}),
+        			search.createColumn({
+        				name: "internalid",
+        				join: "applyingTransaction",
+        				sort: search.Sort.DESC
+        			})
+        		]
+        	});
+
+        	invoiceSearchObj.run().each(function(result){
+        		custPayId = result.getValue({name:'internalid', join:'applyingTransaction'});
+        	});
+        	//log.debug('custPayId', custPayId);
+        	
+        	var customerpaymentSearchObj = search.create({
+        		type: "customerpayment",
+        		filters: [
+        			["type","anyof","CustPymt"], 
+        			"AND", 
+        			["internalid","anyof",custPayId], 
+        			"AND", 
+        			["mainline","is","F"],
+        			"AND", 
+        			["appliedtotransaction.status","anyof","CustInvc:A"]
+        			],
+        		columns: [
+        			search.createColumn({
+        				name: "internalid",
+        				sort: search.Sort.ASC
+        			}),
+        			search.createColumn({
+        				name: "type",
+        				join: "appliedToTransaction"
+        			}),
+        			search.createColumn({
+        				name: "trandate",
+       					join: "appliedToTransaction"
+       				}),
+       				search.createColumn({
+       					name: "internalid",
+       					join: "appliedToTransaction"
+       				}),
+       				search.createColumn({
+       					name: "amount",
+       					join: "appliedToTransaction"
+       				}),
+       				search.createColumn({
+       					name: "amountremaining",
+       					join: "appliedToTransaction"
+       				})
+       			]
+        	});
+
+        	return customerpaymentSearchObj.run();
+    	}catch(e){
+    		log.error(e.name, e.message);
     	}
     }
     
