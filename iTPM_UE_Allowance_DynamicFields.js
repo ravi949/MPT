@@ -71,7 +71,8 @@ function(runtime, sWidget, search) {
 			    fieldId: 'custrecord_itpm_all_type',
 			    value: prefSearchRes[0].getValue('custrecord_itpm_pref_defaultalltype')
 			});
-		}	
+		}
+	}		
       
     /**
      * @param sc record object
