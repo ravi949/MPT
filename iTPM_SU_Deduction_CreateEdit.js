@@ -764,7 +764,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					if(createdFrom == 'inv'){
 						var recievableAccntId = search.lookupFields({
 							type:search.Type.INVOICE,
-							id:invoiceno,
+							id:params['custom_parent_recid'],
 							columns:['internalid','account']
 						})['account'][0].value; //Conflict resolved
 						
