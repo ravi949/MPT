@@ -25,7 +25,7 @@ function(search, serverWidget, runtime) {
      */
     function beforeLoad(scriptContext) {
     	try{
-    		if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
+    		if(runtime.executionContext == runtime.ContextType.USER_INTERFACE && scriptContext.type == 'view'){
     			//invoice has atleast one PAYMENTS and invoice status not equal to PAID IN FULL
     			var invConditionsMet = search.create({
     				type:search.Type.INVOICE,
@@ -47,15 +47,15 @@ function(search, serverWidget, runtime) {
     					['status','anyof',["Custom100:A","Custom100:B"]]]
     			}).run().getRange(0,5).length == 0;
     			log.debug('asdf',invConditionsMet && invoiceDeductionsAreEmpty)
+    			
     			if(invConditionsMet && invoiceDeductionsAreEmpty){
     				scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
     				scriptContext.form.addButton({
     					id:'custpage_itpm_newddn',
     					label:'Deduction',
     					functionName:'iTPMDeduction('+scriptContext.newRecord.id+')'
-    				})
+    				});
     			}
-    			
     		}
     	}catch(e){
     		log.error(e.name,' record type = invoice, record id='+scriptContext.newRecord.id+' message='+e.message);
