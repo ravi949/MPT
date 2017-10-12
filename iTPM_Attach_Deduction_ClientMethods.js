@@ -23,7 +23,8 @@ function() {
         	if(isFromEdit == -1){
         		var ddnOpenBal = deductionAsstRec.getValue('custom_itpm_ddn_openbal');
         		var ddnAmount = deductionAsstRec.getValue('custom_itpm_ddn_amount');
-        		if(ddnAmount == 0){
+
+        		if(ddnAmount <= 0){
         			alert('Amount must be greater than zero');
         			return false;
         		}else if(ddnOpenBal < ddnAmount){
