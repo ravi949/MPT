@@ -653,9 +653,8 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 	    }
 	    
 	    //settlement request
-	    if(!isEdit){
-	    	var settlementReqValue = (createdFromDDN)?(ddnOpenBal>netPromotionLiablty)?netPromotionLiablty:ddnOpenBal:0;
-	    }
+	    settlementReqValue = (isEdit)?settlementReqValue:0;
+	    
 	    var settlementReqField = settlementForm.addField({
     		id:'custom_itpm_st_reql',
     		type:serverWidget.FieldType.CURRENCY,
@@ -672,7 +671,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     		label:'AMOUNT : LUMP SUM',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
-			displayType : (promoLumSum != 0 && promoLumSum != '')?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+			displayType : (promoLumSum > 0)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
     	})
     	
     	if(!isEdit){
