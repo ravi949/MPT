@@ -26,18 +26,8 @@ function(search, serverWidget, runtime) {
     function beforeLoad(scriptContext) {
     	try{
     		if(runtime.executionContext == runtime.ContextType.USER_INTERFACE && scriptContext.type == 'view'){
-    			//invoice has atleast one PAYMENTS and invoice status not equal to PAID IN FULL
-    			var invConditionsMet = search.create({
-    				type:search.Type.INVOICE,
-    				columns:['internalid'],
-    				filters:[
-    					['internalid','anyof',scriptContext.newRecord.id],'and',
-    					['applyingtransaction','noneof','none'],'and',
-    					['applyingtransaction.type','anyof','CustPymt'],'and',
-    					['mainline','is','T'],'and',
-    					['status','noneof','CustInvc:B']
-    					] 
-    			}).run().getRange(0,5).length>0;
+    			//invoice status not equal to PAID IN FULL
+    			var invStatus = scriptContext.newRecord.getValue('status');
 
     			//invoice dont have any ITPM DEDUCTION records which is not Open,Pending
     			var invoiceDeductionsAreEmpty = search.create({
@@ -46,9 +36,8 @@ function(search, serverWidget, runtime) {
     				filters:[['custbody_itpm_ddn_invoice','is',scriptContext.newRecord.id],'and',
     					['status','anyof',["Custom100:A","Custom100:B"]]]
     			}).run().getRange(0,5).length == 0;
-    			log.debug('asdf',invConditionsMet && invoiceDeductionsAreEmpty)
     			
-    			if(invConditionsMet && invoiceDeductionsAreEmpty){
+    			if(invStatus != 'Paid In Full' && invoiceDeductionsAreEmpty){
     				scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
     				scriptContext.form.addButton({
     					id:'custpage_itpm_newddn',

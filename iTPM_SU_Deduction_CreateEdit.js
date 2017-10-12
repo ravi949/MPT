@@ -1126,17 +1126,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
     				id:id
     			});
 
-    			var invConditionsMet = search.create({
-    				type:search.Type.INVOICE,
-    				columns:['internalid'],
-    				filters:[
-    					['internalid','anyof',id],'and',
-    					['applyingtransaction','noneof','none'],'and',
-    					['applyingtransaction.type','anyof','CustPymt'],'and',
-    					['mainline','is','T'],'and',
-    					['status','noneof','CustInvc:B']
-    				] 
-    			}).run().getRange(0,5).length>0;
+    			var invStatus = loadedRec.getValue('status');
 
     			//invoice dont have any ITPM DEDUCTION records
     			var invoiceDeductionsAreEmpty = search.create({
@@ -1148,7 +1138,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
     				]
     			}).run().getRange(0,5).length == 0;
 
-    			if (invConditionsMet && invoiceDeductionsAreEmpty){
+    			if (invStatus != 'Paid In Full' && invoiceDeductionsAreEmpty){
     				return {success:true};
     			} else {
     				throw {
