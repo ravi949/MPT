@@ -82,7 +82,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					var invoiceIds = deductionRec.getValue('custbody_itpm_ddn_invoice');
 					var customerId = deductionRec.getValue('custbody_itpm_customer');  //Conflict resolved
 					var customerEntity = deductionRec.getText('custbody_itpm_customer');  //Conflict resolved 
-					var invAmount = deductionRec.getValue('custbody_itpm_amount');  //Conflict resolved
+					var invAmount = deductionRec.getValue('custbody_itpm_ddn_openbal');  //Conflict resolved
 				}
 				
 				//reading the values same intenralid values from the deduciton or invoice record.
@@ -837,9 +837,8 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					//creating the other deduction record when click the split
 					if(deductionId && createdFrom == 'ddn'){
 						var parentRec = record.load({type:'customtransaction_itpm_deduction',id:params['custom_parent_recid']});
-						var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_amount'));
+						var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_ddn_openbal'));
 						var newDdnAmount = parseFloat(amount);
-						
 						if(parentDdnAmount > newDdnAmount){
 							createAutomatedDeductionRecord(parentRec,parentDdnAmount - newDdnAmount,expenseId);
 						}
@@ -975,7 +974,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 										enableSourcing: false,
 										ignoreMandatoryFields: true
 									});
-									log.debug('invTransformRecId ',lastId );
+//									log.debug('invTransformRecId ',lastId );
 								}
 							}
 						}
