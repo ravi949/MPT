@@ -412,7 +412,7 @@ function(config, record, search, itpm) {
 			}
 
 		}catch(e){
-			throw Error('record type=iTPM settlement, record id='+parameters.sid+', module=iTPM_Module_Settlement.js,function name = applyToDeduction,  message='+e.message);
+			throw Error(e.message);
 		}
 		
 	}
