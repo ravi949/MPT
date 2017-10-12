@@ -777,7 +777,6 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 
 						//getting the itpm preference deduction account
 						expenseId = itpm.getPrefrenceValues().dednExpAccnt;
-						lineMemo = 'Deduction applied on Invoice #'+invoiceLookup.tranid;
 
 						if(defaultRecvAccnt == "-10"){
 							defaultRecvAccnt = configObj.getValue('ARACCOUNT');
