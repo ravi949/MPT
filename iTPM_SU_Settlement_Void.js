@@ -109,6 +109,8 @@ function(record, redirect, itpm) {
     			log.debug('JERecId',JERecId);
        		
     			if(JERecId){
+    				var deductionId = SetRec.getValue('custbody_itpm_appliedto');
+    				var setReq = SetRec.getValue('custbody_itpm_amount');
     				SetRec.setValue({
     					fieldId:'transtatus',
     					value:'C'
@@ -116,6 +118,21 @@ function(record, redirect, itpm) {
     					enableSourcing:false,
     					ignoreMandatoryFields:true
     				});
+    				if(deductionId && setReq){
+        				var deductionRec = record.load({
+    						type:'customtransaction_itpm_deduction',
+    						id:deductionId
+    					});
+        				var deductionOpenBal = deductionRec.getValue('custbody_itpm_ddn_openbal');
+        				
+        				deductionRec.setValue({
+        					fieldId:'custbody_itpm_ddn_openbal',
+        					value:parseFloat(deductionOpenBal) + parseFloat(setReq)
+        				}).save({
+        					enableSourcing:false,
+        					ignoreMandatoryFields:true
+        				});
+    				}
     			}
     			redirect.toRecord({
     				type:record.Type.JOURNAL_ENTRY,
