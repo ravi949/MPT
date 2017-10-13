@@ -816,16 +816,11 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 							sublistId:'line',
 							fieldId:'memo',
 							value:e.memo
-						});
-						
-						if(createdFrom == 'inv' && e.fid == 'credit'){
-							deductionRec.setCurrentSublistValue({
-								sublistId:'line',
-								fieldId:'entity',
-								value:customerno
-							});
-						}
-						deductionRec.commitLine({
+						}).setCurrentSublistValue({
+							sublistId:'line',
+							fieldId:'entity',
+							value:customerno
+						}).commitLine({
 							sublistId: 'line'
 						});
 
@@ -909,7 +904,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
                                             value: true
                                         });
                                         
-                                        var lastId =invTransformRec.save({
+                                        var lastId = invTransformRec.save({
                                             enableSourcing: false,
                                             ignoreMandatoryFields: true
                                         });
@@ -1082,7 +1077,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			}).setSublistValue({
 				sublistId:'line',
 				fieldId:'entity',
-				value:' ',
+				value:parentDdnRec.getValue('custbody_itpm_customer'),
 				line:i
 			});
 		}
