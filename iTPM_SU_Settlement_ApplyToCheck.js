@@ -142,7 +142,7 @@ function(record, redirect, search, ST_Module,itpm) {
         		
         		//setting the location,class and department values to the lines
         		var expenseLineCount = checkLines.length;
-        		for(var v =0; v < expenseLineCount; v++){
+        		for(var v = 0; v < expenseLineCount; v++){
         			
         			checkRecord.setSublistValue({
         				sublistId: 'expense',
@@ -164,7 +164,7 @@ function(record, redirect, search, ST_Module,itpm) {
         				fieldId: 'custcol_itpm_lsbboi', 
         				line: v,
         				value: checkLines[v].mop
-        			}).setValue({
+        			}).setSublistValue({
         				sublistId: 'expense',
             			fieldId: 'customer',
             			line: v,
