@@ -279,11 +279,11 @@ function(config, record, search, itpm) {
 				fieldId:'custbody_itpm_set_reqbb',
 				value:billbackSetReq
 			});
-			//Reason code
-			newSettlementRecord.setValue({
+			//Reason code - Commented as per new enhancement to remove Reason Code
+			/*newSettlementRecord.setValue({
 				fieldId:'custbody_itpm_set_reason',
 				value:params['custom_itpm_st_reason_code']
-			});
+			});*/
 			//Date
 			newSettlementRecord.setValue({
 				fieldId:'trandate',
