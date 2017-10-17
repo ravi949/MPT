@@ -3,12 +3,14 @@
  * @NScriptType UserEventScript
  * @NModuleScope TargetAccount
  */
-define(['N/record', 'N/search'],
+define(['N/record', 
+		'N/search',
+		'N/runtime'],
 /**
  * @param {record} record
  * @param {search} search
  */
-function(record, search) {
+function(record, search, runtime) {
     /**
      * Function definition to be triggered before record is loaded.
      *
@@ -41,7 +43,7 @@ function(record, search) {
     				itemid:'custrecord_itpm_rei_item'
     			}
     		};
-    		
+
     		if(scriptContext.type == scriptContext.UserEventType.DELETE)
     			actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
     		
@@ -86,12 +88,12 @@ function(record, search) {
     }
     
     function getResults(type,context,actions){
-    	log.debug('actions',actions[type].itemid);
     	var range = (type == 'customrecord_itpm_promoallowance')?1000:1;
     	var promoid = actions[type].promoid;
-    	var promoInternalid = context.newRecord.getValue(actions[context.newRecord.type].promoid);
+    	var promoInternalid = context.oldRecord.getValue(actions[context.newRecord.type].promoid);
     	var itemid = actions[type].itemid;
-    	var itemInternalid = context.newRecord.getValue(actions[context.newRecord.type].itemid);
+    	var itemInternalid = context.oldRecord.getValue(actions[context.newRecord.type].itemid);
+    	
         var searchResults = search.create({
 	    		type:type,
 	    		columns:['internalid'],
