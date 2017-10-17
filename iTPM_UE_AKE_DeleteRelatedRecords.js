@@ -99,6 +99,7 @@ function(record, search, runtime) {
     			type:obj.type,
     			id:e.getValue('internalid')
     		});
+    		return true;
     	});
     }
     
