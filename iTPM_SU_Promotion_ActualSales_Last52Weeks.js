@@ -27,7 +27,7 @@ function(format, record, search, serverWidget) {
 
 			if(request.method == 'GET'){
 
-				var startno = 0;//request.parameters.st;
+				var startno = request.parameters.st;
 				//var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var endno = parseInt(startno)+20;
 				var form = serverWidget.createForm({
@@ -88,7 +88,7 @@ function(format, record, search, serverWidget) {
 				//promoDeal Record Load
 				var promoDealRecord = search.lookupFields({
 					type: 'customrecord_itpm_promotiondeal',
-					id: 8,//request.parameters.pid,
+					id: request.parameters.pid,
 					columns: ['internalid','name','custrecord_itpm_p_description','custrecord_itpm_p_customer']
 				});
 
@@ -149,8 +149,7 @@ function(format, record, search, serverWidget) {
 				search.create({
 					type:'customrecord_itpm_estquantity',
 					columns:['custrecord_itpm_estqty_item'],
-					filters:[['custrecord_itpm_estqty_promodeal','anyof',8],'and',
-					//filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
+					filters:[['custrecord_itpm_estqty_promodeal','anyof',request.parameters.pid],'and',
 					         ['isinactive','is',false]]
 				}).run().each(function(e){
 					estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
@@ -426,7 +425,6 @@ function(format, record, search, serverWidget) {
 
 		}catch(e){
 			log.error(e.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+e.message);
-			log.error(e.name,'record type = iTPM promotion, record id = '+8+', message = '+e.message);
 		}
     }
 
