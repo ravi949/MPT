@@ -52,7 +52,11 @@ function(record, search, runtime) {
     	}
     }
 
-    //delete the related the EstQty and Kpi records
+    /**
+     * @param context - scriptContext
+     * @param actions - actions object
+     * @description delete the related the EstQty and Kpi records
+     */
     function deleteEstQtyAndKpi(context,actions){
     	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions);
 
@@ -63,21 +67,32 @@ function(record, search, runtime) {
     	}
     }
     
-    //delete the related the Allownces and EstQty records
+    /**
+     * @param context - scriptContext
+     * @param actions - actions object
+     * @description delete the related the Allownces and EstQty records
+     */
     function deleteAllAndEstQty(context,actions){
     	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions));
     	deleteRecords(getResults('customrecord_itpm_estquantity',context,actions));
     	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
     }
     
-    //delete the related the Allowances and Kpi records
+    /**
+     * @param context - scriptContext
+     * @param actions - actions object
+     * @description delete the related the Allowances and Kpi records
+     */
     function deleteAllAndKpi(context,actions){
     	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions));
     	deleteRecords(getResults('customrecord_itpm_kpi',context,actions));
     	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
     }
     
-    //get EstQty list
+    /**
+     * @param obj - contains record type,resultSet
+     * @description delete the related records
+     */
     function deleteRecords(obj){
     	obj.results.run().each(function(e){
     		record.delete({
@@ -87,6 +102,13 @@ function(record, search, runtime) {
     	});
     }
     
+    /**
+     * @param type - record type
+     * @param context - scriptContext
+     * @param actions - actions object
+     * @returns type,resultSet
+     * @description search for the related records and return result
+     */
     function getResults(type,context,actions){
     	var range = (type == 'customrecord_itpm_promoallowance')?1000:1;
     	var promoid = actions[type].promoid;
@@ -101,8 +123,6 @@ function(record, search, runtime) {
 	    				 [itemid,'anyof',itemInternalid],'and',
 	    				 ['isinactive','is',false]]
     	});
-        
-        
         
         return {
         	results:searchResults,
