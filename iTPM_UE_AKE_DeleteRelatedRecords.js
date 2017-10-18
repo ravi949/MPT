@@ -48,13 +48,12 @@ function(record, search, runtime) {
     			actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
     		
     		if(scriptContext.type == scriptContext.UserEventType.EDIT){
-    			if(scriptContext.newRecord.getValue('isinactive'))
-    			{
+    			if(scriptContext.newRecord.getValue('isinactive')){
+    				actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
     				record.delete({
     					type:scriptContext.newRecord.type,
     					id:scriptContext.newRecord.id
     				});
-    				actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
     			}	
     		}
     		
@@ -88,8 +87,8 @@ function(record, search, runtime) {
     	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions);
     	var allResultLength = allwResults.results.run().getRange(0,1000);
     	
-    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions),(allResultLength > 248));
-        deleteRecords(getResults('customrecord_itpm_estquantity',context,actions),(allResultLength > 248));
+    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions),(allResultLength > 238));
+        deleteRecords(getResults('customrecord_itpm_estquantity',context,actions),(allResultLength > 238));
     	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
     }
     
@@ -102,7 +101,7 @@ function(record, search, runtime) {
     	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions);
     	var allResultLength = allwResults.results.run().getRange(0,1000);
     	
-    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions),(allResultLength > 248));
+    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions),(allResultLength > 238));
     	deleteRecords(getResults('customrecord_itpm_kpi',context,actions));
     	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
     }
