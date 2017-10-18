@@ -47,6 +47,12 @@ function(record, search, runtime) {
     		if(scriptContext.type == scriptContext.UserEventType.DELETE)
     			actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
     		
+    		if(scriptContext.type == scriptContext.UserEventType.EDIT){
+    			if(scriptContext.newRecord.getValue('isinactive'))
+    				actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
+    		}
+    		
+    		
     	}catch(e){
     		log.error(e.name,e.message);
     	}
@@ -73,8 +79,11 @@ function(record, search, runtime) {
      * @description delete the related the Allownces and EstQty records
      */
     function deleteAllAndEstQty(context,actions){
-    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions));
-    	deleteRecords(getResults('customrecord_itpm_estquantity',context,actions));
+    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions);
+    	var allResultLength = allwResults.results.run().getRange(0,1000);
+    	
+    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions),(allResultLength > 248));
+        deleteRecords(getResults('customrecord_itpm_estquantity',context,actions),(allResultLength > 248));
     	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
     }
     
@@ -84,21 +93,38 @@ function(record, search, runtime) {
      * @description delete the related the Allowances and Kpi records
      */
     function deleteAllAndKpi(context,actions){
-    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions));
+    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions);
+    	var allResultLength = allwResults.results.run().getRange(0,1000);
+    	
+    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions),(allResultLength > 248));
     	deleteRecords(getResults('customrecord_itpm_kpi',context,actions));
     	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
     }
     
     /**
      * @param obj - contains record type,resultSet
-     * @description delete the related records
+     * @description delete the related records or inactive 
      */
-    function deleteRecords(obj){
+    function deleteRecords(obj,makeInactive){
     	obj.results.run().each(function(e){
-    		record.delete({
-    			type:obj.type,
-    			id:e.getValue('internalid')
-    		});
+    		if(makeInactive){    			
+    			record.submitFields({
+    			    type: obj.type,
+    			    id: e.getValue('internalid'),
+    			    values: {
+    			        isinactive: makeInactive
+    			    },
+    			    options: {
+    			        enableSourcing: false,
+    			        ignoreMandatoryFields : true
+    			    }
+    			});
+    		}else{
+    			record.delete({
+        			type:obj.type,
+        			id:e.getValue('internalid')
+        		});
+    		}
     		return true;
     	});
     }
@@ -111,7 +137,6 @@ function(record, search, runtime) {
      * @description search for the related records and return result
      */
     function getResults(type,context,actions){
-    	var range = (type == 'customrecord_itpm_promoallowance')?1000:1;
     	var promoid = actions[type].promoid;
     	var promoInternalid = context.oldRecord.getValue(actions[context.newRecord.type].promoid);
     	var itemid = actions[type].itemid;
@@ -121,8 +146,7 @@ function(record, search, runtime) {
 	    		type:type,
 	    		columns:['internalid'],
 	    		filters:[[promoid,'anyof',promoInternalid],'and',
-	    				 [itemid,'anyof',itemInternalid],'and',
-	    				 ['isinactive','is',false]]
+	    				 [itemid,'anyof',itemInternalid]]
     	});
         
         return {
