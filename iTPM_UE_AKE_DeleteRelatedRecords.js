@@ -50,10 +50,6 @@ function(record, search, runtime) {
     		if(scriptContext.type == scriptContext.UserEventType.EDIT){
     			if(scriptContext.newRecord.getValue('isinactive')){
     				actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
-    				record.delete({
-    					type:scriptContext.newRecord.type,
-    					id:scriptContext.newRecord.id
-    				});
     			}	
     		}
     		
@@ -69,9 +65,10 @@ function(record, search, runtime) {
      * @description delete the related the EstQty and Kpi records
      */
     function deleteEstQtyAndKpi(context,actions){
-    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions);
-
-    	if(allwResults.results.run().getRange(0,10).length == 0){
+    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,true);
+    	var allResultLength = allwResults.results.run().getRange(0,1000).length;
+    	log.debug('allResultLength',allResultLength);
+    	if(allResultLength == 0){
     		deleteRecords(getResults('customrecord_itpm_estquantity',context,actions));
         	deleteRecords(getResults('customrecord_itpm_kpi',context,actions));
         	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
@@ -84,9 +81,9 @@ function(record, search, runtime) {
      * @description delete the related the Allownces and EstQty records
      */
     function deleteAllAndEstQty(context,actions){
-    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions);
+    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,true);
     	var allResultLength = allwResults.results.run().getRange(0,1000);
-    	
+
     	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions),(allResultLength > 238));
         deleteRecords(getResults('customrecord_itpm_estquantity',context,actions),(allResultLength > 238));
     	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
@@ -98,9 +95,9 @@ function(record, search, runtime) {
      * @description delete the related the Allowances and Kpi records
      */
     function deleteAllAndKpi(context,actions){
-    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions);
+    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,true);
     	var allResultLength = allwResults.results.run().getRange(0,1000);
-    	
+
     	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions),(allResultLength > 238));
     	deleteRecords(getResults('customrecord_itpm_kpi',context,actions));
     	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
@@ -141,7 +138,13 @@ function(record, search, runtime) {
      * @returns type,resultSet
      * @description search for the related records and return result
      */
-    function getResults(type,context,actions){
+    function getResults(type,context,actions,deleteInactive){		
+    	if(deleteInactive && context.type == context.UserEventType.EDIT){
+    		record.delete({
+    			type:context.newRecord.type,
+    			id:context.newRecord.id
+    		});
+    	}
     	var promoid = actions[type].promoid;
     	var promoInternalid = context.oldRecord.getValue(actions[context.newRecord.type].promoid);
     	var itemid = actions[type].itemid;
