@@ -49,7 +49,13 @@ function(record, search, runtime) {
     		
     		if(scriptContext.type == scriptContext.UserEventType.EDIT){
     			if(scriptContext.newRecord.getValue('isinactive'))
+    			{
+    				record.delete({
+    					type:scriptContext.newRecord.type,
+    					id:scriptContext.newRecord.id
+    				});
     				actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
+    			}	
     		}
     		
     		
