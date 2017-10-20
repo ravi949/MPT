@@ -82,12 +82,12 @@ function(search, record) {
             		id: kpiInternalID,
             		values: {
             			'custrecord_itpm_kpi_esttotalqty' : eqPromQty,
-            			'custrecord_itpm_kpi_estimatedspendbb' : parseFloat(eqPromQty)+parseFloat(ratePerUnitBB),
-            			'custrecord_itpm_kpi_estimatedspendoi' : parseFloat(eqPromQty)+parseFloat(ratePerUnitOI),
-            			'custrecord_itpm_kpi_estimatedspendnb' : parseFloat(eqPromQty)+parseFloat(ratePerUnitNB),
-            			'custrecord_itpm_kpi_lespendbb' : parseFloat(eqPromQty)+parseFloat(ratePerUnitBB),
-            			'custrecord_itpm_kpi_lespendoi' : parseFloat(eqPromQty)+parseFloat(ratePerUnitOI),
-            			'custrecord_itpm_kpi_lespendnb' : parseFloat(eqPromQty)+parseFloat(ratePerUnitNB),
+            			'custrecord_itpm_kpi_estimatedspendbb' : parseFloat(eqPromQty)*parseFloat(ratePerUnitBB),
+            			'custrecord_itpm_kpi_estimatedspendoi' : parseFloat(eqPromQty)*parseFloat(ratePerUnitOI),
+            			'custrecord_itpm_kpi_estimatedspendnb' : parseFloat(eqPromQty)*parseFloat(ratePerUnitNB),
+            			'custrecord_itpm_kpi_lespendbb' : parseFloat(eqPromQty)*parseFloat(ratePerUnitBB),
+            			'custrecord_itpm_kpi_lespendoi' : parseFloat(eqPromQty)*parseFloat(ratePerUnitOI),
+            			'custrecord_itpm_kpi_lespendnb' : parseFloat(eqPromQty)*parseFloat(ratePerUnitNB),
             		},
             		options: {enablesourcing: true, ignoreMandatoryFields: true}
             	});
