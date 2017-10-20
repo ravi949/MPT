@@ -44,15 +44,22 @@ function(record, search, runtime) {
     			}
     		};
 
-    		if(scriptContext.type == scriptContext.UserEventType.DELETE)
+    		switch(scriptContext.type){
+    		case scriptContext.UserEventType.DELETE:
+    			log.debug('delete','delete all records');
     			actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
-    		
-    		if(scriptContext.type == scriptContext.UserEventType.EDIT){
+    			break;
+    		case scriptContext.UserEventType.EDIT:
     			if(scriptContext.newRecord.getValue('isinactive')){
+    				log.debug('edit','delete edit while inactive');
     				actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
-    			}	
+    			}
+    			break;
+    		case scriptContext.UserEventType.CREATE:
+    			log.debug('create','delete inactives');
+    			deleteInactiveRecords(scriptContext,actions);
+    			break;
     		}
-    		
     		
     	}catch(e){
     		log.error(e.name,e.message);
@@ -104,6 +111,25 @@ function(record, search, runtime) {
     }
     
     /**
+     * @param context
+     * @param actions
+     * @returns
+     */
+    function deleteInactiveRecords(context,actions){
+        var searchResults = getResults(context.newRecord.type,context,actions,false,true);
+        var searchResultLength = searchResults.results.run().getRange(0,1000).length;
+        if(searchResultLength <= 250){
+        	searchResults.results.run().each(function(e){
+        		record.delete({
+        			type:context.newRecord.type,
+        			id:e.getValue('internalid')
+        		});
+        		return true;
+        	});
+        }
+    }
+    
+    /**
      * @param obj - contains record type,resultSet
      * @description delete the related records or inactive 
      */
@@ -138,23 +164,30 @@ function(record, search, runtime) {
      * @returns type,resultSet
      * @description search for the related records and return result
      */
-    function getResults(type,context,actions,deleteInactive){		
+    function getResults(type,context,actions,deleteInactive,searchInactive){		
     	if(deleteInactive && context.type == context.UserEventType.EDIT){
     		record.delete({
     			type:context.newRecord.type,
     			id:context.newRecord.id
     		});
     	}
+    	var rec = (context.type == context.UserEventType.CREATE)?context.newRecord:context.oldRecord;
     	var promoid = actions[type].promoid;
-    	var promoInternalid = context.oldRecord.getValue(actions[context.newRecord.type].promoid);
+    	var promoInternalid = rec.getValue(actions[context.newRecord.type].promoid);
     	var itemid = actions[type].itemid;
-    	var itemInternalid = context.oldRecord.getValue(actions[context.newRecord.type].itemid);
+    	var itemInternalid = rec.getValue(actions[context.newRecord.type].itemid);
+    	
+    	var searchFilters = [[promoid,'anyof',promoInternalid],'and',
+			 [itemid,'anyof',itemInternalid]];
+    	
+    	if(searchInactive){
+    		searchFilters.push('and',['isinactive','is',true]);
+    	}
     	
         var searchResults = search.create({
 	    		type:type,
 	    		columns:['internalid'],
-	    		filters:[[promoid,'anyof',promoInternalid],'and',
-	    				 [itemid,'anyof',itemInternalid]]
+	    		filters:searchFilters
     	});
         
         return {
