@@ -131,42 +131,36 @@ function(config, record, search, itpm) {
 				id:'1',
 				account:promoDealLumsumAccnt,
 				type:'debit',
-				isDebit:true,
 				amount:lumsumSetReq
 			},{
 				lineType:'ls',
 				id:'1',
 				account:accountPayable,
 				type:'credit',
-				isDebit:false,
 				amount:lumsumSetReq
 			},{
 				lineType:'bb',
 				id:'2',
 				account:promoTypeDefaultAccnt,
 				type:'debit',
-				isDebit:true,
 				amount:billbackSetReq
 			},{
 				lineType:'bb',
 				id:'2',
 				account:accountPayable,
 				type:'credit',
-				isDebit:false,
 				amount:billbackSetReq
 			},{
 				lineType:'inv',
 				id:'3',
 				account:promoTypeDefaultAccnt,
 				type:'debit',
-				isDebit:true,
 				amount:offinvoiceSetReq
 			},{
 				lineType:'inv',
 				id:'3',
 				account:accountPayable,
 				type:'credit',
-				isDebit:false,
 				amount:offinvoiceSetReq
 			}];
 
@@ -308,10 +302,6 @@ function(config, record, search, itpm) {
 					sublistId:'line',
 					fieldId:'custcol_itpm_lsbboi',
 					value:e.id
-				}).setCurrentSublistValue({
-					sublistId:'line',
-					fieldId:'custcol_itpm_set_isdebit',
-					value:e.isDebit
 				}).setCurrentSublistValue({
 					sublistId:'line',
 					fieldId:'memo',
@@ -570,12 +560,7 @@ function(config, record, search, itpm) {
 			var lumpsumSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqls');
         	var bbSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqbb');
         	var offinvSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqoi');
-    		for(var i = 0;i < linecount;i++){
-    			var isDebit = loadedSettlementRec.getSublistValue({
-    			    sublistId: 'line',
-    			    fieldId: 'custcol_itpm_set_isdebit',
-    			    line: i
-    			});
+    		for(var i = 0,isDebit = true;i < linecount;i++){
     			var lsbboi = loadedSettlementRec.getSublistValue({
     			    sublistId: 'line',
     			    fieldId: 'custcol_itpm_lsbboi',
@@ -584,20 +569,22 @@ function(config, record, search, itpm) {
     			var lineValue = (lsbboi == 1)?lumpsumSetReqAmnt:(lsbboi == 2)?bbSetReqAmnt:offinvSetReqAmnt;
     			if(lineValue != '' && lineValue > 0){
     				log.debug('lineValue '+i,lineValue)
-    				if(isDebit){
+    				if(isDebit){ //Based on line adding to the settlement on create, setting the edit settlement line values here
     					loadedSettlementRec.setSublistValue({
     						sublistId:'line',
     						fieldId:'debit',
     						line:i,
     						value:lineValue
-    					})
+    					});
+    					isDebit = false;
     				}else{
     					loadedSettlementRec.setSublistValue({
     						sublistId:'line',
     						fieldId:'credit',
     						line:i,
     						value:lineValue
-    					})
+    					});
+    					isDebit = true;
     				}
     			}
     		}
