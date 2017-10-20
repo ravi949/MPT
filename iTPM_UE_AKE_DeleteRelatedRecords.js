@@ -67,17 +67,6 @@ function(record, search, runtime) {
     	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,true);
     	var allResultLength = allwResults.results.run().getRange(0,1000).length;
     	log.debug('allResultLength',allResultLength);
-    	allwResults.results.run().each(function(e){
-    		log.debug('updated '+context.oldRecord.type,e.getValue('internalid'))
-    		record.load({
-    			type:context.oldRecord.type,
-    			id:e.getValue('internalid')
-    		}).save({
-    			enableSourcing:false,
-    			ignoreMandatoryFields:true
-    		});
-    	});
-    	
     	if(allResultLength == 0){
     		deleteRecords(getResults('customrecord_itpm_estquantity',context,actions));
         	deleteRecords(getResults('customrecord_itpm_kpi',context,actions));
