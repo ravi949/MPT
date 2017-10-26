@@ -120,8 +120,20 @@ function(serverWidget,record,runtime,url,search) {
 						'st':0
 					}
 				});
+
+				//Actual Sales Last 52 weeks Suitelet URL
+				var actualSalesURLForLast52Weeks = url.resolveScript({
+					scriptId: 'customscript_itpm_promo_actualsales_52w',
+					deploymentId: 'customdeploy_itpm_promo_actualsales_52w',
+					returnExternalUrl: false,
+					params: {
+						'pid':scriptContext.newRecord.id,
+						'yr':0,
+						'st':0
+					}
+				});
 				
-				//Actual Shippments Suitelet URL
+				//Actual Shipments Suitelet URL
 				var actualShippmentsURL = url.resolveScript({
 					scriptId: 'customscript_itpm_promo_actualshippments',
 					deploymentId: 'customdeploy_itpm_promo_actualshippments',
@@ -133,7 +145,7 @@ function(serverWidget,record,runtime,url,search) {
 					}
 				});
 				
-				//Actual Shippments Previous Year Suitelet URL
+				//Actual Shipments Previous Year Suitelet URL
 				var actualShippmentsURLPreviousYear = url.resolveScript({
 					scriptId: 'customscript_itpm_promo_actualshippments',
 					deploymentId: 'customdeploy_itpm_promo_actualshippments',
@@ -141,6 +153,18 @@ function(serverWidget,record,runtime,url,search) {
 					params: {
 						'pid':scriptContext.newRecord.id,
 						'yr':1,
+						'st':0
+					}
+				});
+				
+				//Actual Shipments Last 52 weeks Suitelet URL
+				var actualShippmentsURLForLast52Weeks = url.resolveScript({
+					scriptId: 'customscript_itpm_promo_ashipments_52w',
+					deploymentId: 'customdeploy_itpm_promo_ashipments_52w',
+					returnExternalUrl: false,
+					params: {
+						'pid':scriptContext.newRecord.id,
+						'yr':0,
 						'st':0
 					}
 				});
@@ -153,14 +177,20 @@ function(serverWidget,record,runtime,url,search) {
 					fieldId:'custrecord_itpm_p_actualsales', //Actual Sales
 					value:actualSalesURL
 				}).setValue({
-					fieldId:'custrecord_itpm_p_actualshippments', //Actual Shippments
+					fieldId:'custrecord_itpm_p_actualshippments', //Actual Shipments
 					value:actualShippmentsURL
 				}).setValue({
 					fieldId:'custrecord_itpm_p_actualsalespreviousyr', //Actual Sales Previous Year
 					value:actualSalesURLPreviousYear
 				}).setValue({
-					fieldId:'custrecord_itpm_p_actualshippreviousyear', //Actual Shippments Previous Year
+					fieldId:'custrecord_itpm_p_actualshippreviousyear', //Actual Shipments Previous Year
 					value:actualShippmentsURLPreviousYear
+				}).setValue({
+					fieldId:'custrecord_itpm_p_actualsales52week', //Actual Sales Last 52 weeks
+					value:actualSalesURLForLast52Weeks
+				}).setValue({
+					fieldId:'custrecord_itpm_p_actualshipmnts52weeks', //Actual Shipments Last 52 weeks
+					value:actualShippmentsURLForLast52Weeks
 				}).save({
 					enableSourcing:false,
 					ignoreMandatoryFields:true
