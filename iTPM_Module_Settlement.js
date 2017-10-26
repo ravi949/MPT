@@ -290,15 +290,11 @@ function(config, record, search, itpm) {
 					sublistId:'line',
 					fieldId:'account',
 					value:e.account
-				});
-
-				newSettlementRecord.setCurrentSublistValue({
+				}).setCurrentSublistValue({
 					sublistId:'line',
 					fieldId:e.type,
 					value:e.amount
-				});
-
-				newSettlementRecord.setCurrentSublistValue({
+				}).setCurrentSublistValue({
 					sublistId:'line',
 					fieldId:'custcol_itpm_lsbboi',
 					value:e.id
@@ -306,6 +302,10 @@ function(config, record, search, itpm) {
 					sublistId:'line',
 					fieldId:'memo',
 					value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+params['custom_itpm_st_promotion_no']
+				}).setCurrentSublistValue({
+					sublistId:'line',
+					fieldId:'entity',
+					value:params['custom_itpm_st_cust']
 				}).commitLine({
 					sublistId: 'line'
 				});
@@ -372,11 +372,11 @@ function(config, record, search, itpm) {
 			var memo = 'Applying Settlement #'+SettlementRec.getValue('tranid')+' to Deduction #'+DeductionNum;
 
 			var JELines = [
-				{account:dednExpAccnt,memo:memo,type:'credit',amount:JEAmount},
-				{account:accountPayable,memo:memo,type:'debit',amount:JEAmount}
-				];
+				{recid:parameters.sid,account:dednExpAccnt,memo:memo,type:'credit',amount:JEAmount,subid:deductionRec.getValue('subsidiary'),custid:customer},
+				{recid:parameters.sid,account:accountPayable,memo:memo,type:'debit',amount:JEAmount,subid:deductionRec.getValue('subsidiary'),custid:customer}
+			];
 
-			var JournalId = setJELines(parameters.sid,deductionRec.getValue('subsidiary'),JELines);
+			var JournalId = setJELines(JELines);
 
 			log.debug('JournalId',JournalId);
 
@@ -402,6 +402,7 @@ function(config, record, search, itpm) {
 			}
 
 		}catch(e){
+			log.debug('error',e.message);
 			throw Error(e.message);
 		}
 		
@@ -416,17 +417,22 @@ function(config, record, search, itpm) {
 	function createReverseJE(settlementRec){
 		try{
 			var lineCount = settlementRec.getLineCount('line'),JELines = [];
+			
 			for(var i=0;i<lineCount;i++){
 				var credit = settlementRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i}),
 				debit = settlementRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i}); 
 				JELines.push({
+					recid:settlementRec.id,
 					account:settlementRec.getSublistValue({sublistId:'line',fieldId:'account',line:i}),
 					type:(parseFloat(credit) > 0 || credit != "")?'debit':'credit',
 					amount:(parseFloat(credit) > 0 || credit != "")?credit:debit,
-					memo:'Reverse Journal For Settlement #'+settlementRec.getValue('tranid')
+					memo:'Reverse Journal For Settlement #'+settlementRec.getValue('tranid'),
+					subid:settlementRec.getValue('subsidiary'),
+					custid:settlementRec.getValue('custbody_itpm_customer')
 				});
 			}
-			var JERecId = setJELines(settlementRec.id,settlementRec.getValue('subsidiary'),JELines);
+			log.debug('JELines',JELines);
+			var JERecId = setJELines(JELines);
 			return JERecId;
 		}catch(e){
 			throw Error('record type=iTPM Settlement, record id='+settlementRec.id+', module=iTPM_Module_Settlement.js ,function name = createReverseJE, error function = createReverseJE, message='+e.message);
@@ -442,7 +448,7 @@ function(config, record, search, itpm) {
 	 * Returns a Journal Entry record id
 	 * @returns {number}
 	 */
-	function setJELines(setId,subsId,JELines){
+	function setJELines(JELines){
 		try{
 			var subsidiaryExists = itpm.subsidiariesEnabled();
 			var journalRecord = record.create({
@@ -452,7 +458,7 @@ function(config, record, search, itpm) {
 			if(subsidiaryExists){
 				journalRecord.setValue({
 					fieldId: 'subsidiary',
-					value:subsId
+					value:JELines[0].subid
 				});
 			}
 			
@@ -461,7 +467,7 @@ function(config, record, search, itpm) {
 				value:JELines[0].memo
 			}).setValue({
 				fieldId:'custbody_itpm_appliedto',
-				value:setId
+				value:JELines[0].recid
 			});
 
 			var linesCount = JELines.length;
@@ -472,19 +478,21 @@ function(config, record, search, itpm) {
 					fieldId: 'account',
 					line: i,
 					value: JELines[i].account
-				});
-				journalRecord.setSublistValue({
+				}).setSublistValue({
 					sublistId:'line',
 					fieldId:'memo',
 					line: i,
 					value:JELines[i].memo
-				});
-
-				journalRecord.setSublistValue({
+				}).setSublistValue({
 					sublistId: 'line',
 					fieldId:JELines[i].type,
 					line: i,
 					value: JELines[i].amount
+				}).setSublistValue({
+					sublistId: 'line',
+					fieldId:'entity',
+					line: i,
+					value:JELines[i].custid
 				});
 			}
 
@@ -568,8 +576,9 @@ function(config, record, search, itpm) {
     			});
     			var lineValue = (lsbboi == 1)?lumpsumSetReqAmnt:(lsbboi == 2)?bbSetReqAmnt:offinvSetReqAmnt;
     			if(lineValue != '' && lineValue > 0){
-    				log.debug('lineValue '+i,lineValue)
-    				if(isDebit){ //Based on line adding to the settlement on create, setting the edit settlement line values here
+
+    				log.debug('lineValue '+i,lineValue);
+    				if(isDebit){
     					loadedSettlementRec.setSublistValue({
     						sublistId:'line',
     						fieldId:'debit',

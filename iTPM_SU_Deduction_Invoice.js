@@ -165,6 +165,10 @@ function(record, search, runtime, itpm) {
     				sublistId: 'line',
     				fieldId:'memo',
     				value:memo + ddnFields.tranid
+    			}).setCurrentSublistValue({
+    				sublistId: 'line',
+    				fieldId:'entity',
+    				value:customerId
     			}).commitLine({
     				sublistId: 'line'
     			});

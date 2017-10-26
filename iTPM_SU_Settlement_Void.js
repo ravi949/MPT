@@ -98,6 +98,11 @@ function(record, redirect, itpm, search) {
     					fieldId:'memo',
     					value:'Journal Entry for Settlement # '+SetRec.getValue('tranid'),
     					line:i
+    				}).setSublistValue({
+    					sublistId:'line',
+    					fieldId:'entity',
+    					value:SetRec.getValue('custbody_itpm_customer'),
+    					line:i
     				});
        			
     			}
