@@ -674,7 +674,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 			displayType : (promoLumSum > 0)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
     	})
     	
-    	if(!isEdit){
+    	/*if(!isEdit){                      //Commented as per new enhancement to remove Reason Code
     		//reason code
     	    settlementForm.addField({
         		id:'custom_itpm_st_reason_code',
@@ -685,7 +685,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
         	}).updateBreakType({
     			breakType : serverWidget.FieldBreakType.STARTCOL
     		}).isMandatory = true;
-    	}
+    	}*/
     	
     	//Settlement request : Bill back
     	var amountBBField = settlementForm.addField({
