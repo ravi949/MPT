@@ -14,6 +14,7 @@ define(['N/ui/serverWidget',
  * @param {record} record
  * @param {runtime} runtime
  * @param {url} url
+ * @param {search} search
  */
 function(serverWidget,record,runtime,url,search) {
    
@@ -79,129 +80,116 @@ function(serverWidget,record,runtime,url,search) {
         			//Add the overlap promotion to the new subtab
         			addOverlapSublists(promoForm,params,scriptContext.type);
         		}
+        		if (scriptContext.type == 'view' || scriptContext.type == 'edit'){
+        			var actualSalesURL = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_actualsales',
+        				deploymentId: 'customdeploy_itpm_promo_actualsales',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':0,
+        					'st':0
+        				}
+        			});
+
+        			//Actual Sales Previous Year Suitelet URL
+        			var actualSalesURLPreviousYear = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_actualsales',
+        				deploymentId: 'customdeploy_itpm_promo_actualsales',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':1,
+        					'st':0
+        				}
+        			});
+
+        			//Actual Sales Last 52 weeks Suitelet URL
+        			var actualSalesURLForLast52Weeks = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_actualsales_52w',
+        				deploymentId: 'customdeploy_itpm_promo_actualsales_52w',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':0,
+        					'st':0
+        				}
+        			});
+        			
+        			//Actual Shipments Suitelet URL
+        			var actualShippmentsURL = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_actualshippments',
+        				deploymentId: 'customdeploy_itpm_promo_actualshippments',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':0,
+        					'st':0
+        				}
+        			});
+        			
+        			//Actual Shipments Previous Year Suitelet URL
+        			var actualShippmentsURLPreviousYear = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_actualshippments',
+        				deploymentId: 'customdeploy_itpm_promo_actualshippments',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':1,
+        					'st':0
+        				}
+        			});
+        			
+        			//Actual Shipments Last 52 weeks Suitelet URL
+        			var actualShippmentsURLForLast52Weeks = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_ashipments_52w',
+        				deploymentId: 'customdeploy_itpm_promo_ashipments_52w',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':0,
+        					'st':0
+        				}
+        			});
+        			//adding the Actual and Shipments URLs.
+        			var promoRec = scriptContext.newRecord;
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualsales', //Actual Sales
+        				value:actualSalesURL,
+        				ignoreFieldChange: true
+        			});
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualshippments', //Actual Shipments
+        				value:actualShippmentsURL,
+        				ignoreFieldChange: true
+        			});
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualsalespreviousyr', //Actual Sales Previous Year
+        				value:actualSalesURLPreviousYear,
+        				ignoreFieldChange: true
+        			});
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualshippreviousyear', //Actual Shipments Previous Year
+        				value:actualShippmentsURLPreviousYear,
+        				ignoreFieldChange: true
+        			});
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualsales52week', //Actual Sales Last 52 weeks
+        				value:actualSalesURLForLast52Weeks,
+        				ignoreFieldChange: true
+        			});
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualshipmnts52weeks', //Actual Shipments Last 52 weeks
+        				value:actualShippmentsURLForLast52Weeks,
+        				ignoreFieldChange: true
+        			});
+        		}
     		}
     	}catch(e){
-    		log.error(e.name,'record id = '+scriptContext.newRecord.id+', function name = beforeload, message = '+e.message);
+    		log.error(e.name, e.message +'; beforeLoad; trigger type: ' + scriptContext.type + '; recordID: ' + scriptContext.newRecord.id + '; recordType: ' + scriptContext.newRecord.type);
     	}
     }
 
-    /**
-     * Function definition to be triggered before record is loaded.
-     *
-     * @param {Object} scriptContext
-     * @param {Record} scriptContext.newRecord - New record
-     * @param {Record} scriptContext.oldRecord - Old record
-     * @param {string} scriptContext.type - Trigger type
-     * @Since 2015.2
-     */
-    function afterSubmit(scriptContext) {
-    	try{
-			if(scriptContext.newRecord.getValue('custrecord_itpm_p_impact') == '13'){
-				//Actual Sales Suitelet URL
-				var actualSalesURL = url.resolveScript({
-					scriptId: 'customscript_itpm_promo_actualsales',
-					deploymentId: 'customdeploy_itpm_promo_actualsales',
-					returnExternalUrl: false,
-					params: {
-						'pid':scriptContext.newRecord.id,
-						'yr':0,
-						'st':0
-					}
-				});
-
-				//Actual Sales Previous Year Suitelet URL
-				var actualSalesURLPreviousYear = url.resolveScript({
-					scriptId: 'customscript_itpm_promo_actualsales',
-					deploymentId: 'customdeploy_itpm_promo_actualsales',
-					returnExternalUrl: false,
-					params: {
-						'pid':scriptContext.newRecord.id,
-						'yr':1,
-						'st':0
-					}
-				});
-
-				//Actual Sales Last 52 weeks Suitelet URL
-				var actualSalesURLForLast52Weeks = url.resolveScript({
-					scriptId: 'customscript_itpm_promo_actualsales_52w',
-					deploymentId: 'customdeploy_itpm_promo_actualsales_52w',
-					returnExternalUrl: false,
-					params: {
-						'pid':scriptContext.newRecord.id,
-						'yr':0,
-						'st':0
-					}
-				});
-				
-				//Actual Shipments Suitelet URL
-				var actualShippmentsURL = url.resolveScript({
-					scriptId: 'customscript_itpm_promo_actualshippments',
-					deploymentId: 'customdeploy_itpm_promo_actualshippments',
-					returnExternalUrl: false,
-					params: {
-						'pid':scriptContext.newRecord.id,
-						'yr':0,
-						'st':0
-					}
-				});
-				
-				//Actual Shipments Previous Year Suitelet URL
-				var actualShippmentsURLPreviousYear = url.resolveScript({
-					scriptId: 'customscript_itpm_promo_actualshippments',
-					deploymentId: 'customdeploy_itpm_promo_actualshippments',
-					returnExternalUrl: false,
-					params: {
-						'pid':scriptContext.newRecord.id,
-						'yr':1,
-						'st':0
-					}
-				});
-				
-				//Actual Shipments Last 52 weeks Suitelet URL
-				var actualShippmentsURLForLast52Weeks = url.resolveScript({
-					scriptId: 'customscript_itpm_promo_ashipments_52w',
-					deploymentId: 'customdeploy_itpm_promo_ashipments_52w',
-					returnExternalUrl: false,
-					params: {
-						'pid':scriptContext.newRecord.id,
-						'yr':0,
-						'st':0
-					}
-				});
-				//adding the Actual and Shipments URLs.
-				record.load({
-					type:'customrecord_itpm_promotiondeal',
-					id:scriptContext.newRecord.id,
-					isDynamic:true
-				}).setValue({
-					fieldId:'custrecord_itpm_p_actualsales', //Actual Sales
-					value:actualSalesURL
-				}).setValue({
-					fieldId:'custrecord_itpm_p_actualshippments', //Actual Shipments
-					value:actualShippmentsURL
-				}).setValue({
-					fieldId:'custrecord_itpm_p_actualsalespreviousyr', //Actual Sales Previous Year
-					value:actualSalesURLPreviousYear
-				}).setValue({
-					fieldId:'custrecord_itpm_p_actualshippreviousyear', //Actual Shipments Previous Year
-					value:actualShippmentsURLPreviousYear
-				}).setValue({
-					fieldId:'custrecord_itpm_p_actualsales52week', //Actual Sales Last 52 weeks
-					value:actualSalesURLForLast52Weeks
-				}).setValue({
-					fieldId:'custrecord_itpm_p_actualshipmnts52weeks', //Actual Shipments Last 52 weeks
-					value:actualShippmentsURLForLast52Weeks
-				}).save({
-					enableSourcing:false,
-					ignoreMandatoryFields:true
-				});
-			}
-		}catch(e){
-			log.error(e.name,'record type = iTPM promotion, record id = '+scriptContext.newRecord.id+', message = '+e.message);
-		}
-    }
-    
-    
     /**
      * @param {Object} promoForm
      * @param {Object} params customerid,promotionid,startdate,enddate
@@ -494,12 +482,9 @@ function(serverWidget,record,runtime,url,search) {
 		diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
 		return diffDays;
 	}	
-    
-    
 
     return {
-        beforeLoad: beforeLoad,
-        afterSubmit: afterSubmit
+        beforeLoad: beforeLoad
     };
     
 });
