@@ -5,10 +5,11 @@
  */
 define(['N/record',
 		'N/redirect',
-		'./iTPM_Module'
+		'./iTPM_Module',
+		'N/search'
 	   ],
 
-function(record, redirect, itpm) {
+function(record, redirect, itpm, search) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -114,6 +115,8 @@ function(record, redirect, itpm) {
     			log.debug('JERecId',JERecId);
        		
     			if(JERecId){
+    				var transactionId = SetRec.getValue('custbody_itpm_appliedto');
+    				var setReq = parseFloat(SetRec.getValue('custbody_itpm_amount'));
     				SetRec.setValue({
     					fieldId:'transtatus',
     					value:'C'
@@ -121,6 +124,29 @@ function(record, redirect, itpm) {
     					enableSourcing:false,
     					ignoreMandatoryFields:true
     				});
+    				if(transactionId && setReq > 0){
+    					//getting the type of transaction
+    					var transType = search.lookupFields({
+    					    type: search.Type.TRANSACTION,
+    					    id: transactionId,
+    					    columns: ['type']
+    					});
+    					if(transType.type[0].text == '- iTPM Deduction'){
+    						var deductionRec = record.load({
+        						type:'customtransaction_itpm_deduction',
+        						id:transactionId
+        					});
+            				var deductionOpenBal = parseFloat(deductionRec.getValue('custbody_itpm_ddn_openbal'));
+            				deductionOpenBal = (deductionOpenBal > 0)?deductionOpenBal:0;
+            				deductionRec.setValue({
+            					fieldId:'custbody_itpm_ddn_openbal',
+            					value:deductionOpenBal + setReq
+            				}).save({
+            					enableSourcing:false,
+            					ignoreMandatoryFields:true
+            				});    						
+    					}        				
+    				}
     			}
     			redirect.toRecord({
     				type:record.Type.JOURNAL_ENTRY,
