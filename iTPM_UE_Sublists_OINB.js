@@ -38,7 +38,7 @@ function(runtime, serverWidget, search, record, itpm) {
         	var showShipDates = (prefDatesType == "Ship Date" || prefDatesType == "Both" || prefDatesType == "Either");
         	var showOrderDates = (prefDatesType == "Order Date" || prefDatesType == "Both" || prefDatesType == "Either");
         	var orderStartDate,orderEndDate;
-        	
+        	var tranShipDateNotEmpty = (((prefDatesType == 'Ship Date' || prefDatesType == 'Both') && transhipdate) || prefDatesType == 'Either' || prefDatesType == 'Order Date');
         	//Adding tab(iTPM) to the form
         	sc.form.addTab({
         	    id    : 'custpage_itpm_tab',
@@ -97,59 +97,61 @@ function(runtime, serverWidget, search, record, itpm) {
         	}
         	
         	//fetching the results from promotions
-        	var resultsSLPR = getSearchResults(customerId,'pr',prefDatesType,trandate,transhipdate);
-        	var i = 0;
-        	
-        	//Adding the search results to the UI on sublist
-        	resultsSLPR.each(function(result){
-        		sublistPromotions.setSublistValue({
-        			id : 'custpage_psl_promotion',
-            	    line : i,
-            	    value : result.getValue({name:'internalid'})
-            	});
-        		
-        		sublistPromotions.setSublistValue({
-                  		id : 'custpage_psl_title',
-                	    line : i,
-                	    value : result.getValue({name:'internalid'})
-                	});
-        		
-        		if(showShipDates){
+        	if(tranShipDateNotEmpty){
+        		var resultsSLPR = getSearchResults(customerId,'pr',prefDatesType,trandate,transhipdate);
+        		var i = 0;
+
+        		//Adding the search results to the UI on sublist
+        		resultsSLPR.each(function(result){
         			sublistPromotions.setSublistValue({
-        				id : 'custpage_psl_ship_sd',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_shipstart'})
-                	});
-            		
+        				id : 'custpage_psl_promotion',
+        				line : i,
+        				value : result.getValue({name:'internalid'})
+        			});
+
         			sublistPromotions.setSublistValue({
-        				id : 'custpage_psl_ship_ed',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_shipend'})
-                	});
-        		}
-        		
-        		if(showOrderDates){
-        			orderStartDate = result.getValue({name:'custrecord_itpm_p_orderstart'});
-        			orderEndDate = result.getValue({name:'custrecord_itpm_p_orderend'});
-        			
-        			if(orderStartDate){
+        				id : 'custpage_psl_title',
+        				line : i,
+        				value : result.getValue({name:'internalid'})
+        			});
+
+        			if(showShipDates){
         				sublistPromotions.setSublistValue({
-            				id : 'custpage_psl_order_sd',
-                    	    line : i,
-                    	    value : orderStartDate
-                    	});
+        					id : 'custpage_psl_ship_sd',
+        					line : i,
+        					value : result.getValue({name:'custrecord_itpm_p_shipstart'})
+        				});
+
+        				sublistPromotions.setSublistValue({
+        					id : 'custpage_psl_ship_ed',
+        					line : i,
+        					value : result.getValue({name:'custrecord_itpm_p_shipend'})
+        				});
         			}
-            		if(orderEndDate){
-            			sublistPromotions.setSublistValue({
-            				id : 'custpage_psl_order_ed',
-                    	    line : i,
-                    	    value : orderEndDate
-                    	});
-            		}
-        		}
-        		i++;
-        		return true;
-        	});
+
+        			if(showOrderDates){
+        				orderStartDate = result.getValue({name:'custrecord_itpm_p_orderstart'});
+        				orderEndDate = result.getValue({name:'custrecord_itpm_p_orderend'});
+
+        				if(orderStartDate){
+        					sublistPromotions.setSublistValue({
+        						id : 'custpage_psl_order_sd',
+        						line : i,
+        						value : orderStartDate
+        					});
+        				}
+        				if(orderEndDate){
+        					sublistPromotions.setSublistValue({
+        						id : 'custpage_psl_order_ed',
+        						line : i,
+        						value : orderEndDate
+        					});
+        				}
+        			}
+        			i++;
+        			return true;
+        		});
+        	}
         	//#############################  Promotions (UI) - END #######################################
         	
         	//*********************  Off Invoice (UI) - START ******************************
@@ -230,86 +232,88 @@ function(runtime, serverWidget, search, record, itpm) {
         	    label : 'Unit'
         	});
         	
-        	//fetching the results from promotions
-        	var resultsSLOI = getSearchResults(customerId,'oi',prefDatesType,trandate,transhipdate);
-        	var i = 0;
-        	
-        	//Adding the search results to the UI on sublist
-        	resultsSLOI.each(function(result){
-        		sublistOffInvoice.setSublistValue({
-              	     id : 'custpage_oisl_promotion',
-            	    line : i,
-            	    value : result.getValue({name:'internalid'})
-            	});
-        		
-        		sublistOffInvoice.setSublistValue({
-             	     id : 'custpage_oisl_title',
-             	     line : i,
-             	     value : result.getValue({name:'internalid'})
-        		});
-        		
-        		sublistOffInvoice.setSublistValue({
-              	    id : 'custpage_oisl_item',
-            	    line : i,
-            	    value : result.getValue({name:'custrecord_itpm_estqty_item', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
-            	});
-        		
-        		if(showShipDates){
+        	if(tranShipDateNotEmpty){
+        		//fetching the results from promotions
+        		var resultsSLOI = getSearchResults(customerId,'oi',prefDatesType,trandate,transhipdate);
+        		var i = 0;
+
+        		//Adding the search results to the UI on sublist
+        		resultsSLOI.each(function(result){
         			sublistOffInvoice.setSublistValue({
-        				id : 'custpage_oisl_ship_sd',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_shipstart'})
-                	});
-            		
+        				id : 'custpage_oisl_promotion',
+        				line : i,
+        				value : result.getValue({name:'internalid'})
+        			});
+
         			sublistOffInvoice.setSublistValue({
-        				id : 'custpage_oisl_ship_ed',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_shipend'})
-                	});
-        		}
-        		
-        		if(showOrderDates){
-        			orderStartDate = result.getValue({name:'custrecord_itpm_p_orderstart'});
-        			orderEndDate = result.getValue({name:'custrecord_itpm_p_orderend'});
-        			
-        			if(orderStartDate){
+        				id : 'custpage_oisl_title',
+        				line : i,
+        				value : result.getValue({name:'internalid'})
+        			});
+
+        			sublistOffInvoice.setSublistValue({
+        				id : 'custpage_oisl_item',
+        				line : i,
+        				value : result.getValue({name:'custrecord_itpm_estqty_item', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
+        			});
+
+        			if(showShipDates){
         				sublistOffInvoice.setSublistValue({
-            				id : 'custpage_oisl_order_sd',
-                    	    line : i,
-                    	    value : orderStartDate
-                    	});
+        					id : 'custpage_oisl_ship_sd',
+        					line : i,
+        					value : result.getValue({name:'custrecord_itpm_p_shipstart'})
+        				});
+
+        				sublistOffInvoice.setSublistValue({
+        					id : 'custpage_oisl_ship_ed',
+        					line : i,
+        					value : result.getValue({name:'custrecord_itpm_p_shipend'})
+        				});
         			}
-            		if(orderEndDate){
-            			sublistOffInvoice.setSublistValue({
-            				id : 'custpage_oisl_order_ed',
-                    	    line : i,
-                    	    value : orderEndDate
-                    	});
-            		}
-        			
-        		}
-        		
-        		sublistOffInvoice.setSublistValue({
-        			id : 'custpage_oisl_nb_pu',
-            	    line : i,
-            	    value : result.getValue({name:'custrecord_itpm_estqty_rateperunitoi', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
-            	});
-        		
-        		sublistOffInvoice.setSublistValue({
-        			id : 'custpage_oisl_nb_ppu',
-            	    line : i,
-            	    value : result.getValue({name:'custrecord_itpm_estqty_percentoi', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
-            	});
-        		
-        		sublistOffInvoice.setSublistValue({
-        			id : 'custpage_oisl_unit',
-            	    line : i,
-            	    value : result.getText({name:'custrecord_itpm_estqty_qtyby', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
-            	});
-        		
-        		i++;
-        		return true;
-        	});
+
+        			if(showOrderDates){
+        				orderStartDate = result.getValue({name:'custrecord_itpm_p_orderstart'});
+        				orderEndDate = result.getValue({name:'custrecord_itpm_p_orderend'});
+
+        				if(orderStartDate){
+        					sublistOffInvoice.setSublistValue({
+        						id : 'custpage_oisl_order_sd',
+        						line : i,
+        						value : orderStartDate
+        					});
+        				}
+        				if(orderEndDate){
+        					sublistOffInvoice.setSublistValue({
+        						id : 'custpage_oisl_order_ed',
+        						line : i,
+        						value : orderEndDate
+        					});
+        				}
+
+        			}
+
+        			sublistOffInvoice.setSublistValue({
+        				id : 'custpage_oisl_nb_pu',
+        				line : i,
+        				value : result.getValue({name:'custrecord_itpm_estqty_rateperunitoi', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
+        			});
+
+        			sublistOffInvoice.setSublistValue({
+        				id : 'custpage_oisl_nb_ppu',
+        				line : i,
+        				value : result.getValue({name:'custrecord_itpm_estqty_percentoi', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
+        			});
+
+        			sublistOffInvoice.setSublistValue({
+        				id : 'custpage_oisl_unit',
+        				line : i,
+        				value : result.getText({name:'custrecord_itpm_estqty_qtyby', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
+        			});
+
+        			i++;
+        			return true;
+        		});
+        	}
         	
         	//**************************** Off Invoice (UI) - END **************************
         	
@@ -391,86 +395,88 @@ function(runtime, serverWidget, search, record, itpm) {
         	    label : 'Unit'
         	});
         	
-        	//fetching the results from promotions
-        	var resultsSLNB = getSearchResults(customerId,'nb',prefDatesType,trandate,transhipdate);
-        	var i = 0;
-        	
-        	//Adding the search results to the UI on sublist
-        	resultsSLNB.each(function(result){
-        		sublistNetBill.setSublistValue({
-              	    id : 'custpage_nbsl_promotion',
-            	    line : i,
-            	    value : result.getValue({name:'internalid'})
-            	});
-        		
-        		sublistNetBill.setSublistValue({
-              	    id : 'custpage_nbsl_title',
-            	    line : i,
-            	    value : result.getValue({name:'internalid'})
-            	});
-        		
-        		
-        		sublistNetBill.setSublistValue({
-              	    id : 'custpage_nbsl_item',
-            	    line : i,
-            	    value : result.getValue({name:'custrecord_itpm_estqty_item', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL', sort: search.Sort.ASC})
-            	});
-        		
-        		if(showShipDates){
+        	if(tranShipDateNotEmpty){
+        		//fetching the results from promotions
+        		var resultsSLNB = getSearchResults(customerId,'nb',prefDatesType,trandate,transhipdate);
+        		var i = 0;
+
+        		//Adding the search results to the UI on sublist
+        		resultsSLNB.each(function(result){
         			sublistNetBill.setSublistValue({
-                  	    id : 'custpage_nbsl_ship_sd',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_shipstart'})
-                	});
-            		
-            		sublistNetBill.setSublistValue({
-                  	    id : 'custpage_nbsl_ship_ed',
-                	    line : i,
-                	    value : result.getValue({name:'custrecord_itpm_p_shipend'})
-                	});
-        		}
-        		
-        		if(showOrderDates){
-        			orderStartDate = result.getValue({name:'custrecord_itpm_p_orderstart'});
-        			orderEndDate = result.getValue({name:'custrecord_itpm_p_orderend'});
-        			if(orderStartDate){
+        				id : 'custpage_nbsl_promotion',
+        				line : i,
+        				value : result.getValue({name:'internalid'})
+        			});
+
+        			sublistNetBill.setSublistValue({
+        				id : 'custpage_nbsl_title',
+        				line : i,
+        				value : result.getValue({name:'internalid'})
+        			});
+
+
+        			sublistNetBill.setSublistValue({
+        				id : 'custpage_nbsl_item',
+        				line : i,
+        				value : result.getValue({name:'custrecord_itpm_estqty_item', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL', sort: search.Sort.ASC})
+        			});
+
+        			if(showShipDates){
         				sublistNetBill.setSublistValue({
-                      	    id : 'custpage_nbsl_order_sd',
-                    	    line : i,
-                    	    value : orderStartDate
-                    	});
+        					id : 'custpage_nbsl_ship_sd',
+        					line : i,
+        					value : result.getValue({name:'custrecord_itpm_p_shipstart'})
+        				});
+
+        				sublistNetBill.setSublistValue({
+        					id : 'custpage_nbsl_ship_ed',
+        					line : i,
+        					value : result.getValue({name:'custrecord_itpm_p_shipend'})
+        				});
         			}
-            		if(orderEndDate){
-            			sublistNetBill.setSublistValue({
-                      	    id : 'custpage_nbsl_order_ed',
-                    	    line : i,
-                    	    value : orderEndDate
-                    	});
-            		}
-            		
-        		}
-        		
-        		sublistNetBill.setSublistValue({
-              	    id : 'custpage_nbsl_nb_pu',
-            	    line : i,
-            	    value : result.getValue({name:'custrecord_itpm_estqty_rateperunitnb', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
-            	});
-        		
-        		sublistNetBill.setSublistValue({
-              	    id : 'custpage_nbsl_nb_ppu',
-            	    line : i,
-            	    value : result.getValue({name:'custrecord_itpm_estqty_percentnb', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
-            	});
-        		
-        		sublistNetBill.setSublistValue({
-              	    id : 'custpage_nbsl_unit',
-            	    line : i,
-            	    value : result.getText({name:'custrecord_itpm_estqty_qtyby', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
-            	});
-        		
-        		i++;
-        		return true;
-        	});
+
+        			if(showOrderDates){
+        				orderStartDate = result.getValue({name:'custrecord_itpm_p_orderstart'});
+        				orderEndDate = result.getValue({name:'custrecord_itpm_p_orderend'});
+        				if(orderStartDate){
+        					sublistNetBill.setSublistValue({
+        						id : 'custpage_nbsl_order_sd',
+        						line : i,
+        						value : orderStartDate
+        					});
+        				}
+        				if(orderEndDate){
+        					sublistNetBill.setSublistValue({
+        						id : 'custpage_nbsl_order_ed',
+        						line : i,
+        						value : orderEndDate
+        					});
+        				}
+
+        			}
+
+        			sublistNetBill.setSublistValue({
+        				id : 'custpage_nbsl_nb_pu',
+        				line : i,
+        				value : result.getValue({name:'custrecord_itpm_estqty_rateperunitnb', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
+        			});
+
+        			sublistNetBill.setSublistValue({
+        				id : 'custpage_nbsl_nb_ppu',
+        				line : i,
+        				value : result.getValue({name:'custrecord_itpm_estqty_percentnb', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
+        			});
+
+        			sublistNetBill.setSublistValue({
+        				id : 'custpage_nbsl_unit',
+        				line : i,
+        				value : result.getText({name:'custrecord_itpm_estqty_qtyby', join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL'})
+        			});
+
+        			i++;
+        			return true;
+        		});
+        	}
         	//=====================================  Net Bill (UI) - END ===================================
         	
     	}catch(e){
@@ -548,11 +554,13 @@ function(runtime, serverWidget, search, record, itpm) {
     			]);
     			break;
     		case "Either":
-    			tranFilters.push("AND",[
-    				[["custrecord_itpm_p_shipstart","onorbefore",transhipdate],"AND",["custrecord_itpm_p_shipend","onorafter",transhipdate]],
-    				"OR",
+    			var eitherFil = [
     				[["custrecord_itpm_p_orderstart","onorbefore",trandate],"AND",["custrecord_itpm_p_orderend","onorafter",trandate]]
-    			]);	
+    			];
+    			if(transhipdate){
+    				eitherFil.push("OR",[["custrecord_itpm_p_shipstart","onorbefore",transhipdate],"AND",["custrecord_itpm_p_shipend","onorafter",transhipdate]]);
+    			}
+    			tranFilters.push("AND",eitherFil);	
     			break;
     		}
     		
