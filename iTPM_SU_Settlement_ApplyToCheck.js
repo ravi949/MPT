@@ -72,12 +72,12 @@ function(record, redirect, search, ST_Module,itpm) {
         		//setting the body fields of the check record
         		checkRecord.setValue({
         			fieldId: 'entity',
-        			value:  settlementRec.getValue('custbody_itpm_set_customer'),
+        			value:  settlementRec.getValue('custbody_itpm_customer'),
         			ignoreFieldChange: true
         		});
         		checkRecord.setValue({
         			fieldId: 'usertotal',
-        			value:  settlementRec.getValue('custbody_itpm_set_amount'),
+        			value:  settlementRec.getValue('custbody_itpm_amount'),
         			ignoreFieldChange: true
         		});
         		
@@ -120,187 +120,63 @@ function(record, redirect, search, ST_Module,itpm) {
         		
         		//adding line items in the check record    		
         		var expenseLineCount = 0;//increasing line count after adding record
-        		//adding lump sum expense line in check record
-        		if(settlementRec.getValue('custbody_itpm_set_reqls') > 0){
-        			//if Promotion record don't have any account in lump sum then adding the Promotion Type default account to this field
-        			if(promotionRecSer[0].getValue('custrecord_itpm_p_account')){
-        				checkRecord.setSublistValue({
-            				sublistId: 'expense',
-            				fieldId: 'account',
-            				line: expenseLineCount,
-            				value: promotionRecSer[0].getValue('custrecord_itpm_p_account')
-            			});
-        			} else {
-        				checkRecord.setSublistValue({
-            				sublistId: 'expense',
-            				fieldId: 'account',
-            				line: expenseLineCount,
-            				value: promotionRecSer[0].getValue({name:'custrecord_itpm_pt_defaultaccount',join:'custrecord_itpm_p_type'})
-            			});
-        			}
+      
+        		//adding lump sum,bb and off-invoice expense line in check record
+        		//if Promotion record don't have any account in lump sum then adding the Promotion Type default account to this field
+        		var checkLines = [{
+        			'account':(promotionRecSer[0].getValue('custrecord_itpm_p_account'))?promotionRecSer[0].getValue('custrecord_itpm_p_account'):promotionRecSer[0].getValue({name:'custrecord_itpm_pt_defaultaccount',join:'custrecord_itpm_p_type'}),
+        			'amount':(settlementRec.getValue('custbody_itpm_set_reqls') > 0)?settlementRec.getValue('custbody_itpm_set_reqls'):0,
+        			'memo':'Lump Sum Settlement #'+ settlementRec.getValue('tranid'),
+        			'mop':1
+        		},{
+        			'account':promotionRecSer[0].getValue({name:'custrecord_itpm_pt_defaultaccount',join:'custrecord_itpm_p_type'}),
+        			'amount':(settlementRec.getValue('custbody_itpm_set_reqbb') > 0)?settlementRec.getValue('custbody_itpm_set_reqbb'):0,
+        			'memo':'Bill Back Settlement #'+ settlementRec.getValue('tranid'),
+        			'mop':2
+        		},{
+        			'account':promotionRecSer[0].getValue({name:'custrecord_itpm_pt_defaultaccount',join:'custrecord_itpm_p_type'}),
+        			'amount':(settlementRec.getValue('custbody_itpm_set_reqoi') > 0)?settlementRec.getValue('custbody_itpm_set_reqoi'):0,
+        			'memo':'Missed Off Invoice Settlement #'+ settlementRec.getValue('tranid'),
+        			'mop':3
+        		}];
+        		
+        		//setting the location,class and department values to the lines
+        		var expenseLineCount = checkLines.length;
+        		for(var v = 0; v < expenseLineCount; v++){
         			
         			checkRecord.setSublistValue({
         				sublistId: 'expense',
-        				fieldId: 'amount',
-        				line: expenseLineCount,
-        				value: settlementRec.getValue('custbody_itpm_set_reqls')
-        			}); 
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'memo', 
-        				line: expenseLineCount,
-        				value: 'Lump Sum Settlement #'+ settlementRec.getValue('tranid')
-        			});
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'custcol_itpm_lsbboi', 
-        				line: expenseLineCount,
-        				value: 1
-        			});
-            		expenseLineCount = 1+expenseLineCount;
-        		} else {
-        			if(promotionRecSer[0].getValue('custrecord_itpm_p_account')){
-        				checkRecord.setSublistValue({
-            				sublistId: 'expense',
-            				fieldId: 'account',
-            				line: expenseLineCount,
-            				value: promotionRecSer[0].getValue('custrecord_itpm_p_account')
-            			});
-        			} else {
-        				checkRecord.setSublistValue({
-            				sublistId: 'expense',
-            				fieldId: 'account',
-            				line: expenseLineCount,
-            				value: promotionRecSer[0].getValue({name:'custrecord_itpm_pt_defaultaccount',join:'custrecord_itpm_p_type'})
-            			});
-        			}
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'amount',
-        				line: expenseLineCount,
-        				value: 0
-        			}); 
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'memo', 
-        				line: expenseLineCount,
-        				value: 'Lump Sum Settlement #'+ settlementRec.getValue('tranid')
-        			});
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'custcol_itpm_lsbboi', 
-        				line: expenseLineCount,
-        				value: 1
-        			});
-            		expenseLineCount = 1+expenseLineCount;
-        		}
-        		//adding bill back expense line in check record
-        		if(settlementRec.getValue('custbody_itpm_set_reqbb') > 0){
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
         				fieldId: 'account',
-        				line: expenseLineCount,
-        				value: promotionRecSer[0].getValue({name:'custrecord_itpm_pt_defaultaccount',join:'custrecord_itpm_p_type'})
-        			});
-        			checkRecord.setSublistValue({
+        				line: v,
+        				value: checkLines[v].account
+        			}).setSublistValue({
         				sublistId: 'expense',
         				fieldId: 'amount',
-        				line: expenseLineCount,
-        				value: settlementRec.getValue('custbody_itpm_set_reqbb')
-        			});
-        			checkRecord.setSublistValue({
+        				line: v,
+        				value: checkLines[v].amount
+        			}).setSublistValue({
         				sublistId: 'expense',
         				fieldId: 'memo',
-        				line: expenseLineCount,
-        				value: 'Bill Back Settlement #'+ settlementRec.getValue('tranid')
-        			});
-        			checkRecord.setSublistValue({
+        				line: v,
+        				value: checkLines[v].memo
+        			}).setSublistValue({
         				sublistId: 'expense',
         				fieldId: 'custcol_itpm_lsbboi', 
-        				line: expenseLineCount,
-        				value: 2
-        			});
-            		expenseLineCount = 1+expenseLineCount;
-        		} else {
-        			checkRecord.setSublistValue({
+        				line: v,
+        				value: checkLines[v].mop
+        			}).setSublistValue({
         				sublistId: 'expense',
-        				fieldId: 'account',
-        				line: expenseLineCount,
-        				value: promotionRecSer[0].getValue({name:'custrecord_itpm_pt_defaultaccount',join:'custrecord_itpm_p_type'})
-        			});
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'amount',
-        				line: expenseLineCount,
-        				value: 0
-        			});
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'memo',
-        				line: expenseLineCount,
-        				value: 'Bill Back Settlement #'+ settlementRec.getValue('tranid')
-        			});
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'custcol_itpm_lsbboi', 
-        				line: expenseLineCount,
-        				value: 2
-        			});
-            		expenseLineCount = 1+expenseLineCount;
-        		}
-        		//adding off-invoice expense line in check record
-        		if(settlementRec.getValue('custbody_itpm_set_reqoi') > 0){
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'account',
-        				line: expenseLineCount,
-        				value: promotionRecSer[0].getValue({name:'custrecord_itpm_pt_defaultaccount',join:'custrecord_itpm_p_type'})
-        			});
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'amount',
-        				line: expenseLineCount,
-        				value: settlementRec.getValue('custbody_itpm_set_reqoi')
-        			});
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'memo',
-        				line: expenseLineCount,
-        				value: 'Missed Off Invoice Settlement #'+ settlementRec.getValue('tranid')
-        			});
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'custcol_itpm_lsbboi', 
-        				line: expenseLineCount,
-        				value: 3
-        			});
-        		} else {
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'account',
-        				line: expenseLineCount,
-        				value: promotionRecSer[0].getValue({name:'custrecord_itpm_pt_defaultaccount',join:'custrecord_itpm_p_type'})
-        			});
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'amount',
-        				line: expenseLineCount,
-        				value: 0
-        			});
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'memo',
-        				line: expenseLineCount,
-        				value: 'Missed Off Invoice Settlement #'+ settlementRec.getValue('tranid')
-        			});
-        			checkRecord.setSublistValue({
-        				sublistId: 'expense',
-        				fieldId: 'custcol_itpm_lsbboi', 
-        				line: expenseLineCount,
-        				value: 3
-        			});
-        		}
-        		for(var v =0; v<= expenseLineCount; v++){
+            			fieldId: 'customer',
+            			line: v,
+            			value: settlementRec.getValue('custbody_itpm_customer')
+            		}).setSublistValue({
+            			sublistId: 'expense',
+            			fieldId: 'isbillable',
+            			line: v,
+            			value: false
+            		});
+        			
+        			
         			if(departmentsExists){
         				checkRecord.setSublistValue({
                 			sublistId: 'expense',
@@ -327,13 +203,6 @@ function(record, redirect, search, ST_Module,itpm) {
                 			value: settlementRec.getValue('location')
                 		});
             		}
-            		
-            		checkRecord.setSublistValue({
-            			sublistId: 'expense',
-            			fieldId: 'isbillable',
-            			line: v,
-            			value: false
-            		});
         		}
         		//saving the check record
         		var checkRecordId = checkRecord.save({
@@ -347,7 +216,7 @@ function(record, redirect, search, ST_Module,itpm) {
         		    ignoreFieldChange: true
         		});
         		settlementRec.setValue({
-        		    fieldId: 'custbody_itpm_set_deduction',
+        		    fieldId: 'custbody_itpm_appliedto',
         		    value: checkRecordId,
         		    ignoreFieldChange: true
         		});

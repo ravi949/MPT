@@ -222,14 +222,14 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     			id:params.sid
     		});
     		var entryNo = settlementRec.getValue('tranid');
-    		var otherRefCode = settlementRec.getValue('custbody_itpm_set_otherrefcode');
+    		var otherRefCode = settlementRec.getValue('custbody_itpm_otherrefcode');
     		var defaultDate = settlementRec.getValue('trandate');
-    		var appliedToTransaction = settlementRec.getValue('custbody_itpm_set_deduction');
+    		var appliedToTransaction = settlementRec.getValue('custbody_itpm_appliedto');
     		var status = settlementRec.getText('transtatus');
-    		var customerId = settlementRec.getValue('custbody_itpm_set_customer');
-    		var customerText = settlementRec.getText('custbody_itpm_set_customer');
+    		var customerId = settlementRec.getValue('custbody_itpm_customer');
+    		var customerText = settlementRec.getText('custbody_itpm_customer');
     		var memo = settlementRec.getValue('memo');
-    		var settlementReqValue = settlementRec.getValue('custbody_itpm_set_amount');
+    		var settlementReqValue = settlementRec.getValue('custbody_itpm_amount');
     		var incrdPromotionLiablty = settlementRec.getValue('custbody_itpm_set_incrd_promoliability');
 			var netPromotionLiablty = settlementRec.getValue('custbody_itpm_set_netliability');
 			var promotionDesc = settlementRec.getValue('custbody_itpm_set_promodesc');
@@ -653,9 +653,8 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 	    }
 	    
 	    //settlement request
-	    if(!isEdit){
-	    	var settlementReqValue = (createdFromDDN)?(ddnOpenBal>netPromotionLiablty)?netPromotionLiablty:ddnOpenBal:0;
-	    }
+	    settlementReqValue = (isEdit)?settlementReqValue:0;
+	    
 	    var settlementReqField = settlementForm.addField({
     		id:'custom_itpm_st_reql',
     		type:serverWidget.FieldType.CURRENCY,
@@ -672,10 +671,10 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     		label:'AMOUNT : LUMP SUM',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
-			displayType : (promoLumSum != 0 && promoLumSum != '')?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+			displayType : (promoLumSum > 0)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
     	})
     	
-    	if(!isEdit){
+    	/*if(!isEdit){                      //Commented as per new enhancement to remove Reason Code
     		//reason code
     	    settlementForm.addField({
         		id:'custom_itpm_st_reason_code',
@@ -686,7 +685,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
         	}).updateBreakType({
     			breakType : serverWidget.FieldBreakType.STARTCOL
     		}).isMandatory = true;
-    	}
+    	}*/
     	
     	//Settlement request : Bill back
     	var amountBBField = settlementForm.addField({

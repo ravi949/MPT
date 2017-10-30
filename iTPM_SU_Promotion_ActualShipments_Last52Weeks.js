@@ -1,25 +1,25 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
- * @NModuleScope TargetAccount
- *  Suitelet script to generate and return a report of actual shipments based on Item Fulfillment records for the items selected in the Allowances of a Promotion.
+ * @NModuleScope SameAccount
  */
-define(['N/ui/serverWidget',
-		'N/search',
-		'N/record',
-		'N/format'
-		],
-
-function(serverWidget,search,record,format) {
-
-	/**
-	 * Definition of the Suitelet script trigger point.
-	 *
-	 * @param {Object} context
-	 * @param {ServerRequest} context.request - Encapsulation of the incoming request
-	 * @param {ServerResponse} context.response - Encapsulation of the Suitelet response
-	 * @Since 2015.2
-	 */
+define(['N/format', 'N/record', 'N/search', 'N/ui/serverWidget'],
+/**
+ * @param {format} format
+ * @param {record} record
+ * @param {search} search
+ * @param {serverWidget} serverWidget
+ */
+function(format, record, search, serverWidget) {
+   
+    /**
+     * Definition of the Suitelet script trigger point.
+     *
+     * @param {Object} context
+     * @param {ServerRequest} context.request - Encapsulation of the incoming request
+     * @param {ServerResponse} context.response - Encapsulation of the Suitelet response
+     * @Since 2015.2
+     */
 	function onRequest(context) {
 		try{
 			var request = context.request;
@@ -28,9 +28,9 @@ function(serverWidget,search,record,format) {
 			if(request.method == 'GET'){
 
 				var startno = request.parameters.st;
-				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
+				//var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var form = serverWidget.createForm({
-					title : 'Actual Shipments'+((yearResult == 1)?(' (Previous Year)'):'')
+					title : 'Actual Shipments for last 52 weeks'
 				});
 				
 				//Adding the body fields to the form
@@ -90,13 +90,10 @@ function(serverWidget,search,record,format) {
 					columns: ['internalid','name','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_customer']
 				});
 
-				var startDate = new Date(promoDealRecord['custrecord_itpm_p_shipstart']);
-				var endDate = new Date(promoDealRecord['custrecord_itpm_p_shipend']);
+				var startDate = new Date();
+				startDate.setFullYear(startDate.getFullYear()-1);
+				var endDate = new Date();
 
-				if(yearResult == 1){
-					startDate.setFullYear(startDate.getFullYear()-1);
-					endDate.setFullYear(endDate.getFullYear()-1);
-				}
 				var startDateYear = format.format({
 					value: startDate,
 					type: format.Type.DATE
@@ -338,9 +335,14 @@ function(serverWidget,search,record,format) {
 					label:'Item Description'
 				});
 				itemSummarySublist.addField({
+					id:'custpage_itemsummary_shipmentuom',
+					type:serverWidget.FieldType.TEXT,
+					label:'Shipment UOM'
+				});
+				itemSummarySublist.addField({
 					id:'custpage_itemsummary_quantity',
 					type:serverWidget.FieldType.TEXT,
-					label:'Quantity'
+					label:'Average QTY Of Shipments (WEEKLY)'
 				});
 				
 				searchColumn = [search.createColumn({
@@ -349,6 +351,9 @@ function(serverWidget,search,record,format) {
 				}),search.createColumn({
 				    name: 'description',
 				    join:'item',
+				    summary:search.Summary.GROUP
+				}),search.createColumn({
+				    name: 'unit',
 				    summary:search.Summary.GROUP
 				}),search.createColumn({
 				    name: 'quantity',
@@ -369,6 +374,11 @@ function(serverWidget,search,record,format) {
 							id:'custpage_itemsummary_description',
 							line:i,
 							value:e.getValue({name:'description',join:'item',summary:search.Summary.GROUP})
+						});
+						itemSummarySublist.setSublistValue({
+							id:'custpage_itemsummary_shipmentuom',
+							line:i,
+							value:e.getText({name:'unit',summary:search.Summary.GROUP})
 						});
 						itemSummarySublist.setSublistValue({
 							id:'custpage_itemsummary_quantity',

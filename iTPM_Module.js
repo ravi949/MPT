@@ -17,7 +17,7 @@ function(search, record, util, runtime) {
 			var currentUser = runtime.getCurrentUser();
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
-			log.debug('locationsEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+//			log.debug('locationsEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
 			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
@@ -37,7 +37,7 @@ function(search, record, util, runtime) {
 			var currentUser = runtime.getCurrentUser();
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
-			log.debug('departmentsEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+//			log.debug('departmentsEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
 			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
@@ -57,7 +57,7 @@ function(search, record, util, runtime) {
 			var currentUser = runtime.getCurrentUser();
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
-			log.debug('classesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+//			log.debug('classesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
 			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
@@ -77,7 +77,7 @@ function(search, record, util, runtime) {
 			var currentUser = runtime.getCurrentUser();
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
-			log.debug('subsidiariesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+//			log.debug('subsidiariesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
 			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
@@ -97,7 +97,7 @@ function(search, record, util, runtime) {
 			var currentUser = runtime.getCurrentUser();
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
-			log.debug('currenciesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
+//			log.debug('currenciesEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
 			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
@@ -117,17 +117,17 @@ function(search, record, util, runtime) {
      */
     function getSpend(objParameter) {
     	try{
-    		log.debug('getSpend', objParameter);
+//    		log.debug('getSpend', objParameter);
     		if(objParameter.returnZero) return {error: false, spend: 0, bb: 0, oi: 0, nb: 0};
     		var qty = parseFloat(objParameter.quantity),
 			rateBB = (objParameter.rateBB == '' || objParameter.rateBB == null || !objParameter.rateBB)? 0 : parseFloat(objParameter.rateBB),
 			rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
 			rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB);
-    		log.debug('getSpend_Values', 'qty: ' + qty + ', rateBB: ' + rateBB + ', rateOI: ' + rateOI + ', rateNB: ' + rateNB);
+//    		log.debug('getSpend_Values', 'qty: ' + qty + ', rateBB: ' + rateBB + ', rateOI: ' + rateOI + ', rateNB: ' + rateNB);
 		var eSpendBB = qty * rateBB;
 		var eSpendOI = qty * rateOI; 
 		var eSpendNB = qty * rateNB;
-		log.debug('getSpend_Spends', 'qty: ' + qty + ', eSpendBB: ' + eSpendBB + ', eSpendOI: ' + eSpendOI + ', eSpendNB: ' + eSpendNB);
+//		log.debug('getSpend_Spends', 'qty: ' + qty + ', eSpendBB: ' + eSpendBB + ', eSpendOI: ' + eSpendOI + ', eSpendNB: ' + eSpendNB);
 		//return {error: false, spend: eSpendBB + eSpendOI + eSpendNB, bb: eSpendBB, oi: eSpendOI, nb: eSpendNB};
 		return {error: false, spend: qty*(rateBB + rateOI + rateNB), bb: qty*rateBB, oi: qty*rateOI, nb: qty*rateNB};
     	} catch(ex) {
@@ -144,7 +144,7 @@ function(search, record, util, runtime) {
      */
     function getLiability(objParameter) {
     	try{
-    		log.debug('getLiability', objParameter);
+//    		log.debug('getLiability', objParameter);
     		if(objParameter.returnZero) return {error: false, liability: 0, bb: 0, oi: 0, nb: 0};
     		var qty = parseFloat(objParameter.quantity),
 			rateBB = (objParameter.rateBB == '' || objParameter.rateBB == null || !objParameter.rateBB)? 0 : parseFloat(objParameter.rateBB),
@@ -152,7 +152,7 @@ function(search, record, util, runtime) {
 			rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB),
 			rFactor = (objParameter.redemption == '' || objParameter.redemption == null || !objParameter.redemption)? 0 : parseFloat(objParameter.redemption);
     		rFactor /= 100;
-    		log.debug('getLiability_Values', 'qty: ' + qty + ', rateBB: ' + rateBB + ', rateOI: ' + rateOI + ', rateNB: ' + rateNB + ', rFactor: ' + rFactor);
+//    		log.debug('getLiability_Values', 'qty: ' + qty + ', rateBB: ' + rateBB + ', rateOI: ' + rateOI + ', rateNB: ' + rateNB + ', rFactor: ' + rFactor);
 		//var expBB = qty * rateBB * rFactor, expOI = qty * rateOI, expNB = qty * rateNB;
 		//return {error: false, liability: expBB + expOI + expNB, bb: expBB, oi: expOI, nb: expNB};
     		return {error: false, liability: qty*((rateBB*rFactor)+rateOI+rateNB), bb: qty*rateBB*rFactor, oi: qty*rateOI, nb: qty*rateNB};
@@ -256,7 +256,13 @@ function(search, record, util, runtime) {
 			var prefObj = {}
 			search.create({
 				type:'customrecord_itpm_preferences',
-				columns:['custrecord_itpm_pref_ddnaccount','custrecord_itpm_pref_matchls','custrecord_itpm_pref_matchbb','custrecord_itpm_pref_settlementsaccount','custrecord_itpm_pref_expenseaccount'],
+				columns:['custrecord_itpm_pref_ddnaccount',
+						 'custrecord_itpm_pref_matchls',
+						 'custrecord_itpm_pref_matchbb',
+						 'custrecord_itpm_pref_settlementsaccount',
+						 'custrecord_itpm_pref_expenseaccount',
+						 'custrecord_itpm_pref_discountdates'
+						],
 				filters:[]
 			}).run().each(function(e){
 				prefObj = {
@@ -264,7 +270,8 @@ function(search, record, util, runtime) {
 						perferenceBB : e.getValue('custrecord_itpm_pref_matchbb'),
 						dednExpAccnt : e.getValue('custrecord_itpm_pref_ddnaccount'),
 						expenseAccnt : e.getValue('custrecord_itpm_pref_expenseaccount'),
-						accountPayable : e.getValue('custrecord_itpm_pref_settlementsaccount')
+						accountPayable : e.getValue('custrecord_itpm_pref_settlementsaccount'),
+						prefDiscountDate: e.getText('custrecord_itpm_pref_discountdates')
 				}
 			})
 			return prefObj;

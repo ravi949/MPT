@@ -31,10 +31,10 @@ define(['N/record', 'N/search'],
 				});
 				/*var settlementRec =  search.create({
 					type: 'customtransaction_itpm_settlement' ,
-					columns: ['custbody_itpm_set_amount','line'],
+					columns: ['custbody_itpm_amount','line'],
 					filters: [['internalid', 'is', 7757],'and',['mainline','is',true]]
 				}).run().getRange(0,10);*/
-				var setlReqAmount = settlementRec.getValue('custbody_itpm_set_amount');
+				var setlReqAmount = settlementRec.getValue('custbody_itpm_amount');
 
 				//checking The Amount on the check is exceed the Settlement Request Amount of the Settlement record or not.
 				if(checkAmount > setlReqAmount)

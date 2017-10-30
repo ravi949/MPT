@@ -94,7 +94,7 @@ function(record, search, runtime, itpm) {
 					isDynamic: true
 				});
 				journalEntry.setValue({
-					fieldId:'custbody_itpm_set_deduction',
+					fieldId:'custbody_itpm_appliedto',
 					value:ddnId
 				}).setValue({
 					fieldId:'memo',
@@ -130,6 +130,10 @@ function(record, search, runtime, itpm) {
 					sublistId: 'line',
 					fieldId:'memo',
 					value:memo + ddnFields.tranid
+				}).setCurrentSublistValue({
+					sublistId: 'line',
+					fieldId:'entity',
+					value:deductionRec.getValue('custbody_itpm_customer')
 				}).commitLine({
 					sublistId: 'line'
 				});
@@ -149,6 +153,10 @@ function(record, search, runtime, itpm) {
 					sublistId: 'line',
 					fieldId:'memo',
 					value:memo + ddnFields.tranid
+				}).setCurrentSublistValue({
+					sublistId: 'line',
+					fieldId:'entity',
+					value:deductionRec.getValue('custbody_itpm_customer')
 				}).commitLine({
 					sublistId: 'line'
 				});

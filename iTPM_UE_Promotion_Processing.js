@@ -14,6 +14,7 @@ define(['N/ui/serverWidget',
  * @param {record} record
  * @param {runtime} runtime
  * @param {url} url
+ * @param {search} search
  */
 function(serverWidget,record,runtime,url,search) {
    
@@ -77,107 +78,125 @@ function(serverWidget,record,runtime,url,search) {
         				end:promoRec.getText('custrecord_itpm_p_shipend')
         			}   
         			//Add the overlap promotion to the new subtab
-        			addOverlapSublists(promoForm,params);
+        			addOverlapSublists(promoForm,params,scriptContext.type);
+        		}
+        		if (scriptContext.type == 'view' || scriptContext.type == 'edit'){
+        			var actualSalesURL = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_actualsales',
+        				deploymentId: 'customdeploy_itpm_promo_actualsales',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':0,
+        					'st':0
+        				}
+        			});
+
+        			//Actual Sales Previous Year Suitelet URL
+        			var actualSalesURLPreviousYear = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_actualsales',
+        				deploymentId: 'customdeploy_itpm_promo_actualsales',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':1,
+        					'st':0
+        				}
+        			});
+
+        			//Actual Sales Last 52 weeks Suitelet URL
+        			var actualSalesURLForLast52Weeks = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_actualsales_52w',
+        				deploymentId: 'customdeploy_itpm_promo_actualsales_52w',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':0,
+        					'st':0
+        				}
+        			});
+        			
+        			//Actual Shipments Suitelet URL
+        			var actualShippmentsURL = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_actualshippments',
+        				deploymentId: 'customdeploy_itpm_promo_actualshippments',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':0,
+        					'st':0
+        				}
+        			});
+        			
+        			//Actual Shipments Previous Year Suitelet URL
+        			var actualShippmentsURLPreviousYear = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_actualshippments',
+        				deploymentId: 'customdeploy_itpm_promo_actualshippments',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':1,
+        					'st':0
+        				}
+        			});
+        			
+        			//Actual Shipments Last 52 weeks Suitelet URL
+        			var actualShippmentsURLForLast52Weeks = url.resolveScript({
+        				scriptId: 'customscript_itpm_promo_ashipments_52w',
+        				deploymentId: 'customdeploy_itpm_promo_ashipments_52w',
+        				returnExternalUrl: false,
+        				params: {
+        					'pid':scriptContext.newRecord.id,
+        					'yr':0,
+        					'st':0
+        				}
+        			});
+        			//adding the Actual and Shipments URLs.
+        			var promoRec = scriptContext.newRecord;
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualsales', //Actual Sales
+        				value:actualSalesURL,
+        				ignoreFieldChange: true
+        			});
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualshippments', //Actual Shipments
+        				value:actualShippmentsURL,
+        				ignoreFieldChange: true
+        			});
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualsalespreviousyr', //Actual Sales Previous Year
+        				value:actualSalesURLPreviousYear,
+        				ignoreFieldChange: true
+        			});
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualshippreviousyear', //Actual Shipments Previous Year
+        				value:actualShippmentsURLPreviousYear,
+        				ignoreFieldChange: true
+        			});
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualsales52week', //Actual Sales Last 52 weeks
+        				value:actualSalesURLForLast52Weeks,
+        				ignoreFieldChange: true
+        			});
+        			promoRec.setValue({
+        				fieldId:'custrecord_itpm_p_actualshipmnts52weeks', //Actual Shipments Last 52 weeks
+        				value:actualShippmentsURLForLast52Weeks,
+        				ignoreFieldChange: true
+        			});
         		}
     		}
     	}catch(e){
-    		log.error(e.name,'record id = '+scriptContext.newRecord.id+', function name = beforeload, message = '+e.message);
+    		log.error(e.name, e.message +'; beforeLoad; trigger type: ' + scriptContext.type + '; recordID: ' + scriptContext.newRecord.id + '; recordType: ' + scriptContext.newRecord.type);
     	}
     }
 
     /**
-     * Function definition to be triggered before record is loaded.
-     *
-     * @param {Object} scriptContext
-     * @param {Record} scriptContext.newRecord - New record
-     * @param {Record} scriptContext.oldRecord - Old record
-     * @param {string} scriptContext.type - Trigger type
-     * @Since 2015.2
-     */
-    function afterSubmit(scriptContext) {
-    	try{
-			if(scriptContext.newRecord.getValue('custrecord_itpm_p_impact') == '13'){
-				//Actual Sales Suitelet URL
-				var actualSalesURL = url.resolveScript({
-					scriptId: 'customscript_itpm_promo_actualsales',
-					deploymentId: 'customdeploy_itpm_promo_actualsales',
-					returnExternalUrl: false,
-					params: {
-						'pid':scriptContext.newRecord.id,
-						'yr':0,
-						'st':0
-					}
-				});
-
-				//Actual Sales Previous Year Suitelet URL
-				var actualSalesURLPreviousYear = url.resolveScript({
-					scriptId: 'customscript_itpm_promo_actualsales',
-					deploymentId: 'customdeploy_itpm_promo_actualsales',
-					returnExternalUrl: false,
-					params: {
-						'pid':scriptContext.newRecord.id,
-						'yr':1,
-						'st':0
-					}
-				});
-				
-				//Actual Shippments Suitelet URL
-				var actualShippmentsURL = url.resolveScript({
-					scriptId: 'customscript_itpm_promo_actualshippments',
-					deploymentId: 'customdeploy_itpm_promo_actualshippments',
-					returnExternalUrl: false,
-					params: {
-						'pid':scriptContext.newRecord.id,
-						'yr':0,
-						'st':0
-					}
-				});
-				
-				//Actual Shippments Previous Year Suitelet URL
-				var actualShippmentsURLPreviousYear = url.resolveScript({
-					scriptId: 'customscript_itpm_promo_actualshippments',
-					deploymentId: 'customdeploy_itpm_promo_actualshippments',
-					returnExternalUrl: false,
-					params: {
-						'pid':scriptContext.newRecord.id,
-						'yr':1,
-						'st':0
-					}
-				});
-				//adding the Actual and Shipments URLs.
-				record.load({
-					type:'customrecord_itpm_promotiondeal',
-					id:scriptContext.newRecord.id,
-					isDynamic:true
-				}).setValue({
-					fieldId:'custrecord_itpm_p_actualsales', //Actual Sales
-					value:actualSalesURL
-				}).setValue({
-					fieldId:'custrecord_itpm_p_actualshippments', //Actual Shippments
-					value:actualShippmentsURL
-				}).setValue({
-					fieldId:'custrecord_itpm_p_actualsalespreviousyr', //Actual Sales Previous Year
-					value:actualSalesURLPreviousYear
-				}).setValue({
-					fieldId:'custrecord_itpm_p_actualshippreviousyear', //Actual Shippments Previous Year
-					value:actualShippmentsURLPreviousYear
-				}).save({
-					enableSourcing:false,
-					ignoreMandatoryFields:true
-				});
-			}
-		}catch(e){
-			log.error(e.name,'record type = iTPM promotion, record id = '+scriptContext.newRecord.id+', message = '+e.message);
-		}
-    }
-    
-    
-    /**
-     * @param promoForm
-     * @param params customerid,promotionid,startdate,enddate
+     * @param {Object} promoForm
+     * @param {Object} params customerid,promotionid,startdate,enddate
+     * @param {String} eventType (userevent type)
      * @description add the new subtab called overlap promotions
      */
-    function addOverlapSublists(promoForm,params){
+    function addOverlapSublists(promoForm,params,eventType){
     	//Adding the overlap promotions to the form
 		var tab = promoForm.addTab({
 		    id : 'custpage_overlappromotions',
@@ -185,11 +204,11 @@ function(serverWidget,record,runtime,url,search) {
 		});
 		var sublist = promoForm.addSublist({
 		    id : 'custpage_sublist_overlapromotions',
-		    type : serverWidget.SublistType.INLINEEDITOR,
+		    type : (eventType == 'view')?serverWidget.SublistType.INLINEEDITOR:serverWidget.SublistType.LIST,
 		    tab:'custpage_overlappromotions',
 		    label : 'overlapping promotions'
 		});
-		sublist.addField({
+		var itemField = sublist.addField({
 		    id : 'custpage_overlappromo_item',
 		    type : serverWidget.FieldType.SELECT,
 		    label : 'Item',
@@ -201,7 +220,7 @@ function(serverWidget,record,runtime,url,search) {
 		    type : serverWidget.FieldType.TEXT,
 		    label : 'Item Code'
 		 });
-		sublist.addField({
+		var promoField = sublist.addField({
 		    id : 'custpage_overlappromo_promo',
 		    type : serverWidget.FieldType.SELECT,
 		    label : 'Promotion/Deal',
@@ -237,7 +256,7 @@ function(serverWidget,record,runtime,url,search) {
 		    type : serverWidget.FieldType.TEXT,
 		    label : 'Promotion/Deal ID'
 		 });
-		sublist.addField({
+		var promotTypeField = sublist.addField({
 		    id : 'custpage_overlappromo_ptype',
 		    type : serverWidget.FieldType.SELECT,
 		    label : 'Promotion type',
@@ -259,6 +278,19 @@ function(serverWidget,record,runtime,url,search) {
 		    label : 'UOM'
 		 });
 		
+		//if event type is edit Field display type is set to INLINE
+		if(eventType == 'edit'){
+			itemField.updateDisplayType({
+				 displayType:serverWidget.FieldDisplayType.INLINE
+			});
+			promoField.updateDisplayType({
+				 displayType:serverWidget.FieldDisplayType.INLINE
+			});
+			promotTypeField.updateDisplayType({
+				 displayType:serverWidget.FieldDisplayType.INLINE
+			});
+		}
+		
 		//getting the Promotion/Deal Estimated Qty list
 		var estQtyItems = [];
 		search.create({
@@ -270,6 +302,7 @@ function(serverWidget,record,runtime,url,search) {
 			return true;
 		});
 		
+		//if estqty have items then only it going to search for the results
 		if(estQtyItems.length>0){
 			var i = 0;
 			getOverlappedPromos(params).run().each(function(e){
@@ -375,7 +408,7 @@ function(serverWidget,record,runtime,url,search) {
     }
     
     /**
-     * @param params
+     * @param params startdate,enddate,customer id,promotion id
      * @return {Object} search object
      * @description search form overlapped promotions.
      */
@@ -449,12 +482,9 @@ function(serverWidget,record,runtime,url,search) {
 		diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
 		return diffDays;
 	}	
-    
-    
 
     return {
-        beforeLoad: beforeLoad,
-        afterSubmit: afterSubmit
+        beforeLoad: beforeLoad
     };
     
 });

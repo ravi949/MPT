@@ -256,7 +256,8 @@ function(serverWidget,search,redirect,record,runtime) {
     			validAccountField.isMandatory = true;
 
     			//checking the subsidiaries feature is enabled or not
-    			var validAccountFilter = [['type','is',finanImpact.charAt(0).toUpperCase()+finanImpact.slice(1)],'and',['isinactive','is',false]];
+    			var validAccountFilter = [['isinactive','is',false]];
+    			//var validAccountFilter = [['type','is',finanImpact.charAt(0).toUpperCase()+finanImpact.slice(1)],'and',['isinactive','is',false]];
     			(subsidiaryExists)? validAccountFilter.push('and',['subsidiary','anyof',subsidiaryId]):'';
 
     			//search all accounts using above filter and added the accounts list to the VALID ACCOUNTS FIELD.
