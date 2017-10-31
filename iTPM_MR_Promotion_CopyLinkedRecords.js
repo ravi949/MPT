@@ -29,15 +29,18 @@ function(record, search) {
 			return search.create({
 				type:'customrecord_itpm_promotiondeal',
 				columns: [
-				          search.createColumn({
-				        	  name: "internalid"
-				          }),
-				          search.createColumn({
-				        	  name: "internalid",
-				        	  join: "CUSTRECORD_ITPM_P_COPIEDFROM"
-				          })
-				          ],
-				          filters: [["custrecord_itpm_p_copiedfrom","noneof","@NONE@"], 'and' ,["custrecord_itpm_p_copy","is","T"]]  
+					search.createColumn({
+						name: "internalid"
+					}),
+					search.createColumn({
+						name: "internalid",
+						join: "CUSTRECORD_ITPM_P_COPIEDFROM"
+					})
+				],
+				filters: [
+					["custrecord_itpm_p_copiedfrom","noneof","@NONE@"], "and" ,
+				    ["custrecord_itpm_p_copy","is","T"]
+				]  
 			})
 		}catch(e){
 			log.error(e.name,'getInputData state, message = '+e.message);
