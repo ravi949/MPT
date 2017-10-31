@@ -175,7 +175,7 @@ define(['N/record',
 				label: 'Submit'
 			});
 
-			var deductionId, expenseId, settlementId, matchls, matchbb, discountItemId, defaultAllTypeId;
+			var deductionId, expenseId, settlementId, matchls, matchbb, discountItemId;
 			var prefSearchRes = search.create({
 				type:'customrecord_itpm_preferences',
 				columns:['internalid']
@@ -204,7 +204,7 @@ define(['N/record',
 				radioBtn.defaultValue = (matchls == true)?'custpage_ls':'custpage_bb';
 				ApplyiTPMNetBillDiscountChk.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_nblistprice')?'T':'F';
 				discountItemId = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
-				defaultAllTypeId = preferanceRecord.getValue('custrecord_itpm_pref_defaultalltype');
+				defaultAllType.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultalltype');
 				switch(preferanceRecord.getValue('custrecord_itpm_pref_discountdates')){
 				case '1' : 
 					radioITPMDiscountDate.defaultValue = 'custpage_sd';
@@ -223,7 +223,7 @@ define(['N/record',
 				break;
 				}
 			}
-
+			
 			//add discount items to the iTPM Discount Item field
 			discountItemSearch.each(function(e){
 				discountItemField.addSelectOption({
