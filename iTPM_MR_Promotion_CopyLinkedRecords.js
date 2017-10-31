@@ -71,7 +71,6 @@ function(record, search) {
 				   filters: [
 					   ["internalid",'is',copyPromoId],"AND",
 					   ["CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.isinactive","is",false],"AND",
-					   ["CUSTRECORD_ITPM_ESTQTY_PROMODEAL.isinactive","is",false],"AND",
 					   ["CUSTRECORD_ITPM_REI_PROMOTIONDEAL.isinactive","is",false]
 				   ],
 				   columns: [
@@ -85,10 +84,6 @@ function(record, search) {
 				      search.createColumn({
 				         name: "internalid",
 				         join: "CUSTRECORD_ITPM_ALL_PROMOTIONDEAL"
-				      }),
-				      search.createColumn({
-				         name: "internalid",
-				         join: "CUSTRECORD_ITPM_ESTQTY_PROMODEAL"
 				      }),
 				      search.createColumn({
 				         name: "internalid",
@@ -112,12 +107,6 @@ function(record, search) {
 
 				//Deducting the duplicates, and removing them and pushing those results into array
 				arrayofRecs.forEach(function(e){
-					if(e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'}) != ""){
-						contextObj = {type:'estqty',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'})}
-						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
-							executeResultSet.push({id:contextObj.recId,type:contextObj.type});
-						}
-					}
 					if(e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'}) != ""){
 						contextObj = {type:'retail',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'})}
 						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
@@ -195,20 +184,6 @@ function(record, search) {
 				}).setValue({
 					fieldId: 'custrecord_itpm_all_promotiondeal',
 					value: keyObj.promoID,
-					ignoreFieldChange: true
-				}).save({
-					enableSourcing: false,
-					ignoreMandatoryFields: true
-				});
-				break;
-	    /********* Copying Promotion/Deal Estimate Quantities and Saving them into Copied Promotion/Deal Estimate Quantities **********/
-			case 'estqty':
-				var copyRecord = record.copy({
-					type: 'customrecord_itpm_estquantity',
-					id:keyObj.recId
-				}).setValue({
-					fieldId: 'custrecord_itpm_estqty_promodeal',
-					value:keyObj.promoID,
 					ignoreFieldChange: true
 				}).save({
 					enableSourcing: false,
