@@ -65,7 +65,12 @@ function(record, search) {
 			
 			var loadedSearch = search.create({
 				   type: "customrecord_itpm_promotiondeal",
-				   filters: [["internalid",'is',copyPromoId]],
+				   filters: [
+					   ["internalid",'is',copyPromoId],"AND",
+					   ["CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.isinactive","is",false],"AND",
+					   ["CUSTRECORD_ITPM_ESTQTY_PROMODEAL.isinactive","is",false],"AND",
+					   ["CUSTRECORD_ITPM_REI_PROMOTIONDEAL.isinactive","is",false]
+				   ],
 				   columns: [
 				      search.createColumn({
 				         name: "internalid"
