@@ -17,12 +17,13 @@ function(runtime) {
      * @Since 2016.1
      */
     function onAction(scriptContext) {
-    	var userObj = runtime.getCurrentUser()
+    	var userObj = runtime.getCurrentUser();
+    	var userPermission = userObj.getPermission('customrecord_itpm_promotiondeal');
     	log.debug('userObj ',userObj );
-    	if(userObj.getPermission() == runtime.Permission.FULL){
-    		return true;
+    	if(userPermission == runtime.Permission.FULL || userPermission == runtime.Permission.EDIT || userPermission == runtime.Permission.CREATE){
+    		return 'T';
     	}else{
-    		return false;
+    		return 'F';
     	}    	
 
     }
