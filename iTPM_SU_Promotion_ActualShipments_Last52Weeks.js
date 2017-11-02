@@ -342,7 +342,12 @@ function(format, record, search, serverWidget) {
 				itemSummarySublist.addField({
 					id:'custpage_itemsummary_quantity',
 					type:serverWidget.FieldType.TEXT,
-					label:'Average QTY Of Shipments (WEEKLY)'
+					label:'Total Qty'
+				});
+				itemSummarySublist.addField({
+					id:'custpage_itemsummary_averageqty',
+					type:serverWidget.FieldType.TEXT,
+					label:'52-Week Avg Qty'
 				});
 				
 				searchColumn = [search.createColumn({
@@ -384,6 +389,11 @@ function(format, record, search, serverWidget) {
 							id:'custpage_itemsummary_quantity',
 							line:i,
 							value:e.getValue({name:'quantity',summary:search.Summary.SUM})
+						});
+						itemSummarySublist.setSublistValue({
+							id:'custpage_itemsummary_averageqty',
+							line:i,
+							value:(parseFloat(e.getValue({name:'quantity',summary:search.Summary.SUM}))/52).toFixed(4)
 						});
 						i++;
 						return true;
