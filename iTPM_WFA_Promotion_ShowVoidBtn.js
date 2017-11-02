@@ -16,17 +16,21 @@ function(runtime) {
      * @param {Record} scriptContext.oldRecord - Old record
      * @Since 2016.1
      */
-    function onAction(scriptContext) {
-    	var userObj = runtime.getCurrentUser();
-    	var userPermission = userObj.getPermission('customrecord_itpm_promotiondeal');
-    	log.debug('userObj ',userObj );
-    	if(userPermission == runtime.Permission.FULL || userPermission == runtime.Permission.EDIT || userPermission == runtime.Permission.CREATE){
-    		return 'T';
-    	}else{
-    		return 'F';
-    	}    	
-
-    }
+	function onAction(scriptContext) {
+		try{
+			var userObj = runtime.getCurrentUser();
+			var userPermission = userObj.getPermission('customrecord_itpm_promotiondeal');
+			log.debug('userObj ',userObj );
+			if(userPermission == runtime.Permission.FULL || userPermission == runtime.Permission.EDIT || userPermission == runtime.Permission.CREATE){
+				return 'T';
+			}else{
+				return 'F';
+			}    	
+		}catch(e){
+			log.error(e.name,e.message);
+			return 'F';
+		}
+	}
 
     return {
         onAction : onAction
