@@ -19,7 +19,7 @@ function(runtime) {
 	function onAction(scriptContext) {
 		try{
 			var userObj = runtime.getCurrentUser();
-			var userPermission = userObj.getPermission('customrecord_itpm_promotiondeal');
+			var userPermission = userObj.getPermission('LIST_CUSTRECORDENTRY'+scriptContext.newRecord.getValue('rectype'));
 			log.debug('userObj ',userObj );
 			if(userPermission == runtime.Permission.FULL || userPermission == runtime.Permission.EDIT || userPermission == runtime.Permission.CREATE){
 				return 'T';
