@@ -1,6 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType workflowactionscript
+ * Workflow action script to check user permission of record and returns the true or false based on the record permission.
  */
 define(['N/runtime'],
 /**

@@ -1,7 +1,8 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
+ * Suitelet script to generate and return a report of actual sales based on Invoice records for the items selected in the Allowances of a Promotion.
  */
 define(['N/format', 'N/record', 'N/search', 'N/ui/serverWidget'],
 /**
