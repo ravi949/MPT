@@ -182,7 +182,7 @@ function(message,url,https, search,dialog) {
 					unitField.removeSelectOption({value:null});
 					var unitsList = objResponse.unitsList;
 					unitField.insertSelectOption({
-						value: 0,
+						value: " ",
 						text: " ",
 						isSelected: true
 					});
