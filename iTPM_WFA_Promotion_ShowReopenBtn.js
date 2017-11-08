@@ -31,7 +31,7 @@ function(record, runtime, search) {
     		log.debug('res',(permissionOnPromo == runtime.Permission.EDIT && permissionOnPromoType == runtime.Permission.EDIT) || (permissionOnPromoType == runtime.Permission.FULL && permissionOnPromo == runtime.Permission.FULL));
     		return ((permissionOnPromo == runtime.Permission.EDIT && permissionOnPromoType == runtime.Permission.EDIT) || (permissionOnPromoType == runtime.Permission.FULL && permissionOnPromo == runtime.Permission.FULL))?'T':'F';   
     	}catch(e){
-    		log.debug(e.name,e.message);
+    		log.error(e.name,e.message);
     		return 'F';
     	}
     }
