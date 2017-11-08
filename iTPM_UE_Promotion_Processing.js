@@ -44,7 +44,16 @@ function(serverWidget,record,runtime,url,search) {
         				id:promoRec.getValue('custrecord_itpm_p_type')
         			}).getValue('custrecord_itpm_pt_settlewhenpromoactive');
         			
-        			var showSettlementButton = ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2)));
+        			//role based permission allow permissions (CREATE,EDIT and FULL)
+        			var setPermissionId = url.resolveRecord({
+        			    recordType: 'customrecord_itpm_settelementspermission',
+        			    recordId: 6,
+        			    isEditMode: true
+        			}).split('?')[1].split('&')[0].split('=')[1];
+
+        			var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+setPermissionId);
+        			rolePermission = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
+        			var showSettlementButton = (rolePermission  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
         			
         			if(showSettlementButton){
         				promoForm.addButton({
