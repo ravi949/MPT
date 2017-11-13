@@ -20,9 +20,14 @@ function(runtime) {
 	function onAction(scriptContext) {
 		try{
 			var userObj = runtime.getCurrentUser();
+			var scriptObj = runtime.getCurrentScript();
 			var userPermission = userObj.getPermission('LIST_CUSTRECORDENTRY'+scriptContext.newRecord.getValue('rectype'));
 			log.debug('userPermission ',userPermission );
-			return (userPermission == runtime.Permission.FULL || userPermission == runtime.Permission.EDIT || userPermission == runtime.Permission.CREATE)?'T':'F';				
+			if(scriptObj.getParameter('custscript_itpm_perm_createoredit')){
+				return (userPermission == runtime.Permission.EDIT || userPermission == runtime.Permission.CREATE)?'T':'F';
+			}else if(scriptObj.getParameter('custscript_itpm_perm_full')){
+				return (userPermission == runtime.Permission.FULL)?'T':'F';
+			}
 		}catch(e){
 			log.error(e.name,e.message);
 			return 'F';
