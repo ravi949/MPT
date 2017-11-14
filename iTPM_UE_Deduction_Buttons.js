@@ -65,6 +65,16 @@ function(widget, runtime, redirect) {
 					functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
 				});
 				
+				var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
+				
+				if(customer){
+					var btn_creditmemo = sc.form.addButton({
+						id: 'custpage_itpm_match_creditmemo',
+						label: 'Match to Credit Memo',
+						functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
+					});
+				}
+				
 				if(disputed){
 					var btn_invoice = sc.form.addButton({
 						id: 'custpage_itpm_invoice',
