@@ -19,7 +19,8 @@ function(record, search, runtime) {
      * @param {Record} scriptContext.oldRecord - Old record
      * @param {string} scriptContext.type - Trigger type
      * @Since 2015.2
-     */
+     */	
+	
     function afterSubmit(scriptContext) {
     	try{
     		var actions = {
@@ -64,10 +65,9 @@ function(record, search, runtime) {
      * @description delete the related the EstQty and Kpi records
      */
     function deleteEstQtyAndKpi(context,actions){
-    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,true);
-    	var allResultLength = allwResults.results.run().getRange(0,1000).length;
-    	log.debug('allResultLength',allResultLength);
-    	if(allResultLength == 0){
+    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,false).results.run().getRange(0,1000);
+    	
+    	if(allwResults.length == 0){
     		deleteRecords(getResults('customrecord_itpm_estquantity',context,actions));
         	deleteRecords(getResults('customrecord_itpm_kpi',context,actions));
         	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
@@ -152,8 +152,10 @@ function(record, search, runtime) {
         var searchResults = search.create({
 	    		type:type,
 	    		columns:['internalid'],
-	    		filters:[[promoid,'anyof',promoInternalid],'and',
-	   			 		 [itemid,'anyof',itemInternalid]]
+	    		filters:[
+	    			[promoid,'anyof',promoInternalid],'and',
+	   			 	[itemid,'anyof',itemInternalid]
+	    		]
     	});
         
         return {
@@ -161,7 +163,6 @@ function(record, search, runtime) {
         	type:type
         };
     }
-    
     
     return {
     	afterSubmit: afterSubmit
