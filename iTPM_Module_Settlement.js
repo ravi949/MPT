@@ -39,15 +39,10 @@ function(config, record, search, itpm) {
 					type:'customtransaction_itpm_deduction',
 					id:params.custom_itpm_st_appliedtransction
 				});
-//				var ddnOpenBal = deductionRec.getValue('custbody_itpm_ddn_openbal');
 			}
 
 			//iTPM prefernce record values.
 			var prefObj = itpm.getPrefrenceValues();
-//			var perferenceLS = prefObj.perferenceLS;
-//			var perferenceBB = prefObj.perferenceBB;
-//			var dednExpAccnt = prefObj.dednExpAccnt;
-//			var accountPayable = prefObj.accountPayable;
 
 
 			//Since the settlement record will be created with the Lump Sum, Off-Invoice and BIll Back request values set to zero, the system to should check to see whether there already exists a settlement record for the same promotion with ALL these three field values at zero. If yes, then prevent submit and return a user error - "There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion."
@@ -66,27 +61,9 @@ function(config, record, search, itpm) {
 				type:'customrecord_itpm_promotiondeal',
 				id:params['custom_itpm_st_promotion_no'],
 				columns:['custrecord_itpm_p_account','custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount']
-			});
-			//loading the record for NET PROMOTIONAL LIABLIITY, INCURRED PROMOTIONAL LIABILITY fields(These are did not return a value in lookupFields method)
-			/*var promotionRec = record.load({
-				type:'customrecord_itpm_promotiondeal',
-				id:params['custom_itpm_st_promotion_no']
-			});
-			var promoRectypeId = record.create({type:'customrecord_itpm_promotiondeal'}).getValue('rectype');
-			var promoNetBBLiablty = loadedPromoRec['custrecord_itpm_p_netbillbackle'];
-			var promoLS = loadedPromoRec['custrecord_itpm_p_lumpsum'];
-			var netPromoLSLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netlsle'});
-			var netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'});*/
+			});			
 			var promoTypeDefaultAccnt = loadedPromoRec['custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount'][0].value;
-			var promoDealLumsumAccnt = (loadedPromoRec['custrecord_itpm_p_account'].length >0)?loadedPromoRec['custrecord_itpm_p_account'][0].value:promoTypeDefaultAccnt;
-			/*var customerRec = record.load({type:record.Type.CUSTOMER,id:params.custom_itpm_st_cust});
-			var	creditAccnt = customerRec.getValue('receivablesaccount');
-			
-			var creditAccnt = (creditAccnt != "-10")?creditAccnt:config.load({
-				type:config.Type.ACCOUNTING_PREFERENCES
-			}).getValue('ARACCOUNT');*/
-
-
+			var promoDealLumsumAccnt = (loadedPromoRec['custrecord_itpm_p_account'].length >0)?loadedPromoRec['custrecord_itpm_p_account'][0].value:promoTypeDefaultAccnt;		
 			var newSettlementRecord = record.create({
 				type:'customtransaction_itpm_settlement',
 				isDynamic:true
@@ -532,9 +509,6 @@ function(config, record, search, itpm) {
 				});
 			}
 			
-//			var lumpsumSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqls');
-//        	var bbSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqbb');
-//        	var offinvSetReqAmnt = loadedSettlementRec.getValue('custbody_itpm_set_reqoi');
         	var loadedPromoRec = search.lookupFields({
 				type:'customrecord_itpm_promotiondeal',
 				id:loadedSettlementRec.getValue('custbody_itpm_set_promo'),
@@ -545,7 +519,7 @@ function(config, record, search, itpm) {
     		if(loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: 0}) == '1'){
     			promoDealLumsumAccnt = loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'account',line: 0});
     		}
-    		var setlMemo = loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'memo',line: 0});//prefObj = itpm.getPrefrenceValues();
+    		var setlMemo = loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'memo',line: 0});
     		var setlCust = loadedSettlementRec.getValue('custbody_itpm_customer');
     		var lineObj = {
     				promoDealLumsumAccnt:promoDealLumsumAccnt,
@@ -593,36 +567,7 @@ function(config, record, search, itpm) {
 					indexcount++;
 				}			
 			});
-    		/*for(var i = 0,isDebit = true;i < linecount;i++){
-    			var lsbboi = loadedSettlementRec.getSublistValue({
-    			    sublistId: 'line',
-    			    fieldId: 'custcol_itpm_lsbboi',
-    			    line: i
-    			});
-    			var lineValue = (lsbboi == 1)?lumpsumSetReqAmnt:(lsbboi == 2)?bbSetReqAmnt:offinvSetReqAmnt;
-    			if(lineValue != '' && lineValue > 0){
-
-    				log.debug('lineValue '+i,lineValue);
-    				if(isDebit){
-    					loadedSettlementRec.setSublistValue({
-    						sublistId:'line',
-    						fieldId:'debit',
-    						line:i,
-    						value:lineValue
-    					});
-    					isDebit = false;
-    				}else{
-    					loadedSettlementRec.setSublistValue({
-    						sublistId:'line',
-    						fieldId:'credit',
-    						line:i,
-    						value:lineValue
-    					});
-    					isDebit = true;
-    				}
-    			}
-    		}*/
-
+        	
 			return loadedSettlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
 
 		}catch(e){
@@ -678,8 +623,6 @@ function(config, record, search, itpm) {
 		}];
 		
 	}
-
-	
 	
     return {
         createSettlement:createSettlement,
