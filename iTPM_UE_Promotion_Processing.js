@@ -51,6 +51,8 @@ function(serverWidget,record,runtime,url,search) {
         			    isEditMode: true
         			}).split('?')[1].split('&')[0].split('=')[1];
 
+//        			var rolePermissionForTest = runtime.getCurrentUser().getPermission('customtransaction_itpm_settlement');
+//        			log.debug('rolePermissionForTest',rolePermissionForTest);
         			var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+setPermissionId);
         			rolePermission = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
         			var showSettlementButton = (rolePermission  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
