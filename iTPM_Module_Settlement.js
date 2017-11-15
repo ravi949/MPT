@@ -279,8 +279,8 @@ function(config, record, search, itpm) {
 				type:'customtransaction_itpm_deduction',
 				id: parameters.ddn,
 				isDynamic: true,
-			}),
-			SettlementRec = record.load({
+			});
+			var SettlementRec = record.load({
 				type:'customtransaction_itpm_settlement',
 				id: parameters.sid,
 				isDynamic: true
@@ -295,22 +295,35 @@ function(config, record, search, itpm) {
 			var dednExpAccnt = prefObj.dednExpAccnt,
 			accountPayable = prefObj.accountPayable;
 
-			var lumsum = SettlementRec.getSublistValue({
-				sublistId: 'line',
-				fieldId: 'debit',
-				line: 0
-			}),
-			bB = SettlementRec.getSublistValue({
-				sublistId: 'line',
-				fieldId: 'debit',
-				line: 2
-			}),
-			oI = SettlementRec.getSublistValue({
-				sublistId: 'line',
-				fieldId: 'debit',
-				line: 4
-			}),
-			JEAmount = parseFloat(lumsum)+parseFloat(bB)+parseFloat(oI);
+			//if(loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: 0}) == '1')
+			var linecount = SettlementRec.getLineCount({sublistId:'line'});
+			var lumsum = 0, bB = 0, oI = 0;
+			for(var i = 0;i < linecount;i+=2){
+				if(SettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: i}) == '1'){
+					lumsum = SettlementRec.getSublistValue({
+						sublistId: 'line',
+						fieldId: 'debit',
+						line: i
+					});
+					log.debug('lumsum',lumsum);
+				} else if(SettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: i}) == '2'){
+					bB = SettlementRec.getSublistValue({
+						sublistId: 'line',
+						fieldId: 'debit',
+						line: i
+					});
+					log.debug('bb',bB);
+				}else if(SettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: i}) == '3'){
+					oI = SettlementRec.getSublistValue({
+						sublistId: 'line',
+						fieldId: 'debit',
+						line: i
+					});
+					log.debug('oI',oI);
+				}
+    		}
+			
+			var JEAmount = parseFloat(lumsum)+parseFloat(bB)+parseFloat(oI);
 
 			var memo = 'Applying Settlement #'+SettlementRec.getValue('tranid')+' to Deduction #'+DeductionNum;
 
