@@ -25,7 +25,6 @@ function(runtime,record) {
 			var scriptObj = runtime.getCurrentScript();
 			var permissionOnPromo = userObj.getPermission('LIST_CUSTRECORDENTRY'+scriptContext.newRecord.getValue('rectype'));
 
-			
 			if(scriptObj.getParameter('custscript_itpm_perm_pt_promo_hasedit')){
 				//permission checking for Promotion Re-Open button
 				var PromotypeRecord = record.load({
@@ -42,8 +41,8 @@ function(runtime,record) {
 				return (permissionOnPromo == runtime.Permission.FULL)?'T':'F';
 			}else if(scriptObj.getParameter('custscript_itpm_promo_approver_recid')){
 				//permission checking for Promotion Approve & Reject buttons
-				var rectypeID = scriptObj.getParameter('custscript_itpm_promo_approver_recid');
-				var promoApproverPermission = userObj.getPermission('LIST_CUSTRECORDENTRY'+rectypeID);
+				var promoApproverRectypeID = scriptObj.getParameter('custscript_itpm_promo_approver_recid');
+				var promoApproverPermission = userObj.getPermission('LIST_CUSTRECORDENTRY'+promoApproverRectypeID);
 				return (promoApproverPermission == runtime.Permission.EDIT || promoApproverPermission == runtime.Permission.FULL)?'T':'F';
 			}
 		}catch(e){
