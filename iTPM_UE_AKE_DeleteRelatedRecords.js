@@ -5,12 +5,14 @@
  */
 define(['N/record', 
 		'N/search',
-		'N/runtime'],
+		'N/runtime',
+		'N/redirect'
+		],
 /**
  * @param {record} record
  * @param {search} search
  */
-function(record, search, runtime) {
+function(record, search, runtime, redirect) {
     /**
      * Function definition to be triggered before record is loaded.
      *
@@ -65,12 +67,18 @@ function(record, search, runtime) {
      * @description delete the related the EstQty and Kpi records
      */
     function deleteEstQtyAndKpi(context,actions){
-    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,false).results.run().getRange(0,1000);
+    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,true).results.run().getRange(0,1000);
     	
     	if(allwResults.length == 0){
     		deleteRecords(getResults('customrecord_itpm_estquantity',context,actions));
         	deleteRecords(getResults('customrecord_itpm_kpi',context,actions));
         	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
+    	}else{
+    		redirect.toSuitelet({
+    		    scriptId: "customscript_itpm_all_update_afterdelete" ,
+    		    deploymentId: "customdeploy_itpm_all_update_afterdelete",
+    		    parameters: {'allid':allwResults[0].getValue('internalid')} 
+    		});
     	}
     }
     
