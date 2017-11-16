@@ -5,7 +5,7 @@
  */
 define(['N/record',
 		'N/redirect',
-		'./iTPM_Module',
+		'./iTPM_Module.js',
 		'N/search'
 	   ],
 
