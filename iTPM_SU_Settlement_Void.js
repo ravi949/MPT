@@ -66,10 +66,7 @@ function(record, redirect, itpm, search) {
         			JERec.setValue({
     					fieldId:'custbody_itpm_appliedto',
     					value:SetRec.id
-    				}).setValue({
-    					fieldId:'memo',
-    					value:'Voiding Settlement # '+SetRec.getValue('tranid')
-    				})
+    				});
     			}
    			
     			for(var i = 0;i < lineCount;i++){
@@ -99,7 +96,7 @@ function(record, redirect, itpm, search) {
     				}).setSublistValue({
     					sublistId:'line',
     					fieldId:'memo',
-    					value:'Voiding Settlement # '+SetRec.getValue('tranid'),
+    					value:'Journal Entry for Settlement # '+SetRec.getValue('tranid'),
     					line:i
     				}).setSublistValue({
     					sublistId:'line',
