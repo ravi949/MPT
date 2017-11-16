@@ -86,12 +86,14 @@ function(serverWidget, search, url, redirect, record, runtime, itpm) {
 				});
 				
                 //setting body fields Subsidiary and iTPM Applied To
-				journalEntry.setValue({
-					fieldId : 'subsidiary',
-					value   : jesubsidiary
-				});
-              
-				journalEntry.setValue({
+                if(subsidiaryExists){
+                	journalEntry.setValue({
+    					fieldId : 'subsidiary',
+    					value   : jesubsidiary
+    				});
+                }
+				
+                journalEntry.setValue({
 					fieldId : 'custbody_itpm_appliedto',
 					value   : deductionid
 				});
