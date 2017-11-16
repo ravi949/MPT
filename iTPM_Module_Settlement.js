@@ -299,21 +299,22 @@ function(config, record, search, itpm) {
 			var linecount = SettlementRec.getLineCount({sublistId:'line'});
 			var lumsum = 0, bB = 0, oI = 0;
 			for(var i = 0;i < linecount;i+=2){
-				if(SettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: i}) == '1'){
+				var lineIsLSBBOI = SettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: i});
+				if(lineIsLSBBOI == '1'){
 					lumsum = SettlementRec.getSublistValue({
 						sublistId: 'line',
 						fieldId: 'debit',
 						line: i
 					});
 					log.debug('lumsum',lumsum);
-				} else if(SettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: i}) == '2'){
+				} else if(lineIsLSBBOI == '2'){
 					bB = SettlementRec.getSublistValue({
 						sublistId: 'line',
 						fieldId: 'debit',
 						line: i
 					});
 					log.debug('bb',bB);
-				}else if(SettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: i}) == '3'){
+				}else if(lineIsLSBBOI == '3'){
 					oI = SettlementRec.getSublistValue({
 						sublistId: 'line',
 						fieldId: 'debit',
