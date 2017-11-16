@@ -32,6 +32,18 @@ function(widget, runtime, redirect) {
 				};
 			}
 			
+			var settlementPermissionRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_set_permsn_rec_type_id');
+			var deductionPermissionRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_ddn_permsn_rec_type_id');
+			//customrecord_itpm_deductionspermission
+			var ddnPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+deductionPermissionRectypeId);
+			log.error('ddnPermission',ddnPermission);
+			ddnPermission = (ddnPermission == runtime.Permission.EDIT || ddnPermission == runtime.Permission.FULL);
+			log.error('ddnPermission',ddnPermission);
+			var setPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementPermissionRectypeId);
+			log.error('setPermission',setPermission);
+			setPermission = (setPermission == runtime.Permission.CREATE || setPermission == runtime.Permission.EDIT || setPermission == runtime.Permission.FULL);
+			log.error('setPermission',setPermission);
+			
 			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
 				status = sc.newRecord.getValue({fieldId:'transtatus'}),
 //				clientScriptPath = runtime.getCurrentScript().getParameter({name:'custscript_itpm_ue_ddn_cspath'}),
@@ -45,33 +57,38 @@ function(widget, runtime, redirect) {
 				openBalance != 0 &&
 				status == 'A' && 
 				clientScriptPath
-					){
+					){				
 				var disputed = sc.newRecord.getValue('custbody_itpm_ddn_disputed');
 				log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
 				sc.form.clientScriptModulePath = clientScriptPath;
-				var btn_split = sc.form.addButton({
-					id: 'custpage_itpm_split',
-					label: 'Split',
-					functionName: 'iTPMsplit(' + sc.newRecord.id + ')'
-				});
-				var btn_settlement = sc.form.addButton({
-					id: 'custpage_itpm_settlement',
-					label: 'Settlement',
-					functionName: 'iTPMsettlement(' + sc.newRecord.id + ')'
-				});
-				var btn_expense = sc.form.addButton({
-					id: 'custpage_itpm_expense',
-					label: 'Expense',
-					functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
-				});
-				
-				if(disputed){
-					var btn_invoice = sc.form.addButton({
-						id: 'custpage_itpm_invoice',
-						label: 'Re-Invoice',
-						functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
+				if(ddnPermission){
+					var btn_split = sc.form.addButton({
+						id: 'custpage_itpm_split',
+						label: 'Split',
+						functionName: 'iTPMsplit(' + sc.newRecord.id + ')'
 					});
+					var btn_expense = sc.form.addButton({
+						id: 'custpage_itpm_expense',
+						label: 'Expense',
+						functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
+					});
+					
+					if(disputed){
+						var btn_invoice = sc.form.addButton({
+							id: 'custpage_itpm_invoice',
+							label: 'Re-Invoice',
+							functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
+						});
+					}					
 				}
+				
+				if(setPermission){
+					var btn_settlement = sc.form.addButton({
+						id: 'custpage_itpm_settlement',
+						label: 'Settlement',
+						functionName: 'iTPMsettlement(' + sc.newRecord.id + ')'
+					});
+				}				
 				
 			} else if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
 				redirect.toSuitelet({
