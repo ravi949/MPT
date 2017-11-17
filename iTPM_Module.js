@@ -261,7 +261,8 @@ function(search, record, util, runtime) {
 						 'custrecord_itpm_pref_matchbb',
 						 'custrecord_itpm_pref_settlementsaccount',
 						 'custrecord_itpm_pref_expenseaccount',
-						 'custrecord_itpm_pref_discountdates'
+						 'custrecord_itpm_pref_discountdates',
+						 'custrecord_itpm_pref_defaultalltype'
 						],
 				filters:[]
 			}).run().each(function(e){
@@ -271,7 +272,8 @@ function(search, record, util, runtime) {
 						dednExpAccnt : e.getValue('custrecord_itpm_pref_ddnaccount'),
 						expenseAccnt : e.getValue('custrecord_itpm_pref_expenseaccount'),
 						accountPayable : e.getValue('custrecord_itpm_pref_settlementsaccount'),
-						prefDiscountDate: e.getText('custrecord_itpm_pref_discountdates')
+						prefDiscountDate: e.getText('custrecord_itpm_pref_discountdates'),
+						defaultAllwType: e.getValue('custrecord_itpm_pref_defaultalltype')
 				}
 			})
 			return prefObj;
@@ -327,12 +329,111 @@ function(search, record, util, runtime) {
     	
     }
     
+    /**
+     * @param params
+     * @returns
+     * @description setting the Impact Price Value in allowance record.
+     */
+	function getImpactPrice(params){
+		try{
+			var price = undefined;
+			var itemResult = search.create({
+				type:search.Type.ITEM,
+				columns:['pricing.pricelevel','pricing.unitprice','baseprice','saleunit'],
+				filters:[['internalid','anyof',params.itemid],'and',
+					['pricing.pricelevel','is',params.pricelevel],'and',
+					['isinactive','is',false]
+				]
+			}).run().getRange(0,1);
+			price = itemResult[0].getValue({name:'unitprice',join:'pricing'});
+			price = (isNaN(price))?params.baseprice:price;
+			return {
+				price:price,
+				baseprice:itemResult[0].getValue({name:'baseprice'}),
+				saleunit:itemResult[0].getValue({name:'saleunit'})
+			};
+		}catch(e){
+			log.error(e.name,'error ocurred in function = setPriceValue');
+		}
+	}
+	
+	/**
+	 * allid {String} Allownace id
+	 * @returns
+	 * @description getting the Allownace Default MOP value
+	 */
+	function getDefaultValidMOP(allid){
+		var ptMOP = search.lookupFields({
+			type:'customrecord_itpm_promotiontype',
+			id:allid,
+			columns:['custrecord_itpm_pt_validmop']
+		});
+		var defaultMOP;
+		ptMOP['custrecord_itpm_pt_validmop'].forEach(function(e){
+			switch(e.value){
+			case '1':
+				defaultMOP = 1;
+				break;
+			case '3':
+				defaultMOP = (defaultMOP != 1)?3:defaultMOP;
+				break;
+			default:
+				defaultMOP = (defaultMOP != 1 && defaultMOP != 3)?2:defaultMOP;
+			break;
+			}
+		});
+		return defaultMOP;
+	}
+    
+	/**
+     * @param itemId
+     * @returns Array
+     * @description it created the array of items list
+     */
+    function getItemGroupItems(itemId){
+    	var itemGroupRec = record.load({
+    		type:record.Type.ITEM_GROUP,
+    		id:itemId
+    	});
+    	var itemCount = itemGroupRec.getLineCount('member');
+    	var items = [{memberid:''}];
+    	var memberid;
+    	for(var i = 0;i<itemCount;i++){
+    		memberid = itemGroupRec.getSublistValue({
+				sublistId:'member',
+				fieldId:'item',
+				line:i
+			});
+    		var itemLookup = search.lookupFields({
+    			type:search.Type.ITEM,
+    			id:memberid,
+    			columns:['custitem_itpm_available','saleunit','baseprice','unitstype','itemid']
+    		});
+    		if(itemLookup['custitem_itpm_available']){
+    			if(items.some(function(e){return e.memberid != memberid})){
+    				items.push({
+        				memberid:memberid,
+        				saleunit:itemLookup['saleunit'][0].value,
+        				unitstype:itemLookup['unitstype'][0].value,
+        				baseprice:itemLookup['baseprice']
+        			});
+    			}
+    		}
+    	}
+    	items.shift();
+    	return items;
+    }
+	
+	
     return {
     	getItemUnits : getItemUnits,
     	getActualQty : getActualQty,
     	getLiability : getLiability,
     	getSpend : getSpend,
+    	getImpactPrice:getImpactPrice,
+    	getDefaultValidMOP:getDefaultValidMOP,
     	getPrefrenceValues:getPrefrenceValues,
+    	getItemGroupItems:getItemGroupItems,
     	locationsEnabled : locationsEnabled,
     	departmentsEnabled : departmentsEnabled,
     	classesEnabled : classesEnabled,

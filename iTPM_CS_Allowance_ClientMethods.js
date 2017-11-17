@@ -75,6 +75,26 @@ function(message,url,https, search,dialog) {
 				var priceLevel = rec.getValue({fieldId:'custrecord_itpm_all_pricelevel'});
 				var promoId = rec.getValue({fieldId:'custrecord_itpm_all_promotiondeal'});
 				var impactBasePrice = rec.getValue({fieldId:'custrecord_itpm_all_itembaseprice'});
+				
+				var recordType = search.lookupFields({
+				    type:search.Type.ITEM,
+				    id:itemId,
+				    columns:['recordtype']
+				}).recordtype;
+				var itemUnitField = rec.getField({fieldId:'custpage_itpm_all_unit'});
+				if(recordType == search.Type.ITEM_GROUP){
+					rec.setValue({fieldId:'custrecord_itpm_all_impactprice',value:0});
+					rec.setValue({fieldId:'custpage_itpm_all_unit',value:' '});
+					rec.setValue({fieldId:'custrecord_itpm_all_uom',value:''});
+					rec.setValue({fieldId:'custrecord_itpm_all_uomprice',value:''});
+					rec.getField({fieldId:'custrecord_itpm_all_allowaddnaldiscounts'}).isDisabled = true;
+					itemUnitField.isMandatory = false;
+					itemUnitField.isDisabled = true;
+					return;
+				}else{
+					itemUnitField.isMandatory = true;
+				}
+				
 				if (itemId == '' || priceLevel == ''){
 					sc.currentRecord.setValue({
 						fieldId:'custrecord_itpm_all_impactprice', 
