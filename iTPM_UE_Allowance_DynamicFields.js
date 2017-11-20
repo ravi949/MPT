@@ -91,7 +91,7 @@ function(runtime, sWidget, search, record, cache, itpm) {
         				throw{
         					name:"INVALID_TOTAL",
         					message:"Member items should be lessthan or equal to 25."
-        				}
+        				};
         			}
         			unitsArray = itpm.getItemUnits(items[0].memberid)['unitArray'];
         			baseUnit = unitsArray.filter(function(e){return e.isBase})[0].id;
@@ -100,7 +100,10 @@ function(runtime, sWidget, search, record, cache, itpm) {
         		}
         		items.forEach(function(item,i){
         			if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
-        				throw new Error('SaleUnit and UnitType must be same for all items.');
+        				throw{
+        					name:"INVALID_UNITS",
+        					message:"SaleUnit and UnitType must be same for all items."
+        				};
         			}
         			if(i == 0){
         				var priceObj = itpm.getImpactPrice({itemid:item.memberid,pricelevel:sc.newRecord.getValue('custrecord_itpm_all_pricelevel')});
@@ -136,7 +139,7 @@ function(runtime, sWidget, search, record, cache, itpm) {
         		});
         	}
     	}catch(ex){
-    		if(ex.name == "MEMBERS_EMPTY" || ex.name == "INVALID_TOTAL")
+    		if(ex.name == "MEMBERS_EMPTY" || ex.name == "INVALID_TOTAL" || ex.name == "INVALID_UNITS")
     			throw new Error(ex.message);
     		log.error(ex.name,ex.message);
     	}
