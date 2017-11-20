@@ -70,95 +70,41 @@ function(runtime, sWidget, search, record, cache, itpm) {
      * @Since 2015.2
      */
     function beforeSubmit(sc){
-    	var selectedItem = sc.newRecord.getValue('custrecord_itpm_all_item');
-    	var recordType = search.lookupFields({
-		    type:search.Type.ITEM,
-		    id:selectedItem,
-		    columns:['recordtype']
-		}).recordtype;
-    	var unitsArray = [],baseUnit,itemUnitRate,rate;
-		
-    	if(recordType == search.Type.ITEM_GROUP){
-    		var items = itpm.getItemGroupItems(sc.newRecord.getValue('custrecord_itpm_all_item'));
-    		if(items.length == 0){
-    			throw new Error('Please add the line items to item group.');
-    		}else{
-    			unitsArray = itpm.getItemUnits(items[0].memberid)['unitArray'];
-    			baseUnit = unitsArray.filter(function(e){return e.isBase})[0].id;
-    			itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate);
-				rate = parseFloat(unitsArray.filter(function(e){return e.id == baseUnit})[0].conversionRate);
-    		}
-    		items.forEach(function(item,i){
-    			if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
-    				throw new Error('SaleUnit and UnitType must be same for all items.');
-    			}
-    			if(i == 0){
-    				var priceObj = itpm.getImpactPrice({itemid:item.memberid,pricelevel:sc.newRecord.getValue('custrecord_itpm_all_pricelevel')});
-    				sc.newRecord.setValue({
-    					fieldId:"custrecord_itpm_all_item",
-    					value:item.memberid
-    				}).setValue({
-    					fieldId:"custrecord_itpm_all_uom",
-    					value:baseUnit
-    				}).setValue({
-    					fieldId:"custrecord_itpm_all_itembaseprice",
-    					value:item.baseprice
-    				}).setValue({
-    					fieldId:"custrecord_itpm_all_impactprice",
-    					value:parseFloat(priceObj.price)
-    				}).setValue({
-    					fieldId:"custrecord_itpm_all_uomprice",
-    					value:parseFloat(priceObj.price)*(rate/itemUnitRate)
-    				});
-    				cache.getCache({
-    				    name: 'itemGroupCache',
-    				    scope: cache.Scope.PRIVATE
-    				}).put({
-    					key: 'keyObj',
-    					value: JSON.stringify({
-    							itemGroupId:selectedItem,
-    							neglectItem:item.memberid,
-    							saleunit:item.saleunit
-    						}),
-    					ttl: 300
-    				});
-    			}
-    		});
-    	}
-    }
-    
-    /**
-     * Function definition to be triggered after record is submit.
-     *
-     * @param {Object} sc
-     * @param {Record} sc.newRecord - New record
-     * @param {string} sc.type - Trigger type
-     * @Since 2015.2
-     */
-    function afterSubmit(sc){
-    	var scriptObj = runtime.getCurrentScript();
-    	log.error('start',scriptObj.getRemainingUsage());
-    	var cacheObj = cache.getCache({
-		    name: 'itemGroupCache',
-		    scope: cache.Scope.PRIVATE
-		});
-    	if(sc.type == 'create'){
-        	var keyObj = JSON.parse(cacheObj.get({
-    			key:'keyObj'
-    		}));
-        	if(keyObj && keyObj.itemGroupId){
-        		var items = itpm.getItemGroupItems(keyObj.itemGroupId);
-        		unitsArray = itpm.getItemUnits(keyObj.neglectItem)['unitArray'];
-    			baseUnit = unitsArray.filter(function(e){return e.isBase})[0].id;
-    			var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == keyObj.saleunit})[0].conversionRate);
-				var rate = parseFloat(unitsArray.filter(function(e){return e.id == baseUnit})[0].conversionRate);
-        		items.forEach(function(item){
-        			if(item.memberid != keyObj.neglectItem){
+    	try{
+    		var selectedItem = sc.newRecord.getValue('custrecord_itpm_all_item');
+        	var recordType = search.lookupFields({
+    		    type:search.Type.ITEM,
+    		    id:selectedItem,
+    		    columns:['recordtype']
+    		}).recordtype;
+        	var unitsArray = [],baseUnit,itemUnitRate,rate;
+    		
+        	if(recordType == search.Type.ITEM_GROUP){
+        		var items = itpm.getItemGroupItems(sc.newRecord.getValue('custrecord_itpm_all_item'));
+        		if(items.length == 0){
+        			throw {
+        				name:"MEMBERS_EMPTY",
+        				message:"Please add the line items to item group."
+        			};
+        		}else{
+        			if(items.length > 25){
+        				throw{
+        					name:"INVALID_TOTAL",
+        					message:"Member items should be lessthan or equal to 25."
+        				}
+        			}
+        			unitsArray = itpm.getItemUnits(items[0].memberid)['unitArray'];
+        			baseUnit = unitsArray.filter(function(e){return e.isBase})[0].id;
+        			itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate);
+    				rate = parseFloat(unitsArray.filter(function(e){return e.id == baseUnit})[0].conversionRate);
+        		}
+        		items.forEach(function(item,i){
+        			if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
+        				throw new Error('SaleUnit and UnitType must be same for all items.');
+        			}
+        			if(i == 0){
         				var priceObj = itpm.getImpactPrice({itemid:item.memberid,pricelevel:sc.newRecord.getValue('custrecord_itpm_all_pricelevel')});
-            			record.copy({
-            				type:sc.newRecord.type,
-            				id:sc.newRecord.id
-            			}).setValue({
+        				sc.newRecord.setValue({
         					fieldId:"custrecord_itpm_all_item",
         					value:item.memberid
         				}).setValue({
@@ -173,18 +119,92 @@ function(runtime, sWidget, search, record, cache, itpm) {
         				}).setValue({
         					fieldId:"custrecord_itpm_all_uomprice",
         					value:parseFloat(priceObj.price)*(rate/itemUnitRate)
-        				}).save({
-        					enableSourcing:false,
-        					ignoreMandatoryFields:true
+        				});
+        				cache.getCache({
+        				    name: 'itemGroupCache',
+        				    scope: cache.Scope.PRIVATE
+        				}).put({
+        					key: 'keyObj',
+        					value: JSON.stringify({
+        							itemGroupId:selectedItem,
+        							neglectItem:item.memberid,
+        							saleunit:item.saleunit
+        						}),
+        					ttl: 300
         				});
         			}
         		});
         	}
+    	}catch(ex){
+    		if(ex.name == "MEMBERS_EMPTY" || ex.name == "INVALID_TOTAL")
+    			throw new Error(ex.message);
+    		log.error(ex.name,ex.message);
     	}
-    	cacheObj.remove({
-    		key:'keyObj'
-    	});
-    	log.error('end',scriptObj.getRemainingUsage());
+    	
+    }
+    
+    /**
+     * Function definition to be triggered after record is submit.
+     *
+     * @param {Object} sc
+     * @param {Record} sc.newRecord - New record
+     * @param {string} sc.type - Trigger type
+     * @Since 2015.2
+     */
+    function afterSubmit(sc){
+    	try{
+    		var scriptObj = runtime.getCurrentScript();
+        	log.error('start',scriptObj.getRemainingUsage());
+        	var cacheObj = cache.getCache({
+    		    name: 'itemGroupCache',
+    		    scope: cache.Scope.PRIVATE
+    		});
+        	if(sc.type == 'create'){
+            	var keyObj = JSON.parse(cacheObj.get({
+        			key:'keyObj'
+        		}));
+            	if(keyObj && keyObj.itemGroupId){
+            		var items = itpm.getItemGroupItems(keyObj.itemGroupId);
+            		unitsArray = itpm.getItemUnits(keyObj.neglectItem)['unitArray'];
+        			baseUnit = unitsArray.filter(function(e){return e.isBase})[0].id;
+        			var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == keyObj.saleunit})[0].conversionRate);
+    				var rate = parseFloat(unitsArray.filter(function(e){return e.id == baseUnit})[0].conversionRate);
+            		items.forEach(function(item){
+            			if(item.memberid != keyObj.neglectItem){
+            				var priceObj = itpm.getImpactPrice({itemid:item.memberid,pricelevel:sc.newRecord.getValue('custrecord_itpm_all_pricelevel')});
+                			record.copy({
+                				type:sc.newRecord.type,
+                				id:sc.newRecord.id
+                			}).setValue({
+            					fieldId:"custrecord_itpm_all_item",
+            					value:item.memberid
+            				}).setValue({
+            					fieldId:"custrecord_itpm_all_uom",
+            					value:baseUnit
+            				}).setValue({
+            					fieldId:"custrecord_itpm_all_itembaseprice",
+            					value:item.baseprice
+            				}).setValue({
+            					fieldId:"custrecord_itpm_all_impactprice",
+            					value:parseFloat(priceObj.price)
+            				}).setValue({
+            					fieldId:"custrecord_itpm_all_uomprice",
+            					value:parseFloat(priceObj.price)*(rate/itemUnitRate)
+            				}).save({
+            					enableSourcing:false,
+            					ignoreMandatoryFields:true
+            				});
+            			}
+            		});
+            	}
+        	}
+        	cacheObj.remove({
+        		key:'keyObj'
+        	});
+        	log.error('end',scriptObj.getRemainingUsage());
+    	}catch(ex){
+    		log.error(ex.name,ex.message);
+    	}
     }
     
     
