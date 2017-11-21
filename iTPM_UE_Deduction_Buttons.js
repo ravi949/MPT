@@ -73,8 +73,8 @@ function(runtime, redirect) {
 						label: 'Quick Expense',
 						functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
 					});
-					
-					if(sc.newRecord.getValue({fieldId:'custbody_itpm_customer'})){
+					var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
+					if(customer){
 						var btn_creditmemo = sc.form.addButton({
 							id: 'custpage_itpm_match_creditmemo',
 							label: 'Expense',
