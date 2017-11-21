@@ -5,12 +5,11 @@
  * if parent deduction amount is less than new deduction amount then.
  * split the deduction into two and creating the two journal entries for each deduction and changed the parent deduction status to resolved.
  */
-define(['N/ui/serverWidget',
-		'N/runtime',
+define(['N/runtime',
 		'N/redirect'
 		],
 
-function(widget, runtime, redirect) {
+function(runtime, redirect) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -31,6 +30,19 @@ function(widget, runtime, redirect) {
 					message:'Copying a deduction is not allowed.'
 				};
 			}
+			//Getting the Internal Id's of custom records through script perameters
+			var settlementPermissionRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_set_permsn_rec_type_id');
+			var deductionPermissionRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_ddn_permsn_rec_type_id');
+			
+			//Getting the Deduction permissions
+			var ddnPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+deductionPermissionRectypeId);
+			log.debug('ddnPermission',ddnPermission);
+			ddnPermission = (ddnPermission == runtime.Permission.EDIT || ddnPermission == runtime.Permission.FULL);
+			
+			//Getting the Settlement permissions
+			var setPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementPermissionRectypeId);
+			log.debug('setPermission',setPermission);
+			setPermission = (setPermission == runtime.Permission.CREATE || setPermission == runtime.Permission.EDIT || setPermission == runtime.Permission.FULL);
 			
 			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
 				status = sc.newRecord.getValue({fieldId:'transtatus'}),
@@ -45,33 +57,38 @@ function(widget, runtime, redirect) {
 				openBalance != 0 &&
 				status == 'A' && 
 				clientScriptPath
-					){
-				var disputed = sc.newRecord.getValue('custbody_itpm_ddn_disputed');
+					){				
 				log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
 				sc.form.clientScriptModulePath = clientScriptPath;
-				var btn_split = sc.form.addButton({
-					id: 'custpage_itpm_split',
-					label: 'Split',
-					functionName: 'iTPMsplit(' + sc.newRecord.id + ')'
-				});
-				var btn_settlement = sc.form.addButton({
-					id: 'custpage_itpm_settlement',
-					label: 'Settlement',
-					functionName: 'iTPMsettlement(' + sc.newRecord.id + ')'
-				});
-				var btn_expense = sc.form.addButton({
-					id: 'custpage_itpm_expense',
-					label: 'Expense',
-					functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
-				});
-				
-				if(disputed){
-					var btn_invoice = sc.form.addButton({
-						id: 'custpage_itpm_invoice',
-						label: 'Re-Invoice',
-						functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
+				if(ddnPermission){
+					var btn_split = sc.form.addButton({
+						id: 'custpage_itpm_split',
+						label: 'Split',
+						functionName: 'iTPMsplit(' + sc.newRecord.id + ')'
 					});
+					var btn_expense = sc.form.addButton({
+						id: 'custpage_itpm_expense',
+						label: 'Expense',
+						functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
+					});
+
+					var disputed = sc.newRecord.getValue('custbody_itpm_ddn_disputed');
+					if(disputed){
+						var btn_invoice = sc.form.addButton({
+							id: 'custpage_itpm_invoice',
+							label: 'Re-Invoice',
+							functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
+						});
+					}					
 				}
+				
+				if(setPermission){
+					var btn_settlement = sc.form.addButton({
+						id: 'custpage_itpm_settlement',
+						label: 'Settlement',
+						functionName: 'iTPMsettlement(' + sc.newRecord.id + ')'
+					});
+				}				
 				
 			} else if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
 				redirect.toSuitelet({
