@@ -390,11 +390,7 @@ function(search, record, util, runtime) {
      * @returns Array
      * @description it created the array of items list
      */
-    function getItemGroupItems(itemId){
-    	var itemGroupRec = record.load({
-    		type:record.Type.ITEM_GROUP,
-    		id:itemId
-    	});
+    function getItemGroupItems(itemGroupRec,needDuplicates,needNotAllowed){
     	var itemCount = itemGroupRec.getLineCount('member');
     	var items = [{memberid:''}];
     	var memberid;
@@ -409,13 +405,14 @@ function(search, record, util, runtime) {
     			id:memberid,
     			columns:['custitem_itpm_available','saleunit','baseprice','unitstype','itemid']
     		});
-    		if(itemLookup['custitem_itpm_available']){
-    			if(items.some(function(e){return e.memberid != memberid})){
+    		if(needNotAllowed || itemLookup['custitem_itpm_available']){
+    			if(needDuplicates || items.some(function(e){return e.memberid != memberid})){
     				items.push({
         				memberid:memberid,
         				saleunit:itemLookup['saleunit'][0].value,
         				unitstype:itemLookup['unitstype'][0].value,
-        				baseprice:itemLookup['baseprice']
+        				baseprice:itemLookup['baseprice'],
+        				isAvailable:itemLookup['custitem_itpm_available']
         			});
     			}
     		}

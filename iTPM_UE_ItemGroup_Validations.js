@@ -26,18 +26,46 @@ function(search, itpm) {
     		var currentRec = scriptContext.newRecord;
         	if(scriptContext.type == 'create' || scriptContext.type == 'edit'){
         		if(currentRec.getValue('custitem_itpm_available')){
-            		var memberItems = itpm.getItemGroupItems(currentRec.id);
-            		log.error('lenght',memberItems.length);
-            		if(memberItems.length > 25){
+            		var memberItems = itpm.getItemGroupItems(currentRec,true,true);
+            		var duplicateItems = [];
+            		log.error('lenght',memberItems.length);	
+            		if(memberItems.length == 0){
+            			throw {
+            				name:"MEMBERS_EMPTY",
+            				message:"Please add the line items to item group."
+            			};
+            		}else if(memberItems.length > 25){
             			throw {
             				name:"INVALID_TOTAL",
             				message:"Member items should be lessthan or equal to 25."
             			};
+            		}else{
+            			memberItems.forEach(function(item,i){
+                			if(!item.isAvailable){
+                				throw{
+                					name:"NOT_ALLOWED",
+                					message:"Please make sure all items 'AVAILABLE FOR ITPM?' is checked."
+                				};
+                			}
+                			if(duplicateItems.some(function(e){return e.memberid == item.memberid})){
+                				throw{
+                					name:"DUPLICATE_ITEMS",
+                					message:"Duplicate items not allowed."
+                				};
+                			}
+                			if(memberItems[i-1] && (memberItems[i-1].saleunit != item.saleunit || memberItems[i-1].unitstype != item.unitstype)){
+                				throw{
+                					name:"INVALID_UNITS",
+                					message:"SaleUnit and UnitType must be same for all items."
+                				};
+                			}
+                			duplicateItems.push(item);
+                		})
             		}
             	}
         	}
     	}catch(ex){
-    		if(ex.name == "INVALID_TOTAL")
+    		if(ex.name == "MEMBERS_EMPTY" || ex.name == "INVALID_TOTAL" || ex.name == "INVALID_UNITS" || ex.name == "NOT_ALLOWED" || ex.name == "DUPLICATE_ITEMS")
     			throw new Error(ex.message);
     		log.error(ex.name,ex.message);
     	}
