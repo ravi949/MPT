@@ -60,6 +60,18 @@ function(runtime, redirect) {
 					){				
 				log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
 				sc.form.clientScriptModulePath = clientScriptPath;
+
+				
+				var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
+				
+				if(customer){
+					var btn_creditmemo = sc.form.addButton({
+						id: 'custpage_itpm_match_creditmemo',
+						label: 'Match to Credit Memo',
+						functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
+					});
+				}
+				
 				if(ddnPermission){
 					var btn_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
