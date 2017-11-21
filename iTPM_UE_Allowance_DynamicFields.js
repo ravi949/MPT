@@ -165,7 +165,7 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
             		    	'itemgpid':keyObj.itemGroupId,
             		    	'itemid':keyObj.neglectItem,
             		    	'allid':sc.newRecord.id,
-            		    	'promoid':sc.newRecord.getValue('custrecord_itpm_all_promotiondeal'),
+            		    	'pi':sc.newRecord.getValue('custrecord_itpm_all_promotiondeal'),
             		    	'pl':sc.newRecord.getValue('custrecord_itpm_all_pricelevel')
             		    }
             		});

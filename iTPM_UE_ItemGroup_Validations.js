@@ -53,6 +53,12 @@ function(search, itpm) {
                 					message:"Duplicate items not allowed."
                 				};
                 			}
+                			if(!item.baseprice){
+                				throw{
+                					name:"INVALID_BASEPRICE",
+                					message:"Item base price should not be empty."
+                				};
+                			}
                 			if(memberItems[i-1] && (memberItems[i-1].saleunit != item.saleunit || memberItems[i-1].unitstype != item.unitstype)){
                 				throw{
                 					name:"INVALID_UNITS",
@@ -65,7 +71,7 @@ function(search, itpm) {
             	}
         	}
     	}catch(ex){
-    		if(ex.name == "MEMBERS_EMPTY" || ex.name == "INVALID_TOTAL" || ex.name == "INVALID_UNITS" || ex.name == "NOT_ALLOWED" || ex.name == "DUPLICATE_ITEMS")
+    		if(ex.name == "MEMBERS_EMPTY" || ex.name == "INVALID_TOTAL" || ex.name == "INVALID_UNITS" || ex.name == "NOT_ALLOWED" || ex.name == "DUPLICATE_ITEMS" || ex.name =="INVALID_BASEPRICE")
     			throw new Error(ex.message);
     		log.error(ex.name,ex.message);
     	}

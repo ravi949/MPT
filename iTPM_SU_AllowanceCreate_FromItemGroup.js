@@ -67,7 +67,7 @@ function(record, http, redirect, runtime, itpm) {
         		log.error('remaining usage',scriptObj.getRemainingUsage());
         		redirect.toRecord({
         			type : "customrecord_itpm_promotiondeal", 
-        		    id : request.parameters.promoid
+        		    id : request.parameters.pi
         		});
         	}
     	}catch(ex){
