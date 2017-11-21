@@ -60,7 +60,7 @@ function(search, itpm) {
                 				};
                 			}
                 			duplicateItems.push(item);
-                		})
+                		});
             		}
             	}
         	}
