@@ -62,16 +62,6 @@ function(runtime, redirect) {
 				sc.form.clientScriptModulePath = clientScriptPath;
 
 				
-				var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
-				
-				if(customer){
-					var btn_creditmemo = sc.form.addButton({
-						id: 'custpage_itpm_match_creditmemo',
-						label: 'Match to Credit Memo',
-						functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
-					});
-				}
-				
 				if(ddnPermission){
 					var btn_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
@@ -80,12 +70,18 @@ function(runtime, redirect) {
 					});
 					var btn_expense = sc.form.addButton({
 						id: 'custpage_itpm_expense',
-						label: 'Expense',
+						label: 'Quick Expense',
 						functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
 					});
-
-					var disputed = sc.newRecord.getValue('custbody_itpm_ddn_disputed');
-					if(disputed){
+					
+					if(sc.newRecord.getValue({fieldId:'custbody_itpm_customer'})){
+						var btn_creditmemo = sc.form.addButton({
+							id: 'custpage_itpm_match_creditmemo',
+							label: 'Expense',
+							functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
+						});
+					}
+					if(sc.newRecord.getValue('custbody_itpm_ddn_disputed')){
 						var btn_invoice = sc.form.addButton({
 							id: 'custpage_itpm_invoice',
 							label: 'Re-Invoice',
