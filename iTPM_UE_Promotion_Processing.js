@@ -33,6 +33,18 @@ function(serverWidget,record,runtime,url,search) {
     		var promoForm = scriptContext.form;
     		if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
  
+    			if(scriptContext.type == 'create'){
+    				var prefSearchRes = search.create({
+    					type:'customrecord_itpm_preferences',
+    					columns:['custrecord_itpm_pref_defaultpricelevel']
+    				}).run().getRange(0,1);
+    				if(prefSearchRes.length > 0){
+    					promoRec.setValue({
+    						fieldId: 'custrecord_itpm_p_itempricelevel',
+    						value: prefSearchRes[0].getValue('custrecord_itpm_pref_defaultpricelevel')
+    					});
+    				}
+    			}
     			//this block for adding the New Settement button to Promotion record.
     			if(scriptContext.type == 'view'){
         			var status = promoRec.getValue('custrecord_itpm_p_status');
