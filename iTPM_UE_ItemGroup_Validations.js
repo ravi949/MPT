@@ -32,7 +32,7 @@ function(search, itpm) {
             		if(memberItems.length == 0){
             			throw {
             				name:"MEMBERS_EMPTY",
-            				message:"Please add the line items to item group."
+            				message:"Member items should have atleast 1."
             			};
             		}else if(memberItems.length > 25){
             			throw {
@@ -44,7 +44,7 @@ function(search, itpm) {
                 			if(!item.isAvailable){
                 				throw{
                 					name:"NOT_ALLOWED",
-                					message:"Please make sure all items 'AVAILABLE FOR ITPM?' is checked."
+                					message:"Please make sure all items 'AVAILABLE FOR ITPM?' checkbox is checked."
                 				};
                 			}
                 			if(duplicateItems.some(function(e){return e.memberid == item.memberid})){
