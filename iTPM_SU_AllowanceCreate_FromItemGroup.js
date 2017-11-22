@@ -6,13 +6,13 @@
 define(['N/record',
 		'N/http',
 		'N/redirect',
-		'N/runtime',
+		'N/search',
 		'./iTPM_Module.js'
 		],
 /**
  * @param {record} record
  */
-function(record, http, redirect, runtime, itpm) {
+function(record, http, redirect, search, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -26,15 +26,19 @@ function(record, http, redirect, runtime, itpm) {
     	try{
     		var request = context.request;
         	if(request.method == http.Method.GET){
-        		var scriptObj = runtime.getCurrentScript();
         		var itemGroupRec = record.load({
             		type:record.Type.ITEM_GROUP,
             		id:request.parameters.itemgpid
             	});
+        		var allwLookup = search.lookupFields({
+        			type:'customrecord_itpm_promoallowance',
+        			id:request.parameters.allid,
+        			columns:['custrecord_itpm_all_mop','custrecord_itpm_all_uom']
+        		});
         		var items = itpm.getItemGroupItems(itemGroupRec,false,false); //get the list of item members array
         		var itemUnits = itpm.getItemUnits(items[0].memberid); //get the list of unists array
         		var unitsArray = itemUnits['unitArray']; 
-        		var allwUnit = itemUnits['saleunit']; //get the base unit from the units list
+        		var allwUnit = allwLookup['custrecord_itpm_all_uom'][0].value; //get the base unit from the units list
         		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate); //member item sale unit rate conversion rate
         		var rate = parseFloat(unitsArray.filter(function(e){return e.id == allwUnit})[0].conversionRate); //member item base unit conversion rate
         		items.forEach(function(item,i){
@@ -44,6 +48,9 @@ function(record, http, redirect, runtime, itpm) {
             				type:"customrecord_itpm_promoallowance",
             				id:request.parameters.allid
             			}).setValue({
+                			fieldId:"custrecord_itpm_all_mop",
+                			value:allwLookup['custrecord_itpm_all_mop'][0].value
+                		}).setValue({
                 			fieldId:"custrecord_itpm_all_item",
                 			value:item.memberid
                 		}).setValue({
@@ -61,7 +68,6 @@ function(record, http, redirect, runtime, itpm) {
                 		});
         			}
         		});
-        		log.error('remaining usage',scriptObj.getRemainingUsage());
         		redirect.toRecord({
         			type : "customrecord_itpm_promotiondeal", 
         		    id : request.parameters.pi
