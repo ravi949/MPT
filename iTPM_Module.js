@@ -428,7 +428,7 @@ function(search, record, util, runtime) {
     function getUserPermission(rectypeId){
     	var userObj = runtime.getCurrentUser();
 		var scriptObj = runtime.getCurrentScript();
-		return parseInt(userObj.getPermission('LIST_CUSTRECORDENTRY'+rectypeId));
+		return userObj.getPermission('LIST_CUSTRECORDENTRY'+rectypeId);
     }
 	
     return {
