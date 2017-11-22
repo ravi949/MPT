@@ -31,12 +31,12 @@ function(record, http, redirect, runtime, itpm) {
             		type:record.Type.ITEM_GROUP,
             		id:request.parameters.itemgpid
             	});
-        		var items = itpm.getItemGroupItems(itemGroupRec,false,false);
-        		var unitsArray = itpm.getItemUnits(items[0].memberid)['unitArray'];
-        		var baseUnit = unitsArray.filter(function(e){return e.isBase})[0].id;
-        		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate);
-        		var rate = parseFloat(unitsArray.filter(function(e){return e.id == baseUnit})[0].conversionRate);
-        		var items = itpm.getItemGroupItems(itemGroupRec,false,false);
+        		var items = itpm.getItemGroupItems(itemGroupRec,false,false); //get the list of item members array
+        		var itemUnits = itpm.getItemUnits(items[0].memberid); //get the list of unists array
+        		var unitsArray = itemUnits['unitArray']; 
+        		var allwUnit = itemUnits['saleunit']; //get the base unit from the units list
+        		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate); //member item sale unit rate conversion rate
+        		var rate = parseFloat(unitsArray.filter(function(e){return e.id == allwUnit})[0].conversionRate); //member item base unit conversion rate
         		items.forEach(function(item,i){
         			if(item.memberid != request.parameters.itemid){
         				var priceObj = itpm.getImpactPrice({itemid:item.memberid,pricelevel:request.parameters.pl});
@@ -46,9 +46,6 @@ function(record, http, redirect, runtime, itpm) {
             			}).setValue({
                 			fieldId:"custrecord_itpm_all_item",
                 			value:item.memberid
-                		}).setValue({
-                			fieldId:"custrecord_itpm_all_uom",
-                			value:baseUnit
                 		}).setValue({
                 			fieldId:"custrecord_itpm_all_itembaseprice",
                 			value:item.baseprice

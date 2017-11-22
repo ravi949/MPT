@@ -174,7 +174,7 @@ function(search, record, util, runtime) {
     		var unitsType = search.lookupFields({
         		type: search.Type.ITEM,
         		id: itemId,
-        		columns: 'unitstype'
+        		columns: ['unitstype', 'saleunit']
         	});
         	if (!unitsType.unitstype){
         		throw {
@@ -195,7 +195,7 @@ function(search, record, util, runtime) {
         			conversionRate: unitRecord.getSublistValue({sublistId: 'uom', line: u, fieldId: 'conversionrate'})
         		});
         	}
-        	return {error:false, unitArray: unitArray};
+        	return {error:false, unitArray: unitArray, saleunit: unitsType.saleunit[0].value};
     	} catch (ex) {
     		return {error: true, name: 'ITEM_UNITS_MODULE', message: ex.name + '; ' + ex.message + '; itemId: ' + itemId};
     	}
@@ -388,7 +388,7 @@ function(search, record, util, runtime) {
 	/**
      * @param itemId
      * @returns Array
-     * @description it created the array of items list
+     * @description it created the array of member items from item group
      */
     function getItemGroupItems(itemGroupRec,needDuplicates,needNotAllowed){
     	var itemCount = itemGroupRec.getLineCount('member');

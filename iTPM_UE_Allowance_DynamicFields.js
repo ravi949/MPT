@@ -84,11 +84,11 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
             		type:record.Type.ITEM_GROUP,
             		id:sc.newRecord.getValue('custrecord_itpm_all_item')
             	});
-        		var items = itpm.getItemGroupItems(itemGroupRec,false,false);
-        		var unitsArray = itpm.getItemUnits(items[0].memberid)['unitArray'];
-        		var baseUnit = unitsArray.filter(function(e){return e.isBase})[0].id;
-        		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate);
-        		var rate = parseFloat(unitsArray.filter(function(e){return e.id == baseUnit})[0].conversionRate);
+        		var items = itpm.getItemGroupItems(itemGroupRec,false,false); //get the list of item members array
+        		var unitsArray = itpm.getItemUnits(items[0].memberid)['unitArray']; //get the list of unists array
+        		var allwUnit = sc.newRecord.getValue('custrecord_itpm_all_uom'); //allowance record selected unit
+        		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate); //member item sale unit rate conversion rate
+        		var rate = parseFloat(unitsArray.filter(function(e){return e.id == allwUnit})[0].conversionRate); //member item base unit conversion rate
         		items.forEach(function(item,i){
         			if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
         				throw{
@@ -102,9 +102,6 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         		sc.newRecord.setValue({
         			fieldId:"custrecord_itpm_all_item",
         			value:items[0].memberid
-        		}).setValue({
-        			fieldId:"custrecord_itpm_all_uom",
-        			value:baseUnit
         		}).setValue({
         			fieldId:"custrecord_itpm_all_itembaseprice",
         			value:items[0].baseprice
