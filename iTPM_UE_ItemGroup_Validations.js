@@ -32,7 +32,7 @@ function(search, itpm) {
             		if(memberItems.length == 0){
             			throw {
             				name:"MEMBERS_EMPTY",
-            				message:"Member items should have atleast 1."
+            				message:"ItemGroup should have atleast one item."
             			};
             		}else if(memberItems.length > 25){
             			throw {
