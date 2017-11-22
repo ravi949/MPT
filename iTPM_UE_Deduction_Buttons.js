@@ -70,14 +70,14 @@ function(runtime, redirect) {
 					});
 					var btn_expense = sc.form.addButton({
 						id: 'custpage_itpm_expense',
-						label: 'Quick Expense',
+						label: 'Expense',
 						functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
 					});
 					var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
 					if(customer){
 						var btn_creditmemo = sc.form.addButton({
 							id: 'custpage_itpm_match_creditmemo',
-							label: 'Expense',
+							label: 'Match To Credit Memo',
 							functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
 						});
 					}
