@@ -421,6 +421,15 @@ function(search, record, util, runtime) {
     	return items;
     }
 	
+    /**
+     * @param recordtype id
+     * @return permission id
+     */
+    function getUserPermission(rectypeId){
+    	var userObj = runtime.getCurrentUser();
+		var scriptObj = runtime.getCurrentScript();
+		return parseInt(userObj.getPermission('LIST_CUSTRECORDENTRY'+rectypeId));
+    }
 	
     return {
     	getItemUnits : getItemUnits,
@@ -436,7 +445,8 @@ function(search, record, util, runtime) {
     	classesEnabled : classesEnabled,
     	subsidiariesEnabled:subsidiariesEnabled,
     	currenciesEnabled:currenciesEnabled,
-    	getClassifications:getClassifications
+    	getClassifications:getClassifications,
+    	getUserPermission:getUserPermission
     };
     
 });
