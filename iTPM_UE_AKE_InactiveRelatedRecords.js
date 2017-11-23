@@ -104,8 +104,6 @@ function(record, search, runtime, redirect) {
      * @description delete the related records or inactive 
      */
     function deleteRecords(obj,isinactive){
-    	log.debug(obj.type,obj.results.run().getRange(0,2));
-    	log.debug(obj.type,isinactive);
     	obj.results.run().each(function(e){
     		record.submitFields({
 			    type: obj.type,
