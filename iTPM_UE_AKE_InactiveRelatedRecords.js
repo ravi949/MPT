@@ -48,12 +48,13 @@ function(record, search, runtime, redirect) {
     		};
 
     		switch(scriptContext.type){
-    		case scriptContext.UserEventType.DELETE:
-    			actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
-    			break;
     		case scriptContext.UserEventType.EDIT:
     			if(scriptContext.newRecord.getValue('isinactive'))
-    				actions[scriptContext.newRecord.type]["method"](scriptContext,actions);
+    				actions[scriptContext.newRecord.type]["method"](scriptContext,actions,false);
+    			else{
+    				if(scriptContext.oldRecord.getValue('isinactive') && !scriptContext.newRecord.getValue('isinactive'))
+    					actions[scriptContext.newRecord.type]["method"](scriptContext,actions,true);
+    			}
     			break;
     		}
     	}catch(e){
@@ -66,19 +67,13 @@ function(record, search, runtime, redirect) {
      * @param actions - actions object
      * @description delete the related the EstQty and Kpi records
      */
-    function deleteEstQtyAndKpi(context,actions){
-    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,true).results.run().getRange(0,1000);
-    	
-    	if(allwResults.length == 0){
-    		deleteRecords(getResults('customrecord_itpm_estquantity',context,actions));
-        	deleteRecords(getResults('customrecord_itpm_kpi',context,actions));
-        	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
-    	}else{
-    		redirect.toSuitelet({
-    		    scriptId: "customscript_itpm_all_update_afterdelete" ,
-    		    deploymentId: "customdeploy_itpm_all_update_afterdelete",
-    		    parameters: {'allid':allwResults[0].getValue('internalid')} 
-    		});
+    function deleteEstQtyAndKpi(context,actions,isinactive){
+    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,isinactive).results.run().getRange(0,2);
+
+    	if(allwResults.length == 0 || !isinactive){
+    		deleteRecords(getResults('customrecord_itpm_estquantity',context,actions,isinactive),isinactive);
+        	deleteRecords(getResults('customrecord_itpm_kpi',context,actions,isinactive),isinactive);
+        	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions,isinactive),isinactive);
     	}
     }
     
@@ -87,13 +82,10 @@ function(record, search, runtime, redirect) {
      * @param actions - actions object
      * @description delete the related the Allownces and EstQty records
      */
-    function deleteAllAndEstQty(context,actions){
-    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,true);
-    	var allResultLength = allwResults.results.run().getRange(0,1000);
-
-    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions),(allResultLength > 238));
-        deleteRecords(getResults('customrecord_itpm_estquantity',context,actions),(allResultLength > 238));
-    	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
+    function deleteAllAndEstQty(context,actions,isinactive){
+    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions,isinactive),isinactive);
+        deleteRecords(getResults('customrecord_itpm_estquantity',context,actions,isinactive),isinactive);
+    	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions,isinactive),isinactive);
     }
     
     /**
@@ -101,39 +93,31 @@ function(record, search, runtime, redirect) {
      * @param actions - actions object
      * @description delete the related the Allowances and Kpi records
      */
-    function deleteAllAndKpi(context,actions){
-    	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,true);
-    	var allResultLength = allwResults.results.run().getRange(0,1000);
-
-    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions),(allResultLength > 238));
-    	deleteRecords(getResults('customrecord_itpm_kpi',context,actions));
-    	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions));
+    function deleteAllAndKpi(context,actions,isinactive){
+    	deleteRecords(getResults('customrecord_itpm_promoallowance',context,actions,isinactive),isinactive);
+    	deleteRecords(getResults('customrecord_itpm_kpi',context,actions,isinactive),isinactive);
+    	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions,isinactive),isinactive);
     }
     
     /**
      * @param obj - contains record type,resultSet
      * @description delete the related records or inactive 
      */
-    function deleteRecords(obj,makeInactive){
+    function deleteRecords(obj,isinactive){
+    	log.debug(obj.type,obj.results.run().getRange(0,2));
+    	log.debug(obj.type,isinactive);
     	obj.results.run().each(function(e){
-    		if(makeInactive){    			
-    			record.submitFields({
-    			    type: obj.type,
-    			    id: e.getValue('internalid'),
-    			    values: {
-    			        isinactive: makeInactive
-    			    },
-    			    options: {
-    			        enableSourcing: false,
-    			        ignoreMandatoryFields : true
-    			    }
-    			});
-    		}else{
-    			record.delete({
-        			type:obj.type,
-        			id:e.getValue('internalid')
-        		});
-    		}
+    		record.submitFields({
+			    type: obj.type,
+			    id: e.getValue('internalid'),
+			    values: {
+			        isinactive: !isinactive
+			    },
+			    options: {
+			        enableSourcing: false,
+			        ignoreMandatoryFields : true
+			    }
+			});
     		return true;
     	});
     }
@@ -145,13 +129,7 @@ function(record, search, runtime, redirect) {
      * @returns type,resultSet
      * @description search for the related records and return result
      */
-    function getResults(type,context,actions,deleteInactive){		
-    	if(deleteInactive && context.type == context.UserEventType.EDIT){
-    		record.delete({
-    			type:context.newRecord.type,
-    			id:context.newRecord.id
-    		});
-    	}
+    function getResults(type,context,actions,isinactive){		
     	var promoid = actions[type].promoid;
     	var promoInternalid = context.oldRecord.getValue(actions[context.newRecord.type].promoid);
     	var itemid = actions[type].itemid;
@@ -162,7 +140,8 @@ function(record, search, runtime, redirect) {
 	    		columns:['internalid'],
 	    		filters:[
 	    			[promoid,'anyof',promoInternalid],'and',
-	   			 	[itemid,'anyof',itemInternalid]
+	   			 	[itemid,'anyof',itemInternalid],'and',
+	   			 	['isinactive','is',isinactive]
 	    		]
     	});
         
