@@ -8,11 +8,10 @@ define(['N/ui/message',
 		'N/url',
 		'N/https',
 		'N/search',
-		'N/ui/dialog',
-		'./iTPM_Module.js'
+		'N/ui/dialog'
 		],
 
-function(message, url, https, search, dialog, itpm) {
+function(message, url, https, search, dialog) {
 
 	/**
 	 * Function to be executed after page is initialized.
