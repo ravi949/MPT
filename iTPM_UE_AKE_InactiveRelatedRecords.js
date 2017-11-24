@@ -70,7 +70,7 @@ function(record, search, runtime, redirect) {
     function deleteEstQtyAndKpi(context,actions,isinactive){
     	var allwResults = getResults('customrecord_itpm_promoallowance',context,actions,isinactive).results.run().getRange(0,2);
 
-    	if(allwResults.length == 0 || !isinactive){
+    	if(allwResults.length == 0 || isinactive){
     		deleteRecords(getResults('customrecord_itpm_estquantity',context,actions,isinactive),isinactive);
         	deleteRecords(getResults('customrecord_itpm_kpi',context,actions,isinactive),isinactive);
         	deleteRecords(getResults('customrecord_itpm_promoretailevent',context,actions,isinactive),isinactive);
