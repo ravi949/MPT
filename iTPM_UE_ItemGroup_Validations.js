@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType UserEventScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  */
 define(['N/search',
 		'./iTPM_Module.js'
