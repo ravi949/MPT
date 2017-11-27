@@ -122,11 +122,32 @@ function(url, https, message) {
 		}
 	}
 	
+	function iTPMcreditmemo(id, customerid) {
+		try{
+			var msg = displayMessage('info','Credit Memo List','Please wait while you are redirected to the Credit Memo list screen.');
+			msg.show();
+			var suiteletUrl = url.resolveScript({
+				scriptId:'customscript_itpm_ded_matchtocreditmemo',
+    			deploymentId:'customdeploy_itpm_ded_matchtocreditmemo',
+    			params:{did:id,customer:customerid,submit:'false'}
+			});
+			window.open(suiteletUrl, '_self');
+		} catch(ex) {
+			console.log(ex.name, 'function name = iTPMcreditmemo, message'+ex.message);
+		}
+	}
+	
+	function redirectToBack(from,id){
+    	history.go(-1);
+    }
+	
     return {
         iTPMsplit : iTPMsplit,
         iTPMexpense : iTPMexpense,
         iTPMinvoice : iTPMinvoice,
-        iTPMsettlement : iTPMsettlement
+        iTPMsettlement : iTPMsettlement,
+        iTPMcreditmemo : iTPMcreditmemo,
+        redirectToBack : redirectToBack
     };
     
 });

@@ -70,6 +70,15 @@ define(['N/record',
 				container:'custpage_setup_preference'
 			});
 
+			//Default Price Level Field
+			var defaultPriceLevel = form.addField({
+				id: 'custpage_itpm_pref_defaultpricelevel',
+				label: 'Default Price Level',
+				type: serverWidget.FieldType.SELECT,
+				source:'pricelevel',
+				container:'custpage_setup_preference'
+			});
+
 			//Expense account
 			var expenseAccntField = form.addField({
 				id: 'custpage_itpm_pref_expenseaccount',
@@ -205,6 +214,7 @@ define(['N/record',
 				ApplyiTPMNetBillDiscountChk.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_nblistprice')?'T':'F';
 				discountItemId = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
 				defaultAllType.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultalltype');
+				defaultPriceLevel.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultpricelevel');
 				switch(preferanceRecord.getValue('custrecord_itpm_pref_discountdates')){
 				case '1' : 
 					radioITPMDiscountDate.defaultValue = 'custpage_sd';
@@ -325,7 +335,7 @@ define(['N/record',
 		discountItemId = request.parameters.custpage_itpm_pref_discountitem,
 		discountDates = request.parameters.custpage_itpm_disdate;
 		var defaultalltype = request.parameters.custpage_itpm_pref_defaultalltype;
-		
+		var defaultPriceLevel = request.parameters.custpage_itpm_pref_defaultpricelevel;
 		preferanceRecord.setValue({
 			fieldId: 'custrecord_itpm_pref_ddnaccount',
 			value: deductionAccount,
@@ -349,6 +359,10 @@ define(['N/record',
 		}).setValue({
 			fieldId:'custrecord_itpm_pref_defaultalltype',
 			value:defaultalltype,
+			ignoreFieldChange:true
+		}).setValue({
+			fieldId:'custrecord_itpm_pref_defaultpricelevel',
+			value:defaultPriceLevel,
 			ignoreFieldChange:true
 		});
 
