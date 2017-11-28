@@ -262,7 +262,8 @@ function(search, record, util, runtime) {
 						 'custrecord_itpm_pref_settlementsaccount',
 						 'custrecord_itpm_pref_expenseaccount',
 						 'custrecord_itpm_pref_discountdates',
-						 'custrecord_itpm_pref_defaultalltype'
+						 'custrecord_itpm_pref_defaultalltype',
+						 'custrecord_itpm_pref_defaultpricelevel'
 						],
 				filters:[]
 			}).run().each(function(e){
@@ -273,7 +274,8 @@ function(search, record, util, runtime) {
 						expenseAccnt : e.getValue('custrecord_itpm_pref_expenseaccount'),
 						accountPayable : e.getValue('custrecord_itpm_pref_settlementsaccount'),
 						prefDiscountDate: e.getText('custrecord_itpm_pref_discountdates'),
-						defaultAllwType: e.getValue('custrecord_itpm_pref_defaultalltype')
+						defaultAllwType: e.getValue('custrecord_itpm_pref_defaultalltype'),
+						defaultPriceLevel:e.getValue('custrecord_itpm_pref_defaultpricelevel')
 				}
 			})
 			return prefObj;

@@ -7,7 +7,8 @@ define(['N/ui/serverWidget',
 		'N/record',
 		'N/runtime',
 		'N/url',
-		'N/search'
+		'N/search',
+		'./iTPM_Module.js'
 		],
 /**
  * @param {serverWidget} serverWidget
@@ -16,7 +17,7 @@ define(['N/ui/serverWidget',
  * @param {url} url
  * @param {search} search
  */
-function(serverWidget,record,runtime,url,search) {
+function(serverWidget,record,runtime,url,search,itpm) {
    
     /**
      * Function definition to be triggered before record is loaded.
@@ -34,16 +35,10 @@ function(serverWidget,record,runtime,url,search) {
     		if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
  
     			if(scriptContext.type == 'create'){
-    				var prefSearchRes = search.create({
-    					type:'customrecord_itpm_preferences',
-    					columns:['custrecord_itpm_pref_defaultpricelevel']
-    				}).run().getRange(0,1);
-    				if(prefSearchRes.length > 0){
-    					promoRec.setValue({
-    						fieldId: 'custrecord_itpm_p_itempricelevel',
-    						value: prefSearchRes[0].getValue('custrecord_itpm_pref_defaultpricelevel')
-    					});
-    				}
+    				promoRec.setValue({
+    					fieldId: 'custrecord_itpm_p_itempricelevel',
+    					value: itpm.getPrefrenceValues()['defaultPriceLevel']
+    				});
     			}
     			//this block for adding the New Settement button to Promotion record.
     			if(scriptContext.type == 'view'){
