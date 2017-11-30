@@ -524,7 +524,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				});
 				amountField.updateDisplayType({
 					displayType : (params.from =='inv'||params.type == 'edit')?serverWidget.FieldDisplayType.DISABLED:serverWidget.FieldDisplayType.NORMAL
-				}).defaultValue = invAmount;
+				}).defaultValue = (params.type != 'edit')?invAmount:deductionRec.getValue('custbody_itpm_amount');
 
 				amountField.isMandatory = true;
 
