@@ -52,7 +52,7 @@ function(serverWidget,record,runtime,url,search,itpm) {
         			}).getValue('custrecord_itpm_pt_settlewhenpromoactive');
         			
         			//role based permission allow permissions (CREATE,EDIT and FULL)
-        			var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_promotion_approver_recid');
+        			var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_settlementpermissionsrec');
         			var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
         			rolePermission = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
         			var showSettlementButton = (rolePermission  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
