@@ -994,6 +994,450 @@ function(search, record, util, runtime) {
     	}
     }
     
+    /**
+     * @param String promID
+     */
+    function approvedAllocationFactorActual(promID){
+        try{
+        	var scriptObj = runtime.getCurrentScript();
+            log.debug('statrt time',scriptObj.getRemainingUsage());
+        	log.debug('===================================approved');
+        	//fetching Start  Date, End Date and Customer from Promotion
+        	var fieldLookUp = search.lookupFields({
+        		type    : 'customrecord_itpm_promotiondeal',
+        		id      : promID,
+        		columns : ['custrecord_itpm_p_shipstart', 'custrecord_itpm_p_shipend', 'custrecord_itpm_p_customer']
+        	});
+
+        	shipStartDate = fieldLookUp.custrecord_itpm_p_shipstart;
+        	shipEndDate = fieldLookUp.custrecord_itpm_p_shipend;
+        	customer = fieldLookUp.custrecord_itpm_p_customer[0].value;
+        	log.debug('customer, shipStartDate & shipEndDate', customer+' , '+shipStartDate+' & '+shipEndDate);
+
+        	//Getting all items from KPI
+        	var kpiItems = [];
+
+        	var kpiitems_searchObj = search.create({
+        		type: "customrecord_itpm_kpi",
+        		filters: [
+        			["isinactive","is","F"], 
+        			"AND", 
+        			["custrecord_itpm_kpi_promotiondeal","anyof",promID]
+        			],
+        			columns: [
+        				'custrecord_itpm_kpi_item'
+        			]
+        	});
+
+        	kpiitems_searchObj.run().each(function(result){
+        		kpiItems.push(result.getValue('custrecord_itpm_kpi_item'));
+        		return true;
+        	});
+
+        	var actualSalesCount = 0;
+
+        	for(var i=0; i<kpiItems.length; i++){
+        		//Adding Columns
+        		var searchColumn = [];
+        		searchColumn.push(search.createColumn({
+        			name:'internalid'
+        		}));
+
+        		var actualSaleSearchObj = getInvoiceSearch(searchColumn,kpiItems[i],customer,shipStartDate,shipEndDate);
+
+        		if(actualSaleSearchObj.runPaged().count){
+        			actualSalesCount++;
+        		}
+        	}
+        	log.debug('actualSalesCount', actualSalesCount);
+
+        	if(actualSalesCount > 0){
+
+        		objBB = {
+        			    promoId: promID,
+        			    promoESorEL: 'custrecord_itpm_p_expliabilitybb', //or oi
+        			    kpiESorEL: 'custrecord_itpm_kpi_expectedliabilitybb', //or oi
+        			    mop: 1, // for BB
+        			    kpiValues: {
+        			        'custrecord_itpm_kpi_factoractualbb': 1,
+        			        'custrecord_itpm_kpi_adjustedbb': true
+        			    }
+        			}
+        		
+        		calculateActualBBandOIApproved(objBB);
+        		objOI = {
+        			    promoId: promID,
+        			    promoESorEL: 'custrecord_itpm_expectedliabilityoi', 
+        			    kpiESorEL: 'custrecord_itpm_kpi_expectedliabilityoi', 
+        			    mop: 3, // for OI
+        			    kpiValues: {
+        			        'custrecord_itpm_kpi_factoractualoi': 1,
+        			        'custrecord_itpm_kpi_adjsutedoi': true
+        			    }
+        			}			
+        		calculateActualBBandOIApproved(objOI);
+        		
+        		calculateActualLSApproved(promID);
+        	}else{
+        		log.debug('actual no');
+        		var kpiitemcount_searchObj = search.create({
+        			type: "customrecord_itpm_kpi",
+        			filters: [
+        				["isinactive","is","F"], 
+        				"AND", 
+        				["custrecord_itpm_kpi_promotiondeal","anyof",promID]
+        				],
+        				columns: [
+        					search.createColumn({
+        						name: "id",
+        						sort: search.Sort.ASC
+        					}), 
+        					'custrecord_itpm_kpi_item',
+        					'custrecord_itpm_kpi_factorestls',
+        					'custrecord_itpm_kpi_factorestbb',
+        					'custrecord_itpm_kpi_factorestoi'
+        					]
+        		});
+        		log.debug('kpiitemcount_searchObj',kpiitemcount_searchObj);
+        		
+        		kpiitemcount_searchObj.run().each(function(result){
+        			//Updating the related KPI record
+        			var kpiRecUpdate = record.submitFields({
+                		type: 'customrecord_itpm_kpi',
+                		id: result.getValue('id'),
+                		values: {
+                			'custrecord_itpm_kpi_factoractualls' : result.getValue('custrecord_itpm_kpi_factorestls'),
+                			'custrecord_itpm_kpi_factoractualbb' : result.getValue('custrecord_itpm_kpi_factorestbb'),
+                			'custrecord_itpm_kpi_factoractualoi' : result.getValue('custrecord_itpm_kpi_factorestoi')
+                		},
+                		options: {enablesourcing: true, ignoreMandatoryFields: true}
+                	});
+        			log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
+        			
+        			return true;
+        		});
+        	}
+            log.debug('statrt end time',scriptObj.getRemainingUsage());
+        }catch(e){
+        	log.error(e.name, 'approvedAllocationFactorActual'+e.message);
+        }
+    }
+    
+    /**
+     * @param Object obj
+     */
+    function calculateActualBBandOIApproved(obj){
+		try{
+			log.debug('====================++++++++++++++++++++actual',obj['mop']);
+			var promSearchObj = record.load({
+				type: "customrecord_itpm_promotiondeal",
+				id: obj['promoId']
+			});
+			var totalexpliability = promSearchObj.getValue(obj['promoESorEL']);
+			log.debug('totalexpliability'+obj['mop'], totalexpliability);
+
+			//Fetching Expected liability: BB from Promotion record
+			var promSearchObjbb = search.create({
+				type: "customrecord_itpm_promotiondeal",
+				filters: [
+					["internalid", "anyof", obj['promoId']],
+					"AND",
+					["custrecord_itpm_kpi_promotiondeal.isinactive", "is", "F"]
+					],
+					columns: [ 
+						search.createColumn({
+							name: obj['kpiESorEL'],
+							join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
+							summary: "SUM",
+							sort: search.Sort.ASC
+						})
+						]
+			});
+
+			var promexpliabilitybb = promSearchObjbb.run().getRange(0,1)[0].getValue({
+				name:"kpiESorEL",
+				join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
+				summary:search.Summary.SUM
+			});
+			log.debug('Expected liability:'+obj['mop'], promexpliabilitybb);
+
+			//Counting Items IF MOP is BB
+			var promoallowanceSearchObj = search.create({
+				type: "customrecord_itpm_promoallowance",
+				filters: [
+					["custrecord_itpm_all_promotiondeal","anyof",obj['promoId']], 
+					"AND", 
+					["isinactive","is","F"], 
+					"AND", 
+					["custrecord_itpm_all_mop","anyof",obj['mop']]
+					],
+					columns: [
+						"custrecord_itpm_all_item"
+						]
+			});
+
+			var items = [],itemcount = 0;
+
+			promoallowanceSearchObj.run().each(function(result){
+				items.push(result.getValue('custrecord_itpm_all_item'));
+				return true;
+			});
+		   if(items.length > 0){
+	         var kpiitemcount_searchObj = search.create({
+				type: "customrecord_itpm_kpi",
+				filters: [
+					["isinactive","is","F"], 
+					"AND", 
+					["custrecord_itpm_kpi_promotiondeal","anyof",obj['promoId']], 
+					"AND", 
+					["custrecord_itpm_kpi_item","anyof",items]
+					],
+					columns: [
+						search.createColumn({
+							name: "id",
+							sort: search.Sort.ASC
+						})
+						]
+			});
+
+			itemcount = kpiitemcount_searchObj.runPaged().count;
+			log.debug('KPI Item Count on Promotion', itemcount);
+	       }
+			
+
+			if(itemcount == 1){
+				obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
+				//Updating the related KPI record
+				var kpiRecUpdate = record.submitFields({
+					type: 'customrecord_itpm_kpi',
+					id: (kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}),
+					values: obj['kpiValues'],
+					options: {enablesourcing: true, ignoreMandatoryFields: true}
+				});
+				log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
+			}
+			else if(itemcount > 1){
+				var i = itemcount;
+				var sumallfactors_except_last = 0;
+				kpiitemcount_searchObj.run().each(function(result){
+					log.debug('id', result.getValue({name:'id'}));
+
+					//fetching Expected liability BB from KPI record
+					var fieldLookUp = search.lookupFields({
+						type    : 'customrecord_itpm_kpi',
+						id      : result.getValue({name:'id'}),
+						columns : obj['kpiESorEL']
+					});
+					var el = fieldLookUp[obj['kpiESorEL']];				
+					log.debug('el',el);
+
+					if(i==1){
+						obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
+						//Updating the related KPI record
+						var kpiRecUpdate = record.submitFields({
+							type: 'customrecord_itpm_kpi',
+							id: result.getValue({name:'id'}),
+							values: obj['kpiValues'],
+							options: {enablesourcing: true, ignoreMandatoryFields: true}
+						});
+
+						log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
+					}else{
+						log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
+						final_total_eq = (totalexpliability <= 0)?0:(parseFloat((el/totalexpliability)));
+						final_total_eq = parseInt(final_total_eq.toFixed(6)*100000)/100000;
+						sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
+						sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
+						log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+						//Updating the related KPI record
+						var kpiRecUpdate = record.submitFields({
+							type: 'customrecord_itpm_kpi',
+							id: result.getValue({name:'id'}),
+							values: obj['kpiValues'],
+							options: {enablesourcing: true, ignoreMandatoryFields: true}
+						});
+						log.debug('kpiRecUpdate',kpiRecUpdate);
+					}
+
+
+					i--;
+					return true;
+				});
+			}
+		}catch(e){
+			log.error(e.name, 'calculateActualBBandOIApproved'+e.message);
+		}
+	}
+    
+    /**
+     * @param String promID
+     */
+    function calculateActualLSApproved(promID){
+		try{
+			log.debug('====================++++++++++++++++++++actualLS');
+			//fetching Start  Date, End Date and Customer from Promotion
+			var fieldLookUp = search.lookupFields({
+				type    : 'customrecord_itpm_promotiondeal',
+				id      : promID,
+				columns : ['custrecord_itpm_p_shipstart', 'custrecord_itpm_p_shipend', 'custrecord_itpm_p_customer']
+			});
+
+			shipStartDate = fieldLookUp.custrecord_itpm_p_shipstart;
+			shipEndDate = fieldLookUp.custrecord_itpm_p_shipend;
+			customer = fieldLookUp.custrecord_itpm_p_customer[0].value;
+			log.debug('customer, shipStartDate & shipEndDate', customer+' , '+shipStartDate+' & '+shipEndDate);
+
+			//Getting all items from KPI
+			var kpiItems = [];
+
+
+			var kpiitemcount_searchObj = search.create({
+				type: "customrecord_itpm_kpi",
+				filters: [
+					["isinactive","is","F"], 
+					"AND", 
+					["custrecord_itpm_kpi_promotiondeal","anyof",promID]
+					],
+					columns: [
+						search.createColumn({
+							name: "id",
+							sort: search.Sort.ASC
+						}), 
+						'custrecord_itpm_kpi_item'
+						]
+			});
+
+			kpiitemcount_searchObj.run().each(function(result){
+				kpiItems.push(result.getValue('custrecord_itpm_kpi_item'));
+				return true;
+			});
+
+			//Adding Columns
+			var searchColumn = [];
+			searchColumn.push(search.createColumn({
+				name:'amount',
+				summary: "SUM"
+			}));
+
+			var actualSaleSearchObj = getInvoiceSearch(searchColumn,kpiItems,customer,shipStartDate,shipEndDate);
+
+			var totalrevenue = actualSaleSearchObj.run().getRange(0,1)[0].getValue({
+				name:"amount",
+				summary:search.Summary.SUM
+			});
+			log.debug('totalrevenue',totalrevenue);
+
+			var itemcount = kpiitemcount_searchObj.runPaged().count;
+			log.debug('KPI Item Count on Promotion', itemcount);
+
+			if(itemcount == 1){
+				//Updating the related KPI record
+				var kpiRecUpdate = record.submitFields({
+					type: 'customrecord_itpm_kpi',
+					id: (kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}),
+					values: {
+						'custrecord_itpm_kpi_factoractualls' : 1,
+						'custrecord_itpm_kpi_adjustedls' : true
+					},
+					options: {enablesourcing: true, ignoreMandatoryFields: true}
+				});
+				log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
+			}
+			else if(itemcount > 1){
+				var i = itemcount;
+				var sumallfactors_except_last = 0;
+				kpiitemcount_searchObj.run().each(function(result){
+					log.debug('id', result.getValue({name:'id'}));
+					log.debug('Item ID', result.getValue({name:'custrecord_itpm_kpi_item'}));
+
+					//need to update logic
+					//
+					var searchCol = [];
+					searchCol.push(search.createColumn({
+						name:'amount',
+						summary: "SUM"
+					}));
+
+					var aSaleSearchObj = getInvoiceSearch(searchCol,result.getValue({name:'custrecord_itpm_kpi_item'}),customer,shipStartDate,shipEndDate);
+
+					var actualRevenue = aSaleSearchObj.run().getRange(0,1)[0].getValue({
+						name:"amount",
+						summary:search.Summary.SUM
+					});
+					log.debug('actualRevenue',actualRevenue);
+
+					if(i==1){
+						//Updating the related KPI record
+						var kpiRecUpdate = record.submitFields({
+							type: 'customrecord_itpm_kpi',
+							id: result.getValue({name:'id'}),
+							values: {
+								'custrecord_itpm_kpi_factoractualls' : parseInt(((1-sumallfactors_except_last).toFixed(6)*100000))/100000,
+								'custrecord_itpm_kpi_adjustedls' : true
+							},
+							options: {enablesourcing: true, ignoreMandatoryFields: true}
+						});
+
+						log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
+					}else{
+						log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
+						final_total_eq = (totalrevenue <= 0)?0:(parseFloat((actualRevenue/totalrevenue)));
+						final_total_eq = parseInt(final_total_eq.toFixed(6)*100000)/100000;
+						sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
+						sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
+						log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+						//Updating the related KPI record
+						var kpiRecUpdate = record.submitFields({
+							type: 'customrecord_itpm_kpi',
+							id: result.getValue({name:'id'}),
+							values: {
+								'custrecord_itpm_kpi_factoractualls' : final_total_eq,
+								'custrecord_itpm_kpi_adjustedls' : false
+							},
+							options: {enablesourcing: true, ignoreMandatoryFields: true}
+						});
+						log.debug('kpiRecUpdate',kpiRecUpdate);
+					}
+
+
+					i--;
+					return true;
+				});
+			}
+		}catch(e){
+			log.error(e.name, 'calculateActualLSApproved'+e.message);
+		}
+	}
+    
+    /**
+	 * @param {Array} searchColumn
+	 * @param {String} items
+	 * @param {String} entityId - customerId
+	 * @param {String} st - start date
+	 * @param {String} end - end date
+	 * @returns {Object} search
+	 */
+    function getInvoiceSearch(searchColumn,items,custIds,st,end){
+		try{
+			return search.create({
+				type:search.Type.INVOICE,
+				columns:searchColumn,
+				filters:[
+					['item','anyof',items],'and',
+					['entity','anyof',custIds],'and',
+					['trandate','within',st,end],'and',
+					['status','anyof',['CustInvc:A','CustInvc:B']],'and',
+					['taxline','is',false],'and',
+					['cogs','is',false],'and',
+					['shipping','is',false],'and',
+					['item.isinactive','is',false]
+					]
+			});
+		}catch(e){
+			log.error(e.name, 'getInvoiceSearch'+e.message);
+		}
+    }
+    
     return {
     	getItemUnits : getItemUnits,
     	getActualQty : getActualQty,
@@ -1010,9 +1454,13 @@ function(search, record, util, runtime) {
     	currenciesEnabled:currenciesEnabled,
     	getClassifications:getClassifications,
     	getUserPermission:getUserPermission,
-    	calculateEstAllocationsBBOIDraft:calculateEstAllocationsBBOIDraft,
-    	calculateAllocationsLSforDraft:calculateAllocationsLSforDraft,
-    	updateKPIActualEvenly:updateKPIActualEvenly
+    	calculateEstAllocationsBBOIDraft : calculateEstAllocationsBBOIDraft,
+    	calculateAllocationsLSforDraft : calculateAllocationsLSforDraft,
+    	updateKPIActualEvenly : updateKPIActualEvenly,
+    	approvedAllocationFactorActual : approvedAllocationFactorActual,
+    	calculateActualBBandOIApproved : calculateActualBBandOIApproved,
+    	calculateActualLSApproved : calculateActualLSApproved,
+    	getInvoiceSearch : getInvoiceSearch
     };
     
 });
