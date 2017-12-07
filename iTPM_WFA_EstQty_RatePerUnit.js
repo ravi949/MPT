@@ -5,7 +5,7 @@
 define([
 	'N/runtime',
 	'N/search',
-	'./iTPM_Module'
+	'./iTPM_Module.js'
 	],
 
 function(runtime,search,itpm) {
