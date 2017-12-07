@@ -5,10 +5,10 @@
  * Adding the Deduction button on invoice if invoice has atlease on payment and dont have any deduction records(Open and Pending)
  */
 define(['N/search',
-		'N/ui/serverWidget',
-		'N/runtime',
-		'./iTPM_Module.js'
-		],
+	'N/ui/serverWidget',
+	'N/runtime',
+	'./iTPM_Module.js'
+	],
 	/**
 	 * @param {search} search
 	 * @param {serverWidget} serverWidget
@@ -43,6 +43,7 @@ define(['N/search',
 
 				if(invStatus == 'Open' && invoiceDeductionsAreEmpty){
 					scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
+					//itpm deduction permission should be create or edit or full
 					if(ddnPermission >= 2){
 						scriptContext.form.addButton({
 							id:'custpage_itpm_newddn',
