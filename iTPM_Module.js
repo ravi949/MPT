@@ -411,8 +411,8 @@ function(search, record, util, runtime) {
     			if(needDuplicates || items.some(function(e){return e.memberid != memberid})){
     				items.push({
         				memberid:memberid,
-        				saleunit:itemLookup['saleunit'][0].value,
-        				unitstype:itemLookup['unitstype'][0].value,
+        				saleunit:(itemLookup['saleunit'].length > 0)?itemLookup['saleunit'][0].value:0,
+        				unitstype:(itemLookup['unitstype'].length > 0)?itemLookup['unitstype'][0].value:0,
         				baseprice:itemLookup['baseprice'],
         				isAvailable:itemLookup['custitem_itpm_available']
         			});
