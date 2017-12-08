@@ -95,15 +95,9 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 		var currencyExists = itpm.currenciesEnabled();
 		var locationsExists = itpm.locationsEnabled();
 		var departmentsExists = itpm.departmentsEnabled();
-		var classesExists = itpm.classesEnabled();
-		
+		var classesExists = itpm.classesEnabled();		
 		var isEdit = (eventType == 'edit');
 		var displayTypeSetup = (isEdit)?serverWidget.FieldDisplayType.INLINE:serverWidget.FieldDisplayType.DISABLED;
-		
-		//iTPM prefernce record values.
-		var prefObj = itpm.getPrefrenceValues();
-		var perferenceLS = prefObj.perferenceLS;
-		var perferenceBB = prefObj.perferenceBB;
     	
     	if(isEdit){
     		settlementForm.addField({
@@ -710,18 +704,8 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqoi'):0;
     	
     	//setting the amount lum sum and amount bill back field values based on iTPM preferences feature
-    	if(createdFromDDN && perferenceLS){
-    		amountLSField.defaultValue = settlementReqValue; 
-    	}else{
-    		amountLSField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqls'):0;
-    	}
-
-    	if(createdFromDDN && perferenceBB){
-    		amountBBField.defaultValue = settlementReqValue; 
-    	}else{
-    		amountBBField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqbb'):0;
-    	}
-    	
+    	amountLSField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqls'):0;
+    	amountBBField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqbb'):0;
     	
     	/*  TRANSACTION DETAIL Start  */
 	    
