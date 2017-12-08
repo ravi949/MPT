@@ -761,6 +761,8 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					//getting the line value for the deduction
 					var expenseId,lineMemo,createdFrom = params['custom_cfrom'],
 					receivbaleAccntsList;
+					var removeCustFromSplit = (createdFrom == 'ddn' && itpm.getPrefrenceValues().removeCustomer);
+					log.debug('re',itpm.getPrefrenceValues());
 					if(createdFrom == 'inv'){
 						var recievableAccntId = search.lookupFields({
 							type:search.Type.INVOICE,
@@ -794,7 +796,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						expenseId = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:1});
 						receivbaleAccntsList = [{accountId:expenseId,amount:amount,fid:'credit',memo:lineMemo},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo}];
 					}
-
+					
 					//adding the memo value in deduction record
 					deductionRec.setValue({
 						fieldId:'memo',
@@ -819,7 +821,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						}).setCurrentSublistValue({
 							sublistId:'line',
 							fieldId:'entity',
-							value:customerno
+							value:(removeCustFromSplit)?'':customerno
 						}).commitLine({
 							sublistId: 'line'
 						});
@@ -834,7 +836,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_ddn_openbal'));
 						var newDdnAmount = parseFloat(amount);
 						if(parentDdnAmount > newDdnAmount){
-							createAutomatedDeductionRecord(parentRec,parentDdnAmount - newDdnAmount,expenseId);
+							createAutomatedDeductionRecord(parentRec,parentDdnAmount - newDdnAmount,expenseId,removeCustFromSplit);
 						}
 						
 						//loading the parent record again why because parentDeductionRec already save 
@@ -998,7 +1000,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 	 * @returns {Number} child deduction record id
 	 * @description creating the automated Deduction record 
 	 */
-	function createAutomatedDeductionRecord(parentDdnRec,remainingAmount,ddnExpnseAccount){
+	function createAutomatedDeductionRecord(parentDdnRec,remainingAmount,ddnExpnseAccount,removeCustFromSplit){
 		remainingAmount = remainingAmount.toFixed(2);
 
 		//creating the Deduction record for remaining amount
@@ -1077,7 +1079,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			}).setSublistValue({
 				sublistId:'line',
 				fieldId:'entity',
-				value:parentDdnRec.getValue('custbody_itpm_customer'),
+				value:(removeCustFromSplit)?'':parentDdnRec.getValue('custbody_itpm_customer'),
 				line:i
 			});
 		}
