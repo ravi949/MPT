@@ -77,7 +77,7 @@ define(['N/search',
 					var itemcountOnKPI = itemcountsearchObj.runPaged().count;
 					log.debug('KPI Item Count for Promotion', itemcountOnKPI);
 
-					if(itemcountOnKPI <= 25){
+					if(itemcountOnKPI <= 5){
 						var fieldLookUp = search.lookupFields({
 							type    : 'customrecord_itpm_promotiondeal',
 							id      : promID,
@@ -157,7 +157,7 @@ define(['N/search',
 				var itemcountOnKPI = itemcountsearchObj.runPaged().count;
 				log.debug('KPI Item Count for Promotion', itemcountOnKPI);
 
-				if(itemcountOnKPI <= 25){
+				if(itemcountOnKPI <= 5){
 					var fieldLookUp = search.lookupFields({
 						type    : 'customrecord_itpm_promotiondeal',
 						id      : promID,
@@ -314,7 +314,7 @@ define(['N/search',
 					var itemcount = estqtyitemcount_searchObj.runPaged().count;
 					log.debug('Est. Qty. Item Count on Promotion', itemcount);
 
-					if(itemcount <= 25){
+					if(itemcount <= 5){
 						//Updating BB Allocation Factors
 						objbb = {
 								promoId:promID,
