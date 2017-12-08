@@ -10,12 +10,12 @@ define(['N/record',
         'N/search',
         'N/runtime'
         ],
-        /**
-         * @param {record} record
-         * @param {redirect} redirect
-         * @param {serverWidget} serverWidget
-         */
-        function(record, redirect, serverWidget, search, runtime) {
+/**
+* @param {record} record
+* @param {redirect} redirect
+* @param {serverWidget} serverWidget
+*/
+function(record, redirect, serverWidget, search, runtime) {
 
 	/**
 	 * @param { string } type Discount 
