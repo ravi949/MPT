@@ -24,9 +24,114 @@ define(['N/search',
 			var scriptObj = runtime.getCurrentScript();
 			var isKpiRec = scriptObj.getParameter({name: 'custscript_itpm_is_kpirec'});
 			var isEstqtyRec = scriptObj.getParameter({name: 'custscript_is_estqty_rec'});
+			var isAllRec = scriptObj.getParameter({name: 'custscript_itpm_is_allrec'});
 
+			////Trigger only if Record is KPI
+			if(isAllRec){
+				log.debug('Is ALLOWANCE Record?', isAllRec);
+				
+				//Fetching all Promotion record required fields
+				var promID = scriptContext.newRecord.getValue('custrecord_itpm_all_promotiondeal');
+				var item = scriptContext.newRecord.getValue('custrecord_itpm_all_item');
+				log.debug('Promotion ID', promID);
+				
+				var itemcountsearchObj = search.create({
+					type: "customrecord_itpm_promoallowance",
+					filters: [
+						["isinactive","is","F"], 
+						"AND", 
+						["custrecord_itpm_all_promotiondeal","anyof",promID], 
+						"AND", 
+						["custrecord_itpm_all_item","anyof",item]
+						],
+						columns: [
+							search.createColumn({
+								name: "id",
+								sort: search.Sort.ASC
+							})
+							]
+				});
+
+				var count = itemcountsearchObj.runPaged().count;
+				log.debug('ALLOWANCES Duplicates count for '+item, count );
+				
+				if(count > 1){
+					log.debug('====ALLOCATION FACTORS UPDATE====');
+					
+					//Fetching KPI Item count
+					var itemcountsearchObj = search.create({
+						type: "customrecord_itpm_kpi",
+						filters: [
+							["isinactive","is","F"], 
+							"AND", 
+							["custrecord_itpm_kpi_promotiondeal","anyof",promID]
+							],
+							columns: [
+								search.createColumn({
+									name: "id",
+									sort: search.Sort.ASC
+								})
+								]
+					});
+
+					var itemcountOnKPI = itemcountsearchObj.runPaged().count;
+					log.debug('KPI Item Count for Promotion', itemcountOnKPI);
+
+					if(itemcountOnKPI <= 25){
+						var fieldLookUp = search.lookupFields({
+							type    : 'customrecord_itpm_promotiondeal',
+							id      : promID,
+							columns : ['custrecord_itpm_p_status', 'custrecord_itpm_p_lsallocation']
+						});
+
+						promStatus = fieldLookUp.custrecord_itpm_p_status[0].value;
+						promAllocType = fieldLookUp.custrecord_itpm_p_lsallocation[0].value;
+						log.debug('Promotion Status & Allocation type', promStatus+' & '+promAllocType);
+
+						//Allocation factor calculation when promotion is DRAFT and Allocation Type is EVENLY
+						if(promStatus == 1){    
+							//Calculating BB Allocation Factors
+							objbb = {
+									promoId:promID,
+									promoEstimatedSpend:'custrecord_itpm_estimatedspendbb',
+									kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendbb',
+									mop:1, // 1 or 3
+									kpiValues:{
+										'custrecord_itpm_kpi_factorestbb' : 1,
+										'custrecord_itpm_kpi_adjustedbb' : false
+									}
+							}
+							itpm.calculateEstAllocationsBBOIDraft(objbb);
+
+							//Calculating OI Allocation Factors
+							objoi = {
+									promoId:promID,
+									promoEstimatedSpend:'custrecord_itpm_estimatedspendoi',
+									kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendoi',
+									mop:3, // 1 or 3
+									kpiValues:{
+										'custrecord_itpm_kpi_factorestoi' : 1,
+										'custrecord_itpm_kpi_adjsutedoi' : false
+									}
+							}
+							itpm.calculateEstAllocationsBBOIDraft(objoi);
+
+							//Calculating LS Allocation Factors
+							itpm.calculateAllocationsLSforDraft(promID);
+							
+							//Need to maintain the same values for ACTUAL if Allocation Type is Evenly (3)
+							if(promAllocType == 3 || promAllocType == 1){
+								//updating Actual Allocation factors if Allocation Type is "Evenly"
+								itpm.updateKPIActualEvenly(promID);
+							}
+						}
+					}
+
+					log.debug('======= Remaining Usage: ALLOWANCE =======',runtime.getCurrentScript().getRemainingUsage());
+				}
+			}
 			//Trigger only if Record is KPI
-			if(isKpiRec){
+			else if(isKpiRec){
 				log.debug('Is KPI Record?', isKpiRec);
 
 				//Fetching all Promotion record required fields
@@ -52,7 +157,7 @@ define(['N/search',
 				var itemcountOnKPI = itemcountsearchObj.runPaged().count;
 				log.debug('KPI Item Count for Promotion', itemcountOnKPI);
 
-				if(itemcountOnKPI <= 10){
+				if(itemcountOnKPI <= 25){
 					var fieldLookUp = search.lookupFields({
 						type    : 'customrecord_itpm_promotiondeal',
 						id      : promID,
@@ -93,12 +198,12 @@ define(['N/search',
 
 						//Calculating LS Allocation Factors
 						itpm.calculateAllocationsLSforDraft(promID);
-					}
-
-					//Need to maintain the same values for ACTUAL if Allocation Type is Evenly (3)
-					if(promAllocType == 3){
-						//updating Actual Allocation factors if Allocation Type is "Evenly"
-						itpm.updateKPIActualEvenly(promID);
+						
+						//Need to maintain the same values for ACTUAL if Allocation Type is Evenly (3)
+						if(promAllocType == 3 || promAllocType == 1){
+							//updating Actual Allocation factors if Allocation Type is "Evenly"
+							itpm.updateKPIActualEvenly(promID);
+						}
 					}
 				}
 
@@ -209,7 +314,7 @@ define(['N/search',
 					var itemcount = estqtyitemcount_searchObj.runPaged().count;
 					log.debug('Est. Qty. Item Count on Promotion', itemcount);
 
-					if(itemcount <= 10){
+					if(itemcount <= 25){
 						//Updating BB Allocation Factors
 						objbb = {
 								promoId:promID,
@@ -240,7 +345,7 @@ define(['N/search',
 						itpm.calculateAllocationsLSforDraft(promID);
 						
 						//Need to maintain the same values for ACTUAL if Allocation Type is Evenly (3)
-						if(promAllocType == 3){
+						if(promAllocType == 3 || promAllocType == 1){
 							//updating Actual Allocation factors if Allocation Type is "Evenly"
 							itpm.updateKPIActualEvenly(promID);
 						}

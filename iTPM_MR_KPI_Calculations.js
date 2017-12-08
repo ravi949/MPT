@@ -308,6 +308,67 @@ function(search, runtime, record, format, itpm) {
         		options: {enablesourcing: true, ignoreMandatoryFields: true}
         	});
         	log.debug('KPI Updated', kpiUpdated);
+        	
+        	//---------------------------------------------------
+        	//====== Logic to calculate Allocation Factors ======
+        	//---------------------------------------------------
+        	log.debug('====== Allocation Factors Calculations =======');
+        	log.debug('key',key);
+        	log.debug('key.pid',key.pid);
+        	var fieldLookUp = search.lookupFields({
+				type    : 'customrecord_itpm_promotiondeal',
+				id      : key.pid,
+				columns : ['custrecord_itpm_p_status', 'custrecord_itpm_p_lsallocation']
+			});
+
+			promStatus = fieldLookUp.custrecord_itpm_p_status[0].value;
+			promAllocType = fieldLookUp.custrecord_itpm_p_lsallocation[0].value;
+			log.debug('Promotion Status & Allocation type', promStatus+' & '+promAllocType);
+			
+			if(promStatus == 1){  //Draft
+				//Calculating BB Allocation Factors
+				objbb = {
+						promoId:key.pid,
+						promoEstimatedSpend:'custrecord_itpm_estimatedspendbb',
+						kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendbb',
+						mop:1, // 1 or 3
+						kpiValues:{
+							'custrecord_itpm_kpi_factorestbb' : 1,
+							'custrecord_itpm_kpi_adjustedbb' : false
+						}
+				}
+				itpm.calculateEstAllocationsBBOIDraft(objbb);
+
+				//Calculating OI Allocation Factors
+				objoi = {
+						promoId:key.pid,
+						promoEstimatedSpend:'custrecord_itpm_estimatedspendoi',
+						kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendoi',
+						mop:3, // 1 or 3
+						kpiValues:{
+							'custrecord_itpm_kpi_factorestoi' : 1,
+							'custrecord_itpm_kpi_adjsutedoi' : false
+						}
+				}
+				itpm.calculateEstAllocationsBBOIDraft(objoi);
+
+				//Calculating LS Allocation Factors
+				itpm.calculateAllocationsLSforDraft(key.pid);
+				
+				//Need to maintain the same values for ACTUAL if Allocation Type is Evenly (3) OR By % Revenue
+				if(promAllocType == 3 || promAllocType == 1){   //Evenly(3) OR By % Revenue(1)
+					//updating Actual Allocation factors if Allocation Type is "Evenly"
+					log.debug('DRAFT: promStatus & Alloc.Type', promStatus+' , '+promAllocType);
+					itpm.updateKPIActualEvenly(key.pid);
+				}
+			}
+			else if(promStatus == 3){  //Approved
+				if(promAllocType == 1){  //By % Revenue
+					//Calculate Actual Allocation factors if Allocation Type is "By % Revenue"
+					log.debug('APPROVED: promStatus & Alloc.Type', promStatus+' , '+promAllocType);
+					itpm.approvedAllocationFactorActual(key.pid);
+				}
+			}
     	} catch(ex) {
     		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}
