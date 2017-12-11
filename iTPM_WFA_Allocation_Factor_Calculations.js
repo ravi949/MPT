@@ -24,10 +24,10 @@ define(['N/search',
 			var scriptObj = runtime.getCurrentScript();
 			var isKpiRec = scriptObj.getParameter({name: 'custscript_itpm_is_kpirec'});
 			var isEstqtyRec = scriptObj.getParameter({name: 'custscript_is_estqty_rec'});
-			var isAllRec = scriptObj.getParameter({name: 'custscript_itpm_is_allrec'});
+			//var isAllRec = scriptObj.getParameter({name: 'custscript_itpm_is_allrec'});
 
 			//Trigger only if Record is Allowance
-			if(isAllRec){
+			/*if(isAllRec){
 				log.debug('Is ALLOWANCE Record?', isAllRec);
 				
 				//Fetching all Promotion record required fields
@@ -129,7 +129,7 @@ define(['N/search',
 
 					log.debug('======= Remaining Usage: ALLOWANCE =======',runtime.getCurrentScript().getRemainingUsage());
 				}
-			}
+			}*/
 			//Trigger only if Record is KPI
 			else if(isKpiRec){
 				log.debug('Is KPI Record?', isKpiRec);

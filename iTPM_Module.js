@@ -669,9 +669,9 @@ function(search, record, util, runtime) {
     		        			log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
     						}else{
     							log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
-    							sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+(parseFloat(1/totalitemCountOnProm))).toFixed(5);
+    							sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+(parseFloat(1/itemcount))).toFixed(5);
     							log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
-    							obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseFloat(1/totalitemCountOnProm).toFixed(5);
+    							obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseFloat(1/itemcount).toFixed(5);
     							//Updating the related KPI record
     		        			var kpiRecUpdate = record.submitFields({
     		                		type: 'customrecord_itpm_kpi',
@@ -720,21 +720,7 @@ function(search, record, util, runtime) {
 			if(iskpipromQty > 0){
 				//Counting Items for LS
 				log.debug('<<<<< LS YES >>>>>');
-				var promoallowanceSearchObj = search.create({
-					type: "customrecord_itpm_promoallowance",
-					filters: [
-						["custrecord_itpm_all_promotiondeal","anyof",promID], 
-						"AND", 
-						["isinactive","is","F"]
-						],
-						columns: [
-							"custrecord_itpm_all_item"
-							]
-				});
-
-				var totalitemCountOnProm = promoallowanceSearchObj.runPaged().count;
-				log.debug('totalitemCountOnProm', totalitemCountOnProm);
-
+				
 				var kpiitemcount_searchObj = search.create({
 					type: "customrecord_itpm_kpi",
 					filters: [
@@ -850,21 +836,7 @@ function(search, record, util, runtime) {
 			else{
 				//Counting Items for LS
 				log.debug('<<<<< LS NO >>>>>');
-				var promoallowanceSearchObj = search.create({
-					type: "customrecord_itpm_promoallowance",
-					filters: [
-						["custrecord_itpm_all_promotiondeal","anyof",promID], 
-						"AND", 
-						["isinactive","is","F"]
-						],
-						columns: [
-							"custrecord_itpm_all_item"
-							]
-				});
-
-				var totalitemCountOnProm = promoallowanceSearchObj.runPaged().count;
-				log.debug('totalitemCountOnProm', totalitemCountOnProm);
-
+				
 				var kpiitemcount_searchObj = search.create({
 					type: "customrecord_itpm_kpi",
 					filters: [
@@ -917,14 +889,14 @@ function(search, record, util, runtime) {
 							log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
 						}else{
 							log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
-							sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+(parseFloat(1/totalitemCountOnProm))).toFixed(5);
+							sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+(parseFloat(1/itemcount))).toFixed(5);
 							log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
 							//Updating the related KPI record
 							var kpiRecUpdate = record.submitFields({
 								type: 'customrecord_itpm_kpi',
 								id: result.getValue({name:'id'}),
 								values: {
-									'custrecord_itpm_kpi_factorestls' : parseFloat(1/totalitemCountOnProm).toFixed(5),
+									'custrecord_itpm_kpi_factorestls' : parseFloat(1/itemcount).toFixed(5),
 									'custrecord_itpm_kpi_adjustedls' : false
 								},
 								options: {enablesourcing: true, ignoreMandatoryFields: true}
