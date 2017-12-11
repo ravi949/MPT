@@ -41,6 +41,12 @@ function(search, itpm) {
             			};
             		}else{
             			memberItems.forEach(function(item,i){
+            				if(item.saleunit == 0 || item.unitstype == 0){
+            					throw{
+            						name:"UNITS_EMPTY",
+            						message:"SaleUnit and UnitType should not be empty."
+            					}
+            				}
                 			if(!item.isAvailable){
                 				throw{
                 					name:"NOT_ALLOWED",
@@ -71,7 +77,7 @@ function(search, itpm) {
             	}
         	}
     	}catch(ex){
-    		if(ex.name == "MEMBERS_EMPTY" || ex.name == "INVALID_TOTAL" || ex.name == "INVALID_UNITS" || ex.name == "NOT_ALLOWED" || ex.name == "DUPLICATE_ITEMS" || ex.name =="INVALID_BASEPRICE")
+    		if(ex.name == "MEMBERS_EMPTY" || ex.name == "INVALID_TOTAL" || ex.name == "INVALID_UNITS" || ex.name == "NOT_ALLOWED" || ex.name == "DUPLICATE_ITEMS" || ex.name =="INVALID_BASEPRICE" || ex.name == "UNITS_EMPTY")
     			throw new Error(ex.message);
     		log.error(ex.name,ex.message);
     	}
