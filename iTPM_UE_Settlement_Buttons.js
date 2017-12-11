@@ -69,8 +69,8 @@ function(runtime, serverWidget, itpm) {
     				}
     			}
     			
-    			//-iTPM Settlement Permission = FULL and Journal Entry permission = CREATE or FULL
-    			if(setStatus == 'B' && setPermission == 4 && JEPermission >= 2){
+    			//-iTPM Settlement Permission = EDIT or FULL and Journal Entry permission = CREATE or FULL
+    			if(setStatus == 'B' && setPermission >= 3 && JEPermission >= 2){
     				scriptContext.form.addButton({
     					id:'custpage_itpm_settlemevoid',
     					label:'Void',
