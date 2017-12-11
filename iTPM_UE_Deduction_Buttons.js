@@ -6,10 +6,11 @@
  * split the deduction into two and creating the two journal entries for each deduction and changed the parent deduction status to resolved.
  */
 define(['N/runtime',
-		'N/redirect'
-		],
+	'N/redirect',
+	'./iTPM_Module.js'
+	],
 
-function(runtime, redirect) {
+	function(runtime, redirect, itpm) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -22,7 +23,7 @@ function(runtime, redirect) {
 	 */
 	function beforeLoad(sc) {
 		try{
-			
+
 			//prevent copy of the deduction record
 			if(sc.type == 'copy'){
 				throw{
@@ -30,39 +31,37 @@ function(runtime, redirect) {
 					message:'Copying a deduction is not allowed.'
 				};
 			}
-			//Getting the Internal Id's of custom records through script perameters
-			var settlementPermissionRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_set_permsn_rec_type_id');
-			var deductionPermissionRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_ddn_permsn_rec_type_id');
 			
+			//Getting the Internal Id's of custom records through script parameters
+			var scriptObj = runtime.getCurrentScript();
 			//Getting the Deduction permissions
-			var ddnPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+deductionPermissionRectypeId);
-			log.debug('ddnPermission',ddnPermission);
-			ddnPermission = (ddnPermission == runtime.Permission.EDIT || ddnPermission == runtime.Permission.FULL);
-			
+			var ddnPermission = itpm.getUserPermission(scriptObj.getParameter('custscript_itpm_ddn_ddn_permsn_rectypeid'));
 			//Getting the Settlement permissions
-			var setPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementPermissionRectypeId);
+			var setPermission = itpm.getUserPermission(scriptObj.getParameter('custscript_itpm_ddn_set_permsn_rectypeid'));
+			log.debug('ddnPermission',ddnPermission);
 			log.debug('setPermission',setPermission);
-			setPermission = (setPermission == runtime.Permission.CREATE || setPermission == runtime.Permission.EDIT || setPermission == runtime.Permission.FULL);
-			
+
 			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
-				status = sc.newRecord.getValue({fieldId:'transtatus'}),
-//				clientScriptPath = runtime.getCurrentScript().getParameter({name:'custscript_itpm_ue_ddn_cspath'}),
-				clientScriptPath = './iTPM_Attach_Deduction_Buttons.js',
-				eventType = sc.type,
-				runtimeContext = runtime.executionContext; 
+			status = sc.newRecord.getValue({fieldId:'transtatus'}),
+//			clientScriptPath = runtime.getCurrentScript().getParameter({name:'custscript_itpm_ue_ddn_cspath'}),
+			clientScriptPath = './iTPM_Attach_Deduction_Buttons.js',
+			eventType = sc.type,
+			runtimeContext = runtime.executionContext; 
+
 			log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
+
 			if(
-				eventType == sc.UserEventType.VIEW && 
-				runtimeContext == runtime.ContextType.USER_INTERFACE &&
-				openBalance != 0 &&
-				status == 'A' && 
-				clientScriptPath
-					){				
+					eventType == sc.UserEventType.VIEW && 
+					runtimeContext == runtime.ContextType.USER_INTERFACE &&
+					openBalance != 0 &&
+					status == 'A' && 
+					clientScriptPath
+			){				
 				log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
 				sc.form.clientScriptModulePath = clientScriptPath;
 
-				
-				if(ddnPermission){
+				//show button only when user have EDIT or FULL permission on -iTPM Deduction Permission custom record
+				if(ddnPermission >= 3){ 
 					var btn_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
 						label: 'Split',
@@ -81,23 +80,22 @@ function(runtime, redirect) {
 							functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
 						});
 					}
-					if(sc.newRecord.getValue('custbody_itpm_ddn_disputed')){
-						var btn_invoice = sc.form.addButton({
-							id: 'custpage_itpm_invoice',
-							label: 'Re-Invoice',
-							functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
-						});
-					}					
+					var btn_invoice = sc.form.addButton({
+						id: 'custpage_itpm_invoice',
+						label: 'Re-Invoice',
+						functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
+					});					
 				}
-				
-				if(setPermission){
+
+				//show button only when user have CREATE or EDIT or FULL permission on -iTPM Settlement Permission custom record
+				if(setPermission >= 2){
 					var btn_settlement = sc.form.addButton({
 						id: 'custpage_itpm_settlement',
 						label: 'Settlement',
 						functionName: 'iTPMsettlement(' + sc.newRecord.id + ')'
 					});
 				}				
-				
+
 			} else if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
 				redirect.toSuitelet({
 					scriptId:'customscript_itpm_ddn_createeditsuitelet',
@@ -113,48 +111,48 @@ function(runtime, redirect) {
 			}
 		}
 	}
-	
-	 /**
-     * Function definition to be triggered before record is loaded.
-     *
-     * @param {Object} sc
-     * @param {Record} sc.newRecord - New record
-     * @param {Record} sc.oldRecord - Old record
-     * @param {string} sc.type - Trigger type
-     * @Since 2015.2
-     */
-    function beforeSubmit(sc) {
-    	try{
-    		if (sc.type == sc.UserEventType.EDIT || sc.type == sc.UserEventType.XEDIT){
-        		var exc = runtime.executionContext;
-        		log.debug('UserEventType: ' + sc.type + '; ExecutionContext: ' + exc + '; RecordId: ' + sc.newRecord.id);
-        		if (exc == runtime.ContextType.USEREVENT || exc == runtime.ContextType.SUITELET){
-        			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'});
-        			var status = sc.oldRecord.getValue({fieldId:'transtatus'});
-        			log.debug('OpenBal: ' + openBalance + '; Status: ' + status);
-        			openBalance = parseFloat(openBalance);
-        			log.debug('Parsed Open Balance', openBalance);
-    				if (openBalance > 0 && status != 'A'){
-    					log.debug('Setting status to OPEN (status Ref A)');
-    					sc.newRecord.setValue({
-    						fieldId: 'transtatus',
-    						value: 'A'
-    					});
-    					log.debug('OpenBal: ' + openBalance + '; New Status: ' + sc.newRecord.getValue({fieldId: 'transtatus'}));
-    				} else if (openBalance == 0 && status != 'C'){
-    					log.debug('Setting status to RESOLVED (status Ref C)');
-    					sc.newRecord.setValue({
-    						fieldId: 'transtatus',
-    						value: 'C'
-    					});
-    					log.debug('OpenBal: ' + openBalance + '; New Status: ' + sc.newRecord.getValue({fieldId: 'transtatus'}));
-    				}
-        		}
-        	}
-    	} catch(ex) {
-    		log.error(ex.name, ex.message + '; RecordId: ' + sc.newRecord.id);
-    	}
-    }
+
+	/**
+	 * Function definition to be triggered before record is loaded.
+	 *
+	 * @param {Object} sc
+	 * @param {Record} sc.newRecord - New record
+	 * @param {Record} sc.oldRecord - Old record
+	 * @param {string} sc.type - Trigger type
+	 * @Since 2015.2
+	 */
+	function beforeSubmit(sc) {
+		try{
+			if (sc.type == sc.UserEventType.EDIT || sc.type == sc.UserEventType.XEDIT){
+				var exc = runtime.executionContext;
+				log.debug('UserEventType: ' + sc.type + '; ExecutionContext: ' + exc + '; RecordId: ' + sc.newRecord.id);
+				if (exc == runtime.ContextType.USEREVENT || exc == runtime.ContextType.SUITELET){
+					var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'});
+					var status = sc.oldRecord.getValue({fieldId:'transtatus'});
+					log.debug('OpenBal: ' + openBalance + '; Status: ' + status);
+					openBalance = parseFloat(openBalance);
+					log.debug('Parsed Open Balance', openBalance);
+					if (openBalance > 0 && status != 'A'){
+						log.debug('Setting status to OPEN (status Ref A)');
+						sc.newRecord.setValue({
+							fieldId: 'transtatus',
+							value: 'A'
+						});
+						log.debug('OpenBal: ' + openBalance + '; New Status: ' + sc.newRecord.getValue({fieldId: 'transtatus'}));
+					} else if (openBalance == 0 && status != 'C'){
+						log.debug('Setting status to RESOLVED (status Ref C)');
+						sc.newRecord.setValue({
+							fieldId: 'transtatus',
+							value: 'C'
+						});
+						log.debug('OpenBal: ' + openBalance + '; New Status: ' + sc.newRecord.getValue({fieldId: 'transtatus'}));
+					}
+				}
+			}
+		} catch(ex) {
+			log.error(ex.name, ex.message + '; RecordId: ' + sc.newRecord.id);
+		}
+	}
 
 	return {
 		beforeLoad: beforeLoad,
