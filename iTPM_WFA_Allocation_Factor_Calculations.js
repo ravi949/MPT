@@ -26,7 +26,7 @@ define(['N/search',
 			var isEstqtyRec = scriptObj.getParameter({name: 'custscript_is_estqty_rec'});
 			var isAllRec = scriptObj.getParameter({name: 'custscript_itpm_is_allrec'});
 
-			////Trigger only if Record is KPI
+			//Trigger only if Record is Allowance
 			if(isAllRec){
 				log.debug('Is ALLOWANCE Record?', isAllRec);
 				
@@ -91,7 +91,7 @@ define(['N/search',
 						//Allocation factor calculation when promotion is DRAFT and Allocation Type is EVENLY
 						if(promStatus == 1){    
 							//Calculating BB Allocation Factors
-							objbb = {
+							var objbb = {
 									promoId:promID,
 									promoEstimatedSpend:'custrecord_itpm_estimatedspendbb',
 									kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendbb',
@@ -104,7 +104,7 @@ define(['N/search',
 							itpm.calculateEstAllocationsBBOIDraft(objbb);
 
 							//Calculating OI Allocation Factors
-							objoi = {
+							var objoi = {
 									promoId:promID,
 									promoEstimatedSpend:'custrecord_itpm_estimatedspendoi',
 									kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendoi',
@@ -171,7 +171,7 @@ define(['N/search',
 					//Allocation factor calculation when promotion is DRAFT and Allocation Type is EVENLY
 					if(promStatus == 1){    
 						//Calculating BB Allocation Factors
-						objbb = {
+						var objbb = {
 								promoId:promID,
 								promoEstimatedSpend:'custrecord_itpm_estimatedspendbb',
 								kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendbb',
@@ -184,7 +184,7 @@ define(['N/search',
 						itpm.calculateEstAllocationsBBOIDraft(objbb);
 
 						//Calculating OI Allocation Factors
-						objoi = {
+						var objoi = {
 								promoId:promID,
 								promoEstimatedSpend:'custrecord_itpm_estimatedspendoi',
 								kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendoi',
@@ -316,7 +316,7 @@ define(['N/search',
 
 					if(itemcount <= 5){
 						//Updating BB Allocation Factors
-						objbb = {
+						var objbb = {
 								promoId:promID,
 								promoEstimatedSpend:'custrecord_itpm_estimatedspendbb',
 								kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendbb',
@@ -329,7 +329,7 @@ define(['N/search',
 						itpm.calculateEstAllocationsBBOIDraft(objbb);
 
 						//Updating OI Allocation Factors
-						objoi = {
+						var objoi = {
 								promoId:promID,
 								promoEstimatedSpend:'custrecord_itpm_estimatedspendoi',
 								kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendoi',

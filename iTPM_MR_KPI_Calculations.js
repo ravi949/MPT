@@ -327,7 +327,7 @@ function(search, runtime, record, format, itpm) {
 			
 			if(promStatus == 1){  //Draft
 				//Calculating BB Allocation Factors
-				objbb = {
+				var objbb = {
 						promoId:key.pid,
 						promoEstimatedSpend:'custrecord_itpm_estimatedspendbb',
 						kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendbb',
@@ -340,7 +340,7 @@ function(search, runtime, record, format, itpm) {
 				itpm.calculateEstAllocationsBBOIDraft(objbb);
 
 				//Calculating OI Allocation Factors
-				objoi = {
+				var objoi = {
 						promoId:key.pid,
 						promoEstimatedSpend:'custrecord_itpm_estimatedspendoi',
 						kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendoi',
