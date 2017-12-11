@@ -55,7 +55,6 @@ function(runtime,search,itpm) {
     				ratePerUnit += allRatePerUnit;
     			}else{
     				allRate = unitsList.filter(function(e){return e.id == allUnitId})[0].conversionRate;
-    				allRate = (allRate && allRate > 0)?allRate:0;
     				log.debug('allowance Conversion_Rate',allRate);
     				ratePerUnit += allRatePerUnit * (estqtyRate/allRate);
     			}
