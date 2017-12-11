@@ -5,7 +5,7 @@
 define([
 	'N/runtime',
 	'N/search',
-	'./iTPM_Module'
+	'./iTPM_Module.js'
 	],
 
 function(runtime,search,itpm) {
@@ -28,7 +28,8 @@ function(runtime,search,itpm) {
     		allMop = scriptObj.getParameter({name:'custscript_itpm_estqty_rate_allmop'}),
     		unitsList = itpm.getItemUnits(itemId).unitArray,ratePerUnit = 0,
     		estqtyRate = unitsList.filter(function(e){return e.id == estqtyUnitId})[0].conversionRate;
-    		log.debug('Conversion_Rate',estqtyRate);
+    		log.debug('EstQty Conversion_Rate',estqtyRate);
+    		log.debug('unitsList',unitsList);
     		//searching for the allowances records with Promo,Item and MOP.
     		var allSearch = search.create({
     			type:'customrecord_itpm_promoallowance',
@@ -39,7 +40,7 @@ function(runtime,search,itpm) {
 					     ['custrecord_itpm_all_mop','is',allMop] //mop
     			]
     		}).run(),
-    		allResult = [],start = 0,end = 1000,result,allUnitId,allRate,allRatePerUnit,allUnitPrice;
+    		allResult = [],start = 0,end = 1000,result,allUnitId,allRate,allRatePerUnit;
     		
     		do{
     			result = allSearch.getRange(start,end);
@@ -54,17 +55,18 @@ function(runtime,search,itpm) {
     				ratePerUnit += allRatePerUnit;
     			}else{
     				allRate = unitsList.filter(function(e){return e.id == allUnitId})[0].conversionRate;
-				allRate = (allRate)? (allrate!=0)? allRate : 1 : 1;
+    				allRate = (allRate && allRate > 0)?allRate:0;
+    				log.debug('allowance Conversion_Rate',allRate);
     				ratePerUnit += allRatePerUnit * (estqtyRate/allRate);
     			}
     		});
     		
     		//log.debug('ratePerUnit',ratePerUnit)
-		log.debug('EstQty_Rate', 'Record: ' + estqtyRec.id + '; Item: ' + itemId + '; Unit: ' + estqtyUnitId + '; Promotion: ' + estqtyPromoId + '; MOP: ' + allMop + '; Conversion Rate: ' + estqtyRate + '; Rate: ' + ratePerUnit);
+    		log.debug('EstQty_Rate', 'Record: ' + estqtyRec.id + '; Item: ' + itemId + '; Unit: ' + estqtyUnitId + '; Promotion: ' + estqtyPromoId + '; MOP: ' + allMop + '; Conversion Rate: ' + estqtyRate + '; Rate: ' + ratePerUnit);
     		return ratePerUnit;
     	}catch(e){
     		//log.error(e.name,e.message);
-		log.error(e.name,e.message + '; RecordId: ' + scriptContext.newRecord.id);
+    		log.error(e.name,e.message + '; RecordId: ' + scriptContext.newRecord.id);
     		return 0;
     	}
     }
