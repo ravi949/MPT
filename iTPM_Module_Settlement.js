@@ -244,7 +244,7 @@ function(config, record, search, itpm) {
 					}).setCurrentSublistValue({
 						sublistId:'line',
 						fieldId:'memo',
-						value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+params['custom_itpm_st_promotion_no']
+						value:(e.type == 'debit')?e.memo:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+params['custom_itpm_st_promotion_no']
 					}).setCurrentSublistValue({
 						sublistId:'line',
 						fieldId:'entity',
@@ -572,7 +572,7 @@ function(config, record, search, itpm) {
 					}).setSublistValue({
 						sublistId:'line',
 						fieldId:'memo',
-						value:setlMemo,
+						value:(e.type == 'debit')?e.memo:setlMemo,
 						line:indexcount
 					}).setSublistValue({
 						sublistId:'line',
@@ -641,7 +641,10 @@ function(config, record, search, itpm) {
 	}*/
 	function getSettlementLines(lineObj){
 		log.debug('lineObj  ',lineObj);
-		var lsLines = bblines = oiLines =[];
+		var setlLines = [];
+		var lsLines = [];
+		var bblines = [];
+		var oiLines = [];
 		var promoLineSearch = search.create({
 			type:'customrecord_itpm_promotiondeal',
 			columns:['name'
@@ -663,92 +666,105 @@ function(config, record, search, itpm) {
 		promoLineSearch.forEach(function(e){
 			var allType = e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_type'});
 			var allMOP = e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_mop'});
-			var setlmemo = '';
-			if(allType == 1){
-				setlmemo = '%'+e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_allowancerate'})
-						    +'  per '+e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_uom'})
-						    +(allMOP == 1)?' BB ':' OI '+'Settlement for Item : '
-						    +e.getText({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_item'})
-						    +' on Promotion'+e.getValue('name');
-			}else if(allType == 3){
-				setlmemo = e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_allowancerate'})
-			    +'  per '+e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_uom'})
-			    +(allMOP == 1)?' BB ':' OI '+' Settlement for Item : '
-			    +e.getText({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_item'})
-			    +' on Promotion'+e.getValue('name');
+			if(allMOP == 1 || allMOP == 3){
+				var setlmemo = " ";			
+				//for Line memo value
+				if(allType == 1){
+					setlmemo = e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_allowancerate'})
+				    +"  per "+e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_uom'})
+				    +((allMOP == 1)?" BB ":" OI ")+" Settlement for Item : "
+				    +e.getText({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_item'})
+				    +" on Promotion "+e.getValue('name');
+				}else if(allType == 2){
+					setlmemo = "% "+e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_allowancerate'})
+							    +"  per "+e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_uom'})
+							    +((allMOP == 1)?" BB ":" OI ")+"Settlement for Item : "
+							    +e.getText({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_item'})
+							    +" on Promotion "+e.getValue('name');
+				} 
+				
+				//For Lump-Sum lines
+				if(lineObj.lumsumSetReq > 0){
+					lsLines.push({ lineType:'ls',
+						   id:'1',
+						   account:e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_account'}),
+						   type:'debit',
+						   memo:"LS Settlement for Item : "+e.getText({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_item'})
+						         +" on Promotion "+e.getValue('name'),
+						   amount:lineObj.lumsumSetReq * 
+						          e.getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualls'})
+						   });
+				}				
+				
+				//For Bill-back Lines lines
+				if(allMOP == 1 && lineObj.billbackSetReq > 0){
+					bblines.push({ lineType:'bb',
+								   id:'2',
+								   account:e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_account'}),
+								   type:'debit',
+								   memo:setlmemo,
+								   amount:lineObj.billbackSetReq * 
+								          e.getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualbb'}) *
+								          e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_contribution'})
+								   });
+				}else if(allMOP == 3 && lineObj.offinvoiceSetReq > 0){//For Off-Invoice lines
+					oiLines.push({ lineType:'inv',
+						   id:'3',
+						   account:e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_account'}),
+						   type:'debit',
+						   memo:setlmemo,
+						   amount:lineObj.offinvoiceSetReq * 
+						          e.getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualoi'}) *
+						          e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_contribution'})
+						   });
+				}
 			}
-			//<Rate per unit>  per <allowance unit> BB Settlement for Item : <Item Name> on       Promotion XXX
-			//<Rate per unit>  per <allowance unit> OI Settlement for Item : <Item Name> on       Promotion XXX
-			if(allMOP == 1){
-				bblines.push({ lineType:'bb',
-							   id:'2',
-							   account:e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_account'}),
-							   type:'debit',
-							   memo:setlmemo,
-							   amount:lineObj.billbackSetReq * 
-							          e.getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualbb'}) *
-							          e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_contribution'})
-							   });
-			}else if(allMOP == 3){
-				oiLines.push({ lineType:'inv',
-					   id:'3',
-					   account:e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_account'}),
-					   type:'debit',
-					   memo:setlmemo,
-					   amount:lineObj.offinvoiceSetReq * 
-					          e.getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualoi'}) *
-					          e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_contribution'})
-					   });
-			}
-			
-			lsLines.push({ lineType:'ls',
-				   id:'1',
-				   account:e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_account'}),
-				   type:'debit',
-				   memo:'LS Settlement for Item : '+e.getText({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_item'})
-				         +' on Promotion '+e.getValue('name'),
-				   amount:lineObj.offinvoiceSetReq * //Settlement LS Amount X LS Allocation Factor : Actua
-				          e.getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualoi'}) *
-				          e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_contribution'})
-				   });
 		});
-	   return [{
-			lineType:'ls',
-			id:'1',
-			account:lineObj.promoDealLumsumAccnt,
-			type:'debit',
-			amount:lineObj.lumsumSetReq
-		},{
-			lineType:'ls',
-			id:'1',
-			account:lineObj.accountPayable,
-			type:'credit',
-			amount:lineObj.lumsumSetReq
-		},{
-			lineType:'bb',
-			id:'2',
-			account:lineObj.promoTypeDefaultAccnt,
-			type:'debit',
-			amount:lineObj.billbackSetReq
-		},{
-			lineType:'bb',
-			id:'2',
-			account:lineObj.accountPayable,
-			type:'credit',
-			amount:lineObj.billbackSetReq
-		},{
-			lineType:'inv',
-			id:'3',
-			account:lineObj.promoTypeDefaultAccnt,
-			type:'debit',
-			amount:lineObj.offinvoiceSetReq
-		},{
-			lineType:'inv',
-			id:'3',
-			account:lineObj.accountPayable,
-			type:'credit',
-			amount:lineObj.offinvoiceSetReq
-		}];
+		log.debug('lsLines Before',lsLines);
+		log.debug('bblines Before',bblines);
+		log.debug('oiLines Before',oiLines);
+		if(lsLines.length > 0){
+			lsLines.push({
+				lineType:'ls',
+				id:'1',
+				account:lineObj.accountPayable,
+				type:'credit',
+				memo:' ',
+				amount:lineObj.lumsumSetReq
+			});
+		}
+		log.debug('lsLines',lsLines);
+		if(bblines.length > 0){
+			bblines.push({
+				lineType:'bb',
+				id:'2',
+				account:lineObj.accountPayable,
+				type:'credit',
+				memo:'',
+				amount:lineObj.billbackSetReq
+			});
+		}
+		log.debug('bblines',bblines);
+		if(oiLines.length > 0){
+			oiLines.push({
+				lineType:'inv',
+				id:'3',
+				account:lineObj.accountPayable,
+				type:'credit',
+				memo:' ',
+				amount:lineObj.offinvoiceSetReq
+			});
+		}		
+		log.debug('oiLines',oiLines);
+		if(lsLines.length > 0)
+			setlLines = setlLines.concat(lsLines);
+		if(bblines.length > 0)
+			setlLines = setlLines.concat(bblines);
+		if(oiLines.length > 0)
+			setlLines = setlLines.concat(oiLines);
+		
+		log.debug('setlLines',setlLines);
+	   return setlLines
 		
 	}
     return {

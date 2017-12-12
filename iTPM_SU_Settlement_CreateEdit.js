@@ -11,10 +11,11 @@ define(['N/ui/serverWidget',
 		'N/format',
 		'N/url',
 		'./iTPM_Module_Settlement.js',
-		'./iTPM_Module.js'
+		'./iTPM_Module.js',
+		'N/runtime'
 		],
 
-function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
+function(serverWidget,search,record,redirect,format,url,ST_Module,itpm,runtime) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -48,7 +49,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 
     			response.writePage(settlementForm);
     		}
-
+    		log.debug("Remaining governance units: after get " , runtime.getCurrentScript().getRemainingUsage());
     		if(request.method == 'POST'){
 //    			saveTheSettlement(request.parameters);
     			var eventType = request.parameters.custom_user_eventype;
@@ -70,7 +71,9 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     				isEditMode:false
     			});
     		}
+    		log.debug("Remaining governance units: after post" , runtime.getCurrentScript().getRemainingUsage());
     	}catch(e){
+    		log.error('e error',e);
     		var errObj = undefined;
     		if(e.message.search('{') > -1){
     			errObj = JSON.parse(e.message.replace(/Error: /g,''));
