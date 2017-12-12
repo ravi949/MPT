@@ -38,6 +38,9 @@ define(['N/runtime',
 			var ddnPermission = itpm.getUserPermission(scriptObj.getParameter('custscript_itpm_ddn_ddn_permsn_rectypeid'));
 			//Getting the Settlement permissions
 			var setPermission = itpm.getUserPermission(scriptObj.getParameter('custscript_itpm_ddn_set_permsn_rectypeid'));
+			//Getting Journal Entry Permissions
+			var JE_Permssion = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
+			log.debug('JE_Permssion',JE_Permssion)
 			log.debug('ddnPermission',ddnPermission);
 			log.debug('setPermission',setPermission);
 
@@ -67,11 +70,13 @@ define(['N/runtime',
 						label: 'Split',
 						functionName: 'iTPMsplit(' + sc.newRecord.id + ')'
 					});
-					var btn_expense = sc.form.addButton({
-						id: 'custpage_itpm_expense',
-						label: 'Expense',
-						functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
-					});
+					
+					var btn_invoice = sc.form.addButton({
+						id: 'custpage_itpm_invoice',
+						label: 'Re-Invoice',
+						functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
+					});			
+					
 					var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
 					if(customer){
 						var btn_creditmemo = sc.form.addButton({
@@ -80,11 +85,15 @@ define(['N/runtime',
 							functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
 						});
 					}
-					var btn_invoice = sc.form.addButton({
-						id: 'custpage_itpm_invoice',
-						label: 'Re-Invoice',
-						functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
-					});					
+          
+					//show button only when user have permissions greater than or equal to EDIT for Deductions and Journal Entry
+					if(JE_Permssion >= 3){
+						var btn_expense = sc.form.addButton({
+							id: 'custpage_itpm_expense',
+							label: 'Expense',
+							functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
+						});
+					}
 				}
 
 				//show button only when user have CREATE or EDIT or FULL permission on -iTPM Settlement Permission custom record
