@@ -86,6 +86,10 @@ function(record, search) {
 				         join: "CUSTRECORD_ITPM_ALL_PROMOTIONDEAL"
 				      }),
 				      search.createColumn({
+					     name: "internalid",
+					     join: "CUSTRECORD_ITPM_ESTQTY_PROMODEAL"
+					  }),
+				      search.createColumn({
 				         name: "internalid",
 				         join: "CUSTRECORD_ITPM_REI_PROMOTIONDEAL"
 				      })
@@ -107,6 +111,12 @@ function(record, search) {
 
 				//Deducting the duplicates, and removing them and pushing those results into array
 				arrayofRecs.forEach(function(e){
+					if(e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'}) != ""){
+						contextObj = {type:'estqty',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'})}
+						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
+							executeResultSet.push({id:contextObj.recId,type:contextObj.type});
+						}
+					}
 					if(e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'}) != ""){
 						contextObj = {type:'retail',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'})}
 						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
@@ -164,7 +174,7 @@ function(record, search) {
 			var a = +new Date();
 			log.debug('keyObh '+a,keyObj);
 			switch(keyObj.type){
-		/********* Copying Promotion/Deal Allowances and Saving them into Copied Promotion/Deal Allowances **********/
+			/********* Copying Promotion/Deal Allowances and Saving them into Copied Promotion/Deal Allowances **********/
 			case 'all':
 				var allRec = record.load({
 					type: 'customrecord_itpm_promoallowance',
@@ -185,12 +195,51 @@ function(record, search) {
 					fieldId: 'custrecord_itpm_all_promotiondeal',
 					value: keyObj.promoID,
 					ignoreFieldChange: true
+				}).setValue({
+					fieldId:'custrecord_itpm_all_estqty',
+					value:''
 				}).save({
 					enableSourcing: false,
 					ignoreMandatoryFields: true
 				});
 				break;
-		/********* Copying Promotion/Deal Retail Info and Saving them into Copied Promotion/Deal Retail Info **********/
+			/********* Copying Promotion/Deal Estimate Quantities and Saving them into Copied Promotion/Deal Estimate Quantities **********/
+			case 'estqty':
+				var copyRecord = record.copy({
+					type: 'customrecord_itpm_estquantity',
+					id:keyObj.recId
+				});
+				var copiedRecordId = copyRecord.setValue({
+					fieldId: 'custrecord_itpm_estqty_promodeal',
+					value:keyObj.promoID,
+					ignoreFieldChange: true
+				}).save({
+					enableSourcing: false,
+					ignoreMandatoryFields: true
+				});
+				/************Set EstQty ID in allowance record***********/
+				search.create({
+					type:'customrecord_itpm_promoallowance',
+					columns:['internalid'],
+					filters:[['isinactive','is',false],'and',
+							 ['custrecord_itpm_all_promotiondeal','anyof',keyObj.promoID],'and',
+							 ['custrecord_itpm_all_item','anyof',copyRecord.getValue('custrecord_itpm_estqty_item')]]
+				}).run().each(function(result){
+					record.submitFields({
+					    type: 'customrecord_itpm_promoallowance',
+					    id: result.getValue('internalid'),
+					    values: {
+					    	custrecord_itpm_all_estqty: copiedRecordId
+					    },
+					    options: {
+					        enableSourcing: false,
+					        ignoreMandatoryFields : true
+					    }
+					});
+					return true;
+				});
+				break;
+			/********* Copying Promotion/Deal Retail Info and Saving them into Copied Promotion/Deal Retail Info **********/
 			case 'retail':
 				var copyRecord = record.copy({
 					type: 'customrecord_itpm_promoretailevent',

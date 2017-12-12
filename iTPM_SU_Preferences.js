@@ -10,12 +10,12 @@ define(['N/record',
         'N/search',
         'N/runtime'
         ],
-        /**
-         * @param {record} record
-         * @param {redirect} redirect
-         * @param {serverWidget} serverWidget
-         */
-        function(record, redirect, serverWidget, search, runtime) {
+/**
+* @param {record} record
+* @param {redirect} redirect
+* @param {serverWidget} serverWidget
+*/
+function(record, redirect, serverWidget, search, runtime) {
 
 	/**
 	 * @param { string } type Discount 
@@ -91,7 +91,7 @@ define(['N/record',
 			});
 			expenseAccntField.isMandatory = true;
 
-      //Deduction account
+           //Deduction account
 			var deductionAccntField = form.addField({
 				id: 'custpage_itpm_pref_ddnaccount',
 				type: serverWidget.FieldType.SELECT,
@@ -125,8 +125,19 @@ define(['N/record',
 				breakType : serverWidget.FieldBreakType.STARTCOL
 			});
 			accountPayableField.isMandatory = true;
+			
+			//Checkbox for Remove customer from split deduction transactions
+			var removeCustomerSplitDDNField = form.addField({
+				id: 'custpage_itpm_pref_remvcust_frmsplitddn',
+				type: serverWidget.FieldType.CHECKBOX,
+				label: 'Remove customer from split deduction transactions?',
+				container:'custpage_setup_preference'
+			});
+			removeCustomerSplitDDNField.setHelpText({
+				help:'Remove the customers from split deduction transaction lines.'
+			});
 
-      //Apply iTPM Net Bill Discount only on List Price? Field
+            //Apply iTPM Net Bill Discount only on List Price? Field
 			var ApplyiTPMNetBillDiscountChk = form.addField({
 				id: 'custpage_itpm_pref_nblistprice',
 				type: serverWidget.FieldType.CHECKBOX,
@@ -215,6 +226,7 @@ define(['N/record',
 				discountItemId = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
 				defaultAllType.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultalltype');
 				defaultPriceLevel.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultpricelevel');
+				removeCustomerSplitDDNField.defaultValue = (preferanceRecord.getValue('custrecord_itpm_pref_remvcust_frmsplit'))?'T':'F';
 				switch(preferanceRecord.getValue('custrecord_itpm_pref_discountdates')){
 				case '1' : 
 					radioITPMDiscountDate.defaultValue = 'custpage_sd';
@@ -253,7 +265,7 @@ define(['N/record',
 
 			return {error: false, form: form}
 		} catch(ex) {
-			return {error: true, errorObject: ex, expenseAccounts: expenseAccounts, deductionAccounts: deductionAccounts, settlementAccounts: settlementAccounts}
+			return {error: true, errorObject: ex }
 		}
 	}
 
@@ -333,6 +345,7 @@ define(['N/record',
 		accountPayableId = request.parameters.custpage_itpm_pref_accountpayable,
 		applyiTPMNetBillDiscount = request.parameters.custpage_itpm_pref_nblistprice,
 		discountItemId = request.parameters.custpage_itpm_pref_discountitem,
+		removeCustomer = request.parameters.custpage_itpm_pref_remvcust_frmsplitddn,
 		discountDates = request.parameters.custpage_itpm_disdate;
 		var defaultalltype = request.parameters.custpage_itpm_pref_defaultalltype;
 		var defaultPriceLevel = request.parameters.custpage_itpm_pref_defaultpricelevel;
@@ -363,6 +376,10 @@ define(['N/record',
 		}).setValue({
 			fieldId:'custrecord_itpm_pref_defaultpricelevel',
 			value:defaultPriceLevel,
+			ignoreFieldChange:true
+		}).setValue({
+			fieldId:'custrecord_itpm_pref_remvcust_frmsplit',
+			value:(removeCustomer == 'T'),
 			ignoreFieldChange:true
 		});
 

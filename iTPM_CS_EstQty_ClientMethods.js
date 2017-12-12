@@ -111,7 +111,7 @@ function(https, url) {
     					unitField.insertSelectOption({
     						value: unitsList[x].internalId,
     						text: unitsList[x].name,
-    						isSelected:unitsList[x].internalId == estqty.getValue('	custrecord_itpm_estqty_qtyby')
+    						isSelected:unitsList[x].internalId == estqty.getValue('custrecord_itpm_estqty_qtyby')
     					});
     				}
     				estqty.setValue({

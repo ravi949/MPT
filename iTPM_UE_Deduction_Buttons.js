@@ -85,7 +85,7 @@ define(['N/runtime',
 							functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
 						});
 					}
-
+          
 					//show button only when user have permissions greater than or equal to EDIT for Deductions and Journal Entry
 					if(JE_Permssion >= 3){
 						var btn_expense = sc.form.addButton({
