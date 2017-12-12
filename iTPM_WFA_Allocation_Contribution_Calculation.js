@@ -89,7 +89,7 @@ define(['N/record',
 
 		allResult.forEach(function(result){
 			var ratePerUnit = 0;
-			var allocationContribution = 0;
+			var allocationContribution = 0; 
 			var allMOP = result.getValue({name:'custrecord_itpm_all_mop'});
 			allUnitId = result.getValue({name:'custrecord_itpm_all_uom'});
 			allRatePerUnit = parseFloat(result.getValue({name:'custrecord_itpm_all_rateperuom'}));
@@ -97,7 +97,6 @@ define(['N/record',
 				ratePerUnit = allRatePerUnit;
 			}else{
 				allRate = unitsList.filter(function(e){return e.id == allUnitId})[0].conversionRate;
-				allRate = (allRate)? (allrate!=0)? allRate : 1 : 1;
 				ratePerUnit = allRatePerUnit * (estqtyRate/allRate);
 			}
 			if(allMOP == 1 ){
