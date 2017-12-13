@@ -438,21 +438,57 @@ function(search, record, util, runtime) {
     }
 	
     /**
-     * @param Object obj
+     * @param {String} promID
+     * @param {Integer} promAllocType
+     */
+    function processAllocationsDraft(promID, promAllocType){
+		try{
+			//Updating BB Allocation Factors
+			var objbb = {
+					promoId:promID,
+					promoEstimatedSpend:'custrecord_itpm_estimatedspendbb',
+					kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendbb',
+					mop:1, // 1 or 3
+					kpiValues:{
+						'custrecord_itpm_kpi_factorestbb' : 1,
+						'custrecord_itpm_kpi_adjustedbb' : false
+					}
+			}
+			calculateEstAllocationsBBOIDraft(objbb);
+
+			//Updating OI Allocation Factors
+			var objoi = {
+					promoId:promID,
+					promoEstimatedSpend:'custrecord_itpm_estimatedspendoi',
+					kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendoi',
+					mop:3, // 1 or 3
+					kpiValues:{
+						'custrecord_itpm_kpi_factorestoi' : 1,
+						'custrecord_itpm_kpi_adjsutedoi' : false
+					}
+			}
+			calculateEstAllocationsBBOIDraft(objoi);
+
+			//Updating LS Allocation Factors
+			calculateAllocationsLSforDraft(promID);
+			
+			//Need to maintain the same values for "EST. & ACTUAL" if Allocation Type is "Evenly" OR "By % Revenue"
+			if(promAllocType == 3 || promAllocType == 1){
+				updateKPIActualEvenly(promID);
+			}
+		}catch(e){
+			log.error(e.name, 'processAllocationsDraft: '+e.message);
+		}
+	}
+    
+    /**
+     * @param {Object} obj
      */
     function calculateEstAllocationsBBOIDraft(obj){
     	try{
     		log.debug('obj',obj);
     		
-    		//Commenting: If throws error please use "promestspendbb" instead of "totalestspend"
-            var promSearchObj = record.load({
-    			type: "customrecord_itpm_promotiondeal",
-    			id: obj['promoId']
-    		});
-    		var totalestspend = promSearchObj.getValue(obj['promoEstimatedSpend']);
-    		log.debug('totalestspend', totalestspend);
-    		
-        	//Fetching Estimated Spend: BB from Promotion record
+    		//Fetching Estimated Spend: BB from Promotion record
     		var promSearchObjbb = search.create({
     			type: "customrecord_itpm_promotiondeal",
     			filters: [
@@ -471,29 +507,18 @@ function(search, record, util, runtime) {
     		});
     	
     		var promestspendbb = promSearchObjbb.run().getRange(0,1)[0].getValue({
-    			name:obj['kpiEstimatedSpend'],
+    			name: obj['kpiEstimatedSpend'],
     			join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
     			summary:search.Summary.SUM
     		});
     		log.debug('Promotion Estimate Spend: BB(SUM)', promestspendbb);
     		
-    		//validating whether Estimated Spend: BB is GREATER THAN ZERO: If YES
+    		//validating whether Estimated Spend: BB (or) Estimated Spend: OI is GREATER THAN ZERO: If YES
     		if(promestspendbb > 0){
     			log.debug('<<<<< BB or OI YES >>>>>', obj['mop']);
-    			//Counting Items IF MOP is BB
-    			var promoallowanceSearchObj = search.create({
-    				type: "customrecord_itpm_promoallowance",
-    				filters: [
-    					["custrecord_itpm_all_promotiondeal","anyof",obj['promoId']], 
-    					"AND", 
-    					["isinactive","is","F"], 
-    					"AND", 
-    					["custrecord_itpm_all_mop","anyof",obj['mop']]
-    					],
-    				columns: [
-    				      "custrecord_itpm_all_item"
-    					]
-    			});
+    			
+    			//Allowance search to get BB or OI related items
+    			var promoallowanceSearchObj = promAllowanceSearch(obj['promoId'], obj['mop']);
     			
     			var items = [];
     			
@@ -502,36 +527,27 @@ function(search, record, util, runtime) {
     				return true;
     			});
 
-    			var kpiitemcount_searchObj = search.create({
-    				type: "customrecord_itpm_kpi",
-    				filters: [
-    					["isinactive","is","F"], 
-    					"AND", 
-    					["custrecord_itpm_kpi_promotiondeal","anyof",obj['promoId']], 
-    					"AND", 
-    					["custrecord_itpm_kpi_item","anyof",items]
-    					],
-    					columns: [
-    						search.createColumn({
-    							name: "id",
-    							sort: search.Sort.ASC
-    						})
-    					]
-    			});
-    				
-    			var itemcount = kpiitemcount_searchObj.runPaged().count;
-    			log.debug('KPI Item Count on Promotion', itemcount);
+    			//Adding Filters for KPI search
+				var searchFilter = [];
+        		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+        		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:obj['promoId']}));
+        		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_item', operator:search.Operator.ANYOF, values:items}));
+    			
+        		//Adding Columns for KPI search
+        		var searchColumn = [];
+        		searchColumn.push(search.createColumn({name: "id",sort: search.Sort.ASC}));
+        		
+        		//KPI search to get particular items based on BB or OI
+        		var kpiitemcount_searchObj = kpiSearch(searchFilter, searchColumn);
+        		var itemcount = kpiitemcount_searchObj.runPaged().count;
+        		log.debug('KPI Item Count on Promotion', itemcount);
     			
     			if(itemcount == 1){
     				obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
     				log.audit('checkbox', obj['kpiValues']);
+    				
     				//Updating the related KPI record
-        			var kpiRecUpdate = record.submitFields({
-                		type: 'customrecord_itpm_kpi',
-                		id: (kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}),
-                		values: obj['kpiValues'],
-                		options: {enablesourcing: true, ignoreMandatoryFields: true}
-                	});
+        			var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), obj['kpiValues']);
         			log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
     			}
     			else if(itemcount > 1){
@@ -540,7 +556,7 @@ function(search, record, util, runtime) {
     				kpiitemcount_searchObj.run().each(function(result){
     					log.debug('id', result.getValue({name:'id'}));
     					
-    					//fetching Total Est.Qty. and Est.Qty. from KPI record
+    					//fetching estimated spend from KPI record
     					var fieldLookUp = search.lookupFields({
     	    	    	    type    : 'customrecord_itpm_kpi',
     	    	    	    id      : result.getValue({name:'id'}),
@@ -551,29 +567,20 @@ function(search, record, util, runtime) {
     	    	    	if(i==1){
     	    				obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
     	    	    		obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseInt(((1-sumallfactors_except_last).toFixed(6)*100000))/100000;
-    						//Updating the related KPI record
-    	        			var kpiRecUpdate = record.submitFields({
-    	                		type: 'customrecord_itpm_kpi',
-    	                		id: result.getValue({name:'id'}),
-    	                		values: obj['kpiValues'],
-    	                		options: {enablesourcing: true, ignoreMandatoryFields: true}
-    	                	});
-    	        			
+    						
+    	    	    		//Updating the related KPI record
+    	        			var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
     	        			log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
     					}else{
     						log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
-    						final_total_eq = (totalestspend <= 0)?0:(parseFloat((eq/totalestspend)));
+    						final_total_eq = (promestspendbb <= 0)?0:(parseFloat((eq/promestspendbb)));
     						obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseInt(final_total_eq.toFixed(6)*100000)/100000;
     						sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
     						sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
     						log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+    						
     						//Updating the related KPI record
-    	        			var kpiRecUpdate = record.submitFields({
-    	                		type: 'customrecord_itpm_kpi',
-    	                		id: result.getValue({name:'id'}),
-    	                		values:obj['kpiValues'],
-    	                		options: {enablesourcing: true, ignoreMandatoryFields: true}
-    	                	});
+    	        			var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
     	        			log.debug('kpiRecUpdate',kpiRecUpdate);
     					}
     					i--;
@@ -584,69 +591,46 @@ function(search, record, util, runtime) {
     		//If NO
     		else{
     			log.debug('<<<<< BB or OI NO >>>>>', obj['mop']);
-    			var promoallowanceSearchObj = search.create({
-    				type: "customrecord_itpm_promoallowance",
-    				filters: [
-    					["custrecord_itpm_all_promotiondeal","anyof",obj['promoId']], 
-    					"AND", 
-    					["isinactive","is","F"], 
-    					"AND", 
-    					["custrecord_itpm_all_mop","anyof",obj['mop']]
-    					],
-    				columns: [
-    				      "custrecord_itpm_all_item"
-    					]
-    			});
-    			
+    			//Allowance search to get BB or OI related items
+    			var promoallowanceSearchObj = promAllowanceSearch(obj['promoId'], obj['mop']);
     			var totalitemCountOnProm = promoallowanceSearchObj.runPaged().count;
     			log.debug('totalitemCountOnProm', totalitemCountOnProm);
     			
-    			if(totalitemCountOnProm > 0){
+    			if(totalitemCountOnProm > 0){ //validation to prevent null results error
     				var items = [];
     				
     				promoallowanceSearchObj.run().each(function(result){
     					items.push(result.getValue('custrecord_itpm_all_item'));
     					return true;
     				});
-
-    				var kpiitemcount_searchObj = search.create({
-    					type: "customrecord_itpm_kpi",
-    					filters: [
-    						["isinactive","is","F"], 
-    						"AND", 
-    						["custrecord_itpm_kpi_promotiondeal","anyof",obj['promoId']], 
-    						"AND", 
-    						["custrecord_itpm_kpi_item","anyof",items]
-    						],
-    						columns: [
-    							search.createColumn({
-    								name: "id",
-    								sort: search.Sort.ASC
-    							})
-    						]
-    				});
-    					
-    				var itemcount = kpiitemcount_searchObj.runPaged().count;
-    				log.debug('KPI Item Count on Promotion', itemcount);
     				
+    				//Adding Filters for KPI search
+    				var searchFilter = [];
+            		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+            		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:obj['promoId']}));
+            		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_item', operator:search.Operator.ANYOF, values:items}));
+        			
+            		//Adding Columns for KPI search
+            		var searchColumn = [];
+            		searchColumn.push(search.createColumn({name: "id",sort: search.Sort.ASC}));
+            		
+            		var kpiitemcount_searchObj = kpiSearch(searchFilter, searchColumn);
+            		var itemcount = kpiitemcount_searchObj.runPaged().count;
+            		log.debug('KPI Item Count on Promotion', itemcount);
+
     				if(itemcount == 1){
     					obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
     					//Updating the related KPI record
-    	    			var kpiRecUpdate = record.submitFields({
-    	            		type: 'customrecord_itpm_kpi',
-    	            		id: (kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}),
-    	            		values:obj['kpiValues'],
-    	            		options: {enablesourcing: true, ignoreMandatoryFields: true}
-    	            	});
+    	    			var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), obj['kpiValues']);
     	    			log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
     				}
     				else if(itemcount > 1){
     					var i = itemcount;
     					var sumallfactors_except_last = 0;
+    					
     					kpiitemcount_searchObj.run().each(function(result){
     						log.debug('id', result.getValue({name:'id'}));
     						
-    						//fetching Total Est.Qty. and Est.Qty. from KPI record
     						var fieldLookUp = search.lookupFields({
     		    	    	    type    : 'customrecord_itpm_kpi',
     		    	    	    id      : result.getValue({name:'id'}),
@@ -659,12 +643,7 @@ function(search, record, util, runtime) {
     							obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
     							obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = (1-sumallfactors_except_last).toFixed(5);
     							//Updating the related KPI record
-    		        			var kpiRecUpdate = record.submitFields({
-    		                		type: 'customrecord_itpm_kpi',
-    		                		id: result.getValue({name:'id'}),
-    		                		values:obj['kpiValues'],
-    		                		options: {enablesourcing: true, ignoreMandatoryFields: true}
-    		                	});
+    		        			var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
     		        			
     		        			log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
     						}else{
@@ -672,16 +651,11 @@ function(search, record, util, runtime) {
     							sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+(parseFloat(1/itemcount))).toFixed(5);
     							log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
     							obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseFloat(1/itemcount).toFixed(5);
+    							
     							//Updating the related KPI record
-    		        			var kpiRecUpdate = record.submitFields({
-    		                		type: 'customrecord_itpm_kpi',
-    		                		id: result.getValue({name:'id'}),
-    		                		values:obj['kpiValues'],
-    		                		options: {enablesourcing: true, ignoreMandatoryFields: true}
-    		                	});
+    		        			var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
     		        			log.debug('kpiRecUpdate',kpiRecUpdate);
     						}
-    						   
     						   
     						i--;
     						return true;
@@ -695,63 +669,54 @@ function(search, record, util, runtime) {
     }
     
     /**
-     * @param String promID
+     * @param {String} promID
      */
     function calculateAllocationsLSforDraft(promID){
 		try{
+			//Adding Filters for KPI search
+			var searchFilter = [];
+    		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+    		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:promID}));
+    		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_esttotalqty', operator:search.Operator.GREATERTHAN, values:0}));
+			
+    		//Adding Columns for KPI search
+    		var searchColumn = [];
+    		searchColumn.push(search.createColumn({name: "custrecord_itpm_kpi_esttotalqty"}));
+    		
+    		//KPI search
+    		var kpiSearchObj_promQty = kpiSearch(searchFilter, searchColumn);
+    		
 			//Getting Promoted Quantity AT LEAST ONE
-			var kpiSearchObj_promQty = search.create({
-				type: "customrecord_itpm_kpi",
-				filters: [
-					["isinactive","is","F"], 
-					"AND", 
-					["custrecord_itpm_kpi_promotiondeal","anyof",promID], 
-					"AND", 
-					["custrecord_itpm_kpi_esttotalqty","greaterthan",0]
-					],
-					columns: [
-						"custrecord_itpm_kpi_esttotalqty"
-						]
-			});
-
 			var iskpipromQty = kpiSearchObj_promQty.runPaged().count;
 			log.debug('iskpipromQty', iskpipromQty);
 
 			if(iskpipromQty > 0){
-				//Counting Items for LS
 				log.debug('<<<<< LS YES >>>>>');
 				
-				var kpiitemcount_searchObj = search.create({
-					type: "customrecord_itpm_kpi",
-					filters: [
-						["isinactive","is","F"], 
-						"AND", 
-						["custrecord_itpm_kpi_promotiondeal","anyof",promID]
-						],
-						columns: [
-							search.createColumn({
-								name: "id",
-								sort: search.Sort.ASC
-							}), 
-							'custrecord_itpm_kpi_item',
-							'custrecord_itpm_kpi_uom'
-							]
-				});
-
-				var itemcount = kpiitemcount_searchObj.runPaged().count;
+				//Adding Filters for KPI search
+				var searchFilter = [];
+	    		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+	    		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:promID}));
+	    		
+	    		//Adding Columns for KPI search
+	    		var searchColumn = [];
+	    		searchColumn.push(search.createColumn({name: "id", sort: search.Sort.ASC}));
+	    		
+	    		//KPI search
+	    		var kpiitemcount_searchObj = kpiSearch(searchFilter, searchColumn);
+				
+	    		var itemcount = kpiitemcount_searchObj.runPaged().count;
 				log.debug('KPI Item Count on Promotion', itemcount);
 
 				if(itemcount == 1){
+					var objvalueskpi = {
+							kpiValues:{
+								'custrecord_itpm_kpi_factorestls' : 1,
+								'custrecord_itpm_kpi_adjustedls' : true
+							}
+					}
 					//Updating the related KPI record
-					var kpiRecUpdate = record.submitFields({
-						type: 'customrecord_itpm_kpi',
-						id: (kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}),
-						values: {
-							'custrecord_itpm_kpi_factorestls' : 1,
-							'custrecord_itpm_kpi_adjustedls' : true
-						},
-						options: {enablesourcing: true, ignoreMandatoryFields: true}
-					});
+					var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), objvalueskpi['kpiValues']);
 					log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
 				}
 				else if(itemcount > 1){
@@ -759,8 +724,7 @@ function(search, record, util, runtime) {
 					var sumallfactors_except_last = 0;
 					kpiitemcount_searchObj.run().each(function(result){
 						log.debug('id', result.getValue({name:'id'}));
-						log.debug('Item ID', result.getValue({name:'custrecord_itpm_kpi_item'}));
-
+						
 						//fetching Total Est.Qty. and Est.Qty. from KPI record
 						var fieldLookUp = search.lookupFields({
 							type    : 'customrecord_itpm_kpi',
@@ -771,40 +735,31 @@ function(search, record, util, runtime) {
 						var estimatedRevenue = fieldLookUp.custrecord_itpm_kpi_estimatedrevenue;
 						log.debug('estimatedRevenue', +estimatedRevenue);
 
-						var customrecord_itpm_kpiSearchObj = search.create({
-							type: "customrecord_itpm_kpi",
-							filters: [
-								["isinactive","is","F"], 
-								"AND", 
-								["custrecord_itpm_kpi_promotiondeal","anyof",promID]
-								],
-								columns: [
-									search.createColumn({
-										name: "custrecord_itpm_kpi_estimatedrevenue",
-										summary: "SUM",
-										sort: search.Sort.ASC
-									})
-									]
-						});
-
-						var totEstRev = customrecord_itpm_kpiSearchObj.run().getRange(0,1)[0].getValue({name:"custrecord_itpm_kpi_estimatedrevenue",summary:search.Summary.SUM});
-						log.debug('totEstRev', totEstRev);
-
-						var totalEstimatedRevenue = parseFloat(totEstRev);
+						//Adding Filters for KPI search
+						var searchFilter = [];
+			    		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+			    		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:promID}));
+			    		
+			    		//Adding Columns for KPI search
+			    		var searchColumn = [];
+			    		searchColumn.push(search.createColumn({name: "custrecord_itpm_kpi_estimatedrevenue", summary: "SUM", sort: search.Sort.ASC}));
+			    		
+			    		//KPI search
+			    		var customrecord_itpm_kpiSearchObj = kpiSearch(searchFilter, searchColumn);
+						
+			    		//Fetching Total Estimated Revenue
+						var totalEstimatedRevenue = parseFloat(customrecord_itpm_kpiSearchObj.run().getRange(0,1)[0].getValue({name:"custrecord_itpm_kpi_estimatedrevenue",summary:search.Summary.SUM}));
 						log.debug('totalEstimatedRevenue', totalEstimatedRevenue);
 
 						if(i==1){
+							var objvalueskpi = {
+									kpiValues:{
+										'custrecord_itpm_kpi_factorestls' : parseInt(((1-sumallfactors_except_last).toFixed(6)*100000))/100000,
+										'custrecord_itpm_kpi_adjustedls' : true
+									}
+							}
 							//Updating the related KPI record
-							var kpiRecUpdate = record.submitFields({
-								type: 'customrecord_itpm_kpi',
-								id: result.getValue({name:'id'}),
-								values: {
-									'custrecord_itpm_kpi_factorestls' : parseInt(((1-sumallfactors_except_last).toFixed(6)*100000))/100000,
-									'custrecord_itpm_kpi_adjustedls' : true
-								},
-								options: {enablesourcing: true, ignoreMandatoryFields: true}
-							});
-
+							var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
 							log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
 						}else{
 							log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
@@ -813,16 +768,15 @@ function(search, record, util, runtime) {
 							sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
 							sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
 							log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+							
+							var objvalueskpi = {
+									kpiValues:{
+										'custrecord_itpm_kpi_factorestls' : final_total_eq,
+										'custrecord_itpm_kpi_adjustedls' : false
+									}
+							}
 							//Updating the related KPI record
-							var kpiRecUpdate = record.submitFields({
-								type: 'customrecord_itpm_kpi',
-								id: result.getValue({name:'id'}),
-								values: {
-									'custrecord_itpm_kpi_factorestls' : final_total_eq,
-									'custrecord_itpm_kpi_adjustedls' : false
-								},
-								options: {enablesourcing: true, ignoreMandatoryFields: true}
-							});
+							var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
 							log.debug('kpiRecUpdate',kpiRecUpdate);
 						}
 
@@ -836,36 +790,30 @@ function(search, record, util, runtime) {
 			else{
 				//Counting Items for LS
 				log.debug('<<<<< LS NO >>>>>');
+				//Adding Filters for KPI search
+				var searchFilter = [];
+	    		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+	    		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:promID}));
+	    		
+	    		//Adding Columns for KPI search
+	    		var searchColumn = [];
+	    		searchColumn.push(search.createColumn({name: "id", sort: search.Sort.ASC}));
+	    		
+	    		//KPI search
+	    		var kpiitemcount_searchObj = kpiSearch(searchFilter, searchColumn);
 				
-				var kpiitemcount_searchObj = search.create({
-					type: "customrecord_itpm_kpi",
-					filters: [
-						["isinactive","is","F"], 
-						"AND", 
-						["custrecord_itpm_kpi_promotiondeal","anyof",promID]
-						],
-						columns: [
-							search.createColumn({
-								name: "id",
-								sort: search.Sort.ASC
-							})
-							]
-				});
-
-				var itemcount = kpiitemcount_searchObj.runPaged().count;
+	    		var itemcount = kpiitemcount_searchObj.runPaged().count;
 				log.debug('KPI Item Count on Promotion', itemcount);
 
 				if(itemcount == 1){
+					var objvalueskpi = {
+							kpiValues:{
+								'custrecord_itpm_kpi_factorestls' : 1,
+								'custrecord_itpm_kpi_adjustedls' : true
+							}
+					}
 					//Updating the related KPI record
-					var kpiRecUpdate = record.submitFields({
-						type: 'customrecord_itpm_kpi',
-						id: (kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}),
-						values: {
-							'custrecord_itpm_kpi_factorestls' : 1,
-							'custrecord_itpm_kpi_adjustedls' : true
-						},
-						options: {enablesourcing: true, ignoreMandatoryFields: true}
-					});
+					var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), objvalueskpi['kpiValues']);
 					log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
 				}
 				else if(itemcount > 1){
@@ -875,32 +823,28 @@ function(search, record, util, runtime) {
 						log.debug('id', result.getValue({name:'id'}));
 
 						if(i==1){
+							var objvalueskpi = {
+									kpiValues:{
+										'custrecord_itpm_kpi_factorestls' : (1-sumallfactors_except_last).toFixed(5),
+										'custrecord_itpm_kpi_adjustedls' : true
+									}
+							}
 							//Updating the related KPI record
-							var kpiRecUpdate = record.submitFields({
-								type: 'customrecord_itpm_kpi',
-								id: result.getValue({name:'id'}),
-								values: {
-									'custrecord_itpm_kpi_factorestls' : (1-sumallfactors_except_last).toFixed(5),
-									'custrecord_itpm_kpi_adjustedls' : true
-								},
-								options: {enablesourcing: true, ignoreMandatoryFields: true}
-							});
-
+							var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
 							log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
 						}else{
 							log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
 							sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+(parseFloat(1/itemcount))).toFixed(5);
 							log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+							
+							var objvalueskpi = {
+									kpiValues:{
+										'custrecord_itpm_kpi_factorestls' : parseFloat(1/itemcount).toFixed(5),
+										'custrecord_itpm_kpi_adjustedls' : false
+									}
+							}
 							//Updating the related KPI record
-							var kpiRecUpdate = record.submitFields({
-								type: 'customrecord_itpm_kpi',
-								id: result.getValue({name:'id'}),
-								values: {
-									'custrecord_itpm_kpi_factorestls' : parseFloat(1/itemcount).toFixed(5),
-									'custrecord_itpm_kpi_adjustedls' : false
-								},
-								options: {enablesourcing: true, ignoreMandatoryFields: true}
-							});
+							var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
 							log.debug('kpiRecUpdate',kpiRecUpdate);
 						}
 
@@ -915,48 +859,43 @@ function(search, record, util, runtime) {
 	}
     
     /**
-     * @param String promID
+     * @param {String} promID
      */
     function updateKPIActualEvenly(promID){
     	try{
-    		var kpiItemsSearchObj = search.create({
-    			type: "customrecord_itpm_kpi",
-    			filters: [
-    				["isinactive","is","F"], 
-    				"AND", 
-    				["custrecord_itpm_kpi_promotiondeal","anyof",promID]
-    				],
-    				columns: [
-    					search.createColumn({
-    						name: "id",
-    						sort: search.Sort.ASC
-    					})
-    					]
-    		});
-
-    		kpiItemsSearchObj.run().each(function(result){
+    		//Adding Filters for KPI search
+			var searchFilter = [];
+    		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+    		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:promID}));
+    		
+    		//Adding Columns for KPI search
+    		var searchColumn = [];
+    		searchColumn.push(search.createColumn({name: "id", sort: search.Sort.ASC}));
+    		
+    		//KPI search
+    		var kpiItemsSearchObj = kpiSearch(searchFilter, searchColumn);
+			
+    		var itemcount = kpiItemsSearchObj.runPaged().count;
+			log.debug('KPI Item Count on Promotion', itemcount);
+    		
+			kpiItemsSearchObj.run().each(function(result){
     			var fieldLookUp = search.lookupFields({
     				type    : 'customrecord_itpm_kpi',
     				id      : result.getValue('id'),
     				columns : ['custrecord_itpm_kpi_factorestls', 'custrecord_itpm_kpi_factorestbb','custrecord_itpm_kpi_factorestoi']
     			});
 
-    			lsFactorEst = fieldLookUp.custrecord_itpm_kpi_factorestls;
-    			bbFactorEst = fieldLookUp.custrecord_itpm_kpi_factorestbb;
-    			oiFactorEst = fieldLookUp.custrecord_itpm_kpi_factorestoi;
-    			log.debug('LS: AF-Est, BB: AF-Est & OI: AF-Est', lsFactorEst+' , '+bbFactorEst+' & '+oiFactorEst);
+    			log.debug('LS: AF-Est, BB: AF-Est & OI: AF-Est', fieldLookUp.custrecord_itpm_kpi_factorestls+' , '+fieldLookUp.custrecord_itpm_kpi_factorestbb+' & '+fieldLookUp.custrecord_itpm_kpi_factorestoi);
+    			var objvalueskpi = {
+						kpiValues:{
+							'custrecord_itpm_kpi_factoractualls' : fieldLookUp.custrecord_itpm_kpi_factorestls,
+							'custrecord_itpm_kpi_factoractualbb' : fieldLookUp.custrecord_itpm_kpi_factorestbb,
+							'custrecord_itpm_kpi_factoractualoi' : fieldLookUp.custrecord_itpm_kpi_factorestoi
+						}
+				}
     			
-    			//updating KPI Actual Allocation factors
-    			var kpiRecUpdate = record.submitFields({
-    				type: 'customrecord_itpm_kpi',
-    				id: result.getValue('id'),
-    				values: {
-    					'custrecord_itpm_kpi_factoractualls' : lsFactorEst,
-    					'custrecord_itpm_kpi_factoractualbb' : bbFactorEst,
-    					'custrecord_itpm_kpi_factoractualoi' : oiFactorEst
-    				},
-    				options: {enablesourcing: true, ignoreMandatoryFields: true}
-    			});
+				//Updating the related KPI record
+				var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
     			log.debug('updated KPI',kpiRecUpdate);
     			
     			return true;
@@ -967,7 +906,7 @@ function(search, record, util, runtime) {
     }
     
     /**
-     * @param String promID
+     * @param {String} promID
      */
     function approvedAllocationFactorActual(promID){
         try{
@@ -1002,20 +941,20 @@ function(search, record, util, runtime) {
         		log.debug('checkBox on Promotion type FALSE', checkBox);
         		//Getting all items from KPI
             	var kpiItems = [];
-
-            	var kpiitems_searchObj = search.create({
-            		type: "customrecord_itpm_kpi",
-            		filters: [
-            			["isinactive","is","F"], 
-            			"AND", 
-            			["custrecord_itpm_kpi_promotiondeal","anyof",promID]
-            			],
-            			columns: [
-            				'custrecord_itpm_kpi_item'
-            			]
-            	});
-
-            	kpiitems_searchObj.run().each(function(result){
+            	
+            	//Adding Filters for KPI search
+    			var searchFilter = [];
+        		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+        		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:promID}));
+        		
+        		//Adding Columns for KPI search
+        		var searchColumn = [];
+        		searchColumn.push(search.createColumn({name: "custrecord_itpm_kpi_item"}));
+        		
+        		//KPI search
+        		var kpiitems_searchObj = kpiSearch(searchFilter, searchColumn);
+            	
+        		kpiitems_searchObj.run().each(function(result){
             		kpiItems.push(result.getValue('custrecord_itpm_kpi_item'));
             		return true;
             	});
@@ -1066,82 +1005,12 @@ function(search, record, util, runtime) {
             		calculateActualLSApproved(promID);
             	}else{
             		log.debug('ACTUAL NO');
-            		var kpiitemcount_searchObj = search.create({
-            			type: "customrecord_itpm_kpi",
-            			filters: [
-            				["isinactive","is","F"], 
-            				"AND", 
-            				["custrecord_itpm_kpi_promotiondeal","anyof",promID]
-            				],
-            				columns: [
-            					search.createColumn({
-            						name: "id",
-            						sort: search.Sort.ASC
-            					}), 
-            					'custrecord_itpm_kpi_item',
-            					'custrecord_itpm_kpi_factorestls',
-            					'custrecord_itpm_kpi_factorestbb',
-            					'custrecord_itpm_kpi_factorestoi'
-            					]
-            		});
-            		log.debug('kpiitemcount_searchObj',kpiitemcount_searchObj);
-            		
-            		kpiitemcount_searchObj.run().each(function(result){
-            			//Updating the related KPI record
-            			var kpiRecUpdate = record.submitFields({
-                    		type: 'customrecord_itpm_kpi',
-                    		id: result.getValue('id'),
-                    		values: {
-                    			'custrecord_itpm_kpi_factoractualls' : result.getValue('custrecord_itpm_kpi_factorestls'),
-                    			'custrecord_itpm_kpi_factoractualbb' : result.getValue('custrecord_itpm_kpi_factorestbb'),
-                    			'custrecord_itpm_kpi_factoractualoi' : result.getValue('custrecord_itpm_kpi_factorestoi')
-                    		},
-                    		options: {enablesourcing: true, ignoreMandatoryFields: true}
-                    	});
-            			log.debug('kpiRecUpdate',kpiRecUpdate);
-            			
-            			return true;
-            		});
+            		processActualNO(promID);
             	}
             	log.debug('END',scriptObj.getRemainingUsage());
         	}else{
         		log.debug('checkBox on Promotion type TRUE', checkBox);
-        		var kpiitemcount_searchObj = search.create({
-        			type: "customrecord_itpm_kpi",
-        			filters: [
-        				["isinactive","is","F"], 
-        				"AND", 
-        				["custrecord_itpm_kpi_promotiondeal","anyof",promID]
-        				],
-        				columns: [
-        					search.createColumn({
-        						name: "id",
-        						sort: search.Sort.ASC
-        					}), 
-        					'custrecord_itpm_kpi_item',
-        					'custrecord_itpm_kpi_factorestls',
-        					'custrecord_itpm_kpi_factorestbb',
-        					'custrecord_itpm_kpi_factorestoi'
-        					]
-        		});
-        		log.debug('kpiitemcount_searchObj',kpiitemcount_searchObj);
-        		
-        		kpiitemcount_searchObj.run().each(function(result){
-        			//Updating the related KPI record
-        			var kpiRecUpdate = record.submitFields({
-                		type: 'customrecord_itpm_kpi',
-                		id: result.getValue('id'),
-                		values: {
-                			'custrecord_itpm_kpi_factoractualls' : result.getValue('custrecord_itpm_kpi_factorestls'),
-                			'custrecord_itpm_kpi_factoractualbb' : result.getValue('custrecord_itpm_kpi_factorestbb'),
-                			'custrecord_itpm_kpi_factoractualoi' : result.getValue('custrecord_itpm_kpi_factorestoi')
-                		},
-                		options: {enablesourcing: true, ignoreMandatoryFields: true}
-                	});
-        			log.debug('kpiRecUpdate',kpiRecUpdate);
-        			
-        			return true;
-        		});
+        		processActualNO(promID);
         	}
         }catch(e){
         	log.error(e.name, 'approvedAllocationFactorActual'+e.message);
@@ -1149,18 +1018,11 @@ function(search, record, util, runtime) {
     }
     
     /**
-     * @param Object obj
+     * @param {Object} obj
      */
     function calculateActualBBandOIApproved(obj){
 		try{
-			log.debug('====================++++++++++++++++++++actual',obj['mop']);
-			var promSearchObj = record.load({
-				type: "customrecord_itpm_promotiondeal",
-				id: obj['promoId']
-			});
-			var totalexpliability = promSearchObj.getValue(obj['promoESorEL']);
-			log.debug('totalexpliability'+obj['mop'], totalexpliability);
-
+			log.debug('============== Actual BB or OI ===============',obj['mop']);
 			//Fetching Expected liability: BB from Promotion record
 			var promSearchObjbb = search.create({
 				type: "customrecord_itpm_promotiondeal",
@@ -1179,67 +1041,48 @@ function(search, record, util, runtime) {
 						]
 			});
 
-			var promexpliabilitybb = promSearchObjbb.run().getRange(0,1)[0].getValue({
-				name:"kpiESorEL",
+			var totalexpliability = promSearchObjbb.run().getRange(0,1)[0].getValue({
+				name: obj['kpiESorEL'],
 				join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
 				summary:search.Summary.SUM
 			});
-			log.debug('Expected liability:'+obj['mop'], promexpliabilitybb);
+			log.debug('Expected liability:'+obj['mop'], totalexpliability);
 
-			//Counting Items IF MOP is BB
-			var promoallowanceSearchObj = search.create({
-				type: "customrecord_itpm_promoallowance",
-				filters: [
-					["custrecord_itpm_all_promotiondeal","anyof",obj['promoId']], 
-					"AND", 
-					["isinactive","is","F"], 
-					"AND", 
-					["custrecord_itpm_all_mop","anyof",obj['mop']]
-					],
-					columns: [
-						"custrecord_itpm_all_item"
-						]
-			});
-
+			//Counting Items IF MOP is BB or OI
+			var promoallowanceSearchObj = promAllowanceSearch(obj['promoId'], obj['mop']);
+			
 			var items = [],itemcount = 0;
 
 			promoallowanceSearchObj.run().each(function(result){
 				items.push(result.getValue('custrecord_itpm_all_item'));
 				return true;
 			});
+			
 		   if(items.length > 0){
-	         var kpiitemcount_searchObj = search.create({
-				type: "customrecord_itpm_kpi",
-				filters: [
-					["isinactive","is","F"], 
-					"AND", 
-					["custrecord_itpm_kpi_promotiondeal","anyof",obj['promoId']], 
-					"AND", 
-					["custrecord_itpm_kpi_item","anyof",items]
-					],
-					columns: [
-						search.createColumn({
-							name: "id",
-							sort: search.Sort.ASC
-						})
-						]
-			});
-
-			itemcount = kpiitemcount_searchObj.runPaged().count;
-			log.debug('KPI Item Count on Promotion', itemcount);
+			   	//Adding Filters for KPI search
+				var searchFilter = [];
+	    		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+	    		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:obj['promoId']}));
+	    		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_item', operator:search.Operator.ANYOF, values:items}));
+				
+	    		//Adding Columns for KPI search
+	    		var searchColumn = [];
+	    		searchColumn.push(search.createColumn({name: "id", sort: search.Sort.ASC}));
+	    		
+	    		//KPI search
+	    		var kpiitemcount_searchObj = kpiSearch(searchFilter, searchColumn);
+	    		
+	    		itemcount = kpiitemcount_searchObj.runPaged().count;
+	    		log.debug('KPI Item Count on Promotion', itemcount);
 	       }
 			
 
 			if(itemcount == 1){
 				obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
+				
 				//Updating the related KPI record
-				var kpiRecUpdate = record.submitFields({
-					type: 'customrecord_itpm_kpi',
-					id: (kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}),
-					values: obj['kpiValues'],
-					options: {enablesourcing: true, ignoreMandatoryFields: true}
-				});
-				log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
+				var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), obj['kpiValues']);
+				log.debug('kpiRecUpdate',kpiRecUpdate);
 			}
 			else if(itemcount > 1){
 				var i = itemcount;
@@ -1259,15 +1102,10 @@ function(search, record, util, runtime) {
 					if(i==1){
 						obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
 						obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = (1-sumallfactors_except_last).toFixed(5);
+						
 						//Updating the related KPI record
-						var kpiRecUpdate = record.submitFields({
-							type: 'customrecord_itpm_kpi',
-							id: result.getValue({name:'id'}),
-							values: obj['kpiValues'],
-							options: {enablesourcing: true, ignoreMandatoryFields: true}
-						});
-
-						log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
+						var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
+						log.debug('kpiRecUpdate',kpiRecUpdate);
 					}else{
 						log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
 						final_total_eq = (totalexpliability <= 0)?0:(parseFloat((el/totalexpliability)));
@@ -1276,16 +1114,11 @@ function(search, record, util, runtime) {
 						sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
 						log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
 						obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = final_total_eq;
+						
 						//Updating the related KPI record
-						var kpiRecUpdate = record.submitFields({
-							type: 'customrecord_itpm_kpi',
-							id: result.getValue({name:'id'}),
-							values: obj['kpiValues'],
-							options: {enablesourcing: true, ignoreMandatoryFields: true}
-						});
+						var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
 						log.debug('kpiRecUpdate',kpiRecUpdate);
 					}
-
 
 					i--;
 					return true;
@@ -1297,11 +1130,11 @@ function(search, record, util, runtime) {
 	}
     
     /**
-     * @param String promID
+     * @param {String} promID
      */
     function calculateActualLSApproved(promID){
 		try{
-			log.debug('====================++++++++++++++++++++actualLS');
+			log.debug('==================== ACTUAL LS ==================');
 			//fetching Start  Date, End Date and Customer from Promotion
 			var fieldLookUp = search.lookupFields({
 				type    : 'customrecord_itpm_promotiondeal',
@@ -1317,23 +1150,19 @@ function(search, record, util, runtime) {
 			//Getting all items from KPI
 			var kpiItems = [];
 
-
-			var kpiitemcount_searchObj = search.create({
-				type: "customrecord_itpm_kpi",
-				filters: [
-					["isinactive","is","F"], 
-					"AND", 
-					["custrecord_itpm_kpi_promotiondeal","anyof",promID]
-					],
-					columns: [
-						search.createColumn({
-							name: "id",
-							sort: search.Sort.ASC
-						}), 
-						'custrecord_itpm_kpi_item'
-						]
-			});
-
+			//Adding Filters for KPI search
+			var searchFilter = [];
+    		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+    		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:promID}));
+    		
+    		//Adding Columns for KPI search
+    		var searchColumn = [];
+    		searchColumn.push(search.createColumn({name: "id", sort: search.Sort.ASC}));
+    		searchColumn.push(search.createColumn({name: "custrecord_itpm_kpi_item"}));
+    		
+    		//KPI search
+    		var kpiitemcount_searchObj = kpiSearch(searchFilter, searchColumn);
+    		
 			kpiitemcount_searchObj.run().each(function(result){
 				kpiItems.push(result.getValue('custrecord_itpm_kpi_item'));
 				return true;
@@ -1358,16 +1187,14 @@ function(search, record, util, runtime) {
 			log.debug('KPI Item Count on Promotion', itemcount);
 
 			if(itemcount == 1){
+				var objvalueskpi = {
+						kpiValues:{
+							'custrecord_itpm_kpi_factoractualls' : 1,
+							'custrecord_itpm_kpi_adjustedls' : true
+						}
+				}
 				//Updating the related KPI record
-				var kpiRecUpdate = record.submitFields({
-					type: 'customrecord_itpm_kpi',
-					id: (kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}),
-					values: {
-						'custrecord_itpm_kpi_factoractualls' : 1,
-						'custrecord_itpm_kpi_adjustedls' : true
-					},
-					options: {enablesourcing: true, ignoreMandatoryFields: true}
-				});
+				var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), objvalueskpi['kpiValues']);
 				log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
 			}
 			else if(itemcount > 1){
@@ -1394,17 +1221,14 @@ function(search, record, util, runtime) {
 					log.debug('actualRevenue',actualRevenue);
 
 					if(i==1){
+						var objvalueskpi = {
+								kpiValues:{
+									'custrecord_itpm_kpi_factoractualls' : parseInt(((1-sumallfactors_except_last).toFixed(6)*100000))/100000,
+									'custrecord_itpm_kpi_adjustedls' : true
+								}
+						}
 						//Updating the related KPI record
-						var kpiRecUpdate = record.submitFields({
-							type: 'customrecord_itpm_kpi',
-							id: result.getValue({name:'id'}),
-							values: {
-								'custrecord_itpm_kpi_factoractualls' : parseInt(((1-sumallfactors_except_last).toFixed(6)*100000))/100000,
-								'custrecord_itpm_kpi_adjustedls' : true
-							},
-							options: {enablesourcing: true, ignoreMandatoryFields: true}
-						});
-
+						var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
 						log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
 					}else{
 						log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
@@ -1413,19 +1237,18 @@ function(search, record, util, runtime) {
 						sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
 						sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
 						log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+						
 						//Updating the related KPI record
-						var kpiRecUpdate = record.submitFields({
-							type: 'customrecord_itpm_kpi',
-							id: result.getValue({name:'id'}),
-							values: {
-								'custrecord_itpm_kpi_factoractualls' : final_total_eq,
-								'custrecord_itpm_kpi_adjustedls' : false
-							},
-							options: {enablesourcing: true, ignoreMandatoryFields: true}
-						});
+						var objvalueskpi = {
+								kpiValues:{
+									'custrecord_itpm_kpi_factoractualls' : final_total_eq,
+									'custrecord_itpm_kpi_adjustedls' : false
+								}
+						}
+						
+						var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
 						log.debug('kpiRecUpdate',kpiRecUpdate);
 					}
-
 
 					i--;
 					return true;
@@ -1435,6 +1258,111 @@ function(search, record, util, runtime) {
 			log.error(e.name, 'calculateActualLSApproved'+e.message);
 		}
 	}
+    
+    /**
+     * @param {String} promID
+     */
+    function processActualNO(promID){
+    	try{
+    		//Adding Filters for KPI search
+			var searchFilter = [];
+    		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+    		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:promID}));
+    		
+    		//Adding Columns for KPI search
+    		var searchColumn = [];
+    		searchColumn.push(search.createColumn({name: "id", sort: search.Sort.ASC}));
+    		searchColumn.push(search.createColumn({name: "custrecord_itpm_kpi_item"}));
+    		searchColumn.push(search.createColumn({name: "custrecord_itpm_kpi_factorestls"}));
+    		searchColumn.push(search.createColumn({name: "custrecord_itpm_kpi_factorestbb"}));
+    		searchColumn.push(search.createColumn({name: "custrecord_itpm_kpi_factorestoi"}));
+    		
+    		//KPI search
+    		var kpiitemcount_searchObj = kpiSearch(searchFilter, searchColumn);
+    		log.debug('kpiitemcount_searchObj',kpiitemcount_searchObj);
+			
+			kpiitemcount_searchObj.run().each(function(result){
+				//Updating the related KPI record
+				var objvalueskpi = {
+						kpiValues:{
+							'custrecord_itpm_kpi_factoractualls' : result.getValue('custrecord_itpm_kpi_factorestls'),
+		        			'custrecord_itpm_kpi_factoractualbb' : result.getValue('custrecord_itpm_kpi_factorestbb'),
+		        			'custrecord_itpm_kpi_factoractualoi' : result.getValue('custrecord_itpm_kpi_factorestoi')
+						}
+				}
+				
+				var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
+				log.debug('kpiRecUpdate',kpiRecUpdate);
+				
+				return true;
+			});
+		}catch(e){
+			log.error(e.name, 'processActualNO'+e.message);
+		}
+    }
+    
+    /**
+     * @param {String}
+     * @param {Integer}
+     * 
+     * @returns {Object}
+     */
+    function promAllowanceSearch(promID, mop){
+    	try{
+    		return search.create({
+    			type: "customrecord_itpm_promoallowance",
+    			filters: [
+    				["custrecord_itpm_all_promotiondeal","anyof",promID], 
+    				"AND", 
+    				["isinactive","is","F"], 
+    				"AND", 
+    				["custrecord_itpm_all_mop","anyof",mop]
+    				],
+    				columns: [
+    					"custrecord_itpm_all_item"
+    					]
+    		});
+    	}catch(e){
+    		log.error(e.name, 'promAllowanceSearch'+e.message);
+    	}
+    }
+    
+    /**
+     * @param {Array} searchFilter
+     * @returns {Object} search
+     */
+    function kpiSearch(searchFilter, searchColumn){
+		try{
+			return search.create({
+				type: "customrecord_itpm_kpi",
+				filters: searchFilter,
+				columns: searchColumn
+			});
+		}catch(e){
+			log.error(e.name, 'kpiSearch'+e.message);
+		}
+	}
+    
+    /**
+     * @param {String} internalid
+     * @param {Object} objvalues
+     * 
+     * @returns {String} internalid
+     */
+    function updateKPI(id, objvalues){
+    	try{
+    		var kpiRecUpdate = record.submitFields({
+        		type: 'customrecord_itpm_kpi',
+        		id: id,
+        		values: objvalues,
+        		options: {enablesourcing: true, ignoreMandatoryFields: true}
+        	});
+        	
+        	return kpiRecUpdate;
+    	}catch(e){
+    		log.error(e.name, 'updateKPI: '+e.message);
+    	}
+    }
     
     /**
 	 * @param {Array} searchColumn
@@ -1481,13 +1409,17 @@ function(search, record, util, runtime) {
     	currenciesEnabled:currenciesEnabled,
     	getClassifications:getClassifications,
     	getUserPermission:getUserPermission,
+    	processAllocationsDraft : processAllocationsDraft,
     	calculateEstAllocationsBBOIDraft : calculateEstAllocationsBBOIDraft,
     	calculateAllocationsLSforDraft : calculateAllocationsLSforDraft,
     	updateKPIActualEvenly : updateKPIActualEvenly,
     	approvedAllocationFactorActual : approvedAllocationFactorActual,
     	calculateActualBBandOIApproved : calculateActualBBandOIApproved,
     	calculateActualLSApproved : calculateActualLSApproved,
+    	processActualNO : processActualNO,
+    	promAllowanceSearch : promAllowanceSearch,
+    	kpiSearch : kpiSearch,
+    	updateKPI : updateKPI,
     	getInvoiceSearch : getInvoiceSearch
     };
-    
 });

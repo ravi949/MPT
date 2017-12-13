@@ -33,23 +33,13 @@ define(['N/search',
 				var promID = scriptContext.newRecord.getValue('custrecord_itpm_kpi_promotiondeal');
 				log.debug('Promotion ID', promID);
 
-				//Fetching KPI Item count
-				var itemcountsearchObj = search.create({
-					type: "customrecord_itpm_kpi",
-					filters: [
-						["isinactive","is","F"], 
-						"AND", 
-						["custrecord_itpm_kpi_promotiondeal","anyof",promID]
-						],
-						columns: [
-							search.createColumn({
-								name: "id",
-								sort: search.Sort.ASC
-							})
-							]
-				});
-
-				var itemcountOnKPI = itemcountsearchObj.runPaged().count;
+				//Adding Filters
+				var searchFilter = [];
+        		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+        		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator:search.Operator.ANYOF, values:promID}));
+				
+        		//Fetching KPI Item count
+				var itemcountOnKPI = kpiSearch(searchFilter).runPaged().count;
 				log.debug('KPI Item Count for Promotion', itemcountOnKPI);
 
 				if(itemcountOnKPI <= 5){
@@ -65,40 +55,7 @@ define(['N/search',
 
 					//Allocation factor calculation when promotion is DRAFT and Allocation Type is EVENLY
 					if(promStatus == 1){    
-						//Calculating BB Allocation Factors
-						var objbb = {
-								promoId:promID,
-								promoEstimatedSpend:'custrecord_itpm_estimatedspendbb',
-								kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendbb',
-								mop:1, // 1 or 3
-								kpiValues:{
-									'custrecord_itpm_kpi_factorestbb' : 1,
-									'custrecord_itpm_kpi_adjustedbb' : false
-								}
-						}
-						itpm.calculateEstAllocationsBBOIDraft(objbb);
-
-						//Calculating OI Allocation Factors
-						var objoi = {
-								promoId:promID,
-								promoEstimatedSpend:'custrecord_itpm_estimatedspendoi',
-								kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendoi',
-								mop:3, // 1 or 3
-								kpiValues:{
-									'custrecord_itpm_kpi_factorestoi' : 1,
-									'custrecord_itpm_kpi_adjsutedoi' : false
-								}
-						}
-						itpm.calculateEstAllocationsBBOIDraft(objoi);
-
-						//Calculating LS Allocation Factors
-						itpm.calculateAllocationsLSforDraft(promID);
-						
-						//Need to maintain the same values for ACTUAL if Allocation Type is Evenly (3)
-						if(promAllocType == 3 || promAllocType == 1){
-							//updating Actual Allocation factors if Allocation Type is "Evenly"
-							itpm.updateKPIActualEvenly(promID);
-						}
+						itpm.processAllocationsDraft(promID, promAllocType);
 					}
 				}
 
@@ -129,57 +86,35 @@ define(['N/search',
 				promAllocType = fieldLookUp.custrecord_itpm_p_lsallocation[0].value;
 				log.debug('pricelevel & Status& promAllocType', +pricelevel+' & '+promStatus+' ,'+promAllocType);
 
-				if(promStatus == 1){
-					var itemSaleUnit = search.lookupFields({type:search.Type.ITEM,id:item,columns:['saleunit']})['saleunit'][0].value;
+				if(promStatus == 1){ //Draft
+					var params = {
+							'itemid'     : item,
+							'pricelevel' : pricelevel
+					}
+					
+					var itemObj = itpm.getImpactPrice(params);
 					var itemunits = itpm.getItemUnits(item)['unitArray'];
-
 					var unitrate = parseFloat(itemunits.filter(function(obj){return obj.id == unit})[0].conversionRate);
-					var saleunitrate = parseFloat(itemunits.filter(function(obj){return obj.id == itemSaleUnit})[0].conversionRate);
-					log.debug('itemSaleUnit, unitrate, saleunitrate',itemSaleUnit+' , '+unitrate+' , '+saleunitrate); 
+					var saleunitrate = parseFloat(itemunits.filter(function(obj){return obj.id == itemObj.saleunit})[0].conversionRate);
+					log.debug('itemSaleUnit, unitrate, saleunitrate, price',itemObj.saleunit+' , '+unitrate+' , '+saleunitrate+' , '+itemObj.price); 
 
-					var allowanceSearchObj = search.create({
-						type: "customrecord_itpm_promoallowance",
-						filters: [
-							["custrecord_itpm_all_promotiondeal","anyof",promID], 
-							"AND", 
-							["custrecord_itpm_all_item","anyof",item], 
-							"AND", 
-							["isinactive","is","F"]
-							],
-							columns: [
-								"custrecord_itpm_all_impactprice"
-								]
-					});
-
-					var impactprice = parseFloat((allowanceSearchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'custrecord_itpm_all_impactprice'}));
-					log.debug('impactprice',impactprice); 
-					var itemprice = impactprice*(unitrate/saleunitrate);
+					var itemprice = (itemObj.price)*(unitrate/saleunitrate);
 					log.debug('itemprice',itemprice);
 
 					var estimatedRevenue = totalestqty*itemprice;
 					log.debug('estimatedRevenue',estimatedRevenue);
 
+					//Adding Filters
+					var searchFilter = [];
+	        		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
+	        		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal', operator: search.Operator.ANYOF, values:promID}));
+	        		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_item', operator:search.Operator.ANYOF, values:item}));
+					
 					//fetching KPIon the same Promotion for the same Item to update
-					var kpiSearchObj = search.create({
-						type: "customrecord_itpm_kpi",
-						filters: [
-							["isinactive","is","F"], 
-							"AND", 
-							["custrecord_itpm_kpi_promotiondeal","anyof",promID], 
-							"AND", 
-							["custrecord_itpm_kpi_item","anyof",item]
-							],
-							columns: [
-								search.createColumn({
-									name: "id",
-									sort: search.Sort.ASC
-								})
-								]
-					});
+	        		var kpiID = (kpiSearch(searchFilter).run().getRange({start:0, end:1}))[0].getValue({ name:'id'});
+					log.debug('Estimated Revenue: kpiID',kpiID);
 
-					var kpiID = (kpiSearchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'});
-					log.debug('kpiID',kpiID);
-
+					//Updating Allocation Factors
 					var kpiRecUpdate = record.submitFields({
 						type: 'customrecord_itpm_kpi',
 						id: kpiID,
@@ -190,60 +125,16 @@ define(['N/search',
 					});
 					log.debug('updated KPI',kpiRecUpdate);
 
-					//Fetching Item count on Est. Qty. record to restrict to update KPI All. Fact's 
-					var estqtyitemcount_searchObj = search.create({
-						type: "customrecord_itpm_estquantity",
-						filters: [
-							["isinactive","is","F"], 
-							"AND", 
-							["custrecord_itpm_estqty_promodeal","anyof",promID]
-							],
-							columns: [
-								search.createColumn({
-									name: "id",
-									sort: search.Sort.ASC
-								})
-								]
-					});
+					//Fetching Item count on KPI record to update the Allocation Factors 
+					var searchFilter = [];
+	        		searchFilter.push(search.createFilter({name:'isinactive',operator:search.Operator.IS,values:"F"}));
+	        		searchFilter.push(search.createFilter({name:'custrecord_itpm_kpi_promotiondeal',operator: search.Operator.ANYOF,values:promID}));
 
-					var itemcount = estqtyitemcount_searchObj.runPaged().count;
-					log.debug('Est. Qty. Item Count on Promotion', itemcount);
+	        		var itemcountOnKPI = kpiSearch(searchFilter).runPaged().count;
+					log.debug('KPI Item Count for Promotion', itemcountOnKPI);
 
-					if(itemcount <= 5){
-						//Updating BB Allocation Factors
-						var objbb = {
-								promoId:promID,
-								promoEstimatedSpend:'custrecord_itpm_estimatedspendbb',
-								kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendbb',
-								mop:1, // 1 or 3
-								kpiValues:{
-									'custrecord_itpm_kpi_factorestbb' : 1,
-									'custrecord_itpm_kpi_adjustedbb' : false
-								}
-						}
-						itpm.calculateEstAllocationsBBOIDraft(objbb);
-
-						//Updating OI Allocation Factors
-						var objoi = {
-								promoId:promID,
-								promoEstimatedSpend:'custrecord_itpm_estimatedspendoi',
-								kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendoi',
-								mop:3, // 1 or 3
-								kpiValues:{
-									'custrecord_itpm_kpi_factorestoi' : 1,
-									'custrecord_itpm_kpi_adjsutedoi' : false
-								}
-						}
-						itpm.calculateEstAllocationsBBOIDraft(objoi);
-
-						//Updating LS Allocation Factors
-						itpm.calculateAllocationsLSforDraft(promID);
-						
-						//Need to maintain the same values for ACTUAL if Allocation Type is Evenly (3)
-						if(promAllocType == 3 || promAllocType == 1){
-							//updating Actual Allocation factors if Allocation Type is "Evenly"
-							itpm.updateKPIActualEvenly(promID);
-						}
+					if(itemcountOnKPI <= 5){
+						itpm.processAllocationsDraft(promID, promAllocType);
 					}
 				}
 
@@ -254,9 +145,19 @@ define(['N/search',
 		}
 	}
 
+	function kpiSearch(searchFilter){
+		try{
+			return search.create({
+				type: "customrecord_itpm_kpi",
+				filters: searchFilter,
+				columns: [search.createColumn({name: "id",sort: search.Sort.ASC})]
+			});
+		}catch(e){
+			log.error(e.name, 'kpiSearch'+e.message);
+		}
+	}
+	
 	return {
 		onAction : onAction
 	};
-
 });
-

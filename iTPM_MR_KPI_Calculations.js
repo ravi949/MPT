@@ -326,41 +326,7 @@ function(search, runtime, record, format, itpm) {
 			log.debug('Promotion Status & Allocation type', promStatus+' & '+promAllocType);
 			
 			if(promStatus == 1){  //Draft
-				//Calculating BB Allocation Factors
-				var objbb = {
-						promoId:key.pid,
-						promoEstimatedSpend:'custrecord_itpm_estimatedspendbb',
-						kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendbb',
-						mop:1, // 1 or 3
-						kpiValues:{
-							'custrecord_itpm_kpi_factorestbb' : 1,
-							'custrecord_itpm_kpi_adjustedbb' : false
-						}
-				}
-				itpm.calculateEstAllocationsBBOIDraft(objbb);
-
-				//Calculating OI Allocation Factors
-				var objoi = {
-						promoId:key.pid,
-						promoEstimatedSpend:'custrecord_itpm_estimatedspendoi',
-						kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendoi',
-						mop:3, // 1 or 3
-						kpiValues:{
-							'custrecord_itpm_kpi_factorestoi' : 1,
-							'custrecord_itpm_kpi_adjsutedoi' : false
-						}
-				}
-				itpm.calculateEstAllocationsBBOIDraft(objoi);
-
-				//Calculating LS Allocation Factors
-				itpm.calculateAllocationsLSforDraft(key.pid);
-				
-				//Need to maintain the same values for ACTUAL if Allocation Type is Evenly (3) OR By % Revenue
-				if(promAllocType == 3 || promAllocType == 1){   //Evenly(3) OR By % Revenue(1)
-					//updating Actual Allocation factors if Allocation Type is "Evenly"
-					log.debug('DRAFT: promStatus & Alloc.Type', promStatus+' , '+promAllocType);
-					itpm.updateKPIActualEvenly(key.pid);
-				}
+				itpm.processAllocationsDraft(key.pid, promAllocType);
 			}
 			else if(promStatus == 3){  //Approved
 				if(promAllocType == 1){  //By % Revenue
