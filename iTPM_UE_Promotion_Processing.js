@@ -57,7 +57,7 @@ function(serverWidget,record,runtime,url,search,itpm) {
         			rolePermission = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
         			var showSettlementButton = (rolePermission  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
         			
-        			if(showSettlementButton){
+        			if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn')){
         				promoForm.addButton({
         					id:'custpage_newsettlementbtn',
         					label:'New Settlement',
