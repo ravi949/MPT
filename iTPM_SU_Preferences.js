@@ -40,25 +40,11 @@ function(record, redirect, serverWidget, search, runtime) {
 	function createPreferenceForm(discountItemSearch){
 		try{
 			var form = serverWidget.createForm({
-				title: 'iTPM Preferences'
+				title: '- iTPM Preferences'
 			});
 			var tab = form.addTab({
 				id : 'custpage_setup_preference',
 				label : 'Setup'
-			});
-			var radioBtn = form.addField({
-				id: 'custpage_match',
-				type: serverWidget.FieldType.RADIO,
-				label: 'First match Lump Sum on Settlements',
-				source:'custpage_ls',
-				container:'custpage_setup_preference'
-			});
-			form.addField({
-				id: 'custpage_match',
-				type: serverWidget.FieldType.RADIO,
-				label: 'First match Bill Back on Settlements',
-				source:'custpage_bb',
-				container:'custpage_setup_preference'
 			});
 			
 			//Default Allowance Type Field
@@ -219,9 +205,6 @@ function(record, redirect, serverWidget, search, runtime) {
 				deductionAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount');
 				expenseAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount');
 				accountPayableField.defaultValue =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount');
-				matchls = preferanceRecord.getValue('custrecord_itpm_pref_matchls');
-				matchbb = preferanceRecord.getValue('custrecord_itpm_pref_matchbb');
-				radioBtn.defaultValue = (matchls == true)?'custpage_ls':'custpage_bb';
 				ApplyiTPMNetBillDiscountChk.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_nblistprice')?'T':'F';
 				discountItemId = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
 				defaultAllType.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultalltype');
@@ -341,7 +324,6 @@ function(record, redirect, serverWidget, search, runtime) {
 
 		var deductionAccount = request.parameters.custpage_itpm_pref_ddnaccount,
 		expenseAccount = request.parameters.custpage_itpm_pref_expenseaccount,
-		settlementsType = request.parameters.custpage_match,
 		accountPayableId = request.parameters.custpage_itpm_pref_accountpayable,
 		applyiTPMNetBillDiscount = request.parameters.custpage_itpm_pref_nblistprice,
 		discountItemId = request.parameters.custpage_itpm_pref_discountitem,
@@ -421,32 +403,6 @@ function(record, redirect, serverWidget, search, runtime) {
 		break;
 		}
 
-		if(settlementsType == 'custpage_ls'){
-			preferanceRecord.setValue({
-				fieldId: 'custrecord_itpm_pref_matchls',
-				value: true,
-				ignoreFieldChange: true
-			});
-		}else{
-			preferanceRecord.setValue({
-				fieldId: 'custrecord_itpm_pref_matchls',
-				value: false,
-				ignoreFieldChange: true
-			});
-		}
-		if(settlementsType == 'custpage_bb'){
-			preferanceRecord.setValue({
-				fieldId: 'custrecord_itpm_pref_matchbb',
-				value: true,
-				ignoreFieldChange: true
-			});
-		}else{
-			preferanceRecord.setValue({
-				fieldId: 'custrecord_itpm_pref_matchbb',
-				value: false,
-				ignoreFieldChange: true
-			});
-		}
 		preferanceRecord.save({
 			enableSourcing: true,
 			ignoreMandatoryFields: true
