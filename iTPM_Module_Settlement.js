@@ -227,7 +227,7 @@ function(config, record, search, itpm) {
 			prefObj.promotionId = params['custom_itpm_st_promotion_no'];
 
 			getSettlementLines(prefObj).forEach(function(e){
-//				if(e.amount > 0){
+				if(e.amount > 0){
 					newSettlementRecord.selectNewLine({sublistId: 'line'});
 					newSettlementRecord.setCurrentSublistValue({
 						sublistId:'line',
@@ -252,7 +252,7 @@ function(config, record, search, itpm) {
 					}).commitLine({
 						sublistId: 'line'
 					});
-//				}				
+				}				
 			});
 
 			return newSettlementRecord.save({enableSourcing:false,ignoreMandatoryFields:true})
@@ -553,7 +553,7 @@ function(config, record, search, itpm) {
     		}
     		var indexcount = 0;
         	getSettlementLines(lineObj).forEach(function(e){
-//				if(e.amount > 0){					
+				if(e.amount > 0){					
 					loadedSettlementRec.setSublistValue({
 						sublistId:'line',
 						fieldId:'account',
@@ -581,7 +581,7 @@ function(config, record, search, itpm) {
 						line:indexcount
 					});
 					indexcount++;
-//				}			
+				}			
 			});
         	
 			return loadedSettlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
@@ -598,7 +598,7 @@ function(config, record, search, itpm) {
 		}
 	}
 	
-	/*function getSettlementLines(lineObj){
+	function getSettlementLines(lineObj){
 		log.debug('lineObj.  ',lineObj);
 	   return [{
 			lineType:'ls',
@@ -638,8 +638,8 @@ function(config, record, search, itpm) {
 			amount:lineObj.offinvoiceSetReq
 		}];
 		
-	}*/
-	function getSettlementLines(lineObj){
+	}
+	function getSettlementLinesMap(lineObj){
 		log.debug('lineObj  ',lineObj);
 		var setlLines = [];
 		var lsLines = [];
