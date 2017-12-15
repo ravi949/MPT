@@ -37,7 +37,8 @@ function(record, search, itpm) {
 				         summary: "GROUP"
 				      })
 				],
-				filters: [['internalid','anyof',8233]
+				filters: [
+					['internalid','anyof',8237]
 //					['internalid','noneof','@NONE@'], 'and' ,
 //				    ['status','is','E']
 				]  
@@ -128,14 +129,14 @@ function(record, search, itpm) {
     			id:key.setId
     		});
     		var linecount = settlementRec.getLineCount({sublistId:'line'});
-    		var setMemo = settlementRec.getSublistValue({ sublistId: 'line',fieldId: 'memo',line: 1});
+    		var setCreditMemo = settlementRec.getSublistValue({ sublistId: 'line',fieldId: 'memo',line: linecount-1});
     		var accountPayable = itpm.getPrefrenceValues().accountPayable;
     		var lumsumSetReq = settlementRec.getValue('custbody_itpm_set_reqls');
     		var billbackSetReq = settlementRec.getValue('custbody_itpm_set_reqbb');
     		var offinvoiceSetReq = settlementRec.getValue('custbody_itpm_set_reqoi');
     		var setCust = settlementRec.getValue('custbody_itpm_customer');
     		var setIsApplied = settlementRec.getValue('custbody_itpm_appliedto');
-    		log.debug('setIsApplied in Reduce',setIsApplied); 
+    		log.debug('setIsApplied in Reduce',setCreditMemo); 
     		
     		var promoLineSearchForKPI = search.create({
     			type:'customrecord_itpm_promotiondeal',
@@ -168,12 +169,15 @@ function(record, search, itpm) {
     				}
     				//for Line memo value
     				if(allType == 1){
+    					log.debug('allType == 1 in Reduce');
     					setlmemo = allValues.rate + "  per " + allValues.uom + ((allMOP == 1)?" BB ":" OI ") 
     					+ " Settlement for Item : " + allValues.itemtxet + " on Promotion "+allValues.promoname;
     				}else if(allType == 2){
+    					log.debug('allType == 2 in Reduce');
     					setlmemo = "% "+allValues.rate+"  per "+allValues.uom+((allMOP == 1)?" BB ":" OI ")
     					+"Settlement for Item : " +allValues.itemtxet +" on Promotion "+allValues.promoname;
     				} 
+    				log.debug('allType  in Reduce',setlmemo);
     				//For Bill-back Lines lines
     				if(allMOP == 1 && billbackSetReq > 0){
     					bblines.push({ lineType:'bb',
@@ -219,7 +223,7 @@ function(record, search, itpm) {
     				item:'',
     				account:accountPayable,
     				type:'credit',
-    				memo:setMemo,
+    				memo:setCreditMemo,
     				amount:lumsumSetReq
     			});
     		}
@@ -231,7 +235,7 @@ function(record, search, itpm) {
     				item:'',
     				account:accountPayable,
     				type:'credit',
-    				memo:setMemo,
+    				memo:setCreditMemo,
     				amount:billbackSetReq
     			});
     		}
@@ -243,7 +247,7 @@ function(record, search, itpm) {
     				item:'',
     				account:accountPayable,
     				type:'credit',
-    				memo:setMemo,
+    				memo:setCreditMemo,
     				amount:offinvoiceSetReq
     			});
     		}		
@@ -283,7 +287,7 @@ function(record, search, itpm) {
     			}).setSublistValue({
     				sublistId:'line',
     				fieldId:'memo',
-    				value:'',
+    				value:setlLines[i].memo,
     				line:i
     			}).setSublistValue({
     				sublistId:'line',
