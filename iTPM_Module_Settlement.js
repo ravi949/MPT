@@ -244,7 +244,8 @@ function(config, record, search, itpm) {
 					}).setCurrentSublistValue({
 						sublistId:'line',
 						fieldId:'memo',
-						value:(e.type == 'debit')?e.memo:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+params['custom_itpm_st_promotion_no']
+						value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+params['custom_itpm_st_promotion_no']
+						//value:(e.type == 'debit')?e.memo:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+params['custom_itpm_st_promotion_no']
 					}).setCurrentSublistValue({
 						sublistId:'line',
 						fieldId:'entity',
@@ -572,7 +573,8 @@ function(config, record, search, itpm) {
 					}).setSublistValue({
 						sublistId:'line',
 						fieldId:'memo',
-						value:(e.type == 'debit')?e.memo:setlMemo,
+						value:setlMemo,
+						//value:(e.type == 'debit')?e.memo:setlMemo,
 						line:indexcount
 					}).setSublistValue({
 						sublistId:'line',

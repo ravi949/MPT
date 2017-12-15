@@ -37,8 +37,7 @@ function(record, search, itpm) {
 				         summary: "GROUP"
 				      })
 				],
-				filters: [['internalid','anyof',8232]
-//					,'and',
+				filters: [['internalid','anyof',8233]
 //					['internalid','noneof','@NONE@'], 'and' ,
 //				    ['status','is','E']
 				]  
@@ -59,7 +58,7 @@ function(record, search, itpm) {
     function map(context) {
     	try{
     		var searchResult = JSON.parse(context.value);
-    		log.debug('searchResult',searchResult); 
+    		log.debug('searchResult in map',searchResult); 
     		var setId = searchResult.values["GROUP(internalid)"]["value"];
 			var promoID = searchResult.values["GROUP(custbody_itpm_set_promo)"]["value"];
 			
@@ -101,19 +100,7 @@ function(record, search, itpm) {
 					}
 				});
     			return true;
-    		})
-
-//    		context.write({
-//				key:{
-//					promoId:promoID,
-//					setId:setId,
-//					isLast:true
-//				},
-//				value:{
-//					item:0
-//				}
-//			});
-    		
+    		});    		
     	}catch(e){
     		log.error(e.name+'  MAP',e.message);
     	}
@@ -129,7 +116,7 @@ function(record, search, itpm) {
     function reduce(context) {
     	try{
     		var key = JSON.parse(context.key);
-    		log.debug('key',key); 
+    		log.debug('key in Reduce',key); 
 
     		//creating empty arrays to store settlement lines
     		var setlLines = [];
@@ -140,12 +127,16 @@ function(record, search, itpm) {
     			type:'customtransaction_itpm_settlement',
     			id:key.setId
     		});
-    		//var prefObj = itpm.getPrefrenceValues();
+    		var linecount = settlementRec.getLineCount({sublistId:'line'});
+    		var setMemo = settlementRec.getSublistValue({ sublistId: 'line',fieldId: 'memo',line: 1});
     		var accountPayable = itpm.getPrefrenceValues().accountPayable;
     		var lumsumSetReq = settlementRec.getValue('custbody_itpm_set_reqls');
     		var billbackSetReq = settlementRec.getValue('custbody_itpm_set_reqbb');
     		var offinvoiceSetReq = settlementRec.getValue('custbody_itpm_set_reqoi');
     		var setCust = settlementRec.getValue('custbody_itpm_customer');
+    		var setIsApplied = settlementRec.getValue('custbody_itpm_appliedto');
+    		log.debug('setIsApplied in Reduce',setIsApplied); 
+    		
     		var promoLineSearchForKPI = search.create({
     			type:'customrecord_itpm_promotiondeal',
     			columns:[
@@ -163,7 +154,7 @@ function(record, search, itpm) {
     		if(billbackSetReq > 0 || offinvoiceSetReq > 0){
     			context.values.forEach(function(val){
     				var allValues = JSON.parse(val);
-    				log.debug('allValues',allValues);
+    				log.debug('allValues  in Reduce',allValues);
     				var allType = allValues.type;
     				var allMOP = allValues.mop;
     				var setlmemo = " ";		    			
@@ -191,7 +182,7 @@ function(record, search, itpm) {
     						account:allValues.account,
     						type:'debit',
     						memo:setlmemo,
-    						amount:billbackSetReq * factorActualBB * allValues.contribution
+    						amount:(billbackSetReq * factorActualBB * allValues.contribution).toFixed(2)
     					});
     				}else if(allMOP == 3 && offinvoiceSetReq > 0){//For Off-Invoice lines
     					oiLines.push({ lineType:'inv',
@@ -200,7 +191,7 @@ function(record, search, itpm) {
     						account:allValues.account,
     						type:'debit',
     						memo:setlmemo,
-    						amount:offinvoiceSetReq * factorActualOI * allValues.contribution
+    						amount:(offinvoiceSetReq * factorActualOI * allValues.contribution).toFixed(2)
     					});
     				}
     			});
@@ -216,7 +207,7 @@ function(record, search, itpm) {
     					type:'debit',
     					memo:"LS Settlement for Item : "+promoLineSearchForKPI[i].getText({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'})
     					+" on Promotion "+promoLineSearchForKPI[i].getValue('name'),
-    					amount:lumsumSetReq * promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualls'})
+    					amount:(lumsumSetReq * promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualls'})).toFixed(2)
     				});
     			}
     		}
@@ -228,11 +219,11 @@ function(record, search, itpm) {
     				item:'',
     				account:accountPayable,
     				type:'credit',
-    				memo:' ',
+    				memo:setMemo,
     				amount:lumsumSetReq
     			});
     		}
-    		log.debug('lsLines',lsLines);
+    		log.debug('lsLines  in Reduce',lsLines);
     		if(bblines.length > 0){
     			bblines.push({
     				lineType:'bb',
@@ -240,11 +231,11 @@ function(record, search, itpm) {
     				item:'',
     				account:accountPayable,
     				type:'credit',
-    				memo:'',//(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+params['custom_itpm_st_promotion_no']
+    				memo:setMemo,
     				amount:billbackSetReq
     			});
     		}
-    		log.debug('bblines',bblines);
+    		log.debug('bblines  in Reduce',bblines);
     		if(oiLines.length > 0){
     			oiLines.push({
     				lineType:'inv',
@@ -252,11 +243,11 @@ function(record, search, itpm) {
     				item:'',
     				account:accountPayable,
     				type:'credit',
-    				memo:' ',//(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+params['custom_itpm_st_promotion_no']
+    				memo:setMemo,
     				amount:offinvoiceSetReq
     			});
     		}		
-    		log.debug('oiLines',oiLines);
+    		log.debug('oiLines  in Reduce',oiLines);
     		if(lsLines.length > 0)
     			setlLines = setlLines.concat(lsLines);
     		if(bblines.length > 0)
@@ -264,10 +255,16 @@ function(record, search, itpm) {
     		if(oiLines.length > 0)
     			setlLines = setlLines.concat(oiLines);
 
-    		log.debug('setlLines',setlLines);
+    		log.debug('setlLines  in Reduce',setlLines);
     		var setlLinesLength = setlLines.length;
+    		
+    		for(var i = linecount-1;i >= 0;i--){
+    			settlementRec.removeLine({
+				    sublistId: 'line',
+				    line: i
+				});
+    		}
     		for(var i = 0; i< setlLinesLength; i++){
-//    			settlementRec.selectNewLine({sublistId: 'line'});
     			settlementRec.setSublistValue({
     				sublistId:'line',
     				fieldId:'account',
@@ -297,11 +294,22 @@ function(record, search, itpm) {
     				sublistId:'line',
     				fieldId:'entity',
     				value:setCust,
-    				line:i
-//    			}).commitLine({
-//    				sublistId: 'line'  
+    				line:i 
     			});
     		}
+    		
+    		if(setIsApplied){
+    			settlementRec.setValue({
+    				fieldId:'transtatus',
+    				value:'B'
+    			});
+    		}else{
+    			settlementRec.setValue({
+    				fieldId:'transtatus',
+    				value:'A'
+    			});
+    		}    		
+    		
     		settlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
     	}catch(e){
     		log.error(e.name+'  Reduce',e.message);
