@@ -128,7 +128,7 @@ function(record, search, itpm) {
      */
     function reduce(context) {
     	try{
-    		log.error('reduce context',context);
+    		log.debug('reduce context',context);
     		//submitting the records with calculated allowance contribution value
     		var allArray = context.values;
     		var lastItemIndex = allArray.length - 1;
