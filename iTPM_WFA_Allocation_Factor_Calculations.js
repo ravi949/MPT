@@ -89,7 +89,8 @@ define(['N/search',
 				if(promStatus == 1){ //Draft
 					var params = {
 							'itemid'     : item,
-							'pricelevel' : pricelevel
+							'pricelevel' : pricelevel,
+							'pid'		 : promID	
 					}
 					
 					var itemObj = itpm.getImpactPrice(params);

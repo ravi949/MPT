@@ -342,16 +342,31 @@ function(search, record, util, runtime) {
      */
 	function getImpactPrice(params){
 		try{
+			log.debug('params',params);
 			var price = undefined;
+			var currencyId = search.lookupFields({
+				type:'customrecord_itpm_promotiondeal',
+				id:params.pid,
+				columns:['custrecord_itpm_p_currency']
+			})['custrecord_itpm_p_currency'][0].value;
 			var itemResult = search.create({
 				type:search.Type.ITEM,
-				columns:['pricing.pricelevel','pricing.unitprice','baseprice','saleunit'],
+				columns:['pricing.pricelevel','pricing.unitprice','baseprice','saleunit','pricing.quantityrange'],
 				filters:[['internalid','anyof',params.itemid],'and',
 					['pricing.pricelevel','is',params.pricelevel],'and',
+					['pricing.currency','is',currencyId],'and',
 					['isinactive','is',false]
 				]
-			}).run().getRange(0,1);
-			price = itemResult[0].getValue({name:'unitprice',join:'pricing'});
+			}).run();
+			itemResult.each(function(e){
+				var quantityRange = e.getValue({name:'quantityrange',join:'pricing'});
+				if(quantityRange == '1-99' || quantityRange == '1+'){
+					price = e.getValue({name:'unitprice',join:'pricing'});
+				}
+				return true;
+			});
+			log.debug('price',price);
+			itemResult = itemResult.getRange(0,1);
 			price = (isNaN(price))?params.baseprice:price;
 			return {
 				price:price,
@@ -359,7 +374,7 @@ function(search, record, util, runtime) {
 				saleunit:itemResult[0].getValue({name:'saleunit'})
 			};
 		}catch(e){
-			log.error(e.name,'error ocurred in function = setPriceValue');
+			log.error(e.name,e.message);
 		}
 	}
 	
