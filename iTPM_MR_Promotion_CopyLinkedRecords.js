@@ -71,7 +71,8 @@ function(record, search) {
 				   filters: [
 					   ["internalid",'is',copyPromoId],"AND",
 					   ["CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.isinactive","is",false],"AND",
-					   ["CUSTRECORD_ITPM_REI_PROMOTIONDEAL.isinactive","is",false]
+					   ["CUSTRECORD_ITPM_REI_PROMOTIONDEAL.isinactive","is",false],"AND",
+					   ["CUSTRECORD_ITPM_ESTQTY_PROMODEAL.isinactive","is",false]
 				   ],
 				   columns: [
 				      search.createColumn({
