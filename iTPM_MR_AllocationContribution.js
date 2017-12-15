@@ -35,6 +35,7 @@ function(record, search, itpm) {
     				  'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.custrecord_itpm_all_rateperuom'],
     		filters:[['custrecord_itpm_promo_allocationcontrbtn','is',true],'and',
     				 ['isinactive','is',false],'and',
+    				 ['CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.isinactive','is',false],'and',
     				 ['custrecord_itpm_p_status','is',3]] //Approved
     	});
     }
