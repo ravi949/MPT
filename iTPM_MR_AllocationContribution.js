@@ -168,7 +168,7 @@ function(record, search, itpm) {
      */
     function summarize(summary) {
     	try{
-    		log.error('summary',summary);
+    		log.debug('summary',summary);
     		var processedPromos = [0];
     		summary.output.iterator().each(function (key, value){
     			if(!processedPromos.some(function(e){return e == key})){
