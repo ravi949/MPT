@@ -5,13 +5,14 @@
  */
 define(['N/record',
 		'N/search',
+		'N/runtime',
 		'./iTPM_Module.js'
 		],
 /**
  * @param {record} record
  * @param {search} search
  */
-function(record, search, itpm) {
+function(record, search, runtime, itpm) {
    
     /**
      * Marks the beginning of the Map/Reduce process and generates input data.
@@ -25,10 +26,12 @@ function(record, search, itpm) {
      */
     function getInputData() {
     	try{
+    		var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_setlment_rec_type');
+    		log.debug('settlementRectypeId in getInputData',settlementRectypeId); 
     		return search.create({
 				type:'customtransaction_itpm_settlement',
 				columns: [
-					search.createColumn({
+					 search.createColumn({
 				         name: "internalid",
 				         summary: "GROUP"
 				      }),
@@ -38,9 +41,10 @@ function(record, search, itpm) {
 				      })
 				],
 				filters: [
-					['internalid','anyof',8237]
-//					['internalid','noneof','@NONE@'], 'and' ,
-//				    ['status','is','E']
+//					['internalid','anyof',8237]
+					["internalid","noneof","@NONE@"], 
+				    "AND", 
+				    ["status","anyof","Custom"+settlementRectypeId+":E"]
 				]  
 			})
     		
@@ -136,7 +140,7 @@ function(record, search, itpm) {
     		var offinvoiceSetReq = settlementRec.getValue('custbody_itpm_set_reqoi');
     		var setCust = settlementRec.getValue('custbody_itpm_customer');
     		var setIsApplied = settlementRec.getValue('custbody_itpm_appliedto');
-    		log.debug('setIsApplied in Reduce',setCreditMemo); 
+//    		log.debug('setIsApplied in Reduce',setCreditMemo); 
     		
     		var promoLineSearchForKPI = search.create({
     			type:'customrecord_itpm_promotiondeal',
@@ -227,7 +231,7 @@ function(record, search, itpm) {
     				amount:lumsumSetReq
     			});
     		}
-    		log.debug('lsLines  in Reduce',lsLines);
+//    		log.debug('lsLines  in Reduce',lsLines);
     		if(bblines.length > 0){
     			bblines.push({
     				lineType:'bb',
@@ -239,7 +243,7 @@ function(record, search, itpm) {
     				amount:billbackSetReq
     			});
     		}
-    		log.debug('bblines  in Reduce',bblines);
+//    		log.debug('bblines  in Reduce',bblines);
     		if(oiLines.length > 0){
     			oiLines.push({
     				lineType:'inv',
@@ -251,7 +255,7 @@ function(record, search, itpm) {
     				amount:offinvoiceSetReq
     			});
     		}		
-    		log.debug('oiLines  in Reduce',oiLines);
+//    		log.debug('oiLines  in Reduce',oiLines);
     		if(lsLines.length > 0)
     			setlLines = setlLines.concat(lsLines);
     		if(bblines.length > 0)

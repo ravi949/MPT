@@ -99,12 +99,9 @@ function(config, record, search, itpm) {
 
 			newSettlementRecord.setValue({
 				fieldId:'transtatus',
-				value:'A'
-			});
-		/*	newSettlementRecord.setValue({
-				fieldId:'transtatus',
+				//value:'A'
 				value:'E'
-			});*/
+			});
 			if(params['custom_itpm_st_incrd_promolbty'] != ''){
 				newSettlementRecord.setValue({
 					fieldId:'custbody_itpm_set_incrd_promoliability',
@@ -350,8 +347,8 @@ function(config, record, search, itpm) {
 
 				SettlementRec.setValue({
 					fieldId : 'transtatus',
-					value	: "B"
-					//value:'E'
+					//value	: "B"
+					value:'E'
 				}).setValue({
 					fieldId : 'custbody_itpm_appliedto',
 					value	: DeductionId
@@ -587,10 +584,10 @@ function(config, record, search, itpm) {
 					indexcount++;
 				}			
 			});
-        	/*loadedSettlementRec.setValue({
+        	loadedSettlementRec.setValue({
 				fieldId:'transtatus',
 				value:'E'
-			});*/
+			});
 			return loadedSettlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
 
 		}catch(e){
