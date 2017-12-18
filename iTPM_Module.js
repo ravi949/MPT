@@ -1408,6 +1408,55 @@ function(search, record, util, runtime) {
 		}
     }
     
+    /**
+     * @param promoId
+     * @param itemId
+     * @returns SUM of Expected Liability LS for other items
+     */
+   function getOtherKpiExpectedLibSUM(promoId,itemId){
+    	//get the SUM of Expected Liability LS for other items
+    	var kpiSearch = search.create({
+    		type:'customrecord_itpm_kpi',
+    		columns:[
+    			search.createColumn({
+    				name:'custrecord_itpm_kpi_expectedliabilityls',
+    				summary:search.Summary.SUM
+    			})
+    		],
+    		filters:[
+    			['custrecord_itpm_kpi_promotiondeal','anyof',promoId],'and',
+    			['custrecord_itpm_kpi_item','noneof',itemId],'and',
+    			['isinactive','is',false]
+    		]
+    	}).run().getRange(0,1);
+    	return parseFloat(kpiSearch[0].getValue({name:'custrecord_itpm_kpi_expectedliabilityls',summary:search.Summary.SUM}));
+    }
+   
+   /**
+    * @param promoId
+    * @param itemId
+    * @returns SUM of Maximum Liability LS for other items
+    */
+    function getOtherItemLiabilitySUM(promoId,itemId,fieldId){
+    	//get the SUM of Maximum Liability LS for other items
+    	var kpiSearch = search.create({
+    		type:'customrecord_itpm_kpi',
+    		columns:[
+    			search.createColumn({
+    				name:fieldId,
+    				summary:search.Summary.SUM
+    			})
+    		],
+    		filters:[
+    			['custrecord_itpm_kpi_promotiondeal','anyof',promoId],'and',
+    			['custrecord_itpm_kpi_item','noneof',itemId],'and',
+    			['isinactive','is',false]
+    		]
+    	}).run().getRange(0,1);
+    	return parseFloat(kpiSearch[0].getValue({name:fieldId,summary:search.Summary.SUM}));
+    }
+    
+    
     return {
     	getItemUnits : getItemUnits,
     	getActualQty : getActualQty,
@@ -1435,6 +1484,7 @@ function(search, record, util, runtime) {
     	promAllowanceSearch : promAllowanceSearch,
     	kpiSearch : kpiSearch,
     	updateKPI : updateKPI,
-    	getInvoiceSearch : getInvoiceSearch
+    	getInvoiceSearch : getInvoiceSearch,
+    	getOtherItemLiabilitySUM:getOtherItemLiabilitySUM
     };
 });

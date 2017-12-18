@@ -44,10 +44,11 @@ function(search, runtime, record, format, itpm) {
     	try{
     		//log.debug('MapSummary', context);
         	var line = JSON.parse(context.value).values;
-        	//log.debug('line', line);
+//        	log.debug('line', line);
         	var promotionID = line['internalid'].value,
         		pCondition = line['custrecord_itpm_p_condition'].value,
         		pStatus = line['custrecord_itpm_p_status'].value,
+        		pLumpSum = line['custrecord_itpm_p_lumpsum'],
         		shipStart = line['custrecord_itpm_p_shipstart'],
         		shipEnd = line['custrecord_itpm_p_shipend'],
         		orderStart = line['custrecord_itpm_p_orderstart'],
@@ -56,6 +57,9 @@ function(search, runtime, record, format, itpm) {
         		kpiID = line['internalid.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
         		kpiItemID = line['custrecord_itpm_kpi_item.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
         		kpiUnitID = line['custrecord_itpm_kpi_uom.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
+        		kpiLSAllFactorEST = line['custrecord_itpm_kpi_factorestls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],
+        		kpiLSAllFactorActual = line['custrecord_itpm_kpi_factoractualls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],
+        		kpiLSAllAdjusted = line['custrecord_itpm_kpi_adjustedls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'] == 'T',
         		pTypeID = line['internalid.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeImpactID = line['custrecord_itpm_pt_financialimpact.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeValidMOP = line['custrecord_itpm_pt_validmop.CUSTRECORD_ITPM_P_TYPE'],
@@ -138,10 +142,14 @@ function(search, runtime, record, format, itpm) {
     		//if (allArray.length > 0){
 	    		context.write({
 	    			key:{
-	    				kpi : kpiID, 
+	    				kpi : kpiID,
+	    				lsallfactorest: (kpiLSAllFactorEST)?parseFloat(kpiLSAllFactorEST):0,
+	    				lsallfactoractual: (kpiLSAllFactorActual)?parseFloat(kpiLSAllFactorActual):0,
+	    				lsadjusted: kpiLSAllAdjusted,
 	    				item: kpiItemID,
 	    				unit: kpiUnitID,
 	    				pid: promotionID,
+	    				plumpsum:(pLumpSum)?parseFloat(pLumpSum):0,
 	        			customer: customerId,
 	        			ptype: pTypeID, 
 	        			status: pStatus,
@@ -180,7 +188,7 @@ function(search, runtime, record, format, itpm) {
     function reduce(context) {
     	try{
         	var key = JSON.parse(context.key);
-        	//log.audit('Reduce_Key', key);
+//        	log.audit('Reduce_Key', key);
         	var values = JSON.parse(context.values[0]);
         	//log.audit('Reduce_Values', values);
         	/**** START CALCULATIONS ****/
@@ -191,6 +199,7 @@ function(search, runtime, record, format, itpm) {
         	kpi_actualQty.quantity = (util.isNumber(kpi_actualQty.quantity))? kpi_actualQty.quantity : 0; 
         	log.debug('kpi_actualQty', kpi_actualQty.quantity);
         	var estimatedSpend = itpm.getSpend({returnZero: false, quantity: values.estPromoted, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
+        	var estimatedSpendLS = parseFloat(key.lsallfactorest) * parseFloat(key.plumpsum);
         	log.debug('estimatedSpend', estimatedSpend);
         	var leSpend, actualSpend, expectedLiability, maxLiability;
         	switch (key.status) {
@@ -272,6 +281,31 @@ function(search, runtime, record, format, itpm) {
         		throw {name: maxLiability.name, message: maxLiability.message};
         	}
         	
+        	var expectedLiabilityLS = 0;
+        	//LS Expected Liability and Maximum Liability
+        	if(key.status == 3 || key.status == 7){
+    			if(key.condition == 3 || key.condition == 2){
+    				if(!key.lsadjusted){
+    					expectedLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactorest);
+    				}else{
+    					expectedLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_expectedliabilityls');
+    				}
+    				expectedLiabilityLS = (key.plumpsum == 0)?0:expectedLiabilityLS;
+    			}
+    		}
+        	
+        	var maxLiabilityLS = 0; 
+        	if(key.status == 3 || key.status == 7){
+    			if(key.condition == 3 || key.condition == 2){
+    				if(!key.lsadjusted){
+    					maxLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactoractual);
+    				}else{
+    					maxLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_maximumliabilityls');
+    				}
+    				maxLiabilityLS = (key.plumpsum == 0)?0:maxLiabilityLS;
+    			}
+    		}
+        	
         	//creating the comment for last update message
         	var lastUpdateMsg = "Last calculated on "+format.format({
         			value: new Date(),
@@ -291,12 +325,15 @@ function(search, runtime, record, format, itpm) {
         			'custrecord_itpm_kpi_maximumliabilitybb' : maxLiability.bb,
         			'custrecord_itpm_kpi_maximumliabilityoi' : maxLiability.oi,
         			'custrecord_itpm_kpi_maximumliabilitynb' : maxLiability.nb,
+        			'custrecord_itpm_kpi_maximumliabilityls' : maxLiabilityLS,
         			'custrecord_itpm_kpi_expectedliabilitybb' : expectedLiability.bb,
         			'custrecord_itpm_kpi_expectedliabilityoi' : expectedLiability.oi,
         			'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb,
+        			'custrecord_itpm_kpi_expectedliabilityls' : expectedLiabilityLS,
         			'custrecord_itpm_kpi_estimatedspendbb' : estimatedSpend.bb,
         			'custrecord_itpm_kpi_estimatedspendoi' : estimatedSpend.oi,
         			'custrecord_itpm_kpi_estimatedspendnb' : estimatedSpend.nb,
+        			'custrecord_itpm_kpi_estimatedspendls' : estimatedSpendLS,
         			'custrecord_itpm_kpi_lespendbb' : leSpend.bb,
         			'custrecord_itpm_kpi_lespendoi' : leSpend.oi,
         			'custrecord_itpm_kpi_lespendnb' : leSpend.nb,
