@@ -140,7 +140,7 @@ function(record, search, itpm) {
 				    type: 'customrecord_itpm_promoallowance',
 				    id: obj.allwId,
 				    values: {
-				        'custrecord_itpm_all_contribution': (index == lastItemIndex)?(1-sumOfAllContribution):obj.allContribution
+				        'custrecord_itpm_all_contribution': (lastItemIndex > 1 && index == lastItemIndex)?(1-sumOfAllContribution):obj.allContribution
 				    },
 				    options: {
 				        enableSourcing: false,
