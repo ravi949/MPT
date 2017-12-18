@@ -28,6 +28,11 @@ function(record, search, itpm) {
     	return search.create({
     		type:'customrecord_itpm_promotiondeal',
     		columns:['internalid',
+    				  search.createColumn({
+    					  name:'internalid',
+    					  join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',
+    					  sort:search.Sort.ASC
+    				  }),
     				  'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.internalid',
     				  'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.custrecord_itpm_all_item',
     				  'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.custrecord_itpm_all_uom',
@@ -89,18 +94,22 @@ function(record, search, itpm) {
 
         	switch(allMOP){
         	case '1':
-        		allocationContribution = ratePerUnit/estqtySearch[0].getValue('custrecord_itpm_estqty_rateperunitbb');
+        		allocationContribution = (estqtySearch[0].getValue('custrecord_itpm_estqty_rateperunitbb') == 0)?0:ratePerUnit/estqtySearch[0].getValue('custrecord_itpm_estqty_rateperunitbb');
         		break;
         	case '2':
-        		allocationContribution = ratePerUnit/estqtySearch[0].getValue('custrecord_itpm_estqty_rateperunitnb');
+        		allocationContribution = (estqtySearch[0].getValue('custrecord_itpm_estqty_rateperunitnb') == 0)?0:ratePerUnit/estqtySearch[0].getValue('custrecord_itpm_estqty_rateperunitnb');
         		break;
         	case '3':
-        		allocationContribution = ratePerUnit/estqtySearch[0].getValue('custrecord_itpm_estqty_rateperunitoi');
+        		allocationContribution = (estqtySearch[0].getValue('custrecord_itpm_estqty_rateperunitoi') == 0)?0:ratePerUnit/estqtySearch[0].getValue('custrecord_itpm_estqty_rateperunitoi');
         		break;
         	}
     		log.debug('pid',allResult.id);
     		context.write({
-    			key:allResult.id,
+    			key:{
+    				promoId:allResult.id,
+    				mop:allMOP,
+    				item:allItem
+    			},
     			value:{
     				allwId:allwId,
     				allContribution:allocationContribution
@@ -119,35 +128,32 @@ function(record, search, itpm) {
      */
     function reduce(context) {
     	try{
+    		log.debug('reduce context',context);
     		//submitting the records with calculated allowance contribution value
     		var allArray = context.values;
-    		allArray.forEach(function(result){
+    		var lastItemIndex = allArray.length - 1;
+    		var sumOfAllContribution = 0;
+    		allArray.forEach(function(result,index){
     			var obj = JSON.parse(result);
+    			obj.allContribution = (obj["allContribution"].toFixed(6)*1000000)/1000000;
     			record.submitFields({
 				    type: 'customrecord_itpm_promoallowance',
 				    id: obj.allwId,
 				    values: {
-				        'custrecord_itpm_all_contribution': obj.allContribution
+				        'custrecord_itpm_all_contribution': (lastItemIndex > 1 && index == lastItemIndex)?(1-sumOfAllContribution):obj.allContribution
 				    },
 				    options: {
 				        enableSourcing: false,
 				        ignoreMandatoryFields : true
 				    }
 				});
+    			sumOfAllContribution += obj.allContribution;
+    			sumOfAllContribution = (sumOfAllContribution.toFixed(6)*1000000)/1000000;
     		});
     		
     		//changing the promotion allocation contribution status to false
-    		record.submitFields({
-			    type: 'customrecord_itpm_promotiondeal',
-			    id: context.key,
-			    values: {
-			        'custrecord_itpm_promo_allocationcontrbtn': false
-			    },
-			    options: {
-			        enableSourcing: false,
-			        ignoreMandatoryFields : true
-			    }
-			});
+    		context.write({key:JSON.parse(context.key)['promoId'], value:0});
+
     	}catch(ex){
     		log.error(ex.name,ex.messsage);
     	}
@@ -161,7 +167,30 @@ function(record, search, itpm) {
      * @since 2015.1
      */
     function summarize(summary) {
-    	log.debug('summary','completed');
+    	try{
+    		log.debug('summary',summary);
+    		var processedPromos = [0];
+    		summary.output.iterator().each(function (key, value){
+    			if(!processedPromos.some(function(e){return e == key})){
+    				log.error('key',key);
+    				record.submitFields({
+    					type: 'customrecord_itpm_promotiondeal',
+    					id: key,
+    					values: {
+    						'custrecord_itpm_promo_allocationcontrbtn': false
+    					},
+    					options: {
+    						enableSourcing: false,
+    						ignoreMandatoryFields : true
+    					}
+    				});
+    			}
+    			processedPromos.push(key);
+    			return true;
+        	});
+    	}catch(ex){
+    		log.error(ex.name,ex.message);
+    	}
     }
 
     return {
