@@ -5,10 +5,10 @@
  * Adding the Deduction button on invoice if invoice has atlease on payment and dont have any deduction records(Open and Pending)
  */
 define(['N/search',
-	'N/ui/serverWidget',
-	'N/runtime',
-	'./iTPM_Module.js'
-	],
+		'N/ui/serverWidget',
+		'N/runtime',
+		'./iTPM_Module.js'
+		],
 	/**
 	 * @param {search} search
 	 * @param {serverWidget} serverWidget
@@ -29,13 +29,16 @@ define(['N/search',
 			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE && scriptContext.type == 'view'){
 				//invoice status not equal to PAID IN FULL
 				var invStatus = scriptContext.newRecord.getValue('status');
-
+				//Deduction record type id
+				var ddnRecTypeId = runtime.getCurrentScript().getParameter('custscript_itpm_inv_ddn_rectypeid');
+				log.debug('dddn rec tyep',ddnRecTypeId);
+				
 				//invoice dont have any ITPM DEDUCTION records which is not Open,Pending
 				var invoiceDeductionsAreEmpty = search.create({
 					type:'customtransaction_itpm_deduction',
 					columns:['internalid'],
 					filters:[['custbody_itpm_ddn_invoice','is',scriptContext.newRecord.id],'and',
-						['status','anyof',["Custom100:A","Custom100:B"]]]
+						['status','anyof',["Custom"+ddnRecTypeId+":A","Custom"+ddnRecTypeId+":B"]]]
 				}).run().getRange(0,5).length == 0;
 
 				var ddnPermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscript_itpm_inv_ddn_permsn_rectypeid'));

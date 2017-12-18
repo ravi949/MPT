@@ -1122,14 +1122,16 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
     			});
 
     			var invStatus = loadedRec.getValue('status');
-
+    			//Deduction record type id
+    			var ddnRecTypeId = runtime.getCurrentScript().getParameter('custscript_itpm_ddn_createedit_rectypeid');
+    			
     			//invoice dont have any ITPM DEDUCTION records
     			var invoiceDeductionsAreEmpty = search.create({
     				type:'customtransaction_itpm_deduction',
     				columns:['internalid'],
     				filters:[
     					['custbody_itpm_ddn_invoice','anyof',id],'and',
-    					['status','anyof',["Custom100:A","Custom100:B"]]
+    					['status','anyof',["Custom"+ddnRecTypeId+":A","Custom"+ddnRecTypeId+":B"]]
     				]
     			}).run().getRange(0,5).length == 0;
 
