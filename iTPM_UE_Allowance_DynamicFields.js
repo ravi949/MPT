@@ -119,6 +119,7 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         				columns:['internalid'],
         				filters:[['custrecord_itpm_all_item','anyof',items[0].memberid],'and',
         						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
+        						 ['custrecord_itpm_all_allowaddnaldiscounts','is',true],'and',
         						 ['isinactive','is',false]]
         			}).run().getRange(0,2).length > 0
         		});

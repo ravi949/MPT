@@ -63,6 +63,16 @@ function(record, http, redirect, search, itpm) {
                 		}).setValue({
                 			fieldId:"custrecord_itpm_all_uomprice",
                 			value:parseFloat(priceObj.price)*(rate/itemUnitRate)
+                		}).setValue({
+                			fieldId:"custrecord_itpm_all_allowaddnaldiscounts",
+                			value:search.create({
+                				type:'customrecord_itpm_promoallowance',
+                				columns:['internalid'],
+                				filters:[['custrecord_itpm_all_item','anyof',items[0].memberid],'and',
+                						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
+                						 ['custrecord_itpm_all_allowaddnaldiscounts','is',true],'and',
+                						 ['isinactive','is',false]]
+                			}).run().getRange(0,2).length > 0
                 		}).save({
                 			enableSourcing:false,
                 			ignoreMandatoryFields:true
