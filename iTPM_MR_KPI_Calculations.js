@@ -190,7 +190,7 @@ function(search, runtime, record, format, itpm) {
     function reduce(context) {
     	try{
         	var key = JSON.parse(context.key);
-        	log.audit('Reduce_Key', key);
+        	//log.audit('Reduce_Key', key);
         	var values = JSON.parse(context.values[0]);
         	//log.audit('Reduce_Values', values);
         	/**** START CALCULATIONS ****/
