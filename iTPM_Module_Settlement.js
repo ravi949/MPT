@@ -304,21 +304,21 @@ function(config, record, search, itpm) {
 				if(lineIsLSBBOI == '1'){
 					lumsum = SettlementRec.getSublistValue({
 						sublistId: 'line',
-						fieldId: 'credit',
+						fieldId: 'debit',
 						line: i
 					});
 					log.debug('lumsum',lumsum);
 				} else if(lineIsLSBBOI == '2'){
 					bB = SettlementRec.getSublistValue({
 						sublistId: 'line',
-						fieldId: 'credit',
+						fieldId: 'debit',
 						line: i
 					});
 					log.debug('bb',bB);
 				}else if(lineIsLSBBOI == '3'){
 					oI = SettlementRec.getSublistValue({
 						sublistId: 'line',
-						fieldId: 'credit',
+						fieldId: 'debit',
 						line: i
 					});
 					log.debug('oI',oI);
