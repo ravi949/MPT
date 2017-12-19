@@ -304,21 +304,21 @@ function(config, record, search, itpm) {
 				if(lineIsLSBBOI == '1'){
 					lumsum = SettlementRec.getSublistValue({
 						sublistId: 'line',
-						fieldId: 'debit',
+						fieldId: 'credit',
 						line: i
 					});
 					log.debug('lumsum',lumsum);
 				} else if(lineIsLSBBOI == '2'){
 					bB = SettlementRec.getSublistValue({
 						sublistId: 'line',
-						fieldId: 'debit',
+						fieldId: 'credit',
 						line: i
 					});
 					log.debug('bb',bB);
 				}else if(lineIsLSBBOI == '3'){
 					oI = SettlementRec.getSublistValue({
 						sublistId: 'line',
-						fieldId: 'debit',
+						fieldId: 'credit',
 						line: i
 					});
 					log.debug('oI',oI);
@@ -643,134 +643,7 @@ function(config, record, search, itpm) {
 		}];
 		
 	}
-	function getSettlementLinesMap(lineObj){
-		log.debug('lineObj  ',lineObj);
-		var setlLines = [];
-		var lsLines = [];
-		var bblines = [];
-		var oiLines = [];
-		var promoLineSearch = search.create({
-			type:'customrecord_itpm_promotiondeal',
-			columns:['name'
-				     ,'custrecord_itpm_all_promotiondeal.internalid'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_account'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_contribution'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_type'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_allowancepercent'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_uom'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_allowancerate'
-					 ,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualbb'
-					 ,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualoi'
-					 ,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualls'],
-			filters:[['internalid','anyof',lineObj.promotionId]]
-		}).run().getRange(0,10);
-		
-		promoLineSearch.forEach(function(e){
-			var allType = e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_type'});
-			var allMOP = e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_mop'});
-			if(allMOP == 1 || allMOP == 3){
-				var setlmemo = " ";			
-				//for Line memo value
-				if(allType == 1){
-					setlmemo = e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_allowancerate'})
-				    +"  per "+e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_uom'})
-				    +((allMOP == 1)?" BB ":" OI ")+" Settlement for Item : "
-				    +e.getText({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_item'})
-				    +" on Promotion "+e.getValue('name');
-				}else if(allType == 2){
-					setlmemo = "% "+e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_allowancerate'})
-							    +"  per "+e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_uom'})
-							    +((allMOP == 1)?" BB ":" OI ")+"Settlement for Item : "
-							    +e.getText({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_item'})
-							    +" on Promotion "+e.getValue('name');
-				} 
-				
-				//For Lump-Sum lines
-				if(lineObj.lumsumSetReq > 0){
-					lsLines.push({ lineType:'ls',
-						   id:'1',
-						   account:e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_account'}),
-						   type:'debit',
-						   memo:"LS Settlement for Item : "+e.getText({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_item'})
-						         +" on Promotion "+e.getValue('name'),
-						   amount:lineObj.lumsumSetReq * 
-						          e.getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualls'})
-						   });
-				}				
-				
-				//For Bill-back Lines lines
-				if(allMOP == 1 && lineObj.billbackSetReq > 0){
-					bblines.push({ lineType:'bb',
-								   id:'2',
-								   account:e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_account'}),
-								   type:'debit',
-								   memo:setlmemo,
-								   amount:lineObj.billbackSetReq * 
-								          e.getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualbb'}) *
-								          e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_contribution'})
-								   });
-				}else if(allMOP == 3 && lineObj.offinvoiceSetReq > 0){//For Off-Invoice lines
-					oiLines.push({ lineType:'inv',
-						   id:'3',
-						   account:e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_account'}),
-						   type:'debit',
-						   memo:setlmemo,
-						   amount:lineObj.offinvoiceSetReq * 
-						          e.getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualoi'}) *
-						          e.getValue({join:'custrecord_itpm_all_promotiondeal',name:'custrecord_itpm_all_contribution'})
-						   });
-				}
-			}
-		});
-		log.debug('lsLines Before',lsLines);
-		log.debug('bblines Before',bblines);
-		log.debug('oiLines Before',oiLines);
-		if(lsLines.length > 0){
-			lsLines.push({
-				lineType:'ls',
-				id:'1',
-				account:lineObj.accountPayable,
-				type:'credit',
-				memo:' ',
-				amount:lineObj.lumsumSetReq
-			});
-		}
-		log.debug('lsLines',lsLines);
-		if(bblines.length > 0){
-			bblines.push({
-				lineType:'bb',
-				id:'2',
-				account:lineObj.accountPayable,
-				type:'credit',
-				memo:'',
-				amount:lineObj.billbackSetReq
-			});
-		}
-		log.debug('bblines',bblines);
-		if(oiLines.length > 0){
-			oiLines.push({
-				lineType:'inv',
-				id:'3',
-				account:lineObj.accountPayable,
-				type:'credit',
-				memo:' ',
-				amount:lineObj.offinvoiceSetReq
-			});
-		}		
-		log.debug('oiLines',oiLines);
-		if(lsLines.length > 0)
-			setlLines = setlLines.concat(lsLines);
-		if(bblines.length > 0)
-			setlLines = setlLines.concat(bblines);
-		if(oiLines.length > 0)
-			setlLines = setlLines.concat(oiLines);
-		
-		log.debug('setlLines',setlLines);
-	   return setlLines
-		
-	}
+	
     return {
         createSettlement:createSettlement,
         editSettlement:editSettlement,

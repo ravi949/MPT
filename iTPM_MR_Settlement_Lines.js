@@ -41,7 +41,6 @@ function(record, search, runtime, itpm) {
 				      })
 				],
 				filters: [
-//					['internalid','anyof',8237]
 					["internalid","noneof","@NONE@"], 
 				    "AND", 
 				    ["status","anyof","Custom"+settlementRectypeId+":E"]
@@ -61,9 +60,10 @@ function(record, search, runtime, itpm) {
      * @since 2015.1
      */
     function map(context) {
+    	var searchResult = JSON.parse(context.value);
+		log.debug('searchResult in map',searchResult); 
     	try{
-    		var searchResult = JSON.parse(context.value);
-    		log.debug('searchResult in map',searchResult); 
+    		
     		var setId = searchResult.values["GROUP(internalid)"]["value"];
 			var promoID = searchResult.values["GROUP(custbody_itpm_set_promo)"]["value"];
 			
@@ -107,7 +107,7 @@ function(record, search, runtime, itpm) {
     			return true;
     		});    		
     	}catch(e){
-    		log.error(e.name+'  MAP',e.message);
+    		log.error(e.name+'  MAP',e.message+'settlement Id:- '+searchResult.values["GROUP(internalid)"]["value"]);
     	}
 
     }
@@ -119,10 +119,10 @@ function(record, search, runtime, itpm) {
      * @since 2015.1
      */
     function reduce(context) {
+    	var key = JSON.parse(context.key);
+		log.debug('key in Reduce',key); 
     	try{
-    		var key = JSON.parse(context.key);
-    		log.debug('key in Reduce',key); 
-
+    		
     		//creating empty arrays to store settlement lines
     		var setlLines = [];
     		var lsLines = [];
@@ -319,8 +319,25 @@ function(record, search, runtime, itpm) {
     		}    		
     		
     		settlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
+    		
+    		for(var i = 0; i< kpilength; i++){
+    			var kpiItem = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'});
+    			
+    			/**** SET KPI FIELD VALUES ****/
+            	var kpiUpdated = record.submitFields({
+            		type: 'customrecord_itpm_kpi',
+            		id: promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'internalid'}),
+            		values: {
+            			'custrecord_itpm_kpi_actualspendls' : getSumOfLSBBOIsettlementLines(1,key.promoId,kpiItem),
+            			'custrecord_itpm_kpi_actualspendbb' : getSumOfLSBBOIsettlementLines(2,key.promoId,kpiItem),
+            			'custrecord_itpm_kpi_actualspendoi' : getSumOfLSBBOIsettlementLines(3,key.promoId,kpiItem)
+            		},
+            		options: {enablesourcing: true, ignoreMandatoryFields: true}
+            	});    			
+    		}
+    		
     	}catch(e){
-    		log.error(e.name+'  Reduce',e.message);
+    		log.error(e.name+'  Reduce',e.message+' settlement Id:- '+key.setId);
     	}    	
     }
 
@@ -335,6 +352,26 @@ function(record, search, runtime, itpm) {
     	log.debug('summary state',summary);
     }
 
+    function getSumOfLSBBOIsettlementLines(mop,promoId,kpiItem){
+    	var serResult = search.create({
+			   type: "customtransaction_itpm_settlement",
+			   filters: [
+				  ["custcol_itpm_lsbboi","anyof",mop], 
+				  "AND", 
+				  ["custbody_itpm_set_promo","anyof",promoId], 
+				  "AND", 
+				  ["custcol_itpm_set_item","anyof",kpiItem]
+			   ],
+			   columns: [
+			      search.createColumn({
+			         name: "debitamount",
+			         summary: "SUM"
+			      })
+			   ]
+			}).run().getRange(0,1);
+    	
+    	return serResult[0].getValue({name:'debitamount',summary:'SUM'})
+    }
     return {
         getInputData: getInputData,
         map: map,
