@@ -183,7 +183,9 @@ function(record, search, runtime, itpm) {
     				} 
     				log.debug('allType  in Reduce',setlmemo);
     				//For Bill-back Lines lines
-    				if(allMOP == 1 && billbackSetReq > 0){
+    				if(allMOP == 1 && billbackSetReq > 0){                      
+                      log.audit('--billbackSetReq & factorActualBB & contribution--'+key.setId, billbackSetReq+' & '+factorActualBB+' & '+allValues.contribution);
+                      log.audit('--BB AMOUNT--'+key.setId, billbackSetReq * factorActualBB * allValues.contribution);
     					bblines.push({ lineType:'bb',
     						id:'2',
     	    				item:allValues.item,
@@ -263,7 +265,7 @@ function(record, search, runtime, itpm) {
     		if(oiLines.length > 0)
     			setlLines = setlLines.concat(oiLines);
 
-    		log.debug('setlLines  in Reduce',setlLines);
+    		log.audit('setlLines '+key.setId,setlLines);
     		var setlLinesLength = setlLines.length;
     		
     		for(var i = linecount-1;i >= 0;i--){
