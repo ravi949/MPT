@@ -59,8 +59,7 @@ function(search, runtime, record, format, itpm) {
         		kpiUnitID = line['custrecord_itpm_kpi_uom.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
         		kpiLSAllFactorEST = line['custrecord_itpm_kpi_factorestls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],
         		kpiLSAllFactorActual = line['custrecord_itpm_kpi_factoractualls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],
-        		kpiEstimatedSpendLS = line['custrecord_itpm_kpi_estimatedspendls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],//
-        		kpiActualSpendLS = line['custrecord_itpm_kpi_actualspendls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],//
+        		kpiActualSpendLS = line['custrecord_itpm_kpi_actualspendls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],
         		kpiLSAllAdjusted = line['custrecord_itpm_kpi_adjustedls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'] == 'T',
         		pTypeID = line['internalid.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeImpactID = line['custrecord_itpm_pt_financialimpact.CUSTRECORD_ITPM_P_TYPE'].value,
@@ -150,8 +149,7 @@ function(search, runtime, record, format, itpm) {
 	    				lsadjusted: kpiLSAllAdjusted,
 	    				item: kpiItemID,
 	    				unit: kpiUnitID,
-	    				estSpendLS: kpiEstimatedSpendLS,//
-	    				actSpendLS: kpiActualSpendLS,//
+	    				actSpendLS: (kpiActualSpendLS)?parseFloat(kpiActualSpendLS):0,
 	    				pid: promotionID,
 	    				plumpsum:(pLumpSum)?parseFloat(pLumpSum):0,
 	        			customer: customerId,
@@ -192,7 +190,7 @@ function(search, runtime, record, format, itpm) {
     function reduce(context) {
     	try{
         	var key = JSON.parse(context.key);
-//        	log.audit('Reduce_Key', key);
+        	log.audit('Reduce_Key', key);
         	var values = JSON.parse(context.values[0]);
         	//log.audit('Reduce_Values', values);
         	/**** START CALCULATIONS ****/
@@ -208,10 +206,10 @@ function(search, runtime, record, format, itpm) {
         	var leSpend, actualSpend, expectedLiability, maxLiability, leSpendLS;
         	switch (key.status) {
 				case '1':	//DRAFT
-					leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;//
+					leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;
 					break;
 				case '2':	//PENDING APPROVAL
-					leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;//
+					leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;
 					leSpend = estimatedSpend;
 					actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
 					expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
@@ -230,7 +228,7 @@ function(search, runtime, record, format, itpm) {
 				case '3':	//APPROVED
 					if (key.condition == '1'){
 						//condition == Future
-						leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;//
+						leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;
 						leSpend = estimatedSpend;
 						actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
 						expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
@@ -238,7 +236,7 @@ function(search, runtime, record, format, itpm) {
 					} else if (key.condition == '2') {
 						//condition == Active
 						//var leQuantity = (kpi_actualQty.error)? 0 : (parseFloat(values.estPromoted)>=parseFloat(kpi_actualQty.qty))? values.estPromoted : kpi_actualQty.qty;
-						leSpendLS = (key.actSpendLS > key.estSpendLS)?parseFloat(key.actSpendLS):parseFloat(key.estSpendLS);//
+						leSpendLS = (key.actSpendLS > estimatedSpendLS)?parseFloat(key.actSpendLS):parseFloat(estimatedSpendLS);
 						var leQuantity = (parseFloat(values.estPromoted)>=parseFloat(kpi_actualQty.quantity))? values.estPromoted : kpi_actualQty.quantity;
 						log.debug('leQuantity', leQuantity);
 						leSpend = itpm.getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
@@ -249,7 +247,7 @@ function(search, runtime, record, format, itpm) {
 					} else if (key.condition == '3') {
 						//condition == Completed
 						//var actQty = (kpi_actualQty.error) ? 0 : kpi_actualQty.quantity;
-						leSpendLS = (key.actSpendLS > key.estSpendLS)?parseFloat(key.actSpendLS):parseFloat(key.estSpendLS);//
+						leSpendLS = (key.actSpendLS > estimatedSpendLS)?parseFloat(key.actSpendLS):parseFloat(estimatedSpendLS);
 						var actQty = kpi_actualQty.quantity;
 						log.debug('actQty', actQty);
 						leSpend = itpm.getSpend({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
@@ -266,7 +264,7 @@ function(search, runtime, record, format, itpm) {
 					maxLiability = itpm.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
 					if (key.condition == '3') {
 						//condition == Completed
-						leSpendLS = (key.actSpendLS)?parseFloat(key.actSpendLS):0;//
+						leSpendLS = (key.actSpendLS)?parseFloat(key.actSpendLS):0;
 					}
 					break;
 				default:
