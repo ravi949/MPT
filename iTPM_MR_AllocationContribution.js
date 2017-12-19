@@ -132,15 +132,17 @@ function(record, search, itpm) {
     		//submitting the records with calculated allowance contribution value
     		var allArray = context.values;
     		var lastItemIndex = allArray.length - 1;
+    		var arrLength = allArray.length;
     		var sumOfAllContribution = 0;
     		allArray.forEach(function(result,index){
     			var obj = JSON.parse(result);
-    			obj.allContribution = (obj["allContribution"].toFixed(6)*100000)/100000;
+    			obj.allContribution = (parseInt(obj["allContribution"].toFixed(6)*100000))/100000;
     			record.submitFields({
 				    type: 'customrecord_itpm_promoallowance',
 				    id: obj.allwId,
 				    values: {
-				        'custrecord_itpm_all_contribution': (lastItemIndex > 1 && index == lastItemIndex)?(1-sumOfAllContribution):obj.allContribution
+				        'custrecord_itpm_all_contribution': (arrLength > 1 && index == lastItemIndex)?(1-sumOfAllContribution):obj.allContribution,
+				        'custrecord_itpm_all_contributionadjusted':(index == lastItemIndex)		
 				    },
 				    options: {
 				        enableSourcing: false,
@@ -148,7 +150,7 @@ function(record, search, itpm) {
 				    }
 				});
     			sumOfAllContribution += obj.allContribution;
-    			sumOfAllContribution = (sumOfAllContribution.toFixed(6)*100000)/100000;
+    			sumOfAllContribution = (parseInt(sumOfAllContribution.toFixed(6)*100000))/100000;
     		});
     		
     		//changing the promotion allocation contribution status to false
