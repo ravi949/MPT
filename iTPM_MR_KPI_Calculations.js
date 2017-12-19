@@ -281,30 +281,22 @@ function(search, runtime, record, format, itpm) {
         		throw {name: maxLiability.name, message: maxLiability.message};
         	}
         	
-        	var expectedLiabilityLS = 0;
         	//LS Expected Liability and Maximum Liability
+        	var expectedLiabilityLS = 0,maxLiabilityLS = 0;
         	if(key.status == 3 || key.status == 7){
     			if(key.condition == 3 || key.condition == 2){
     				if(!key.lsadjusted){
     					expectedLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactorest);
-    				}else{
-    					expectedLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_expectedliabilityls');
-    				}
-    				expectedLiabilityLS = (key.plumpsum == 0)?0:expectedLiabilityLS;
-    			}
-    		}
-        	
-        	var maxLiabilityLS = 0; 
-        	if(key.status == 3 || key.status == 7){
-    			if(key.condition == 3 || key.condition == 2){
-    				if(!key.lsadjusted){
     					maxLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactoractual);
     				}else{
+    					expectedLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_expectedliabilityls');
     					maxLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_maximumliabilityls');
     				}
+    				expectedLiabilityLS = (key.plumpsum == 0)?0:expectedLiabilityLS;
     				maxLiabilityLS = (key.plumpsum == 0)?0:maxLiabilityLS;
     			}
     		}
+        	log.debug('LS values',"LS MaximumLib "+maxLiabilityLS+" LS ExpectedLib "+expectedLiabilityLS);
         	
         	//creating the comment for last update message
         	var lastUpdateMsg = "Last calculated on "+format.format({
