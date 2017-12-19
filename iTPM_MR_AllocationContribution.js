@@ -135,7 +135,7 @@ function(record, search, itpm) {
     		var sumOfAllContribution = 0;
     		allArray.forEach(function(result,index){
     			var obj = JSON.parse(result);
-    			obj.allContribution = (obj["allContribution"].toFixed(6)*1000000)/1000000;
+    			obj.allContribution = (obj["allContribution"].toFixed(6)*100000)/100000;
     			record.submitFields({
 				    type: 'customrecord_itpm_promoallowance',
 				    id: obj.allwId,
@@ -148,7 +148,7 @@ function(record, search, itpm) {
 				    }
 				});
     			sumOfAllContribution += obj.allContribution;
-    			sumOfAllContribution = (sumOfAllContribution.toFixed(6)*1000000)/1000000;
+    			sumOfAllContribution = (sumOfAllContribution.toFixed(6)*100000)/100000;
     		});
     		
     		//changing the promotion allocation contribution status to false
