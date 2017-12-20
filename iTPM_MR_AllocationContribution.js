@@ -142,7 +142,7 @@ function(record, search, itpm) {
 				    id: obj.allwId,
 				    values: {
 				        'custrecord_itpm_all_contribution': (arrLength > 1 && index == lastItemIndex)?(1-sumOfAllContribution):obj.allContribution,
-				        'custrecord_itpm_all_contributionadjusted':(index == lastItemIndex)		
+				        'custrecord_itpm_all_contributionadjusted':(arrLength > 1 && index == lastItemIndex)		
 				    },
 				    options: {
 				        enableSourcing: false,
