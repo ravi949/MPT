@@ -142,7 +142,7 @@ function(record, search, itpm) {
 				    id: obj.allwId,
 				    values: {
 				        'custrecord_itpm_all_contribution': (arrLength > 1 && index == lastItemIndex)?(1-sumOfAllContribution):obj.allContribution,
-				        'custrecord_itpm_all_contributionadjusted':(index == lastItemIndex)		
+				        'custrecord_itpm_all_contributionadjusted':(arrLength > 1 && index == lastItemIndex)		
 				    },
 				    options: {
 				        enableSourcing: false,
@@ -174,7 +174,6 @@ function(record, search, itpm) {
     		var processedPromos = [0];
     		summary.output.iterator().each(function (key, value){
     			if(!processedPromos.some(function(e){return e == key})){
-    				log.error('key',key);
     				record.submitFields({
     					type: 'customrecord_itpm_promotiondeal',
     					id: key,
