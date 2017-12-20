@@ -174,7 +174,6 @@ function(record, search, itpm) {
     		var processedPromos = [0];
     		summary.output.iterator().each(function (key, value){
     			if(!processedPromos.some(function(e){return e == key})){
-    				log.error('key',key);
     				record.submitFields({
     					type: 'customrecord_itpm_promotiondeal',
     					id: key,
