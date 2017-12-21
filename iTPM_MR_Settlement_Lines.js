@@ -218,7 +218,8 @@ function(record, search, runtime, itpm) {
         						memo:setlmemo,
         						amount:parseFloat(lineAmount),
         						adjustItem:kpiAdjustedItemBB,
-        						adjustmemo:adjustSetlmemo
+        						adjustmemo:adjustSetlmemo,
+        						allocationFactor:factorActualBB
         					});
     					}
     					
@@ -234,7 +235,8 @@ function(record, search, runtime, itpm) {
     							memo:setlmemo,
     							amount: parseFloat(lineAmount),
     							adjustItem:kpiAdjustedItemOI,
-        						adjustmemo:adjustSetlmemo
+        						adjustmemo:adjustSetlmemo,
+        						allocationFactor:factorActualOI
     						});
     					}
     				}
@@ -259,7 +261,8 @@ function(record, search, runtime, itpm) {
     						     +" on Promotion "+promoLineSearchForKPI[i].getValue('name'),
     						amount:parseFloat(lsLineAmount),
     						adjustItem:(kpiIsAdjust)?kpisitem:0,
-            				adjustmemo:''
+            				adjustmemo:'',
+            				allocationFactor:parseFloat(promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualls'}))
     					});
     				}
     			}
@@ -320,7 +323,8 @@ function(record, search, runtime, itpm) {
     				memo:setCreditMemo,
     				amount:lumsumSetReq,
     				adjustItem:0,
-					adjustmemo:''
+					adjustmemo:'',
+					allocationFactor:0
     			});
     		}
 //    		log.debug('lsLines  in Reduce',lsLines);
@@ -334,7 +338,8 @@ function(record, search, runtime, itpm) {
     				memo:setCreditMemo,
     				amount:billbackSetReq,
     				adjustItem:0,
-					adjustmemo:''
+					adjustmemo:'',
+					allocationFactor:0
     			});
     		}
 //    		log.debug('bbLines  in Reduce',bbLines);
@@ -348,7 +353,8 @@ function(record, search, runtime, itpm) {
     				memo:setCreditMemo,
     				amount:offinvoiceSetReq,
     				adjustItem:0,
-					adjustmemo:''
+					adjustmemo:'',
+					allocationFactor:0
     			});
     		}		
 //    		log.debug('oiLines  in Reduce',oiLines);
@@ -393,6 +399,11 @@ function(record, search, runtime, itpm) {
     				sublistId:'line',
     				fieldId:'custcol_itpm_set_item',
     				value:setlLines[i].item,
+    				line:i
+    			}).setSublistValue({
+    				sublistId:'line',
+    				fieldId:'custcol_itpm_set_allocationfactor',
+    				value:setlLines[i].allocationFactor,
     				line:i
     			}).setSublistValue({
     				sublistId:'line',
