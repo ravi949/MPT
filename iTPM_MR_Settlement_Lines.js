@@ -170,7 +170,8 @@ function(record, search, runtime, itpm) {
     				log.debug('allValues  in Reduce',allValues);
     				var allType = allValues.type;
     				var allMOP = allValues.mop;
-    				var setlmemo = " ";		    			
+    				var setlmemo = " ";
+    				var adjustSetlmemo = " ";		    			
     				var factorActualBB = 1;
     				var factorActualOI = 1;
     				var lineAmount = 0;
@@ -193,11 +194,13 @@ function(record, search, runtime, itpm) {
     				}
     				//for Line memo value
     				if(allType == 1){//Rate per Unit
-    					setlmemo = allValues.rate + "  per " + allValues.uom + ((allMOP == 1)?" BB ":" OI ") 
+    					setlmemo = ((allMOP == 1)?" BB ":" OI ") 
     					+ " Settlement for Item : " + allValues.itemtxet + " on Promotion "+allValues.promoname;
+    					adjustSetlmemo = allValues.rate + "  per " + allValues.uom;
     				}else if(allType == 2){//% per Unit
-    					setlmemo = "% "+allValues.rate+"  per "+allValues.uom+((allMOP == 1)?" BB ":" OI ")
+    					setlmemo = ((allMOP == 1)?" BB ":" OI ")
     					+"Settlement for Item : " +allValues.itemtxet +" on Promotion "+allValues.promoname;
+    					adjustSetlmemo = "% "+allValues.rate+"  per " + allValues.uom;
     				} 
     				log.debug('allType  in Reduce',setlmemo);
     				//For Bill-back Lines lines
@@ -214,7 +217,8 @@ function(record, search, runtime, itpm) {
         						type:'debit',
         						memo:setlmemo,
         						amount:parseFloat(lineAmount),
-        						adjustItem:kpiAdjustedItemBB
+        						adjustItem:kpiAdjustedItemBB,
+        						adjustmemo:adjustSetlmemo
         					});
     					}
     					
@@ -229,7 +233,8 @@ function(record, search, runtime, itpm) {
     							type:'debit',
     							memo:setlmemo,
     							amount: parseFloat(lineAmount),
-    							adjustItem:kpiAdjustedItemOI
+    							adjustItem:kpiAdjustedItemOI,
+        						adjustmemo:adjustSetlmemo
     						});
     					}
     				}
@@ -253,7 +258,8 @@ function(record, search, runtime, itpm) {
     							 +promoLineSearchForKPI[i].getText({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'})
     						     +" on Promotion "+promoLineSearchForKPI[i].getValue('name'),
     						amount:parseFloat(lsLineAmount),
-    						adjustItem:(kpiIsAdjust)?kpisitem:0
+    						adjustItem:(kpiIsAdjust)?kpisitem:0,
+            				adjustmemo:''
     					});
     				}
     			}
@@ -270,32 +276,36 @@ function(record, search, runtime, itpm) {
     					tempAmountLS = parseFloat(tempAmountLS) - parseFloat(lsLines[i].amount);
     					var lsmemo = lsLines[i].memo;
     					lsLines[i].amount = (lumsumSetReq - tempAmountLS).toFixed(2);
-    					lsLines[i].memo = 'Adjusted '+bbmemo;
+    					lsLines[i].memo = 'Adjusted '+lsmemo;
     					tempAmountLS = parseFloat(tempAmountLS) + parseFloat(lsLines[i].amount);
     				}
     			}
     		}
     		if(bblinesLength > 0){//LS line amount adjusting  
-    			for(var i = 0; i < bblinesLength; i++){    				
+    			for(var i = 0; i < bblinesLength; i++){ 
+					var bbmemo = bbLines[i].memo;
     				if(bbLines[i].adjustItem == bbLines[i].item && billbackSetReq != tempAmountBB){  
 //    					log.audit(key.setId+' bbLines[i].isAdjust item '+bbLines[i].item,bbLines[i].adjustItem+'  tempAmountBB: '+tempAmountBB+' billbackSetReq: '+billbackSetReq);
     					tempAmountBB = parseFloat(tempAmountBB) - parseFloat(bbLines[i].amount);
-    					var bbmemo = bbLines[i].memo;
     					bbLines[i].amount = (billbackSetReq - tempAmountBB).toFixed(2);
     					bbLines[i].memo = 'Adjusted '+bbmemo;
     					tempAmountBB = parseFloat(tempAmountBB) + parseFloat(bbLines[i].amount);
+    				}else{
+    					bbLines[i].memo = bbLines[i].adjustmemo + bbmemo;
     				}
     			}
     		}
     		if(oiLinesLength > 0){//LS line amount adjusting  
     			for(var i = 0; i< oiLinesLength; i++){
+					var oimemo = oiLines[i].memo;
     				if(oiLines[i].adjustItem == oiLines[i].item && offinvoiceSetReq != tempAmountOI){
 //    					log.audit(key.setId+' bbLines[i].isAdjust item '+oiLines[i].item,oiLines[i].adjustItem+'  tempAmountBB: '+tempAmountOI+' billbackSetReq: '+offinvoiceSetReq);
     					tempAmountOI = parseFloat(tempAmountOI) - parseFloat(oiLines[i].amount);
-    					var oimemo = oiLines[i].memo;
     					oiLines[i].amount = (offinvoiceSetReq - tempAmountOI).toFixed(2);
     					oiLines[i].memo = 'Adjusted '+oimemo;
     					tempAmountOI = parseFloat(tempAmountOI) + parseFloat(oiLines[i].amount);
+    				}else{
+    					oiLines[i].memo = oiLines[i].adjustmemo + oimemo;
     				}
     			}
     		}
@@ -309,7 +319,8 @@ function(record, search, runtime, itpm) {
     				type:'credit',
     				memo:setCreditMemo,
     				amount:lumsumSetReq,
-    				adjustItem:0
+    				adjustItem:0,
+					adjustmemo:''
     			});
     		}
 //    		log.debug('lsLines  in Reduce',lsLines);
@@ -322,7 +333,8 @@ function(record, search, runtime, itpm) {
     				type:'credit',
     				memo:setCreditMemo,
     				amount:billbackSetReq,
-    				adjustItem:0
+    				adjustItem:0,
+					adjustmemo:''
     			});
     		}
 //    		log.debug('bbLines  in Reduce',bbLines);
@@ -335,7 +347,8 @@ function(record, search, runtime, itpm) {
     				type:'credit',
     				memo:setCreditMemo,
     				amount:offinvoiceSetReq,
-    				adjustItem:0
+    				adjustItem:0,
+					adjustmemo:''
     			});
     		}		
 //    		log.debug('oiLines  in Reduce',oiLines);
