@@ -202,7 +202,6 @@ function(search, runtime, record, format, itpm) {
         	kpi_actualQty.quantity = (util.isNumber(kpi_actualQty.quantity))? kpi_actualQty.quantity : 0; 
         	log.debug('kpi_actualQty', kpi_actualQty.quantity);
         	var estimatedSpend = itpm.getSpend({returnZero: false, quantity: values.estPromoted, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
-        	var estimatedSpendLS = parseFloat(key.lsallfactorest) * parseFloat(key.plumpsum);
         	log.debug('estimatedSpend', estimatedSpend);
         	var leSpend, actualSpend, expectedLiability, maxLiability, leSpendLS;
         	switch (key.status) {
@@ -297,23 +296,6 @@ function(search, runtime, record, format, itpm) {
         		throw {name: maxLiability.name, message: maxLiability.message};
         	}
         	
-        	//LS Expected Liability and Maximum Liability
-        	var expectedLiabilityLS = 0,maxLiabilityLS = 0;
-        	if(key.status == 3 || key.status == 7){
-    			if(key.condition == 3 || key.condition == 2){
-    				if(!key.lsadjusted){
-    					expectedLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactorest);
-    					maxLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactoractual);
-    				}else{
-    					expectedLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_expectedliabilityls');
-    					maxLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_maximumliabilityls');
-    				}
-    				expectedLiabilityLS = (key.plumpsum == 0)?0:expectedLiabilityLS;
-    				maxLiabilityLS = (key.plumpsum == 0)?0:maxLiabilityLS;
-    			}
-    		}
-        	log.debug('LS values',"LS MaximumLib "+maxLiabilityLS+" LS ExpectedLib "+expectedLiabilityLS);
-        	
         	//creating the comment for last update message
         	var lastUpdateMsg = "Last calculated on "+format.format({
         			value: new Date(),
@@ -333,15 +315,12 @@ function(search, runtime, record, format, itpm) {
         			'custrecord_itpm_kpi_maximumliabilitybb' : maxLiability.bb,
         			'custrecord_itpm_kpi_maximumliabilityoi' : maxLiability.oi,
         			'custrecord_itpm_kpi_maximumliabilitynb' : maxLiability.nb,
-        			'custrecord_itpm_kpi_maximumliabilityls' : maxLiabilityLS,
         			'custrecord_itpm_kpi_expectedliabilitybb' : expectedLiability.bb,
         			'custrecord_itpm_kpi_expectedliabilityoi' : expectedLiability.oi,
         			'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb,
-        			'custrecord_itpm_kpi_expectedliabilityls' : expectedLiabilityLS,
         			'custrecord_itpm_kpi_estimatedspendbb' : estimatedSpend.bb,
         			'custrecord_itpm_kpi_estimatedspendoi' : estimatedSpend.oi,
         			'custrecord_itpm_kpi_estimatedspendnb' : estimatedSpend.nb,
-        			'custrecord_itpm_kpi_estimatedspendls' : estimatedSpendLS,
         			'custrecord_itpm_kpi_lespendbb' : leSpend.bb,
         			'custrecord_itpm_kpi_lespendoi' : leSpend.oi,
         			'custrecord_itpm_kpi_lespendnb' : leSpend.nb,
@@ -349,7 +328,7 @@ function(search, runtime, record, format, itpm) {
         			'custrecord_itpm_kpi_actualspendoi' :actualSpend.oi,
         			'custrecord_itpm_kpi_actualspendnb' :actualSpend.nb,
         			'custrecord_itpm_kpi_lastupdatemessage':lastUpdateMsg,
-        			'custrecord_itpm_kpi_lespendls':leSpendLS//
+        			'custrecord_itpm_kpi_lespendls':leSpendLS
         		},
         		options: {enablesourcing: true, ignoreMandatoryFields: true}
         	});
@@ -381,6 +360,46 @@ function(search, runtime, record, format, itpm) {
 					itpm.approvedAllocationFactorActual(key.pid);
 				}
 			}
+			
+			//---------------------------------------------------
+        	//====== Logic to LS Allocations ======
+        	//---------------------------------------------------
+        	//LS Expected Liability and Maximum Liability
+			var kpiLookup = search.lookupFields({
+				type:'customrecord_itpm_kpi',
+				id:key.kpi,
+				columns:['custrecord_itpm_kpi_factorestls','custrecord_itpm_kpi_factoractualls','custrecord_itpm_kpi_adjustedls']
+			});
+			key.lsallfactorest = parseFloat(kpiLookup["custrecord_itpm_kpi_factorestls"]);
+			key.lsallfactoractual = parseFloat(kpiLookup["custrecord_itpm_kpi_factoractualls"]);
+			key.lsadjusted = kpiLookup["custrecord_itpm_kpi_adjustedls"];
+        	var expectedLiabilityLS = 0,maxLiabilityLS = 0;
+        	var estimatedSpendLS = parseFloat(key.lsallfactorest) * parseFloat(key.plumpsum);
+        	if(key.status == 3 || key.status == 7){
+    			if(key.condition == 3 || key.condition == 2){
+    				if(!key.lsadjusted){
+    					expectedLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactorest);
+    					maxLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactoractual);
+    				}else{
+    					expectedLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_expectedliabilityls');
+    					maxLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_maximumliabilityls');
+    				}
+    				expectedLiabilityLS = (key.plumpsum == 0)?0:expectedLiabilityLS;
+    				maxLiabilityLS = (key.plumpsum == 0)?0:maxLiabilityLS;
+    	        	var kpiUpdated = record.submitFields({
+    	        		type: 'customrecord_itpm_kpi',
+    	        		id: key.kpi,
+    	        		values: {
+    	        			'custrecord_itpm_kpi_maximumliabilityls' : maxLiabilityLS,
+    	        			'custrecord_itpm_kpi_expectedliabilityls' : expectedLiabilityLS,
+    	        			'custrecord_itpm_kpi_estimatedspendls' : estimatedSpendLS
+    	        		},
+    	        		options: {enablesourcing: true, ignoreMandatoryFields: true}
+    	        	});
+    			}
+    		}
+        	log.debug('LS values',"LS MaximumLib "+maxLiabilityLS+" LS ExpectedLib "+expectedLiabilityLS);
+			
     	} catch(ex) {
     		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}
