@@ -435,7 +435,7 @@ define(['N/ui/serverWidget',
 					['item','anyof',items],'and',
 					['entity','anyof',custIds],'and',
 					['trandate','within',st,end],'and',
-					['status','anyof',['CustInvc:A','CustInvc:B']],'and',
+					['status','anyof',['CustInvc:A','CustInvc:B']],'and', //open and paid in full
 					['taxline','is',false],'and',
 					['cogs','is',false],'and',
 					['shipping','is',false],'and',

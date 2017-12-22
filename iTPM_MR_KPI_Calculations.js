@@ -53,7 +53,7 @@ function(search, runtime, record, format, itpm) {
         		shipEnd = line['custrecord_itpm_p_shipend'],
         		orderStart = line['custrecord_itpm_p_orderstart'],
         		orderEnd = line['custrecord_itpm_p_orderend'],
-        		customerId = line['custrecord_itpm_p_customer'],
+        		customerId = line['custrecord_itpm_p_customer'].value,
         		kpiID = line['internalid.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
         		kpiItemID = line['custrecord_itpm_kpi_item.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
         		kpiUnitID = line['custrecord_itpm_kpi_uom.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
@@ -197,6 +197,7 @@ function(search, runtime, record, format, itpm) {
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
         	var kpi_promoQty = values.estPromoted;
         	var kpi_actualQty = itpm.getActualQty(key.item, key.customer, key.shipStart, key.shipEnd);
+        	log.audit('kpi_actualQty',kpi_actualQty);
         	log.debug('kpi_actualQty', 'IsNumber: ' + util.isNumber(kpi_actualQty.quantity));
         	kpi_actualQty.quantity = (util.isNumber(kpi_actualQty.quantity))? kpi_actualQty.quantity : 0; 
         	log.debug('kpi_actualQty', kpi_actualQty.quantity);
