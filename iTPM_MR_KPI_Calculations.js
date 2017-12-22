@@ -343,11 +343,11 @@ function(search, runtime, record, format, itpm) {
         	var fieldLookUp = search.lookupFields({
 				type    : 'customrecord_itpm_promotiondeal',
 				id      : key.pid,
-				columns : ['custrecord_itpm_p_status', 'custrecord_itpm_p_lsallocation']
+				columns : ['custrecord_itpm_p_status', 'custrecord_itpm_p_allocationtype']
 			});
 
 			promStatus = fieldLookUp.custrecord_itpm_p_status[0].value;
-			promAllocType = fieldLookUp.custrecord_itpm_p_lsallocation[0].value;
+			promAllocType = fieldLookUp.custrecord_itpm_p_allocationtype[0].value;
 			log.debug('Promotion Status & Allocation type', promStatus+' & '+promAllocType);
 			
 			if(promStatus == 1){  //Draft

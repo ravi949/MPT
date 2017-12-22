@@ -46,11 +46,11 @@ define(['N/search',
 					var fieldLookUp = search.lookupFields({
 						type    : 'customrecord_itpm_promotiondeal',
 						id      : promID,
-						columns : ['custrecord_itpm_p_status', 'custrecord_itpm_p_lsallocation']
+						columns : ['custrecord_itpm_p_status', 'custrecord_itpm_p_allocationtype']
 					});
 
 					promStatus = fieldLookUp.custrecord_itpm_p_status[0].value;
-					promAllocType = fieldLookUp.custrecord_itpm_p_lsallocation[0].value;
+					promAllocType = fieldLookUp.custrecord_itpm_p_allocationtype[0].value;
 					log.debug('Promotion Status & Allocation type', promStatus+' & '+promAllocType);
 
 					//Allocation factor calculation when promotion is DRAFT and Allocation Type is EVENLY
@@ -78,12 +78,12 @@ define(['N/search',
 				var fieldLookUp = search.lookupFields({
 					type    : 'customrecord_itpm_promotiondeal',
 					id      : promID,
-					columns : ['custrecord_itpm_p_itempricelevel', 'custrecord_itpm_p_status','custrecord_itpm_p_lsallocation']
+					columns : ['custrecord_itpm_p_itempricelevel', 'custrecord_itpm_p_status','custrecord_itpm_p_allocationtype']
 				});
 
 				pricelevel = fieldLookUp.custrecord_itpm_p_itempricelevel[0].value;
 				promStatus = fieldLookUp.custrecord_itpm_p_status[0].value;
-				promAllocType = fieldLookUp.custrecord_itpm_p_lsallocation[0].value;
+				promAllocType = fieldLookUp.custrecord_itpm_p_allocationtype[0].value;
 				log.debug('pricelevel & Status& promAllocType', +pricelevel+' & '+promStatus+' ,'+promAllocType);
 
 				if(promStatus == 1){ //Draft
