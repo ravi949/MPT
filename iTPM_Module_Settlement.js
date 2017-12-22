@@ -60,7 +60,7 @@ function(config, record, search, itpm) {
 			var loadedPromoRec = search.lookupFields({
 				type:'customrecord_itpm_promotiondeal',
 				id:params['custom_itpm_st_promotion_no'],
-				columns:['custrecord_itpm_p_account','custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount']
+				columns:['name','custrecord_itpm_p_account','custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount']
 			});			
 			var promoTypeDefaultAccnt = loadedPromoRec['custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount'][0].value;
 			var promoDealLumsumAccnt = (loadedPromoRec['custrecord_itpm_p_account'].length >0)?loadedPromoRec['custrecord_itpm_p_account'][0].value:promoTypeDefaultAccnt;		
@@ -71,7 +71,7 @@ function(config, record, search, itpm) {
 
 			newSettlementRecord.setValue({
 				fieldId:'memo',
-				value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+params['custom_itpm_st_promotion_no']
+				value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+loadedPromoRec.name
 			});
 
 			//it's creating from the dedcution record
@@ -99,9 +99,9 @@ function(config, record, search, itpm) {
 
 			newSettlementRecord.setValue({
 				fieldId:'transtatus',
-				value:'A'
+				//value:'A'
+				value:'E'
 			});
-			
 			if(params['custom_itpm_st_incrd_promolbty'] != ''){
 				newSettlementRecord.setValue({
 					fieldId:'custbody_itpm_set_incrd_promoliability',
@@ -224,6 +224,7 @@ function(config, record, search, itpm) {
 			prefObj.offinvoiceSetReq = offinvoiceSetReq;
 			prefObj.promoTypeDefaultAccnt = promoTypeDefaultAccnt;
 			prefObj.promoDealLumsumAccnt = promoDealLumsumAccnt;
+			prefObj.promotionId = params['custom_itpm_st_promotion_no'];
 
 			getSettlementLines(prefObj).forEach(function(e){
 				if(e.amount > 0){
@@ -243,7 +244,7 @@ function(config, record, search, itpm) {
 					}).setCurrentSublistValue({
 						sublistId:'line',
 						fieldId:'memo',
-						value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+params['custom_itpm_st_promotion_no']
+						value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+loadedPromoRec.name
 					}).setCurrentSublistValue({
 						sublistId:'line',
 						fieldId:'entity',
@@ -346,7 +347,8 @@ function(config, record, search, itpm) {
 
 				SettlementRec.setValue({
 					fieldId : 'transtatus',
-					value	: "B"
+					//value	: "B"
+					value:'E'
 				}).setValue({
 					fieldId : 'custbody_itpm_appliedto',
 					value	: DeductionId
@@ -533,15 +535,16 @@ function(config, record, search, itpm) {
     		if(loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: 0}) == '1'){
     			promoDealLumsumAccnt = loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'account',line: 0});
     		}
-    		var setlMemo = loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'memo',line: 0});
+    		var setlMemo = loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'memo',line:linecount-1});
     		var setlCust = loadedSettlementRec.getValue('custbody_itpm_customer');
     		var lineObj = {
     				promoDealLumsumAccnt:promoDealLumsumAccnt,
-    				accountPayable:loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'account',line: 1}),
+    				accountPayable:loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'account',line: linecount-1}),
     				promoTypeDefaultAccnt:promoTypeDefaultAccnt,
     				lumsumSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqls'),
     				billbackSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqbb'),
-    				offinvoiceSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqoi')
+    				offinvoiceSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqoi'),
+    				promotionId:loadedSettlementRec.getValue('custbody_itpm_set_promo')
     			}
     		for(var i = linecount-1;i >= 0;i--){
     			loadedSettlementRec.removeLine({
@@ -581,7 +584,10 @@ function(config, record, search, itpm) {
 					indexcount++;
 				}			
 			});
-        	
+        	loadedSettlementRec.setValue({
+				fieldId:'transtatus',
+				value:'E'
+			});
 			return loadedSettlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
 
 		}catch(e){

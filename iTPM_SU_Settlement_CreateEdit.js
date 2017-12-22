@@ -48,7 +48,6 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 
     			response.writePage(settlementForm);
     		}
-
     		if(request.method == 'POST'){
 //    			saveTheSettlement(request.parameters);
     			var eventType = request.parameters.custom_user_eventype;
@@ -71,6 +70,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     			});
     		}
     	}catch(e){
+    		log.error('e error',e);
     		var errObj = undefined;
     		if(e.message.search('{') > -1){
     			errObj = JSON.parse(e.message.replace(/Error: /g,''));
