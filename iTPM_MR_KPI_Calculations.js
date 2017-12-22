@@ -44,18 +44,23 @@ function(search, runtime, record, format, itpm) {
     	try{
     		//log.debug('MapSummary', context);
         	var line = JSON.parse(context.value).values;
-        	//log.debug('line', line);
+//        	log.debug('line', line);
         	var promotionID = line['internalid'].value,
         		pCondition = line['custrecord_itpm_p_condition'].value,
         		pStatus = line['custrecord_itpm_p_status'].value,
+        		pLumpSum = line['custrecord_itpm_p_lumpsum'],
         		shipStart = line['custrecord_itpm_p_shipstart'],
         		shipEnd = line['custrecord_itpm_p_shipend'],
         		orderStart = line['custrecord_itpm_p_orderstart'],
         		orderEnd = line['custrecord_itpm_p_orderend'],
-        		customerId = line['custrecord_itpm_p_customer'],
+        		customerId = line['custrecord_itpm_p_customer'].value,
         		kpiID = line['internalid.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
         		kpiItemID = line['custrecord_itpm_kpi_item.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
         		kpiUnitID = line['custrecord_itpm_kpi_uom.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
+        		kpiLSAllFactorEST = line['custrecord_itpm_kpi_factorestls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],
+        		kpiLSAllFactorActual = line['custrecord_itpm_kpi_factoractualls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],
+        		kpiActualSpendLS = line['custrecord_itpm_kpi_actualspendls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],
+        		kpiLSAllAdjusted = line['custrecord_itpm_kpi_adjustedls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'] == 'T',
         		pTypeID = line['internalid.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeImpactID = line['custrecord_itpm_pt_financialimpact.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeValidMOP = line['custrecord_itpm_pt_validmop.CUSTRECORD_ITPM_P_TYPE'],
@@ -138,10 +143,15 @@ function(search, runtime, record, format, itpm) {
     		//if (allArray.length > 0){
 	    		context.write({
 	    			key:{
-	    				kpi : kpiID, 
+	    				kpi : kpiID,
+	    				lsallfactorest: (kpiLSAllFactorEST)?parseFloat(kpiLSAllFactorEST):0,
+	    				lsallfactoractual: (kpiLSAllFactorActual)?parseFloat(kpiLSAllFactorActual):0,
+	    				lsadjusted: kpiLSAllAdjusted,
 	    				item: kpiItemID,
 	    				unit: kpiUnitID,
+	    				actSpendLS: (kpiActualSpendLS)?parseFloat(kpiActualSpendLS):0,
 	    				pid: promotionID,
+	    				plumpsum:(pLumpSum)?parseFloat(pLumpSum):0,
 	        			customer: customerId,
 	        			ptype: pTypeID, 
 	        			status: pStatus,
@@ -187,22 +197,29 @@ function(search, runtime, record, format, itpm) {
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
         	var kpi_promoQty = values.estPromoted;
         	var kpi_actualQty = itpm.getActualQty(key.item, key.customer, key.shipStart, key.shipEnd);
+        	log.audit('kpi_actualQty',kpi_actualQty);
         	log.debug('kpi_actualQty', 'IsNumber: ' + util.isNumber(kpi_actualQty.quantity));
         	kpi_actualQty.quantity = (util.isNumber(kpi_actualQty.quantity))? kpi_actualQty.quantity : 0; 
         	log.debug('kpi_actualQty', kpi_actualQty.quantity);
         	var estimatedSpend = itpm.getSpend({returnZero: false, quantity: values.estPromoted, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
         	log.debug('estimatedSpend', estimatedSpend);
-        	var leSpend, actualSpend, expectedLiability, maxLiability;
+        	var leSpend, actualSpend, expectedLiability, maxLiability, leSpendLS;
         	switch (key.status) {
 				case '1':	//DRAFT
+					leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;
+					break;
 				case '2':	//PENDING APPROVAL
+					leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;
 					leSpend = estimatedSpend;
 					actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
 					expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
 					maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
 					break;
 				case '4':	//REJECTED
+					leSpendLS = 0;//
+					break;
 				case '5':	//VOIDED
+					leSpendLS = 0;//
 					leSpend = itpm.getSpend({returnZero: true});				//should return object zero
 					actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
 					expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
@@ -211,6 +228,7 @@ function(search, runtime, record, format, itpm) {
 				case '3':	//APPROVED
 					if (key.condition == '1'){
 						//condition == Future
+						leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;
 						leSpend = estimatedSpend;
 						actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
 						expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
@@ -218,6 +236,7 @@ function(search, runtime, record, format, itpm) {
 					} else if (key.condition == '2') {
 						//condition == Active
 						//var leQuantity = (kpi_actualQty.error)? 0 : (parseFloat(values.estPromoted)>=parseFloat(kpi_actualQty.qty))? values.estPromoted : kpi_actualQty.qty;
+						leSpendLS = (key.actSpendLS > estimatedSpendLS)?parseFloat(key.actSpendLS):parseFloat(estimatedSpendLS);
 						var leQuantity = (parseFloat(values.estPromoted)>=parseFloat(kpi_actualQty.quantity))? values.estPromoted : kpi_actualQty.quantity;
 						log.debug('leQuantity', leQuantity);
 						leSpend = itpm.getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
@@ -228,6 +247,7 @@ function(search, runtime, record, format, itpm) {
 					} else if (key.condition == '3') {
 						//condition == Completed
 						//var actQty = (kpi_actualQty.error) ? 0 : kpi_actualQty.quantity;
+						leSpendLS = (key.actSpendLS > estimatedSpendLS)?parseFloat(key.actSpendLS):parseFloat(estimatedSpendLS);
 						var actQty = kpi_actualQty.quantity;
 						log.debug('actQty', actQty);
 						leSpend = itpm.getSpend({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
@@ -242,6 +262,10 @@ function(search, runtime, record, format, itpm) {
 					actualSpend = itpm.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
 					expectedLiability = itpm.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: values.estRedemption});
 					maxLiability = itpm.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
+					if (key.condition == '3') {
+						//condition == Completed
+						leSpendLS = (key.actSpendLS)?parseFloat(key.actSpendLS):0;
+					}
 					break;
 				default:
 					leSpend = estimatedSpend;
@@ -303,11 +327,79 @@ function(search, runtime, record, format, itpm) {
         			'custrecord_itpm_kpi_actualspendbb' :actualSpend.bb,
         			'custrecord_itpm_kpi_actualspendoi' :actualSpend.oi,
         			'custrecord_itpm_kpi_actualspendnb' :actualSpend.nb,
-        			'custrecord_itpm_kpi_lastupdatemessage':lastUpdateMsg
+        			'custrecord_itpm_kpi_lastupdatemessage':lastUpdateMsg,
+        			'custrecord_itpm_kpi_lespendls':leSpendLS
         		},
         		options: {enablesourcing: true, ignoreMandatoryFields: true}
         	});
         	log.debug('KPI Updated', kpiUpdated);
+        	
+        	//---------------------------------------------------
+        	//====== Logic to calculate Allocation Factors ======
+        	//---------------------------------------------------
+        	log.debug('====== Allocation Factors Calculations =======');
+        	log.debug('key',key);
+        	log.debug('key.pid',key.pid);
+        	var fieldLookUp = search.lookupFields({
+				type    : 'customrecord_itpm_promotiondeal',
+				id      : key.pid,
+				columns : ['custrecord_itpm_p_status', 'custrecord_itpm_p_lsallocation']
+			});
+
+			promStatus = fieldLookUp.custrecord_itpm_p_status[0].value;
+			promAllocType = fieldLookUp.custrecord_itpm_p_lsallocation[0].value;
+			log.debug('Promotion Status & Allocation type', promStatus+' & '+promAllocType);
+			
+			if(promStatus == 1){  //Draft
+				itpm.processAllocationsDraft(key.pid, promAllocType);
+			}
+			else if(promStatus == 3){  //Approved
+				if(promAllocType == 1){  //By % Revenue
+					//Calculate Actual Allocation factors if Allocation Type is "By % Revenue"
+					log.debug('APPROVED: promStatus & Alloc.Type', promStatus+' , '+promAllocType);
+					itpm.approvedAllocationFactorActual(key.pid);
+				}
+			}
+			
+			//---------------------------------------------------
+        	//====== Logic to LS Allocations ======
+        	//---------------------------------------------------
+        	//LS Expected Liability and Maximum Liability
+			var kpiLookup = search.lookupFields({
+				type:'customrecord_itpm_kpi',
+				id:key.kpi,
+				columns:['custrecord_itpm_kpi_factorestls','custrecord_itpm_kpi_factoractualls','custrecord_itpm_kpi_adjustedls']
+			});
+			key.lsallfactorest = parseFloat(kpiLookup["custrecord_itpm_kpi_factorestls"]);
+			key.lsallfactoractual = parseFloat(kpiLookup["custrecord_itpm_kpi_factoractualls"]);
+			key.lsadjusted = kpiLookup["custrecord_itpm_kpi_adjustedls"];
+        	var expectedLiabilityLS = 0,maxLiabilityLS = 0;
+        	var estimatedSpendLS = parseFloat(key.lsallfactorest) * parseFloat(key.plumpsum);
+        	if(key.status == 3 || key.status == 7){
+    			if(key.condition == 3 || key.condition == 2){
+    				if(!key.lsadjusted){
+    					expectedLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactorest);
+    					maxLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactoractual);
+    				}else{
+    					expectedLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_expectedliabilityls');
+    					maxLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_maximumliabilityls');
+    				}
+    				expectedLiabilityLS = (key.plumpsum == 0)?0:expectedLiabilityLS;
+    				maxLiabilityLS = (key.plumpsum == 0)?0:maxLiabilityLS;
+    	        	var kpiUpdated = record.submitFields({
+    	        		type: 'customrecord_itpm_kpi',
+    	        		id: key.kpi,
+    	        		values: {
+    	        			'custrecord_itpm_kpi_maximumliabilityls' : maxLiabilityLS,
+    	        			'custrecord_itpm_kpi_expectedliabilityls' : expectedLiabilityLS,
+    	        			'custrecord_itpm_kpi_estimatedspendls' : estimatedSpendLS
+    	        		},
+    	        		options: {enablesourcing: true, ignoreMandatoryFields: true}
+    	        	});
+    			}
+    		}
+        	log.debug('LS values',"LS MaximumLib "+maxLiabilityLS+" LS ExpectedLib "+expectedLiabilityLS);
+			
     	} catch(ex) {
     		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}
