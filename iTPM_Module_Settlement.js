@@ -273,7 +273,7 @@ function(config, record, search, itpm) {
 	 * Returns a settlement record id
 	 * @returns {number}
 	 */
-	function applyToDeduction(parameters){
+	function applyToDeduction(parameters,isCreatedFrom){
 		try{
 
 			var deductionRec = record.load({
@@ -299,24 +299,24 @@ function(config, record, search, itpm) {
 			//if(loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: 0}) == '1')
 			var linecount = SettlementRec.getLineCount({sublistId:'line'});
 			var lumsum = 0, bB = 0, oI = 0;
-			for(var i = 0;i < linecount;i+=2){
+			for(var i = 0;i < linecount;i++){
 				var lineIsLSBBOI = SettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: i});
 				if(lineIsLSBBOI == '1'){
-					lumsum = SettlementRec.getSublistValue({
+					lumsum += SettlementRec.getSublistValue({
 						sublistId: 'line',
 						fieldId: 'debit',
 						line: i
 					});
 					log.debug('lumsum',lumsum);
 				} else if(lineIsLSBBOI == '2'){
-					bB = SettlementRec.getSublistValue({
+					bB += SettlementRec.getSublistValue({
 						sublistId: 'line',
 						fieldId: 'debit',
 						line: i
 					});
 					log.debug('bb',bB);
 				}else if(lineIsLSBBOI == '3'){
-					oI = SettlementRec.getSublistValue({
+					oI += SettlementRec.getSublistValue({
 						sublistId: 'line',
 						fieldId: 'debit',
 						line: i
@@ -347,8 +347,7 @@ function(config, record, search, itpm) {
 
 				SettlementRec.setValue({
 					fieldId : 'transtatus',
-					//value	: "B"
-					value:'E'
+					value	: (isCreatedFrom == 'S')?'B':'E' //B - Applied, E - In Processing
 				}).setValue({
 					fieldId : 'custbody_itpm_appliedto',
 					value	: DeductionId
