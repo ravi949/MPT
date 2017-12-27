@@ -248,7 +248,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
 				}).defaultValue = format.format({
-					value:new Date(),
+					value:(params.type == 'edit')?deductionRec.getValue('trandate'):new Date(),
 					type: format.Type.DATE
 				});
 
