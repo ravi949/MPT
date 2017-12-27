@@ -57,7 +57,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
         			if(params.custom_itpm_st_created_frm == 'ddn'){
         				params.ddn = params.custom_itpm_st_ddn_id,
         				params.sid = setId;
-        				setId = ST_Module.applyToDeduction(params);
+        				setId = ST_Module.applyToDeduction(params,'D');//Here 'D' indicating Deduction.
         			}
     			}else if(eventType == 'edit'){
     				setId = ST_Module.editSettlement(params);
