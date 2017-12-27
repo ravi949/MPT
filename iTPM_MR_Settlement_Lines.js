@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType MapReduceScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  */
 define(['N/record',
 		'N/search',
