@@ -57,7 +57,7 @@ function(record, search) {
         		type: 'customrecord_itpm_promotiondeal',
         		id: promoID,
         		values: {
-        			'custrecord_itpm_p_lsallocation' : '1',
+        			'custrecord_itpm_p_allocationtype' : '1',
         			'custrecord_itpm_promo_allocationcontrbtn' : (promoStatus == 3)?'T':'F'
         		},
         		options: {enablesourcing: true, ignoreMandatoryFields: true}

@@ -199,6 +199,12 @@ function(record, search) {
 				}).setValue({
 					fieldId:'custrecord_itpm_all_estqty',
 					value:''
+				}).setValue({
+					fieldId:'custrecord_itpm_all_contribution',
+					value:0
+				}).setValue({
+					fieldId:'custrecord_itpm_all_contributionadjusted',
+					value:false
 				}).save({
 					enableSourcing: false,
 					ignoreMandatoryFields: true
