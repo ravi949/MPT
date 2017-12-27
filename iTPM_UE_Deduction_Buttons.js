@@ -86,8 +86,8 @@ define(['N/runtime',
 						});
 					}
           
-					//show button only when user have permissions greater than or equal to EDIT for Deductions and Journal Entry
-					if(JE_Permssion >= 3){
+					//show button only when user have permissions greater than or equal to CREATE for Deductions and Journal Entry
+					if(JE_Permssion >= 2){
 						var btn_expense = sc.form.addButton({
 							id: 'custpage_itpm_expense',
 							label: 'Expense',
