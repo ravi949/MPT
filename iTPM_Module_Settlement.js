@@ -258,9 +258,16 @@ function(config, record, search, itpm) {
 			return newSettlementRecord.save({enableSourcing:false,ignoreMandatoryFields:true})
 
 		}catch(e){
+    		log.error('e error',e);
+    		var errObj = undefined;
+    		if(e.message.search('{') > -1){
+    			errObj = JSON.parse(e.message.replace(/Error: /g,''));
+    		}
 			var recordType = (params.custom_itpm_st_created_frm == 'ddn')?'iTPM Deduction':'iTPM Promotion';
 			if(e.message == 'settlement not completed')
-				throw Error(e.message);
+				throw {name:'SETTLEMENT_NOT_COMPLETED',message:e.message};
+			else if(errObj && errObj.error == 'custom')
+    			throw {name:'CUSTOM',message:errObj.message};
 			else
 				throw Error('record type='+recordType+', module=iTPM_Module_settlement.js, function name = createSettlement, message='+e.message);
 		}
@@ -595,7 +602,7 @@ function(config, record, search, itpm) {
 				errObj = JSON.parse(e.message.replace(/Error: /g,''));
 			}
     		if(errObj && errObj.error == 'custom')
-    			throw {error:'custom',message:e.message};
+    			throw {name:'CUSTOM',message:errObj.message};
     		else 
     			throw Error('error occured in iTPM_Module_Settlement , function name = editSettlement,message = '+e.message);
 		}

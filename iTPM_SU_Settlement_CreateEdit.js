@@ -69,17 +69,12 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     				isEditMode:false
     			});
     		}
-    	}catch(e){
-    		log.error('e error',e);
-    		var errObj = undefined;
-    		if(e.message.search('{') > -1){
-    			errObj = JSON.parse(e.message.replace(/Error: /g,''));
-    		}
-    		
-    		if(e.message == 'settlement not completed')
+    	}catch(e){    	
+    		log.error(e.name,e.message);
+    		if(e.name == 'SETTLEMENT_NOT_COMPLETED')
     			throw Error("There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion.");
-    		else if(errObj && errObj.error == 'custom')
-    			throw Error(errObj.message);
+    		else if(e.name == 'CUSTOM')
+    			throw Error(e.message);
     		else if(e.name == "DEDUCTION_INVALID_STATUS")
     			throw Error(e.message);
     		else
