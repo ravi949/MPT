@@ -83,6 +83,11 @@ function(search, runtime, record, format, itpm) {
             		operator: search.Operator.ANYOF,
             		values: [kpiItemID]
         	}));
+        	estQtySearch.filters.push(search.createFilter({
+        		name: 'isinactive',
+        		operator: search.Operator.IS,
+        		values: false
+        	}));
     		var estQuantities = estQtySearch.run().getRange(0, 2);
     		if (estQuantities.length > 1){
     			throw {
