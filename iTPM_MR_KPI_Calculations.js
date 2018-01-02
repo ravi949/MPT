@@ -212,6 +212,10 @@ function(search, runtime, record, format, itpm) {
         	switch (key.status) {
 				case '1':	//DRAFT
 					leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;
+					leSpend = estimatedSpend;
+					actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
+					expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
+					maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
 					break;
 				case '2':	//PENDING APPROVAL
 					leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;
@@ -222,6 +226,10 @@ function(search, runtime, record, format, itpm) {
 					break;
 				case '4':	//REJECTED
 					leSpendLS = 0;//
+					leSpend = itpm.getSpend({returnZero: true});				//should return object zero
+					actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
+					expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
+					maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
 					break;
 				case '5':	//VOIDED
 					leSpendLS = 0;//
