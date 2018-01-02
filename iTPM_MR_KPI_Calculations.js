@@ -363,13 +363,11 @@ function(search, runtime, record, format, itpm) {
 			promAllocType = fieldLookUp.custrecord_itpm_p_allocationtype[0].value;
 			log.debug('Promotion Status & Allocation type', promStatus+' & '+promAllocType);
 			
-			if(promStatus == 1){  //Draft
-				itpm.processAllocationsDraft(key.pid, promAllocType);
-			}
-			else if(promStatus == 3){  //Approved
-				if(promAllocType == 1){  //By % Revenue
-					//Calculate Actual Allocation factors if Allocation Type is "By % Revenue"
-					log.debug('APPROVED: promStatus & Alloc.Type', promStatus+' , '+promAllocType);
+			if(promStatus == 1 || promStatus == 3){  //Draft OR Approved
+				if(promAllocType != 4){  //If not "Manual override"(OR 4)
+					//Calculate Actual Allocation factors Est
+					itpm.processAllocationsDraft(key.pid, promAllocType);
+					//Calculate Actual Allocation factors Actual
 					itpm.approvedAllocationFactorActual(key.pid);
 				}
 			}

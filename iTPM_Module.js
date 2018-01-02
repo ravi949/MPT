@@ -876,6 +876,26 @@ function(search, record, util, runtime) {
      */
     function updateKPIActualEvenly(promID){
     	try{
+    		//fetching Start  Date, End Date and Customer from Promotion
+        	var fieldLookUp = search.lookupFields({
+        		type    : 'customrecord_itpm_promotiondeal',
+        		id      : promID,
+        		columns : ['custrecord_itpm_p_type']
+        	});
+
+        	pType = fieldLookUp.custrecord_itpm_p_type[0].value;
+        	log.debug('Promotion Type', pType);
+        	
+    		//Fetching the DO NOT UPDATE LIABILITY BASED ON ACTUALS from Promotion type record
+        	var fieldLookUpProType = search.lookupFields({
+        		type    : 'customrecord_itpm_promotiontype',
+        		id      : pType,
+        		columns : ['custrecord_itpm_pt_dontupdate_lbonactual']
+        	});
+
+        	checkBox = fieldLookUpProType.custrecord_itpm_pt_dontupdate_lbonactual;
+        	log.debug('checkBox on Promotion type ', checkBox);
+        	
     		//Adding Filters for KPI search
 			var searchFilter = [];
     		searchFilter.push(search.createFilter({name:'isinactive', operator:search.Operator.IS, values:"F"}));
@@ -907,10 +927,12 @@ function(search, record, util, runtime) {
 						}
 				}
     			
-				//Updating the related KPI record
-				var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
-    			log.debug('updated KPI',kpiRecUpdate);
-    			
+    			if(checkBox){  //if "DO NOT UPDATE LIABILITY BASED ON ACTUALS" is checked/true
+    				//Updating the related KPI record
+    				var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
+        			log.debug('updated KPI',kpiRecUpdate);
+    			}
+				
     			return true;
     		});
     	}catch(e){

@@ -374,45 +374,48 @@ function(record, search, runtime, itpm) {
 				    line: i
 				});
     		}
-    		for(var i = 0; i< setlLinesLength; i++){
-    			settlementRec.setSublistValue({
-    				sublistId:'line',
-    				fieldId:'account',
-    				value:setlLines[i].account,
-    				line:i
-    			}).setSublistValue({
-    				sublistId:'line',
-    				fieldId:setlLines[i].type,
-    				value:setlLines[i].amount,
-    				line:i
-    			}).setSublistValue({
-    				sublistId:'line',
-    				fieldId:'custcol_itpm_lsbboi',
-    				value:setlLines[i].id,
-    				line:i
-    			}).setSublistValue({
-    				sublistId:'line',
-    				fieldId:'memo',
-    				value:setlLines[i].memo,
-    				line:i
-    			}).setSublistValue({
-    				sublistId:'line',
-    				fieldId:'custcol_itpm_set_item',
-    				value:setlLines[i].item,
-    				line:i
-    			}).setSublistValue({
-    				sublistId:'line',
-    				fieldId:'custcol_itpm_set_allocationfactor',
-    				value:setlLines[i].allocationFactor,
-    				line:i
-    			}).setSublistValue({
-    				sublistId:'line',
-    				fieldId:'entity',
-    				value:setCust,
-    				line:i 
-    			});
+
+    		for(var i = 0,v = 0; i< setlLinesLength; i++){
+    			if(setlLines[i].amount > 0){
+    				settlementRec.setSublistValue({
+    					sublistId:'line',
+    					fieldId:'account',
+    					value:setlLines[i].account,
+    					line:v
+    				}).setSublistValue({
+    					sublistId:'line',
+    					fieldId:setlLines[i].type,
+    					value:setlLines[i].amount,
+    					line:v
+    				}).setSublistValue({
+    					sublistId:'line',
+    					fieldId:'custcol_itpm_lsbboi',
+    					value:setlLines[i].id,
+    					line:v
+    				}).setSublistValue({
+    					sublistId:'line',
+    					fieldId:'memo',
+    					value:setlLines[i].memo,
+    					line:v
+    				}).setSublistValue({
+    					sublistId:'line',
+    					fieldId:'custcol_itpm_set_item',
+    					value:setlLines[i].item,
+    					line:v
+    				}).setSublistValue({
+    					sublistId:'line',
+    					fieldId:'custcol_itpm_set_allocationfactor',
+    					value:setlLines[i].allocationFactor,
+    					line:v
+    				}).setSublistValue({
+    					sublistId:'line',
+    					fieldId:'entity',
+    					value:setCust,
+    					line:v
+    				});
+    				v++;
+    			}
     		}
-    		
     		if(setIsApplied){
     			settlementRec.setValue({
     				fieldId:'transtatus',
