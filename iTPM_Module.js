@@ -576,6 +576,7 @@ function(search, record, util, runtime) {
     	    	    	    columns : [obj['kpiEstimatedSpend']]
     	    	    	});
     	    	    	var eq = fieldLookUp[obj['kpiEstimatedSpend']];
+    	    	    	eq = (eq)?eq:0;
     	    	    	
     	    	    	if(i==1){
     	    				obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
@@ -746,6 +747,7 @@ function(search, record, util, runtime) {
 						});
 
 						var estimatedRevenue = fieldLookUp.custrecord_itpm_kpi_estimatedrevenue;
+						estimatedRevenue = (estimatedRevenue)?estimatedRevenue:0;
 						log.debug('estimatedRevenue', +estimatedRevenue);
 
 						//Adding Filters for KPI search
@@ -1131,7 +1133,8 @@ function(search, record, util, runtime) {
 						id      : result.getValue({name:'id'}),
 						columns : obj['kpiESorEL']
 					});
-					var el = fieldLookUp[obj['kpiESorEL']];				
+					var el = fieldLookUp[obj['kpiESorEL']];	
+					el = (el)?el:0;
 					log.debug('el',el);
 
 					if(i==1){
