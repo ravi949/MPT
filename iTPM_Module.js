@@ -524,6 +524,7 @@ function(search, record, util, runtime) {
     			join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
     			summary:search.Summary.SUM
     		});
+    		promestspendbb = (promestspendbb)?promestspendbb:0;
     		log.debug('Promotion Estimate Spend: BB(SUM)', promestspendbb);
     		
     		//validating whether Estimated Spend: BB (or) Estimated Spend: OI is GREATER THAN ZERO: If YES
@@ -1084,6 +1085,7 @@ function(search, record, util, runtime) {
 				join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
 				summary:search.Summary.SUM
 			});
+			totalexpliability = (totalexpliability)?totalexpliability:0;
 			log.debug('Expected liability:'+obj['mop'], totalexpliability);
 
 			//Counting Items IF MOP is BB or OI
@@ -1220,6 +1222,7 @@ function(search, record, util, runtime) {
 				name:"amount",
 				summary:search.Summary.SUM
 			});
+			totalrevenue = (totalrevenue)?totalrevenue:0;
 			log.debug('totalrevenue',totalrevenue);
 
 			var itemcount = kpiitemcount_searchObj.runPaged().count;
@@ -1257,6 +1260,7 @@ function(search, record, util, runtime) {
 						name:"amount",
 						summary:search.Summary.SUM
 					});
+					actualRevenue = (actualRevenue)?actualRevenue:0;
 					log.debug('actualRevenue',actualRevenue);
 
 					if(i==1){
