@@ -764,6 +764,7 @@ function(search, record, util, runtime) {
 						
 			    		//Fetching Total Estimated Revenue
 						var totalEstimatedRevenue = parseFloat(customrecord_itpm_kpiSearchObj.run().getRange(0,1)[0].getValue({name:"custrecord_itpm_kpi_estimatedrevenue",summary:search.Summary.SUM}));
+						totalEstimatedRevenue = (totalEstimatedRevenue)?totalEstimatedRevenue:0;
 						log.debug('totalEstimatedRevenue', totalEstimatedRevenue);
 
 						if(i==1){
