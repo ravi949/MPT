@@ -367,8 +367,10 @@ function(search, runtime, record, format, itpm) {
 				if(promAllocType != 4){  //If not "Manual override"(OR 4)
 					//Calculate Actual Allocation factors Est
 					itpm.processAllocationsDraft(key.pid, promAllocType);
-					//Calculate Actual Allocation factors Actual
-					itpm.approvedAllocationFactorActual(key.pid);
+					if(promStatus == 3){
+						//Calculate Actual Allocation factors Actual
+						itpm.approvedAllocationFactorActual(key.pid);
+					}
 				}
 			}
 			

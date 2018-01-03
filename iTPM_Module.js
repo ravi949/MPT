@@ -524,6 +524,7 @@ function(search, record, util, runtime) {
     			join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
     			summary:search.Summary.SUM
     		});
+    		promestspendbb = (promestspendbb)?promestspendbb:0;
     		log.debug('Promotion Estimate Spend: BB(SUM)', promestspendbb);
     		
     		//validating whether Estimated Spend: BB (or) Estimated Spend: OI is GREATER THAN ZERO: If YES
@@ -576,6 +577,7 @@ function(search, record, util, runtime) {
     	    	    	    columns : [obj['kpiEstimatedSpend']]
     	    	    	});
     	    	    	var eq = fieldLookUp[obj['kpiEstimatedSpend']];
+    	    	    	eq = (eq)?eq:0;
     	    	    	
     	    	    	if(i==1){
     	    				obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
@@ -746,6 +748,7 @@ function(search, record, util, runtime) {
 						});
 
 						var estimatedRevenue = fieldLookUp.custrecord_itpm_kpi_estimatedrevenue;
+						estimatedRevenue = (estimatedRevenue)?estimatedRevenue:0;
 						log.debug('estimatedRevenue', +estimatedRevenue);
 
 						//Adding Filters for KPI search
@@ -762,6 +765,7 @@ function(search, record, util, runtime) {
 						
 			    		//Fetching Total Estimated Revenue
 						var totalEstimatedRevenue = parseFloat(customrecord_itpm_kpiSearchObj.run().getRange(0,1)[0].getValue({name:"custrecord_itpm_kpi_estimatedrevenue",summary:search.Summary.SUM}));
+						totalEstimatedRevenue = (totalEstimatedRevenue)?totalEstimatedRevenue:0;
 						log.debug('totalEstimatedRevenue', totalEstimatedRevenue);
 
 						if(i==1){
@@ -1081,6 +1085,7 @@ function(search, record, util, runtime) {
 				join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
 				summary:search.Summary.SUM
 			});
+			totalexpliability = (totalexpliability)?totalexpliability:0;
 			log.debug('Expected liability:'+obj['mop'], totalexpliability);
 
 			//Counting Items IF MOP is BB or OI
@@ -1131,7 +1136,8 @@ function(search, record, util, runtime) {
 						id      : result.getValue({name:'id'}),
 						columns : obj['kpiESorEL']
 					});
-					var el = fieldLookUp[obj['kpiESorEL']];				
+					var el = fieldLookUp[obj['kpiESorEL']];	
+					el = (el)?el:0;
 					log.debug('el',el);
 
 					if(i==1){
@@ -1216,6 +1222,7 @@ function(search, record, util, runtime) {
 				name:"amount",
 				summary:search.Summary.SUM
 			});
+			totalrevenue = (totalrevenue)?totalrevenue:0;
 			log.debug('totalrevenue',totalrevenue);
 
 			var itemcount = kpiitemcount_searchObj.runPaged().count;
@@ -1253,6 +1260,7 @@ function(search, record, util, runtime) {
 						name:"amount",
 						summary:search.Summary.SUM
 					});
+					actualRevenue = (actualRevenue)?actualRevenue:0;
 					log.debug('actualRevenue',actualRevenue);
 
 					if(i==1){
