@@ -153,6 +153,9 @@ function(record, search, runtime, itpm) {
     				,'custrecord_itpm_p_account'
     				,'custrecord_itpm_kpi_promotiondeal.internalid'
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_item'
+    				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factorestbb'
+    				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factorestoi'
+    				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factorestls'
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualbb'
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualoi'
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualls'
@@ -163,6 +166,32 @@ function(record, search, runtime, itpm) {
     				filters:[['internalid','anyof',key.promoId]]
     		}).run().getRange(0,1000);
     		var kpilength = promoLineSearchForKPI.length;
+    		
+    		//Checking for shipments for promotion 
+    		//promoDeal Record Load
+			var promoDealRecord = search.lookupFields({
+				type: 'customrecord_itpm_promotiondeal',
+				id: key.promoId,
+				columns: ['custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_customer']
+			});
+    		//estimated volume search to get the items list
+			var estVolumeItems = [];
+			search.create({
+				type:'customrecord_itpm_estquantity',
+				columns:['custrecord_itpm_estqty_item'],
+				filters:[['custrecord_itpm_estqty_promodeal','anyof',key.promoId],'and',
+					['isinactive','is',false]]
+			}).run().each(function(e){
+				estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
+				return true;
+			});
+    		var promoHasShippments = promoHasInvoice(estVolumeItems
+    												 ,promoDealRecord['custrecord_itpm_p_customer'][0].value
+    												 ,promoDealRecord['custrecord_itpm_p_shipstart']
+    												 ,promoDealRecord['custrecord_itpm_p_shipend']
+    												);
+    		log.debug('promoHasShippments',promoHasShippments);
+    		
     		if(billbackSetReq > 0 || offinvoiceSetReq > 0){
     			//Adding BB & OI line values to jsonArray 
     			context.values.forEach(function(val){
@@ -172,8 +201,8 @@ function(record, search, runtime, itpm) {
     				var allMOP = allValues.mop;
     				var setlmemo = " ";
     				var adjustSetlmemo = " ";		    			
-    				var factorActualBB = 1;
-    				var factorActualOI = 1;
+    				var factorBB = 1;
+    				var factorOI = 1;
     				var lineAmount = 0;
     				var kpiAdjustedItemBB = 0;
     				var kpiAdjustedItemOI = 0;
@@ -188,8 +217,13 @@ function(record, search, runtime, itpm) {
     						kpiAdjustedItemOI = kpiItem;
     					}
     					if(allValues.item == kpiItem){
-    						factorActualBB = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualbb'});
-    						factorActualOI = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualoi'});
+    						if(promoHasShippments){
+    							factorBB = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualbb'});
+    							factorOI = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualoi'});
+    						}else{
+    							factorBB = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factorestbb'});
+    							factorOI = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factorestoi'});
+    						}
     					}
     				}
     				//for Line memo value
@@ -203,11 +237,11 @@ function(record, search, runtime, itpm) {
     					adjustSetlmemo = "% "+allValues.rate+"  per " + allValues.uom;
     				} 
     				log.debug('allType  in Reduce',setlmemo);
-    				//For Bill-back Lines lines
+    				//Creating the Bill-back lines to the settlement record based on the BB allowance lines in the promotion
     				if(allMOP == 1 && billbackSetReq > 0){                      
-    					log.audit('--billbackSetReq & factorActualBB & contribution--'+key.setId, billbackSetReq+' & '+factorActualBB+' & '+allValues.contribution);
-    					log.audit('--BB AMOUNT--'+key.setId, billbackSetReq * factorActualBB * allValues.contribution);
-    					lineAmount = (billbackSetReq * parseFloat(factorActualBB) * parseFloat(allValues.contribution)).toFixed(2);
+    					log.audit('--billbackSetReq & factorBB & contribution--'+key.setId, billbackSetReq+' & '+factorBB+' & '+allValues.contribution);
+    					log.audit('--BB AMOUNT--'+key.setId, billbackSetReq * factorBB * allValues.contribution);
+    					lineAmount = (billbackSetReq * parseFloat(factorBB) * parseFloat(allValues.contribution)).toFixed(2);
     					tempAmountBB += parseFloat(lineAmount);
     					if(lineAmount > 0 || allValues.item == kpiAdjustedItemBB){
     						bbLines.push({ lineType:'bb',
@@ -219,12 +253,12 @@ function(record, search, runtime, itpm) {
         						amount:parseFloat(lineAmount),
         						adjustItem:kpiAdjustedItemBB,
         						adjustmemo:adjustSetlmemo,
-        						allocationFactor:factorActualBB
+        						allocationFactor:factorBB
         					});
     					}
-    					
-    				}else if(allMOP == 3 && offinvoiceSetReq > 0){//For Off-Invoice lines
-    					lineAmount = (offinvoiceSetReq * parseFloat(factorActualOI) * parseFloat(allValues.contribution)).toFixed(2);
+    					//Creating the Off-Invoice lines to the settlement record based on the OI allowance lines in the promotion
+    				}else if(allMOP == 3 && offinvoiceSetReq > 0){
+    					lineAmount = (offinvoiceSetReq * parseFloat(factorOI) * parseFloat(allValues.contribution)).toFixed(2);
     					tempAmountOI += parseFloat(lineAmount);
     					if(lineAmount > 0 || allValues.item == kpiAdjustedItemOI){
     						oiLines.push({ lineType:'inv',
@@ -236,16 +270,22 @@ function(record, search, runtime, itpm) {
     							amount: parseFloat(lineAmount),
     							adjustItem:kpiAdjustedItemOI,
         						adjustmemo:adjustSetlmemo,
-        						allocationFactor:factorActualOI
+        						allocationFactor:factorOI
     						});
     					}
     				}
     			});
     		}
-    		//For Lump-Sum lines
+    		//Creating the Lump-Sum lines to the settlement record based on the line items in the promotion
     		if(lumsumSetReq > 0){
     			for(var i = 0; i< kpilength; i++){
-    				var lsLineAmount = (lumsumSetReq * parseFloat(promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualls'}))).toFixed(2);
+    				var factorLs = 1;
+    				if(promoHasShippments){
+    					factorLs = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualls'});
+    				}else{
+    					factorLs = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factorestls'});
+    				}    				
+    				var lsLineAmount = (lumsumSetReq * parseFloat(factorLs)).toFixed(2);
     				var kpiIsAdjust = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_adjustedls'});
     				tempAmountLS += parseFloat(lsLineAmount);
     				var kpisitem = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'});
@@ -262,7 +302,7 @@ function(record, search, runtime, itpm) {
     						amount:parseFloat(lsLineAmount),
     						adjustItem:(kpiIsAdjust)?kpisitem:0,
             				adjustmemo:'',
-            				allocationFactor:parseFloat(promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualls'}))
+            				allocationFactor:parseFloat(factorLs)
     					});
     				}
     			}
@@ -482,6 +522,30 @@ function(record, search, runtime, itpm) {
     	
     	return serResult[0].getValue({name:'debitamount',summary:'SUM'})
     }
+    
+	/**
+	 * @param {String} items - estimated qty items
+	 * @param {String} entityId - customerId
+	 * @param {String} st - start date
+	 * @param {String} end - end date
+	 * @returns {Object} search
+	 */
+	function promoHasInvoice(items,custIds,st,end){
+		return search.create({
+			type:search.Type.ITEM_FULFILLMENT,
+			columns:['internalid','tranid','item'],
+			filters:[
+				['item','anyof',items],'and',
+				['entity','anyof', custIds],'and',
+				['trandate','within',st,end],'and',
+				['status','anyof','ItemShip:C'],'and', //item shipped
+				['taxline','is',false],'and',
+				['cogs','is',false],'and',
+				['shipping','is',false],'and',
+				['item.isinactive','is',false]
+				]
+		}).run().getRange(0,10).length > 0;
+	}
     return {
         getInputData: getInputData,
         map: map,
