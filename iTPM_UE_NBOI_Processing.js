@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType UserEventScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  */
 define(['N/redirect', 'N/search', 'N/runtime', 'N/record'],
 		/**

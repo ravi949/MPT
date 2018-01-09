@@ -51,17 +51,19 @@ function(redirect,runtime,search) {
     		log.debug('type',scriptContext.type)
     		//not getting the Thousands in the values of currency fields 
     		var settlementRec = scriptContext.newRecord,settlementOldRec;
+    		var settlementReq = parseFloat(settlementRec.getValue('custbody_itpm_amount'));
+			var lumsumSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqls'));
+			var billbackSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqbb'));
+			var offInvSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqoi'));
+
+			log.debug('settlementRec',settlementRec);
+			log.debug('st_reql',settlementReq);
+			log.debug('lumsum',lumsumSetReq);
+			log.debug('billback',billbackSetReq);
+			log.debug('offinvoice',offInvSetReq);
+			
     		if(scriptContext.type == 'edit'){
     			settlementOldRec = scriptContext.oldRecord;
-    			var settlementReq = parseFloat(settlementRec.getValue('custbody_itpm_amount'));
-    			var lumsumSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqls'));
-    			var billbackSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqbb'));
-    			var offInvSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqoi'));
-    			log.debug('settlementRec',settlementRec);
-    			log.debug('st_reql',settlementReq);
-    			log.debug('lumsum',lumsumSetReq);
-    			log.debug('billback',billbackSetReq);
-    			log.debug('offinvoice',offInvSetReq);
     			//the new record value is less than or equal to old record value for this field. If yes, 
     			//allow record to be saved. If not, return a user error (before user submit) - "The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."
     			var oldSettlementReq = settlementOldRec.getValue('custbody_itpm_amount'),

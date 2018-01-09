@@ -7,7 +7,8 @@ define(['N/ui/serverWidget',
 		'N/record',
 		'N/runtime',
 		'N/url',
-		'N/search'
+		'N/search',
+		'./iTPM_Module.js'
 		],
 /**
  * @param {serverWidget} serverWidget
@@ -16,7 +17,7 @@ define(['N/ui/serverWidget',
  * @param {url} url
  * @param {search} search
  */
-function(serverWidget,record,runtime,url,search) {
+function(serverWidget,record,runtime,url,search,itpm) {
    
     /**
      * Function definition to be triggered before record is loaded.
@@ -33,6 +34,12 @@ function(serverWidget,record,runtime,url,search) {
     		var promoForm = scriptContext.form;
     		if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
  
+    			if(scriptContext.type == 'create'){
+    				promoRec.setValue({
+    					fieldId: 'custrecord_itpm_p_itempricelevel',
+    					value: itpm.getPrefrenceValues()['defaultPriceLevel']
+    				});
+    			}
     			//this block for adding the New Settement button to Promotion record.
     			if(scriptContext.type == 'view'){
         			var status = promoRec.getValue('custrecord_itpm_p_status');
@@ -44,9 +51,13 @@ function(serverWidget,record,runtime,url,search) {
         				id:promoRec.getValue('custrecord_itpm_p_type')
         			}).getValue('custrecord_itpm_pt_settlewhenpromoactive');
         			
-        			var showSettlementButton = ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2)));
+        			//role based permission allow permissions (CREATE,EDIT and FULL)
+        			var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_settlementpermissionsrec');
+        			var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
+        			rolePermission = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
+        			var showSettlementButton = (rolePermission  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
         			
-        			if(showSettlementButton){
+        			if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn')){
         				promoForm.addButton({
         					id:'custpage_newsettlementbtn',
         					label:'New Settlement',

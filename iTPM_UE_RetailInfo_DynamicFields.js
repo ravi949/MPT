@@ -57,7 +57,7 @@ function(search, serverWidget, runtime) {
         				search.create({
         					type:'customrecord_itpm_promoretailevent',
         					columns:['custrecord_itpm_rei_item'],
-        					filters:[['custrecord_itpm_rei_promotiondeal','anyof',promoId]]
+        					filters:[['custrecord_itpm_rei_promotiondeal','anyof',promoId],'and',['isinactive','is',false]]
         				}).run().each(function(e){
         					retailItems.push(e.getValue('custrecord_itpm_rei_item'));
         					return true;

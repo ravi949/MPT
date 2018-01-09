@@ -48,7 +48,6 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 
     			response.writePage(settlementForm);
     		}
-
     		if(request.method == 'POST'){
 //    			saveTheSettlement(request.parameters);
     			var eventType = request.parameters.custom_user_eventype;
@@ -58,7 +57,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
         			if(params.custom_itpm_st_created_frm == 'ddn'){
         				params.ddn = params.custom_itpm_st_ddn_id,
         				params.sid = setId;
-        				setId = ST_Module.applyToDeduction(params);
+        				setId = ST_Module.applyToDeduction(params,'D');//Here 'D' indicating Deduction.
         			}
     			}else if(eventType == 'edit'){
     				setId = ST_Module.editSettlement(params);
@@ -70,16 +69,12 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     				isEditMode:false
     			});
     		}
-    	}catch(e){
-    		var errObj = undefined;
-    		if(e.message.search('{') > -1){
-    			errObj = JSON.parse(e.message.replace(/Error: /g,''));
-    		}
-    		
-    		if(e.message == 'settlement not completed')
+    	}catch(e){    	
+    		log.error(e.name,e.message);
+    		if(e.name == 'SETTLEMENT_NOT_COMPLETED')
     			throw Error("There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion.");
-    		else if(errObj && errObj.error == 'custom')
-    			throw Error(errObj.message);
+    		else if(e.name == 'CUSTOM')
+    			throw Error(e.message);
     		else if(e.name == "DEDUCTION_INVALID_STATUS")
     			throw Error(e.message);
     		else
@@ -95,15 +90,9 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 		var currencyExists = itpm.currenciesEnabled();
 		var locationsExists = itpm.locationsEnabled();
 		var departmentsExists = itpm.departmentsEnabled();
-		var classesExists = itpm.classesEnabled();
-		
+		var classesExists = itpm.classesEnabled();		
 		var isEdit = (eventType == 'edit');
 		var displayTypeSetup = (isEdit)?serverWidget.FieldDisplayType.INLINE:serverWidget.FieldDisplayType.DISABLED;
-		
-		//iTPM prefernce record values.
-		var prefObj = itpm.getPrefrenceValues();
-		var perferenceLS = prefObj.perferenceLS;
-		var perferenceBB = prefObj.perferenceBB;
     	
     	if(isEdit){
     		settlementForm.addField({
@@ -710,18 +699,8 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqoi'):0;
     	
     	//setting the amount lum sum and amount bill back field values based on iTPM preferences feature
-    	if(createdFromDDN && perferenceLS){
-    		amountLSField.defaultValue = settlementReqValue; 
-    	}else{
-    		amountLSField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqls'):0;
-    	}
-
-    	if(createdFromDDN && perferenceBB){
-    		amountBBField.defaultValue = settlementReqValue; 
-    	}else{
-    		amountBBField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqbb'):0;
-    	}
-    	
+    	amountLSField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqls'):0;
+    	amountBBField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqbb'):0;
     	
     	/*  TRANSACTION DETAIL Start  */
 	    

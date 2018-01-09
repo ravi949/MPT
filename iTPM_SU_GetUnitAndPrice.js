@@ -8,10 +8,11 @@
 define(['N/record',
 		'N/http',
 		'N/search',
-		'N/runtime'
+		'N/runtime',
+		'./iTPM_Module.js'
 		],
 
-function(record, http, search, runtime) {
+function(record, http, search, runtime, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -95,27 +96,8 @@ function(record, http, search, runtime) {
     		}else if(request.method == http.Method.GET && params.price == "true"){
     			
     			//reading the price value according to the conditions and return the value to the field
-    			var price = '';
-    			var itemBasePrice = params.baseprice;
-    			var promotionLookup = search.lookupFields({
-    				type:'customrecord_itpm_promotiondeal',
-    				id:params.pid,
-    				columns:['custrecord_itpm_p_type']
-    			});
-    			var promoTypeRec = record.load({
-    				type:'customrecord_itpm_promotiontype',
-    				id:promotionLookup['custrecord_itpm_p_type'][0].value
-    			});
-    			var promotionImpact = promoTypeRec.getValue('custrecord_itpm_pt_financialimpact');
-
-    			switch(promotionImpact){
-    			case "13": //Expense
-    				price = setPriceValue((params.pricelevel =='')?undefined:params.pricelevel,params.itemid);
-    				price = (isNaN(price))?itemBasePrice:price;
-    				break;
-    			}
+    			var price = itpm.getImpactPrice(params)['price'];
     			response.write(JSON.stringify({success:true,price:price}));
-    			
     		}
     	} catch(ex) {
     		log.error(ex.name, ex.message + '; by User:' + JSON.stringify(runtime.getCurrentUser()) + '; on parameters : ' + JSON.stringify(context.request.parameters));
@@ -125,24 +107,7 @@ function(record, http, search, runtime) {
     	
     }
 
-  //setting the Price Value in allowance record.
-	function setPriceValue(priceLevel,itemId){
-		try{
-			var price = undefined;
-			var itemResult = search.create({
-				type:search.Type.ITEM,
-				columns:['pricing.pricelevel','pricing.unitprice'],
-				filters:[['internalid','anyof',itemId],'and',
-					['pricing.pricelevel','is',priceLevel],'and',
-					['isinactive','is',false]
-				]
-			}).run().getRange(0,1);
-			price = itemResult[0].getValue({name:'unitprice',join:'pricing'});
-			return price;
-		}catch(e){
-			log.error(e.name,'error ocurred in function = setPriceValue');
-		}
-	}
+  
     
     return {
         onRequest: onRequest
