@@ -40,7 +40,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 
 			if(request.method == 'GET' && parameters.submit == 'true')
 			{
-				var SettlementRecId = ST_Module.applyToDeduction(parameters);
+				var SettlementRecId = ST_Module.applyToDeduction(parameters,'S');//Here 'S' indicating Settlement.  
 				redirect.toRecord({
 					type : 'customtransaction_itpm_settlement',
 					id : SettlementRecId					

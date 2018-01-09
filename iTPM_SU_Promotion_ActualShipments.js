@@ -407,6 +407,7 @@ function(serverWidget,search,record,format) {
 				['item','anyof',items],'and',
 				['entity','anyof', custIds],'and',
 				['trandate','within',st,end],'and',
+				['status','anyof','ItemShip:C'],'and', //item shipped
 				['taxline','is',false],'and',
 				['cogs','is',false],'and',
 				['shipping','is',false],'and',

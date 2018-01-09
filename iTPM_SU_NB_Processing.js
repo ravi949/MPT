@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  */
 define(['N/record', 'N/search','N/redirect','N/runtime','./iTPM_Module'],
 		/**

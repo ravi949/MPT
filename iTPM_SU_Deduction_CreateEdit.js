@@ -248,7 +248,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				}).updateBreakType({
 					breakType : serverWidget.FieldBreakType.STARTCOL
 				}).defaultValue = format.format({
-					value:new Date(),
+					value:(params.type == 'edit')?deductionRec.getValue('trandate'):new Date(),
 					type: format.Type.DATE
 				});
 
@@ -524,7 +524,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				});
 				amountField.updateDisplayType({
 					displayType : (params.from =='inv'||params.type == 'edit')?serverWidget.FieldDisplayType.DISABLED:serverWidget.FieldDisplayType.NORMAL
-				}).defaultValue = invAmount;
+				}).defaultValue = (params.type != 'edit')?invAmount:deductionRec.getValue('custbody_itpm_amount');
 
 				amountField.isMandatory = true;
 
@@ -761,6 +761,8 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 					//getting the line value for the deduction
 					var expenseId,lineMemo,createdFrom = params['custom_cfrom'],
 					receivbaleAccntsList;
+					var removeCustFromSplit = (createdFrom == 'ddn' && itpm.getPrefrenceValues().removeCustomer);
+					log.debug('re',itpm.getPrefrenceValues());
 					if(createdFrom == 'inv'){
 						var recievableAccntId = search.lookupFields({
 							type:search.Type.INVOICE,
@@ -794,7 +796,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						expenseId = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:1});
 						receivbaleAccntsList = [{accountId:expenseId,amount:amount,fid:'credit',memo:lineMemo},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo}];
 					}
-
+					
 					//adding the memo value in deduction record
 					deductionRec.setValue({
 						fieldId:'memo',
@@ -819,7 +821,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						}).setCurrentSublistValue({
 							sublistId:'line',
 							fieldId:'entity',
-							value:customerno
+							value:(removeCustFromSplit)?'':customerno
 						}).commitLine({
 							sublistId: 'line'
 						});
@@ -834,7 +836,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_ddn_openbal'));
 						var newDdnAmount = parseFloat(amount);
 						if(parentDdnAmount > newDdnAmount){
-							createAutomatedDeductionRecord(parentRec,parentDdnAmount - newDdnAmount,expenseId);
+							createAutomatedDeductionRecord(parentRec,parentDdnAmount - newDdnAmount,expenseId,removeCustFromSplit);
 						}
 						
 						//loading the parent record again why because parentDeductionRec already save 
@@ -998,7 +1000,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 	 * @returns {Number} child deduction record id
 	 * @description creating the automated Deduction record 
 	 */
-	function createAutomatedDeductionRecord(parentDdnRec,remainingAmount,ddnExpnseAccount){
+	function createAutomatedDeductionRecord(parentDdnRec,remainingAmount,ddnExpnseAccount,removeCustFromSplit){
 		remainingAmount = remainingAmount.toFixed(2);
 
 		//creating the Deduction record for remaining amount
@@ -1077,7 +1079,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			}).setSublistValue({
 				sublistId:'line',
 				fieldId:'entity',
-				value:parentDdnRec.getValue('custbody_itpm_customer'),
+				value:(removeCustFromSplit)?'':parentDdnRec.getValue('custbody_itpm_customer'),
 				line:i
 			});
 		}
@@ -1120,14 +1122,16 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
     			});
 
     			var invStatus = loadedRec.getValue('status');
-
+    			//Deduction record type id
+    			var ddnRecTypeId = runtime.getCurrentScript().getParameter('custscript_itpm_ddn_createedit_rectypeid');
+    			
     			//invoice dont have any ITPM DEDUCTION records
     			var invoiceDeductionsAreEmpty = search.create({
     				type:'customtransaction_itpm_deduction',
     				columns:['internalid'],
     				filters:[
     					['custbody_itpm_ddn_invoice','anyof',id],'and',
-    					['status','anyof',["Custom100:A","Custom100:B"]]
+    					['status','anyof',["Custom"+ddnRecTypeId+":A","Custom"+ddnRecTypeId+":B"]]
     				]
     			}).run().getRange(0,5).length == 0;
 

@@ -131,6 +131,7 @@ function(serverWidget,redirect,search,record) {
 					columns:['internalid','name','custrecord_itpm_p_status','custrecord_itpm_p_condition','custrecord_itpm_p_customer','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
 					filters:[
 					    ['custrecord_itpm_p_status','anyof', 3],'and', //approved
+					    ['custrecord_itpm_promo_allocationcontrbtn','is',false],'and',
 					    [
 					    	[['custrecord_itpm_p_type.custrecord_itpm_pt_settlewhenpromoactive','is','T'],'and',
 					    	['custrecord_itpm_p_condition','anyof',2]],'or', //active if promotion type allow for settlemen in active

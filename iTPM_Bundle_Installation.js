@@ -11,9 +11,11 @@
  * 						SUITEFLOW
  * 
  */
-define(['N/config'],
+define(['N/config',
+		'N/task'
+		],
 
-function(config) {
+function(config,task) {
 	
 	function checkRequirements() {
 		try{
@@ -75,6 +77,24 @@ function(config) {
     	checkRequirements();
     }
 
+    /**
+     * Executes before a bundle is uninstalled from a target account.
+     *
+     * @param {Object} params
+     * @param {number} params.fromVersion - Version currently installed
+     * @param {number} params.toVersion -  New version of the bundle being installed
+     *
+     * @since 2016.1
+     */
+    function afterUpdate(params) {
+    	task.create({
+    		taskType: task.TaskType.MAP_REDUCE,
+    		scriptId: 'customscript_itpm_mr_setpromodefaultval',
+    		deploymentId: 'customdeploy_itpm_mr_setpromodefaultval'
+    	}).submit();
+
+    }
+    
     function checkForFeaturesEnableOrNot(){
     	var configRecObj = config.load({
     	    type: config.Type.FEATURES
@@ -91,7 +111,8 @@ function(config) {
     
     return {
         beforeInstall: beforeInstall,
-        beforeUpdate: beforeUpdate
+        beforeUpdate: beforeUpdate,
+        afterUpdate: afterUpdate
     };
     
 });

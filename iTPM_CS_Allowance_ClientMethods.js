@@ -4,9 +4,14 @@
  * @NModuleScope TargetAccount
  * Client script to perform actions on the iTPM Allowance record during Create or Edit.
  */
-define(['N/ui/message','N/url','N/https','N/search','N/ui/dialog'],
+define(['N/ui/message',
+		'N/url',
+		'N/https',
+		'N/search',
+		'N/ui/dialog'
+		],
 
-function(message,url,https, search,dialog) {
+function(message, url, https, search, dialog) {
 
 	/**
 	 * Function to be executed after page is initialized.
@@ -72,74 +77,8 @@ function(message,url,https, search,dialog) {
 				}
 			} else if (fieldId == 'custrecord_itpm_all_item'){
 				var itemId = rec.getValue({fieldId:'custrecord_itpm_all_item'});
-				var priceLevel = rec.getValue({fieldId:'custrecord_itpm_all_pricelevel'});
-				var promoId = rec.getValue({fieldId:'custrecord_itpm_all_promotiondeal'});
-				var impactBasePrice = rec.getValue({fieldId:'custrecord_itpm_all_itembaseprice'});
-				if (itemId == '' || priceLevel == ''){
-					sc.currentRecord.setValue({
-						fieldId:'custrecord_itpm_all_impactprice', 
-						value: 0
-					});
-					if(itemId == '')
-						unitField.removeSelectOption({value:null});
-				} else {
-					https.get.promise({
-						url : url.resolveScript({
-							scriptId:'customscript_itpm_su_getitemunits',
-							deploymentId:'customdeploy_itpm_su_getitemunits',
-							params: {
-								itemid: itemId,
-								pid:promoId,
-								pricelevel: priceLevel,
-								baseprice:impactBasePrice,
-								price:true
-							}
-						})
-					}).then(function(response) {
-						var body = JSON.parse(response.body);
-						if(body.success){
-							rec.setValue({
-								fieldId:'custrecord_itpm_all_impactprice',value:body.price
-							});
-						}else{
-							console.log(body);	
-						}
-					});
-					rec.setValue({
-						fieldId:'custrecord_itpm_all_uom',value:''
-					}).setValue({
-						fieldId:'custrecord_itpm_all_uomprice',value:''
-					});
-
-					var objResponse = getUnits(rec,itemId);
-
-					if(mode == 'create'|| mode == 'edit' || mode == 'copy'){
-						if(itemId != ""){
-							var disableADD = checkForAllowaceDuplicates(mode,rec);
-							var checkBoxField = rec.getField('custrecord_itpm_all_allowaddnaldiscounts');
-							if(disableADD != -1){
-								checkBoxField.isDisabled = true;
-								//if previous allowane ADD checked than we showing the popup for other allowances
-								if(disableADD){
-									dialog.confirm({title:'Confirm',message:'You selected an item that is already being used on another allowance on this promotion. Are you sure?'})
-									.then(function(result){
-										if(!result){
-											disableADD = false;
-											rec.setValue({fieldId:'custrecord_itpm_all_item',value:''})
-											.setValue({fieldId:'custrecord_itpm_all_allowaddnaldiscounts',value:false});
-										}
-										checkBoxField.isDisabled = disableADD;
-									}).catch(function(error){
-										console.log(error.name,'record type = iTPM Allowance, message = '+error.message);
-										return false
-									});
-								}
-
-							}else{
-								checkBoxField.isDisabled = false; 
-							}
-						}
-					}
+				if(itemGroupSelected(rec,itemId)){  //setting item group units to the view
+					setItemSourcePrices(rec,itemId); //set effected price values
 				}
 			}else if(fieldId == 'custrecord_itpm_all_uom'){
 				var unitId = rec.getValue({fieldId: 'custrecord_itpm_all_uom'});
@@ -159,13 +98,112 @@ function(message,url,https, search,dialog) {
 			console.log(ex.name,'record type = iTPM Allowance, function name = fieldchange, message = '+ex.message);
 		}
 	}
+	
+	/**
+	 * @param rec
+	 * @param itemId
+	 * @description Sets the price values which is based on item
+	 */
+	function setItemSourcePrices(rec, itemId){
+		var priceLevel = rec.getValue({fieldId:'custrecord_itpm_all_pricelevel'});
+		var promoId = rec.getValue({fieldId:'custrecord_itpm_all_promotiondeal'});
+		var impactBasePrice = rec.getValue({fieldId:'custrecord_itpm_all_itembaseprice'});
+		if (itemId == '' || priceLevel == ''){
+			sc.currentRecord.setValue({
+				fieldId:'custrecord_itpm_all_impactprice', 
+				value: 0
+			});
+			if(itemId == '')
+				unitField.removeSelectOption({value:null});
+		} else {
+			https.get.promise({
+				url : url.resolveScript({
+					scriptId:'customscript_itpm_su_getitemunits',
+					deploymentId:'customdeploy_itpm_su_getitemunits',
+					params: {
+						itemid: itemId,
+						pid:promoId,
+						pricelevel: priceLevel,
+						baseprice:impactBasePrice,
+						price:true
+					}
+				})
+			}).then(function(response) {
+				var body = JSON.parse(response.body);
+				if(body.success){
+					rec.setValue({
+						fieldId:'custrecord_itpm_all_impactprice',value:body.price
+					});
+				}else{
+					console.log(body);	
+				}
+			});
+			rec.setValue({
+				fieldId:'custrecord_itpm_all_uom',value:''
+			}).setValue({
+				fieldId:'custrecord_itpm_all_uomprice',value:''
+			});
+
+			var objResponse = getUnits(rec,itemId);
+
+			if(mode == 'create'|| mode == 'edit' || mode == 'copy'){
+				if(itemId != ""){
+					var disableADD = checkForAllowaceDuplicates(mode,rec);
+					var checkBoxField = rec.getField('custrecord_itpm_all_allowaddnaldiscounts');
+					if(disableADD != -1){
+						checkBoxField.isDisabled = true;
+						//if previous allowane ADD checked than we showing the popup for other allowances
+						if(disableADD){
+							dialog.confirm({title:'Confirm',message:'You selected an item that is already being used on another allowance on this promotion. Are you sure?'})
+							.then(function(result){
+								if(!result){
+									disableADD = false;
+									rec.setValue({fieldId:'custrecord_itpm_all_item',value:''})
+									.setValue({fieldId:'custrecord_itpm_all_allowaddnaldiscounts',value:false});
+								}
+								checkBoxField.isDisabled = disableADD;
+							}).catch(function(error){
+								console.log(error.name,'record type = iTPM Allowance, message = '+error.message);
+								return false
+							});
+						}
+
+					}else{
+						checkBoxField.isDisabled = false; 
+					}
+				}
+			}
+		}
+   } 
+	
+	/**
+	 * @param {object} rec
+	 * @param {number} itemId
+	 * @return {boolean} item group or not
+	 */
+	function itemGroupSelected(rec, itemId){
+		var itemSearchRes = search.create({
+		    type:search.Type.ITEM,
+		    columns:['memberitem'],
+		    filters:[['internalid','is',itemId]]
+		}).run().getRange(0,1);
+		var itemUnitField = rec.getField({fieldId:'custpage_itpm_all_unit'});
+		if(itemSearchRes[0]['recordType'] == search.Type.ITEM_GROUP){
+			getUnits(rec,itemSearchRes[0].getValue('memberitem'));
+			rec.setValue({fieldId:'custrecord_itpm_all_impactprice',value:0});
+			rec.setValue({fieldId:'custrecord_itpm_all_uom',value:''});
+			rec.setValue({fieldId:'custrecord_itpm_all_uomprice',value:0});
+			return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * Function to call a Suitelet and return an array of key:value pairs of units
-	 * @param {number} itemid
-	 * 
-	 * @returns {array}
+	 * @param {object} rec
+	 * @param {number} id
 	 */
-	function getUnits(rec,id) {
+	function getUnits(rec, id) {
 		try{
 			var output = url.resolveScript({
 				scriptId:'customscript_itpm_su_getitemunits',
@@ -182,7 +220,7 @@ function(message,url,https, search,dialog) {
 					unitField.removeSelectOption({value:null});
 					var unitsList = objResponse.unitsList;
 					unitField.insertSelectOption({
-						value: 0,
+						value: " ",
 						text: " ",
 						isSelected: true
 					});
@@ -203,39 +241,43 @@ function(message,url,https, search,dialog) {
 
 	/**
 	 * Function to call a Suitelet and return a decimal number
-	 * @param {number} itemid
+	 * @param {object} rec
 	 * @param {number} unitId
-	 * 
-	 * @returns {string}
 	 */
 	function getConversionRate(rec, unitid) {
 		try{
 			var itemId = rec.getValue({fieldId: 'custrecord_itpm_all_item'});
 			var dynUnit = rec.getValue({fieldId: 'custpage_itpm_all_unit'});
-			var itemSaleUnit = search.lookupFields({type:search.Type.ITEM,id:itemId,columns:['saleunit']})['saleunit'][0].value;
-			var output = url.resolveScript({
-				scriptId:'customscript_itpm_su_getitemunits',
-				deploymentId:'customdeploy_itpm_su_getitemunits',
-				params: {itemid : itemId, unitid: null, price:false}
-			});
+			var itemLookup = search.lookupFields({type:search.Type.ITEM,id:itemId,columns:['saleunit','recordtype']});
+			if(itemLookup['recordtype'] != search.Type.ITEM_GROUP){
+				var itemSaleUnit = itemLookup['saleunit'][0].value;
+				var output = url.resolveScript({
+					scriptId:'customscript_itpm_su_getitemunits',
+					deploymentId:'customdeploy_itpm_su_getitemunits',
+					params: {itemid : itemId, unitid: null, price:false}
+				});
 
-			https.get.promise({
-				url:output
-			}).then(function(response){
-				var objResponse =  JSON.parse(response.body);
-				if (!(objResponse.error)){
-					var itemUnitRate = parseFloat(objResponse.unitsList.filter(function(e){return e.internalId == itemSaleUnit})[0].rate);
-					var rate = (dynUnit)? parseFloat(objResponse.unitsList.filter(function(e){return e.internalId == dynUnit})[0].rate) : 0;
-					rec.setValue({
-						fieldId: 'custrecord_itpm_all_uomprice',
-//						value: rate * parseFloat(rec.getValue({fieldId: 'custrecord_itpm_all_impactprice'})),
-						value: parseFloat(rec.getValue({fieldId: 'custrecord_itpm_all_impactprice'}))*(rate/itemUnitRate),
-						ignoreFieldChange: true
-					});
-				} else {
-					log.error('Response Object', 'Error returned in conversion rate.');
-				}
-			});
+				https.get.promise({
+					url:output
+				}).then(function(response){
+					var objResponse =  JSON.parse(response.body);
+					console.log(objResponse);
+					if (!(objResponse.error)){
+						var itemUnitRate = parseFloat(objResponse.unitsList.filter(function(e){return e.internalId == itemSaleUnit})[0].rate);
+						var rate = (dynUnit)? parseFloat(objResponse.unitsList.filter(function(e){return e.internalId == dynUnit})[0].rate) : 0;
+						rec.setValue({
+							fieldId: 'custrecord_itpm_all_uomprice',
+							value: parseFloat(rec.getValue({fieldId: 'custrecord_itpm_all_impactprice'}))*(rate/itemUnitRate),
+							ignoreFieldChange: true
+						});
+					} else {
+						log.error('Response Object', 'Error returned in conversion rate.');
+					}
+				});
+			}else{
+				rec.setValue({fieldId: 'custrecord_itpm_all_uomprice',value: 0,ignoreFieldChange: true})
+				   .setValue({fieldId:'custrecord_itpm_all_itembaseprice',value:0});
+			}
 		} catch(ex) {
 			log.error(ex.name,'record type = iTPM Allowance, function name = getConversionRate, message = '+ex.message);
 			console.log(ex.name,'record type = iTPM Allowance, function name = getConversionRate, message = '+ex.message);

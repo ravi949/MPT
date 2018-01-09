@@ -491,18 +491,27 @@ function(runtime, serverWidget, search, record, itpm) {
      */
     function getSearchResults(customerId,type,prefDatesType,trandate,transhipdate){
     	try{
-    		var mop = (type == 'nb')?2:(type == 'oi')?3:[2,3];
     		var tranColumns = [  
  				"internalid"
  			 ];
     		
     		var tranFilters = [  
  				["custrecord_itpm_p_customer","anyof",customerId],
-				 "AND", 
-				["custrecord_itpm_p_type.custrecord_itpm_pt_validmop","anyof",mop],
 				 "AND",
 				["custrecord_itpm_p_status","anyof","3"]   //Approved - 3
 			 ];
+    		
+    		if(type == 'oi'){
+    			tranFilters.push("AND",["custrecord_itpm_p_type.custrecord_itpm_pt_validmop","anyof",3]); // off-invoice
+    			tranFilters.push("AND",["CUSTRECORD_ITPM_ESTQTY_PROMODEAL.custrecord_itpm_estqty_rateperunitoi","notequalto",0]);
+    			tranFilters.push("AND",["CUSTRECORD_ITPM_ESTQTY_PROMODEAL.custrecord_itpm_estqty_percentoi","notequalto",0]);
+    		}else if(type == 'nb'){
+    			tranFilters.push("AND",["custrecord_itpm_p_type.custrecord_itpm_pt_validmop","anyof",2]); // net-bill
+    			tranFilters.push("AND",["CUSTRECORD_ITPM_ESTQTY_PROMODEAL.custrecord_itpm_estqty_rateperunitnb","notequalto",0]);
+    			tranFilters.push("AND",["CUSTRECORD_ITPM_ESTQTY_PROMODEAL.custrecord_itpm_estqty_percentnb","notequalto",0]);
+    		}else{
+    			tranFilters.push("AND",["custrecord_itpm_p_type.custrecord_itpm_pt_validmop","anyof",[2,3]]); //net-bill or off-invoice
+    		}
     		
     		//Adding the sort columns to the tranColumns array
     		if(type == 'nb' || type == 'oi'){
