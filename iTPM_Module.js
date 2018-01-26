@@ -1151,7 +1151,7 @@ function(search, record, util, runtime, config) {
 			    		var itemUnits = getItemUnits(estQuantities[x].item);
 			    		var estConversion, saleConversion;
 			    		for (var i = 0; i < itemUnits.unitArray.length; i++){
-			    			if (itemUnits.unitArray[i].id == estUnit){
+			    			if (itemUnits.unitArray[i].id == estQuantities[x].unit){
 			    				estConversion = parseFloat(itemUnits.unitArray[i].conversionRate);
 			    			}
 			    			if (itemUnits.unitArray[i].id == itemPrice.saleunit){
@@ -1175,7 +1175,7 @@ function(search, record, util, runtime, config) {
 					thisFactor = (1 / estQuantities.length).toFixed(6);
 					log.debug('module_getEstAllocationFactorLS', 'allocatedEvenly : ' + thisFactor +'; '+JSON.stringify(obj));
 				}
-				log.debug('thisFactor', thisFactor + '; ' + JSON.stringify(obj));
+				log.debug('module_getEstAllocationFactorLS', 'thisFactor : ' + thisFactor + '; ' + JSON.stringify(obj));
 				return {error: false, factor: thisFactor, adjusted: false};
 			}
 		}catch(ex){
