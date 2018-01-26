@@ -64,6 +64,19 @@ function(record, redirect, serverWidget, search, runtime) {
 				source:'pricelevel',
 				container:'custpage_setup_preference'
 			});
+			
+			//Apply iTPM Discount Item
+			var discountItemField = form.addField({
+				id: 'custpage_itpm_pref_discountitem',
+				type: serverWidget.FieldType.SELECT,
+				label: 'iTPM Discount Item',
+				container:'custpage_setup_preference'
+			}); 
+			discountItemField.isMandatory = true;
+			discountItemField.addSelectOption({
+				value:' ',
+				text:' '
+			});
 
 			//Expense account
 			var expenseAccntField = form.addField({
@@ -86,19 +99,6 @@ function(record, redirect, serverWidget, search, runtime) {
 				source:'account'
 			});
 			deductionAccntField.isMandatory = true;
-			
-			//Apply iTPM Discount Item
-			var discountItemField = form.addField({
-				id: 'custpage_itpm_pref_discountitem',
-				type: serverWidget.FieldType.SELECT,
-				label: 'iTPM Discount Item',
-				container:'custpage_setup_preference'
-			}); 
-			discountItemField.isMandatory = true;
-			discountItemField.addSelectOption({
-				value:' ',
-				text:' '
-			});
 
 			//Accounts Payable account field
 			var accountPayableField = form.addField({
@@ -107,8 +107,6 @@ function(record, redirect, serverWidget, search, runtime) {
 				label: 'Accounts Payable',
 				container:'custpage_setup_preference',
 				source:'account'
-			}).updateBreakType({
-				breakType : serverWidget.FieldBreakType.STARTCOL
 			});
 			accountPayableField.isMandatory = true;
 			
@@ -118,11 +116,24 @@ function(record, redirect, serverWidget, search, runtime) {
 				type: serverWidget.FieldType.CHECKBOX,
 				label: 'Remove customer from split deduction transactions?',
 				container:'custpage_setup_preference'
+			}).updateBreakType({
+				breakType : serverWidget.FieldBreakType.STARTCOL
 			});
 			removeCustomerSplitDDNField.setHelpText({
 				help:'Remove the customers from split deduction transaction lines.'
 			});
 
+			//Checkbox for JE Approval Process
+			var autoApproveJE = form.addField({
+				id: 'custpage_itpm_pref_je_autoapprove',
+				type: serverWidget.FieldType.CHECKBOX,
+				label: 'Auto-approve iTPM Journal Entries',
+				container:'custpage_setup_preference'
+			});
+			autoApproveJE.setHelpText({
+				help:'If this is checked, then iTPM Journal Entries will be EXPLICITLY SET to \"APPROVED\". If this is NOT checked, then the iTPM Journal Entries will be EXPLICITLY SET to \"Pending Approval\".'
+			});
+			
             //Apply iTPM Net Bill Discount only on List Price? Field
 			var ApplyiTPMNetBillDiscountChk = form.addField({
 				id: 'custpage_itpm_pref_nblistprice',
@@ -206,6 +217,7 @@ function(record, redirect, serverWidget, search, runtime) {
 				expenseAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount');
 				accountPayableField.defaultValue =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount');
 				ApplyiTPMNetBillDiscountChk.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_nblistprice')?'T':'F';
+				autoApproveJE.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_je_autoapprove')?'T':'F';
 				discountItemId = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
 				defaultAllType.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultalltype');
 				defaultPriceLevel.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultpricelevel');
@@ -331,6 +343,7 @@ function(record, redirect, serverWidget, search, runtime) {
 		discountDates = request.parameters.custpage_itpm_disdate;
 		var defaultalltype = request.parameters.custpage_itpm_pref_defaultalltype;
 		var defaultPriceLevel = request.parameters.custpage_itpm_pref_defaultpricelevel;
+		var autoApproveJE = request.parameters.custpage_itpm_pref_je_autoapprove;
 		preferanceRecord.setValue({
 			fieldId: 'custrecord_itpm_pref_ddnaccount',
 			value: deductionAccount,
@@ -362,6 +375,10 @@ function(record, redirect, serverWidget, search, runtime) {
 		}).setValue({
 			fieldId:'custrecord_itpm_pref_remvcust_frmsplit',
 			value:(removeCustomer == 'T'),
+			ignoreFieldChange:true
+		}).setValue({
+			fieldId:'custrecord_itpm_pref_je_autoapprove',
+			value:(autoApproveJE == 'T'),
 			ignoreFieldChange:true
 		});
 

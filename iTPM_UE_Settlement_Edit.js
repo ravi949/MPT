@@ -6,10 +6,11 @@
  */
 define(['N/redirect',
 		'N/runtime',
-		'N/search'
+		'N/search',
+		'./iTPM_Module_Settlement.js'
 		],
 
-function(redirect,runtime,search) {
+function(redirect,runtime,search,ST_Module) {
    
     /**
      * Function definition to be triggered before record is loaded.
@@ -55,7 +56,16 @@ function(redirect,runtime,search) {
 			var lumsumSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqls'));
 			var billbackSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqbb'));
 			var offInvSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqoi'));
-
+			var promoId = settlementRec.getValue('custbody_itpm_set_promo');
+			var promoDealRec = search.lookupFields({
+        		type:'customrecord_itpm_promotiondeal',
+        		id:promoId,
+        		columns:['name','custrecord_itpm_p_lumpsum']
+    		});
+			var promoLS = promoDealRec['custrecord_itpm_p_lumpsum']; 
+			var promoHasAllBB = ST_Module.getAllowanceMOP(promoId,1);
+        	var promoHasAllOI = ST_Module.getAllowanceMOP(promoId,3);
+        	var promoHasAllNB = ST_Module.getAllowanceMOP(promoId,2);
 			log.debug('settlementRec',settlementRec);
 			log.debug('st_reql',settlementReq);
 			log.debug('lumsum',lumsumSetReq);
@@ -70,60 +80,39 @@ function(redirect,runtime,search) {
     			applyToDeduction = settlementOldRec.getValue('custbody_itpm_appliedto');
     			if(applyToDeduction !='' && (settlementReq > oldSettlementReq))
     				throw {error:'custom',message:"The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."}
-
-    			var promotDealSearch = search.create({
-    				type:'customrecord_itpm_promotiondeal',
-    				columns:['custrecord_itpm_p_lumpsum','custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
-    				filters:[['internalid','anyof',settlementRec.getValue('custbody_itpm_set_promo')]]
-    			}).run();
-
-    			promotDealSearch.each(function(e){
-    				var promoTypeMOP = e.getValue({name:'custrecord_itpm_pt_validmop',join:'custrecord_itpm_p_type'})
-    				promoTypeMOP = promoTypeMOP.split(','),
-    				promoTypeMOPBillBack = promoTypeMOP.some(function(b){return b == 1}),
-    				promoTypeMOPNetBill = promoTypeMOP.some(function(b){return b == 2}),
-    				promoTypeMOPOffInvoice = promoTypeMOP.some(function(b){return b == 3});
-
-    				//If the promotion type does not allow Off-Invoice and Net Bill, do not allow record to be submitted with a positive value in off-invoice request.
-    				//If the promotion type does not allow Bill Back, do not allow record to be submitted with a positive value in bill back request.
-    				//If the promotion record does not have a lump sum, do not allow record to be submitted with a positive value in lump sum request.
-    				if(!promoTypeMOPOffInvoice && !promoTypeMOPNetBill){
-    					if(settlementRec.getValue('custbody_itpm_set_reqoi') > 0){
-    						throw {error:'custom',message:"Off invoice request value should be zero"};
-    					}
-    				}
-
-    				if(!promoTypeMOPBillBack){
-    					if(settlementRec.getValue('custbody_itpm_set_reqbb')>0){
-    						throw {error:'custom',message:'Bill back request value should be zero'};
-    					}
-    				}
-
-    				if(e.getValue('custrecord_itpm_p_lumpsum') <= 0){
-    					if(settlementRec.getValue('custbody_itpm_set_reqls')>0){
-    						throw {error:'custom',message:"Lum sum request value should be zero"};
-    					}
-    				}
-
-    				if(!promoTypeMOPOffInvoice && !promoTypeMOPNetBill){
-    					if((lumsumSetReq+billbackSetReq) != settlementReq){
-    						throw {error:'custom',message:"The sum of bill back and lump sum settlement requests must be equal to the settlement request"};
-    					}
-    				}else{
-    					if(settlementReq != (lumsumSetReq+billbackSetReq+offInvSetReq)){
-    						throw {error:'custom',message:"settlement request must be equal to the sum of bill back, off-invoice and lump sum"};
-    					}
-    				}
-    			});		
     		}
     		
     		if(scriptContext.type == 'edit' || scriptContext.type == 'create'){
     			// All settlement request values MUST be greater than zero. (Do NOT allow Lump Sum AND Bill Back to be zero during submit, on EDIT. Either of the fields can individually be zero, but not both.)
+    			if(promoLS <= 0 && !promoHasAllNB){
+					if(lumsumSetReq > 0){
+						throw {error:'custom',message:"Lump sum request value should be zero"};
+					}
+				}
+    			//If Lump sum value in settlement record have a value and LS Amount on promotion is zero then we throw error 
+    			if(lumsumSetReq > 0){
+    				if(promoLS <= 0){
+    					throw {error:'custom',message:" Promotion: "+promoDealRec['name']+" Lump sum should be greater than Zero"};
+    				}
+    			}
     			if(lumsumSetReq <= 0 && billbackSetReq <= 0){
     				throw {error:'custom',message:"Lump Sum AND Bill Back Either of the fields can individually be zero, but not both"};
     			}else if(settlementReq <= 0 && offInvSetReq <= 0){
     				throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
-    			}
+    			} 
+    			if(!promoHasAllOI){
+					if(offInvSetReq > 0){
+						throw {error:'custom',message:"Off invoice request value should be zero"};
+					}
+				}
+    			if(!promoHasAllBB){
+					if(billbackSetReq > 0){
+						throw {error:'custom',message:'Bill back request value should be zero'};
+					}
+				}
+    			if(settlementReq != (lumsumSetReq+billbackSetReq+offInvSetReq)){
+					throw {error:'custom',message:"settlement request must be equal to the sum of bill back, off-invoice and lump sum"};
+				}
     		}
     	}catch(e){
     		if(e.error == 'custom')

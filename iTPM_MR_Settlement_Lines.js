@@ -83,7 +83,7 @@ function(record, search, runtime, itpm) {
     					 ],
     					 filters:[
     						       ['internalid','anyof',promoID], 'and', 
-    						       ['custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop','anyof','1','3']
+    						       ['custrecord_itpm_all_promotiondeal.isinactive','is','F']
     						     ]
     		}).run().each(function(result){
     			context.write({
@@ -163,7 +163,10 @@ function(record, search, runtime, itpm) {
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_adjustedbb'
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_adjsutedoi'
     				],
-    				filters:[['internalid','anyof',key.promoId]]
+    				filters:[
+    							['internalid','anyof',key.promoId], 'and', 
+    							['custrecord_itpm_kpi_promotiondeal.isinactive','is','F']
+    						]
     		}).run().getRange(0,1000);
     		var kpilength = promoLineSearchForKPI.length;
     		

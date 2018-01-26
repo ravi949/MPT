@@ -138,7 +138,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 			var incrdPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itepm_p_incurredpromotionalle'});
 			var netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'});
         	var promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']);
-        	var promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'];
+//        	var promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'];
         	var customerId = promoDealRec['custrecord_itpm_p_customer'][0].value;
         	var customerText = promoDealRec['custrecord_itpm_p_customer'][0].text;
         	var promotionDesc = promoDealRec['custrecord_itpm_p_description'];
@@ -146,7 +146,9 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
         	var promoShipEdDate = promoDealRec['custrecord_itpm_p_shipend'];
         	var promoId = pid;
         	var promoName = promoDealRec['name'];
-        	
+        	var promoHasAllBB = ST_Module.getAllowanceMOP(promoId,1);
+        	var promoHasAllOI = ST_Module.getAllowanceMOP(promoId,3);
+        	var promoHasAllNB = ST_Module.getAllowanceMOP(promoId,2);
         	if(subsidiaryExists){
         		var subsid = promoDealRec['custrecord_itpm_p_subsidiary'][0].value;
             	var subsText = promoDealRec['custrecord_itpm_p_subsidiary'][0].text;
@@ -233,11 +235,14 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     		}); 
         	
         	var promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']);
-        	var promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'];
-    		
+//        	var promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'];
+        	var promoHasAllBB = ST_Module.getAllowanceMOP(promoId,1);
+        	var promoHasAllOI = ST_Module.getAllowanceMOP(promoId,3);
+        	var promoHasAllNB = ST_Module.getAllowanceMOP(promoId,2);
+        	
     		var promoDealURL = url.resolveRecord({
 			    recordType: 'customrecord_itpm_promotiondeal',
-			    recordId: settlementRec.getValue('custbody_itpm_set_promo'),
+			    recordId: promoId,
 			    isEditMode: false
 			});
     		
@@ -660,7 +665,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     		label:'AMOUNT : LUMP SUM',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
-			displayType : (promoLumSum > 0)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+			displayType : (promoLumSum > 0 || promoHasAllNB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
     	})
     	
     	/*if(!isEdit){                      //Commented as per new enhancement to remove Reason Code
@@ -683,7 +688,8 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     		label : 'AMOUNT : Bill back',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
-			displayType : (promoTypeMOP.some(function(e){return e.value == 1}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+			//displayType : (promoTypeMOP.some(function(e){return e.value == 1}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+    		displayType : (promoHasAllBB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
     	})
     	
     	//Settlement request : Missed off-invoice
@@ -695,7 +701,8 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     	}).updateBreakType({
 			breakType : serverWidget.FieldBreakType.STARTCOL
 		}).updateDisplayType({
-			displayType : (promoTypeMOP.some(function(e){return e.value == 3 || e.value == 2 }))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+			//displayType : (promoTypeMOP.some(function(e){return e.value == 3 || e.value == 2 }))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+			displayType : (promoHasAllOI)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
     	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqoi'):0;
     	
     	//setting the amount lum sum and amount bill back field values based on iTPM preferences feature

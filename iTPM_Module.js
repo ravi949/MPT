@@ -5,10 +5,144 @@
 define(['N/search', 
 		'N/record', 
 		'N/util',
-		'N/runtime'
+		'N/runtime',
+		'N/config'
 		],
 
-function(search, record, util, runtime) {
+function(search, record, util, runtime, config) {
+	
+	/**
+	 * @function hasSales()
+	 * @param {Object} obj
+	 * @param {String} obj.promotionId
+	 * @param {String} obj.shipStart
+	 * @param {String} obj.shipEnd
+	 * @param {String} obj.orderStart
+	 * @param {String} obj.orderEnd
+	 * @param {String} obj.customerId
+	 * @returns {Object}
+	 */
+	function hasSales(obj){
+		try{
+			if (!obj.promotionId &&
+				!obj.shipStart && !obj.shipEnd &&
+				!obj.orderStart && !obj.orderEnd &&
+				!obj.customerId){
+				throw {
+					name: 'Missing required parameter.',
+					message: 'Missing a required parameter. Object should have {promotionId, shipStart, shipEnd, orderStart, orderEnd, customerId}'
+				}
+			}
+			//1 = Ship Date, 2 = Order Date, 3 = Both, 4 = Either
+			var datePref = getPrefrenceValues().prefDiscountDate; //need to correct spelling
+			var start, end, items = [];
+			switch (datePref){
+				case '2':
+					start = obj.orderStart;
+					end = obj.orderEnd;
+					break;
+				case '3':
+					start = (Date.parse(obj.shipStart) >= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+					end = (Date.parse(obj.shipEnd) >= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+					break;
+				case '4':
+					start = (Date.parse(obj.shipStart) <= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+					end = (Date.parse(obj.shipEnd) <= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+					break;
+				default: //default use ship dates
+					start = obj.shipStart;
+					end = obj.shipEnd;
+					break;
+			}
+			
+			//get promotion items
+			var itemSearch = search.create({
+				type: 'customrecord_itpm_kpi',
+				filters: [
+				          ['custrecord_itpm_kpi_promotiondeal', 'anyof', obj.promotionId], 'and',
+				          ['isinactive', 'is', 'F']
+				          ],
+				columns: ['custrecord_itpm_kpi_item']
+			});
+			itemSearch.run().each(function(result){
+				items.push(result.getValue('custrecord_itpm_kpi_item'));
+			});
+			//get invoices
+			var invoiceSearch = search.create({
+				type: search.Type.INVOICE,
+				filters: [
+				          ['item', 'anyof', items], 'and',
+				          ['entity', 'anyof', obj.customerId], 'and',
+				          ['trandate', 'within', start, end]
+				          ],
+				columns: ['tranid']
+			});
+			var invoices = invoiceSearch.run().getRange(0,1);
+			if (invoices.length > 0) {
+				return {error: false, hasSales: true}
+			} else {
+				return {error: false, hasSales: false}
+			}
+		} catch(ex){
+			log.error ('module_hasSales', ex.name +'; ' + ex.message + '; ' + JSON.stringify(obj));
+			return {error: true, hasSales: false}
+		}
+	}
+	
+	/**
+	 * @function hasEstQty()
+	 * @param {Object} obj
+	 * @param {String} obj.promotionId
+	 * @returns {Object}
+	 */
+	function hasEstQty(obj){
+		try{
+			if(!obj.promotionId) throw {name: 'Missing Promotion Id.', message: 'No promotion Id parameter in object.'};
+			var pSearch = search.create({
+				type: 'customrecord_itpm_estquantity',
+				columns: ['internalid']
+			});
+			pSearch.filters.push(search.createFilter({
+				name: 'custrecord_itpm_estqty_totalqty',
+				operator: search.Operator.GREATERTHAN,
+				values: 0
+			}));
+			pSearch.filters.push(search.createFilter({
+				name: 'isinactive',
+				operator: search.Operator.IS,
+				values: 'F'
+			}));
+			var results = [];
+			results = pSearch.run().getRange(0,1);
+			if (results.length == 1){
+				return {error: false, hasEstQty: true}
+			} else {
+				return {error: false, hasEstQty: false}
+			}
+		} catch(ex) {
+			log.error ('module_hasEstQty', ex.name +'; ' + ex.message + '; ' + JSON.stringify(obj));
+			return {error: true, hasEstQty: false}
+		}
+	}
+	
+	/**
+	 * Check whether Quantity Pricing is enabled
+	 * @function quantityPricingEnabled()
+	 * @return {Boolean}
+	 */
+	function quantityPricingEnabled(){
+		try{
+			var featureEnabled = runtime.isFeatureInEffect({feature:'QUANTITYPRICING'});
+			var currentUser = runtime.getCurrentUser();
+			var currentScript = runtime.getCurrentScript();
+			var currentSession = runtime.getCurrentSession();
+			return featureEnabled;
+		} catch(ex){
+			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
+			log.error('module_quantityPricingEnabled', ex.name +'; '+ ex.message + '; additionalDetails: ' + message);
+			return false;
+		}
+	}
 	
 	/**
 	 * function locationEnabled()
@@ -21,7 +155,6 @@ function(search, record, util, runtime) {
 			var currentUser = runtime.getCurrentUser();
 			var currentScript = runtime.getCurrentScript();
 			var currentSession = runtime.getCurrentSession();
-//			log.debug('locationsEnabled', featureEnabled + '\r\n User: ' + JSON.stringify(currentUser) + '\r\n Session: ' + JSON.stringify(currentSession) + '\r\n Script: ' + JSON.stringify(currentScript));
 			return featureEnabled;
 		} catch(ex) {
 			var message = JSON.stringify(runtime.getCurrentUser()) + '\r\n ' + JSON.stringify(runtime.getCurrentSession()) + '\r\n ' + JSON.stringify(runtime.getCurrentScript());
@@ -110,8 +243,6 @@ function(search, record, util, runtime) {
 		}
 	}
 	
-	
-    
 	/**
      * function getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB})
      * Function to calculate the spend amount
@@ -121,19 +252,64 @@ function(search, record, util, runtime) {
      */
     function getSpend(objParameter) {
     	try{
-//    		log.debug('getSpend', objParameter);
-    		if(objParameter.returnZero) return {error: false, spend: 0, bb: 0, oi: 0, nb: 0};
+    		if(objParameter.returnZero) return {error: false, spend: 0, bb: 0, oi: 0, nb: 0, ls: 0};
     		var qty = parseFloat(objParameter.quantity),
 			rateBB = (objParameter.rateBB == '' || objParameter.rateBB == null || !objParameter.rateBB)? 0 : parseFloat(objParameter.rateBB),
 			rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
 			rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB);
-//    		log.debug('getSpend_Values', 'qty: ' + qty + ', rateBB: ' + rateBB + ', rateOI: ' + rateOI + ', rateNB: ' + rateNB);
-		var eSpendBB = qty * rateBB;
-		var eSpendOI = qty * rateOI; 
-		var eSpendNB = qty * rateNB;
-//		log.debug('getSpend_Spends', 'qty: ' + qty + ', eSpendBB: ' + eSpendBB + ', eSpendOI: ' + eSpendOI + ', eSpendNB: ' + eSpendNB);
-		//return {error: false, spend: eSpendBB + eSpendOI + eSpendNB, bb: eSpendBB, oi: eSpendOI, nb: eSpendNB};
-		return {error: false, spend: qty*(rateBB + rateOI + rateNB), bb: qty*rateBB, oi: qty*rateOI, nb: qty*rateNB};
+		
+			if(objParameter.actual){//actual spend also includes lines from settlements
+				if (objParameter.promotionId && objParameter.itemId){
+					var spendSearch = search.load({
+						id: 'customsearch_itpm_getactualspend'
+					});
+					spendSearch.filters.push(search.createFilter({
+						name: 'custbody_itpm_set_promo', 
+						operator: search.Operator.ANYOF,
+						values: objParameter.promotionId
+					}));
+					spendSearch.filters.push(search.createFilter({
+						name: 'custcol_itpm_set_item', 
+						operator: search.Operator.ANYOF,
+						values: objParameter.itemId
+					}));
+					/*
+					spendSearch.filters.push(search.createFilter({
+						name: 'status', 
+						operator: search.Operator.NONEOF,
+						values: ['C', 'E']
+					}));
+					*/
+					
+					log.debug('spendSearch', spendSearch);
+					var spendLS = spendBB = spendOI = 0;
+					spendSearch.run().each(function(result){
+						var lsbboi = result.getValue({name:'custcol_itpm_lsbboi', summary: search.Summary.GROUP});
+						var amount = parseFloat(result.getValue({name:'amount', summary: search.Summary.SUM}));
+						if(lsbboi == 1){
+							//lump sum
+							spendLS = amount;
+						} else if(lsbboi == 2){
+							//bill back
+							spendBB = amount;
+						} else if(lsbboi == 3){
+							//off-invoice
+							spendOI = amount;
+						}
+						return true;
+					});
+					return {
+						error: false,
+						spend: spendBB + spendOI + qty*rateOI + qty*rateNB,
+						bb: spendBB,
+						oi: spendOI + qty*rateOI,
+						nb: qty*rateNB,
+						ls: spendLS
+					};
+				}
+			} else {//estimated & LE spend based on qty and rate
+				return {error: false, spend: qty*(rateBB + rateOI + rateNB), bb: qty*rateBB, oi: qty*rateOI, nb: qty*rateNB, ls: 0};
+			}
     	} catch(ex) {
     		return {error: true, name: 'SPEND_MODULE', message: ex.name + '; ' + ex.message + '; objParameter: ' + JSON.stringify(objParameter)};
     	}
@@ -148,7 +324,6 @@ function(search, record, util, runtime) {
      */
     function getLiability(objParameter) {
     	try{
-//    		log.debug('getLiability', objParameter);
     		if(objParameter.returnZero) return {error: false, liability: 0, bb: 0, oi: 0, nb: 0};
     		var qty = parseFloat(objParameter.quantity),
 			rateBB = (objParameter.rateBB == '' || objParameter.rateBB == null || !objParameter.rateBB)? 0 : parseFloat(objParameter.rateBB),
@@ -156,10 +331,7 @@ function(search, record, util, runtime) {
 			rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB),
 			rFactor = (objParameter.redemption == '' || objParameter.redemption == null || !objParameter.redemption)? 0 : parseFloat(objParameter.redemption);
     		rFactor /= 100;
-//    		log.debug('getLiability_Values', 'qty: ' + qty + ', rateBB: ' + rateBB + ', rateOI: ' + rateOI + ', rateNB: ' + rateNB + ', rFactor: ' + rFactor);
-		//var expBB = qty * rateBB * rFactor, expOI = qty * rateOI, expNB = qty * rateNB;
-		//return {error: false, liability: expBB + expOI + expNB, bb: expBB, oi: expOI, nb: expNB};
-    		return {error: false, liability: qty*((rateBB*rFactor)+rateOI+rateNB), bb: qty*rateBB*rFactor, oi: qty*rateOI, nb: qty*rateNB};
+    		return {error: false, liability: qty*((rateBB*rFactor)+rateOI+rateNB), bb: qty*rateBB*rFactor, oi: qty*rateOI, nb: qty*rateNB, ls: 0};
     	} catch(ex) {
     		return {error: true, name: 'LIABILITY_MODULE', message: ex.name + '; ' + ex.message + '; objParameter: ' + JSON.stringify(objParameter)};
     	}
@@ -201,7 +373,7 @@ function(search, record, util, runtime) {
         	}
         	return {error:false, unitArray: unitArray};
     	} catch (ex) {
-    		return {error: true, name: 'ITEM_UNITS_MODULE', message: ex.name + '; ' + ex.message + '; itemId: ' + itemId};
+    		return {error: true, unitArray: [], name: 'ITEM_UNITS_MODULE', message: ex.name + '; ' + ex.message + '; itemId: ' + itemId};
     	}
     }
 	
@@ -266,7 +438,8 @@ function(search, record, util, runtime) {
 						 'custrecord_itpm_pref_discountdates',
 						 'custrecord_itpm_pref_defaultalltype',
 						 'custrecord_itpm_pref_defaultpricelevel',
-						 'custrecord_itpm_pref_remvcust_frmsplit'
+						 'custrecord_itpm_pref_remvcust_frmsplit',
+						 'custrecord_itpm_pref_je_autoapprove'
 						],
 				filters:[]
 			}).run().each(function(e){
@@ -277,7 +450,8 @@ function(search, record, util, runtime) {
 						prefDiscountDate: e.getText('custrecord_itpm_pref_discountdates'),
 						defaultAllwType: e.getValue('custrecord_itpm_pref_defaultalltype'),
 						defaultPriceLevel:e.getValue('custrecord_itpm_pref_defaultpricelevel'),
-						removeCustomer: e.getValue('custrecord_itpm_pref_remvcust_frmsplit')
+						removeCustomer: e.getValue('custrecord_itpm_pref_remvcust_frmsplit'),
+						autoApproveJE: e.getValue('custrecord_itpm_pref_je_autoapprove')
 				}
 			})
 			return prefObj;
@@ -334,7 +508,12 @@ function(search, record, util, runtime) {
     }
     
     /**
-     * @param params
+     * @function getImpactPrice(params)
+     * @param {Object} params
+     * @param {number} params.pid - Promotion ID
+     * @param {number} params.itemid - Item internal ID
+     * @param {number} params.pricelevel - Price Level internal ID
+     * @param {string} params.baseprice - Base Price of item
      * @returns
      * @description setting the Impact Price Value in allowance record.
      */
@@ -349,22 +528,36 @@ function(search, record, util, runtime) {
 			})['custrecord_itpm_p_currency'][0].value;
 			var itemResult = search.create({
 				type:search.Type.ITEM,
-				columns:['pricing.pricelevel','pricing.unitprice','baseprice','saleunit','pricing.quantityrange'],
+				columns:[
+					'pricing.pricelevel',
+					'pricing.unitprice',
+					'baseprice',
+					'saleunit'
+				],
 				filters:[['internalid','anyof',params.itemid],'and',
 					['pricing.pricelevel','is',params.pricelevel],'and',
-					['pricing.currency','is',currencyId],'and',
 					['isinactive','is',false]
 				]
-			}).run();
-			itemResult.each(function(e){
-				var quantityRange = e.getValue({name:'quantityrange',join:'pricing'});
-				if(quantityRange == '1-99' || quantityRange == '1+'){
-					price = e.getValue({name:'unitprice',join:'pricing'});
-				}
-				return true;
 			});
+			if(quantityPricingEnabled()) {
+				itemResult.columns.push(search.createColumn({
+					name: 'quantityrange',
+					join:'pricing',
+					sort: search.Sort.ASC
+				}));
+			}
+			if(currenciesEnabled()){
+				//['pricing.currency','is',currencyId],'and',
+				itemResult.filters.push(search.createFilter({
+					name: 'currency',
+					join: 'pricing',
+					operator: search.Operator.IS,
+					values: currencyId
+				}));
+			}
+			itemResult = itemResult.run().getRange(0,1);
+			price = itemResult[0].getValue({name:'unitprice',join:'pricing'});
 			log.debug('price',price);
-			itemResult = itemResult.getRange(0,1);
 			price = (isNaN(price))?params.baseprice:price;
 			return {
 				price:price,
@@ -372,7 +565,12 @@ function(search, record, util, runtime) {
 				saleunit:itemResult[0].getValue({name:'saleunit'})
 			};
 		}catch(e){
-			log.error(e.name,e.message);
+			log.error(e.name,e.message + '; params: ' + JSON.stringify(params));
+			return {
+				price: 0,
+				baseprice: 0,
+				saleunit: 0
+			};
 		}
 	}
 	
@@ -449,6 +647,29 @@ function(search, record, util, runtime) {
 		var scriptObj = runtime.getCurrentScript();
 		return userObj.getPermission('LIST_CUSTRECORDENTRY'+rectypeId);
     }
+    
+    /**
+     * @return {Object} JSON
+     * @description This function is used to get the info related to "JE Approval" features under "Accounting Preferences"
+     */
+    function getJEPreferences(){
+    	try{
+    		var jePref = {featureEnabled:false};
+    		var configRecObj = config.load({
+    		    type: config.Type.ACCOUNTING_PREFERENCES
+    		});
+    		
+    		if(configRecObj.getValue('CUSTOMAPPROVALJOURNAL')){ //JOURNAL ENTRIES (under Setup >> Accounting >> PREFERENCES >> Accounting Preferences >> Approval Routing)
+    			jePref = {featureEnabled:configRecObj.getValue('CUSTOMAPPROVALJOURNAL'), featureName:'Approval Routing'};
+    		}else if(configRecObj.getValue('JOURNALAPPROVALS')){ //REQUIRE APPROVALS ON JOURNAL ENTRIES (under Setup >> Accounting >> PREFERENCES >> Accounting Preferences >> General)
+    			jePref = {featureEnabled:configRecObj.getValue('JOURNALAPPROVALS'), featureName:'General'};
+    		}
+    		
+    		return jePref;
+    	}catch(e){
+			log.error(e.name, 'getJEPreferences: '+e.message);
+		}
+    }
 	
     /**
      * @param {String} promID
@@ -481,9 +702,6 @@ function(search, record, util, runtime) {
 					}
 			}
 			calculateEstAllocationsBBOIDraft(objoi);
-
-			//Updating LS Allocation Factors
-			calculateAllocationsLSforDraft(promID);
 			
 			//Need to maintain the same values for "EST. & ACTUAL" if Allocation Type is "Evenly" OR "By % Revenue"
 			if(promAllocType == 3 || promAllocType == 1){
@@ -495,13 +713,98 @@ function(search, record, util, runtime) {
 	}
     
     /**
+     * @function getEstAllocationFactor()
+     * @param {Object} obj
+     * @param {String} obj.promotionId
+     * @param {String} obj.mop
+     * @param {String} obj.estimatedSpend
+     * @param {String} obj.kpiId
+     * @returns {Object}
+     */
+    function getEstAllocationFactor(obj){
+    	try{
+    		var itemCount;
+    		var itemSearch = search.create({
+    			type: 'customrecord_itpm_promoallowance',
+    			filters: [
+    			          ['isinactive', 'is', false], 'and',
+    			          ['custrecord_itpm_all_promotiondeal', 'anyof', obj.promotionId], 'and',
+    			          ['custrecord_itpm_all_mop', 'anyof', obj.mop]
+    			          ],
+    			columns: [
+    			          search.createColumn({
+    			        	  name: 'custrecord_itpm_all_item',
+    			        	  summary: search.Summary.GROUP
+    			          })
+    			          ]
+    		});
+    		itemCount = itemSearch.runPaged().count;
+    		log.debug('module_getEstAllocationFactor', 'itemCount: ' + itemCount);
+    		
+    		var fieldId;
+    		if (obj.mop == 1){	//bill back
+    			fieldId = 'custrecord_itpm_kpi_estimatedspendbb';
+    		} else if (obj.mop == 3) {	//off invoice
+    			fieldId = 'custrecord_itpm_kpi_estimatedspendoi';
+    		}
+    		
+    		var kpiSpendSearch = search.create({
+    			type: 'customrecord_itpm_kpi',
+    			filters: [
+    			          ['isinactive', 'is', false], 'and',
+    			          ['custrecord_itpm_kpi_promotiondeal', 'anyof', obj.promotionId]
+    			          ],
+    			columns: [
+    			          search.createColumn({
+    			        	  name: fieldId,
+    			        	  summary: search.Summary.SUM
+    			          })
+    			          ]
+    		});
+    		var spend = kpiSpendSearch.run().getRange(0,1);
+    		spend = (spend.length == 1) ? spend[0].getValue({name: fieldId, summary: 'SUM'}) : 0;
+    		log.debug('module_getEstAllocationFactor', 'spend: ' + spend);
+    		
+    		if(itemCount == 1){
+    			return {error: false, factor: 1, adjusted: false}
+    		} else {
+    			var mopItems = [];
+    			itemSearch.run().each(function(result){
+    				mopItems.push(result.getValue({name: 'custrecord_itpm_all_item', summary: 'GROUP'}));
+    			});
+    			var kpiSearch = search.create({
+    				type: 'customrecord_itpm_kpi',
+    				filters: [
+    				          ['isinactive', 'is', false], 'and',
+    				          ['custrecord_itpm_kpi_item', 'anyof', mopItems]
+    				          ],
+    				columns: [
+    				          search.createColumn({
+    				        	  name: 'id',
+    				        	  sort: search.Sort.DESC
+    				          })
+    						]
+    			});
+    			var adjustedKpi = kpiSearch.run().getRange(0,1)[0].getValue('id');
+    			log.debug('adjustedKpi', adjustedKpi);
+    			if (spend == 0){
+        			//allocate evenly
+        		} else {
+        			
+        		}
+    		}
+    		
+    	} catch(ex) {
+    		log.error('module_getEstAllocationFactor', ex.name +'; ' + ex.message + JSON.stringify(obj));
+    		return {error: true, factor: 0}
+    	}
+    }
+    /**
      * @param {Object} obj
      */
     function calculateEstAllocationsBBOIDraft(obj){
     	try{
     		log.debug('obj',obj);
-    		
-    		//Fetching Estimated Spend: BB from Promotion record
     		var promSearchObjbb = search.create({
     			type: "customrecord_itpm_promotiondeal",
     			filters: [
@@ -682,6 +985,204 @@ function(search, record, util, runtime) {
     		log.error(e.name, 'calculateEstAllocationsBBOIDraft'+e.message);
     	}
     }
+    
+    /**
+     * @function getActAllocationFactorLS()
+     * @param {Object} obj
+	 * @param {String} obj.promotionId
+	 * @param {String} obj.shipStart
+	 * @param {String} obj.shipEnd
+	 * @param {String} obj.orderStart
+	 * @param {String} obj.orderEnd
+	 * @param {String} obj.customerId,
+	 * @param {String} obj.kpiId,
+	 * @param {String} obj.adjusted
+	 * @returns {Object}
+     */
+    function getActAllocationFactorLS(obj){
+    	try{
+			//1 = Ship Date, 2 = Order Date, 3 = Both, 4 = Either
+			var datePref = getPrefrenceValues().prefDiscountDate; //need to correct spelling
+			var start, end, items = [], kpiItems = [], thisItem, thisFactor, thisRevenue, revenue, totalRevenue;
+			switch (datePref){
+				case '2':
+					start = obj.orderStart;
+					end = obj.orderEnd;
+					break;
+				case '3':
+					start = (Date.parse(obj.shipStart) >= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+					end = (Date.parse(obj.shipEnd) >= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+					break;
+				case '4':
+					start = (Date.parse(obj.shipStart) <= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+					end = (Date.parse(obj.shipEnd) <= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+					break;
+				default: //default use ship dates
+					start = obj.shipStart;
+					end = obj.shipEnd;
+					break;
+			}
+			//get promotion items
+			var itemSearch = search.create({
+				type: 'customrecord_itpm_kpi',
+				filters: [
+				          ['custrecord_itpm_kpi_promotiondeal', 'anyof', obj.promotionId], 'and',
+				          ['isinactive', 'is', 'F']
+				          ],
+				columns: ['id', 'custrecord_itpm_kpi_item']
+			});
+			itemSearch.run().each(function(result){
+				items.push(result.getValue('custrecord_itpm_kpi_item'));
+				if (result.id == obj.kpiId){
+					thisItem = result.getValue('custrecord_itpm_kpi_item');
+				}
+			});
+			//get invoices
+			var invoiceSearch = search.create({
+				type: search.Type.INVOICE,
+				filters: [
+				          ['item', 'anyof', items], 'and',
+				          ['entity', 'anyof', obj.customerId], 'and',
+				          ['trandate', 'within', start, end], 'and',
+				          ['status','anyof',['CustInvc:A','CustInvc:B']],'and',
+				          ['taxline', 'is', false], 'and',
+				          ['cogs','is',false],'and',
+				          ['shipping','is',false],'and',
+				          ['mainline', 'is', false]
+				          ],
+				columns: [
+				          search.createColumn({
+				        	  name: 'item',
+				        	  summary: search.Summary.GROUP
+				          }),
+				          search.createColumn({
+				        	  name: 'amount',
+				        	  summary: search.Summary.SUM
+				          })
+				          ]
+			});
+			invoiceSearch.run().each(function(result){
+				var itemRevenue = result.getValue({name: 'amount', summary: 'SUM'});
+				itemRevenue = (itemRevenue) ? parseFloat(itemRevenue) : 0;
+				totalRevenue += itemRevenue;
+				if (result.getValue({name: 'item', summary: 'GROUP'}) != thisItem){
+					revenue += itemRevenue;
+				} else {
+					thisRevenue = itemRevenue;
+				}
+			});
+			totalRevenue = (totalRevenue) ? totalRevenue : 1;
+			if (obj.adjusted){
+				var sumOtherFactors = revenue / totalRevenue;
+				sumOtherFactors = Math.floor(sumOtherFactors.toFixed(6)*100000)/100000;
+				thisFactor = 1 - sumOtherFactors;
+			} else {
+				thisFactor = thisRevenue / totalRevenue;
+				thisFactor = Math.floor(thisFactor.toFixed(6)*100000)/100000;
+			}
+			return {error: false, factor: thisFactor, adjusted: obj.adjusted};
+		} catch(ex){
+			log.error ('module_getActAllocationFactorLS', ex.name +'; ' + ex.message + '; ' + JSON.stringify(obj));
+			return {error: true, factor: 0, adjusted: obj.adjusted};
+		}
+    }
+    
+    /**
+     * @function getEstAllocationFactorLS()
+     * @param {Object} obj
+     * @param {number} obj.promotionId
+     * @param {Boolean} obj.hasEstQty
+     * @param {number} obj.priceLevel
+     * @param {number} obj.kpiId
+     * @param {number} obj.itemId
+     * @param {string} obj.estQtySearch
+     * @returns {Object} 
+     */
+    function getEstAllocationFactorLS(obj){
+		try{
+			if (!obj.promotionId || typeof(obj.hasEstQty) == undefined || !obj.kpiId || !obj.itemId || !obj.estQtySearch) {
+				throw {
+					name: 'Missing Parameter', 
+					message: 'Missing required parameter. Object should have {promotionId, hasEstQty, priceLevel, kpiId, itemId, estQtySearch}'
+						};
+			}
+			
+			//=============================================================================================
+			var estQtySearch = search.load({
+        		id: obj.estQtySearch
+        	});
+        	estQtySearch.filters.push(search.createFilter({
+            		name: 'custrecord_itpm_estqty_promodeal',
+            		operator: search.Operator.ANYOF,
+            		values: [obj.promotionId]
+            }));
+        	estQtySearch.filters.push(search.createFilter({
+        		name: 'isinactive',
+        		operator: search.Operator.IS,
+        		values: false
+        	}));
+    		var estQuantities = [], thisItem = {item: 0, unit: 0, qty: 0};
+    		estQtySearch.run().each(function(result){
+    			estQuantities.push({
+    				item: result.getValue({name:'custrecord_itpm_estqty_item'}),
+    				unit: result.getValue({name:'custrecord_itpm_estqty_qtyby'}),
+    				qty: result.getValue({name:'custrecord_itpm_estqty_totalqty'})
+    			});
+    			return true;
+    		});
+			//=============================================================================================
+			
+			if(estQuantities.length == 1){ //regardless of hasEstQty
+				return {error: false, factor: 1, adjusted: true};
+			} else if(estQuantities.length > 1){
+				
+				var thisFactor = 0;
+				
+				if (hasEstQty){
+					//ALLOCATE BY ESTIMATED REVENUE
+					var totalEstimatedRevenue = 0, thisEstimatedRevenue = 0;
+					for(var x = 0; x < estQuantities.length; x++){
+						var itemPrice = getImpactPrice({
+							pid: obj.promotionId, 
+							itemid: estQuantities[x].item, 
+							pricelevel: obj.priceLevel, 
+							baseprice: 0
+							});
+			    		var itemUnits = getItemUnits(estQuantities[x].item);
+			    		var estConversion, saleConversion;
+			    		for (var i = 0; i < itemUnits.unitArray.length; i++){
+			    			if (itemUnits.unitArray[i].id == estUnit){
+			    				estConversion = parseFloat(itemUnits.unitArray[i].conversionRate);
+			    			}
+			    			if (itemUnits.unitArray[i].id == itemPrice.saleunit){
+			    				saleConversion = parseFloat(itemUnits.unitArray[i].conversionRate);
+			    			}
+			    		}
+			    		estConversion = (estConversion <= 0) ? 1 : estConversion;
+			    		if (estQuantities[x].item == obj.itemId){
+			    			thisEstimatedRevenue = parseFloat(estQuantities[x].qty) * parseFloat(itemPrice.price) * (saleConversion / estConversion); 
+			    		}
+			    		totalEstimatedRevenue += parseFloat(estQuantities[x].qty) * parseFloat(itemPrice.price) * (saleConversion / estConversion);
+					}
+					
+					log.debug('module_getEstAllocationFactorLS', 'thisEstimatedRevenue : ' + thisEstimatedRevenue +'; '+JSON.stringify(obj));
+					log.debug('module_getEstAllocationFactorLS', 'totalEstimatedRevenue : ' + totalEstimatedRevenue +'; '+JSON.stringify(obj));
+					
+					thisFactor = (thisEstimatedRevenue / totalEstimatedRevenue).toFixed(6);
+					
+				} else {
+					//ALLOCATE EVENLY
+					thisFactor = (1 / estQuantities.length).toFixed(6);
+					log.debug('module_getEstAllocationFactorLS', 'allocatedEvenly : ' + thisFactor +'; '+JSON.stringify(obj));
+				}
+				log.debug('thisFactor', thisFactor + '; ' + JSON.stringify(obj));
+				return {error: false, factor: thisFactor, adjusted: false};
+			}
+		}catch(ex){
+			log.error('module_getEstAllocationFactorLS', ex.name +'; ' + ex.message + '; ' + JSON.stringify(obj));
+			return {error: true, factor: 0, adjusted: false};
+		}
+	}
     
     /**
      * @param {String} promID
@@ -1501,6 +2002,7 @@ function(search, record, util, runtime) {
     	currenciesEnabled:currenciesEnabled,
     	getClassifications:getClassifications,
     	getUserPermission:getUserPermission,
+    	getJEPreferences:getJEPreferences,
     	processAllocationsDraft : processAllocationsDraft,
     	calculateEstAllocationsBBOIDraft : calculateEstAllocationsBBOIDraft,
     	calculateAllocationsLSforDraft : calculateAllocationsLSforDraft,
@@ -1513,6 +2015,10 @@ function(search, record, util, runtime) {
     	kpiSearch : kpiSearch,
     	updateKPI : updateKPI,
     	getInvoiceSearch : getInvoiceSearch,
-    	getOtherItemLiabilitySUM:getOtherItemLiabilitySUM
+    	getOtherItemLiabilitySUM:getOtherItemLiabilitySUM,
+    	hasEstQty : hasEstQty,
+    	getEstAllocationFactorLS : getEstAllocationFactorLS,
+    	getActAllocationFactorLS : getActAllocationFactorLS,
+    	hasSales : hasSales
     };
 });
