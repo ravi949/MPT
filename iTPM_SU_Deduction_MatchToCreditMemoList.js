@@ -43,6 +43,7 @@ function(serverWidget, search, url, redirect, record, runtime, itpm) {
 			{
 				//1. Need to create the JE
                 var subsidiaryExists = itpm.subsidiariesEnabled();
+                var prefObj = itpm.getPrefrenceValues();
 				var creditmemoid = parameters.cm;
               
                 //getting remaining amount from credit memo
@@ -97,6 +98,53 @@ function(serverWidget, search, url, redirect, record, runtime, itpm) {
 					fieldId : 'custbody_itpm_appliedto',
 					value   : deductionid
 				});
+                
+              //Checking the auto approve preference from "iTPM Preferences"
+    			if(prefObj.autoApproveJE){ //force Approving the JE
+    				log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
+    				
+    				//Checking for JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
+    				var prefJE = itpm.getJEPreferences();
+    				
+    				if(prefJE.featureEnabled){
+    					if(prefJE.featureName == 'Approval Routing'){
+    						log.debug('prefJE.featureName', prefJE.featureName);
+    						journalEntry.setValue({
+            					fieldId:'approvalstatus',
+            					value:2
+            				});
+    					}else if(prefJE.featureName == 'General'){
+    						log.debug('prefJE.featureName', prefJE.featureName);
+    						journalEntry.setValue({
+            					fieldId:'approved',
+            					value:true
+            				});
+    					}
+    				}
+    				
+    			}else if(!prefObj.autoApproveJE){ //putting JE under Pending Approval
+    				log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
+    				
+    				//Checking the JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
+    				var prefJE = itpm.getJEPreferences();
+    				
+    				if(prefJE.featureEnabled){
+    					if(prefJE.featureName == 'Approval Routing'){
+    						log.debug('prefJE.featureName', prefJE.featureName);
+    						journalEntry.setValue({
+            					fieldId:'approvalstatus',
+            					value:1
+            				});
+    					}else if(prefJE.featureName == 'General'){
+    						log.debug('prefJE.featureName', prefJE.featureName);
+    						journalEntry.setValue({
+            					fieldId:'approved',
+            					value:false
+            				});
+    					}
+    				}
+    			}
+                
 				//CREDIT LINE
 				journalEntry.selectNewLine({
 					sublistId: 'line'

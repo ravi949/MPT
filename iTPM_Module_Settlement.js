@@ -415,6 +415,7 @@ function(config, record, search, itpm) {
 	 */
 	function setJELines(JELines){
 		try{
+			var prefObj = itpm.getPrefrenceValues();
 			var subsidiaryExists = itpm.subsidiariesEnabled();
 			var journalRecord = record.create({
 				type: record.Type.JOURNAL_ENTRY		
@@ -425,6 +426,52 @@ function(config, record, search, itpm) {
 					fieldId: 'subsidiary',
 					value:JELines[0].subid
 				});
+			}
+			
+			//Checking the auto approve preference from "iTPM Preferences"
+			if(prefObj.autoApproveJE){ //force Approving the JE
+				log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
+				
+				//Checking for JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
+				var prefJE = itpm.getJEPreferences();
+				
+				if(prefJE.featureEnabled){
+					if(prefJE.featureName == 'Approval Routing'){
+						log.debug('prefJE.featureName', prefJE.featureName);
+						journalRecord.setValue({
+        					fieldId:'approvalstatus',
+        					value:2
+        				});
+					}else if(prefJE.featureName == 'General'){
+						log.debug('prefJE.featureName', prefJE.featureName);
+						journalRecord.setValue({
+        					fieldId:'approved',
+        					value:true
+        				});
+					}
+				}
+				
+			}else if(!prefObj.autoApproveJE){ //putting JE under Pending Approval
+				log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
+				
+				//Checking the JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
+				var prefJE = itpm.getJEPreferences();
+				
+				if(prefJE.featureEnabled){
+					if(prefJE.featureName == 'Approval Routing'){
+						log.debug('prefJE.featureName', prefJE.featureName);
+						journalRecord.setValue({
+        					fieldId:'approvalstatus',
+        					value:1
+        				});
+					}else if(prefJE.featureName == 'General'){
+						log.debug('prefJE.featureName', prefJE.featureName);
+						journalRecord.setValue({
+        					fieldId:'approved',
+        					value:false
+        				});
+					}
+				}
 			}
 			
 			journalRecord.setValue({
@@ -649,12 +696,27 @@ function(config, record, search, itpm) {
 		}];
 		
 	}
-	
+	//Returning True/False based on the allowances on the promotion
+	function getAllowanceMOP(pId,mop){
+		return search.create({
+			type:'customrecord_itpm_promotiondeal',
+			columns:['custrecord_itpm_all_promotiondeal.internalid'
+					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item'
+					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop'
+					 ],
+					 filters:[
+						       ['internalid','anyof',pId], 'and', 
+						       ['custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop','anyof', mop], 'and', 
+						       ['custrecord_itpm_all_promotiondeal.isinactive','is','F']
+						     ]
+		}).run().getRange(0,10).length > 0;
+	}
     return {
         createSettlement:createSettlement,
         editSettlement:editSettlement,
         applyToDeduction:applyToDeduction,
-        createReverseJE:createReverseJE
+        createReverseJE:createReverseJE,
+        getAllowanceMOP:getAllowanceMOP
     };
     
 });

@@ -24,7 +24,6 @@ function(search, runtime, record, format, itpm) {
      */
     function getInputData() {
     	try{
-    		//log.debug('GetInputData Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_kpisearch'}));
     		return {
         		type: 'search',
         		id: parseInt(runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_kpisearch'}))
@@ -42,9 +41,8 @@ function(search, runtime, record, format, itpm) {
      */
     function map(context) {
     	try{
-    		//log.debug('MapSummary', context);
         	var line = JSON.parse(context.value).values;
-//        	log.debug('line', line);
+        	log.debug('map_line', JSON.stringify(line));
         	var promotionID = line['internalid'].value,
         		pCondition = line['custrecord_itpm_p_condition'].value,
         		pStatus = line['custrecord_itpm_p_status'].value,
@@ -54,6 +52,8 @@ function(search, runtime, record, format, itpm) {
         		orderStart = line['custrecord_itpm_p_orderstart'],
         		orderEnd = line['custrecord_itpm_p_orderend'],
         		customerId = line['custrecord_itpm_p_customer'].value,
+        		pAllocationType = line['custrecord_itpm_p_allocationtype'].value,
+        		pPriceLevel = line['custrecord_itpm_p_itempricelevel'].value,
         		kpiID = line['internalid.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
         		kpiItemID = line['custrecord_itpm_kpi_item.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
         		kpiUnitID = line['custrecord_itpm_kpi_uom.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'].value,
@@ -64,10 +64,9 @@ function(search, runtime, record, format, itpm) {
         		pTypeID = line['internalid.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeImpactID = line['custrecord_itpm_pt_financialimpact.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeValidMOP = line['custrecord_itpm_pt_validmop.CUSTRECORD_ITPM_P_TYPE'],
+        		pTypeNoActuals = line['custrecord_itpm_pt_dontupdate_lbonactual.CUSTRECORD_ITPM_P_TYPE'],
         		rangeStart = 0, rangeStep = 999, allArray = [];
-        	var estid, estunit, estTotal, estPromoted, estRate, estPercent, ratebb, rateoi, ratenb, estRedemption;
-        	//log.debug('EstQty Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_estqtysearch'}));
-        	//log.debug('Allowances Search', runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_allowancesearch'}));
+        	var estid, estunit, estTotal, estPromoted, estRate, estPercent, ratebb, rateoi, ratenb, estRedemption, kpiEstimatedRevenue;
         	
         	/**** Get EstQty for each KPI ****/
         	var estQtySearch = search.load({
@@ -106,81 +105,102 @@ function(search, runtime, record, format, itpm) {
 				estRateNB = estQuantities[0].getValue({name:'custrecord_itpm_estqty_rateperunitnb'});
 				estRedemption = estQuantities[0].getValue({name:'custrecord_itpm_estqty_redemption'});
     		}
-    		/**** Get Allowances for each MOP ****/
-        	/*
-        	for(var i = 0; i<pTypeValidMOP.length; i++){
-        		rangeStart = 0;
-            	var allowanceSearch = search.load({
-            		id: parseInt(runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_allowancesearch'}))
-            	});
-            	allowanceSearch.filters.push(search.createFilter({
-            		name: 'custrecord_itpm_all_promotiondeal',
-            		operator: search.Operator.ANYOF,
-            		values: [promotionID]
-            	}));
-            	allowanceSearch.filters.push(search.createFilter({
-            		name: 'custrecord_itpm_all_item',
-            		operator: search.Operator.ANYOF,
-            		values: [kpiItemID]
-            	}));
-            	allowanceSearch.filters.push(search.createFilter({
-            		name: 'custrecord_itpm_all_mop',
-            		operator: search.Operator.ANYOF,
-            		values: [pTypeValidMOP[i]]
-            	}));
-            	//log.debug('AllowanceSearch', allowanceSearch);
-            	//log.debug('AllowanceSearch Columns', allowanceSearch.run().columns);
-        		do {
-        			var allowances = allowanceSearch.run().getRange(rangeStart, rangeStart + rangeStep);
-        			for (var j = 0; j < allowances.length; j++) {
-        				allArray.push({
-        					id: allowances[j].getValue({name:'id'}),
-        					mop: allowances[j].getValue({name:'custrecord_itpm_all_mop'}), 
-        					unit: allowances[j].getValue({name:'custrecord_itpm_all_uom'}),
-        					rate: allowances[j].getValue({name:'custrecord_itpm_all_rateperuom'}),
-        					percent: allowances[j].getValue({name:'custrecord_itpm_all_percentperuom'})
-        					});
+    		
+    		//LS Allocation Factor Estimated
+    		var nonZeroQty;
+    		if (parseFloat(estTotal) == 0){
+    			nonZeroQty = itpm.hasEstQty({promotionId: promotionID});
+    			nonZeroQty = nonZeroQty.hasEstQty;
+    		} else {
+    			nonZeroQty = true;
+    		}
+    		
+    		kpiLSAllFactorEST = itpm.getEstAllocationFactorLS({
+    			promotionId: promotionID, 
+    			priceLevel: pPriceLevel,
+    			hasEstQty: nonZeroQty, 
+    			kpiId: kpiID,
+    			itemId: kpiItemID,
+    			estQtySearch: parseInt(runtime.getCurrentScript().getParameter({name:'custscript_itpm_mr_estqtysearch'}))
+    			});
+    		
+    		log.debug('estFactorLS', kpiLSAllFactorEST);
+    		
+    		if(kpiLSAllFactorEST){
+    			kpiLSAllFactorEST = kpiLSAllFactorEST.factor;
+    			kpiLSAllAdjusted = kpiLSAllFactorEST.adjusted;
+    		} else {
+    			kpiLSAllFactorEST = 0;
+    			kpiLSAllAdjusted = false;
+    		}
+    		
+    		//LS Allocation Factor Actual
+    		if (pStatus == '3'){
+    			if (pTypeNoActuals != 'T') {
+    				var saleExists;
+        			saleExists = itpm.hasSales({
+        				promotionId: promotionID,
+        				shipStart: shipStart,
+        				shipEnd: shipEnd,
+        				orderStart: orderStart,
+        				orderEnd: orderEnd,
+        				customerId: customerId
+        			});
+        			if (!saleExists.hasSales){
+        				//use est allocation factor
+        				kpiLSAllFactorActual = kpiLSAllFactorEST;
+        			} else {
+        				kpiLSAllFactorActual = itpm.getActAllocationFactorLS({
+        					promotionId: promotionID,
+        					shipStart: shipStart,
+        					shipEnd: shipEnd,
+        					orderStart: orderStart,
+        					orderEnd: orderEnd,
+        					customerId: customerId,
+        					kpiId: kpiID,
+        					adjusted: kpiLSAllAdjusted
+        				});
+        				kpiLSAllFactorActual = (kpiLSAllFactorActual) ? kpiLSAllFactorActual.factor : 0;
         			}
-        			rangeStart += rangeStep;
-        		} while (util.isArray(allowances) && allowances.length >= rangeStep);
-        	}
-        	*/
-    		//if (allArray.length > 0){
-	    		context.write({
-	    			key:{
-	    				kpi : kpiID,
-	    				lsallfactorest: (kpiLSAllFactorEST)?parseFloat(kpiLSAllFactorEST):0,
-	    				lsallfactoractual: (kpiLSAllFactorActual)?parseFloat(kpiLSAllFactorActual):0,
-	    				lsadjusted: kpiLSAllAdjusted,
-	    				item: kpiItemID,
-	    				unit: kpiUnitID,
-	    				actSpendLS: (kpiActualSpendLS)?parseFloat(kpiActualSpendLS):0,
-	    				pid: promotionID,
-	    				plumpsum:(pLumpSum)?parseFloat(pLumpSum):0,
-	        			customer: customerId,
-	        			ptype: pTypeID, 
-	        			status: pStatus,
-	        			condition: pCondition,
-	        			shipStart: shipStart,
-	        			shipEnd: shipEnd,
-	        			orderStart: orderStart,
-	        			orderEnd: orderEnd
-	    				},
-	    			value:{
-	    				estid : estid,
-	    				estUnit : estUnit,
-	    				estTotal : estTotal,
-	    				estPromoted : estPromoted,
-	    				estRate : estRate,
-	    				estPercent :estPercent,
-	    				estRateBB : estRateBB,
-	    				estRateOI : estRateOI,
-	    				estRateNB : estRateNB,
-	    				estRedemption : estRedemption
-	    				//allowances: allArray
-	    				}
+    			} else {
+    				kpiLSAllFactorActual = kpiLSAllFactorEST;
+    			}
+    		}
+    		
+    		context.write({
+    			key:{
+    				kpi : kpiID,
+    				lsallfactorest: kpiLSAllFactorEST.toString(),
+    				lsallfactoractual: kpiLSAllFactorActual.toString(),
+    				lsadjusted: kpiLSAllAdjusted,
+    				item: kpiItemID,
+    				unit: kpiUnitID,
+    				actSpendLS: (kpiActualSpendLS)?parseFloat(kpiActualSpendLS):0,
+    				pid: promotionID,
+    				plumpsum:(pLumpSum)?parseFloat(pLumpSum):0,
+        			customer: customerId,
+        			ptype: pTypeID, 
+        			status: pStatus,
+        			condition: pCondition,
+        			shipStart: shipStart,
+        			shipEnd: shipEnd,
+        			orderStart: orderStart,
+        			orderEnd: orderEnd,
+        			noActuals: (pTypeNoActuals == 'T')? true:false
+    				},
+    			value:{
+    				estid : estid,
+    				estUnit : estUnit,
+    				estTotal : estTotal,
+    				estPromoted : estPromoted,
+    				estRate : estRate,
+    				estPercent :estPercent,
+    				estRateBB : estRateBB,
+    				estRateOI : estRateOI,
+    				estRateNB : estRateNB,
+    				estRedemption : estRedemption
+    				}
 	    		});
-    		//}
     	} catch(ex) {
     		log.error('Map', ex.name + '; ' + ex.message + '; PromotionID: ' + context.key);
     	}
@@ -195,89 +215,284 @@ function(search, runtime, record, format, itpm) {
     function reduce(context) {
     	try{
         	var key = JSON.parse(context.key);
-        	//log.audit('Reduce_Key', key);
         	var values = JSON.parse(context.values[0]);
-        	//log.audit('Reduce_Values', values);
+        	
         	/**** START CALCULATIONS ****/
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
         	var kpi_promoQty = values.estPromoted;
         	var kpi_actualQty = itpm.getActualQty(key.item, key.customer, key.shipStart, key.shipEnd);
         	log.audit('kpi_actualQty',kpi_actualQty);
         	log.debug('kpi_actualQty', 'IsNumber: ' + util.isNumber(kpi_actualQty.quantity));
+        	
         	kpi_actualQty.quantity = (util.isNumber(kpi_actualQty.quantity))? kpi_actualQty.quantity : 0; 
         	log.debug('kpi_actualQty', kpi_actualQty.quantity);
-        	var estimatedSpend = itpm.getSpend({returnZero: false, quantity: values.estPromoted, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
+        	
+        	var estimatedSpend = itpm.getSpend({
+        		returnZero: false, 
+        		quantity: values.estPromoted, 
+        		rateBB: values.estRateBB, 
+        		rateOI: values.estRateOI, 
+        		rateNB: values.estRateNB
+        		});
+        	
+        	estimatedSpend.ls = parseFloat(key.lsallfactorest)*key.plumpsum;
+        	
         	log.debug('estimatedSpend', estimatedSpend);
+        	
         	var leSpend, actualSpend, expectedLiability, maxLiability, leSpendLS;
+        	
         	switch (key.status) {
 				case '1':	//DRAFT
-					leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;
 					leSpend = estimatedSpend;
 					actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
 					expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
 					maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
 					break;
 				case '2':	//PENDING APPROVAL
-					leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;
 					leSpend = estimatedSpend;
 					actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
 					expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
 					maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
 					break;
 				case '4':	//REJECTED
-					leSpendLS = 0;//
 					leSpend = itpm.getSpend({returnZero: true});				//should return object zero
 					actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
 					expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
 					maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
 					break;
 				case '5':	//VOIDED
-					leSpendLS = 0;//
 					leSpend = itpm.getSpend({returnZero: true});				//should return object zero
 					actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
 					expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
 					maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
 					break;
 				case '3':	//APPROVED
-					if (key.condition == '1'){
-						//condition == Future
-						leSpendLS = (key.plumpsum)?parseFloat(key.plumpsum):0;
+					
+					if (key.condition == '1'){	//condition == Future
+						
 						leSpend = estimatedSpend;
 						actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
 						expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
 						maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
-					} else if (key.condition == '2') {
-						//condition == Active
-						//var leQuantity = (kpi_actualQty.error)? 0 : (parseFloat(values.estPromoted)>=parseFloat(kpi_actualQty.qty))? values.estPromoted : kpi_actualQty.qty;
-						leSpendLS = (key.actSpendLS > estimatedSpendLS)?parseFloat(key.actSpendLS):parseFloat(estimatedSpendLS);
+						expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+					
+					} else if (key.condition == '2') {	//condition == Active
+						
+						var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.quantity;
 						var leQuantity = (parseFloat(values.estPromoted)>=parseFloat(kpi_actualQty.quantity))? values.estPromoted : kpi_actualQty.quantity;
 						log.debug('leQuantity', leQuantity);
-						leSpend = itpm.getSpend({returnZero: false, quantity: leQuantity, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
-						var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.quantity;
-						actualSpend = itpm.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
-						expectedLiability = itpm.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: values.estRedemption});
-						maxLiability = itpm.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
-					} else if (key.condition == '3') {
-						//condition == Completed
-						//var actQty = (kpi_actualQty.error) ? 0 : kpi_actualQty.quantity;
-						leSpendLS = (key.actSpendLS > estimatedSpendLS)?parseFloat(key.actSpendLS):parseFloat(estimatedSpendLS);
+						
+						actualSpend = itpm.getSpend({
+							returnZero: false, 
+							actual: true, 
+							promotionId: key.pid,
+							itemId: key.item,
+							quantity: actQty, 
+							rateBB: values.estRateBB, 
+							rateOI: values.estRateOI, 
+							rateNB: values.estRateNB
+							});
+						
+						if (key.noActuals){	//DON'T USE ACTUALS
+							leSpend = estimatedSpend;
+							
+							expectedLiability = itpm.getLiability({
+								returnZero: false, 
+								quantity: values.estTotal, 
+								rateBB: values.estRateBB, 
+								rateOI: values.estRateOI, 
+								rateNB: values.estRateNB, 
+								redemption: values.estRedemption
+								});
+							
+							maxLiability = itpm.getLiability({
+								returnZero: false, 
+								quantity: values.estTotal, 
+								rateBB: values.estRateBB, 
+								rateOI: values.estRateOI, 
+								rateNB: values.estRateNB, 
+								redemption: '100%'
+								});
+						} else {	//USE ACTUALS
+							expectedLiability = itpm.getLiability({
+								returnZero: false, 
+								quantity: actQty, 
+								rateBB: values.estRateBB, 
+								rateOI: values.estRateOI, 
+								rateNB: values.estRateNB, 
+								redemption: values.estRedemption
+								});
+							
+							maxLiability = itpm.getLiability({
+								returnZero: false, 
+								quantity: actQty, 
+								rateBB: values.estRateBB, 
+								rateOI: values.estRateOI, 
+								rateNB: values.estRateNB, 
+								redemption: '100%'
+								});
+							
+							if (!estimatedSpend.error && !expectedLiability.error && !actualSpend.error){
+								leSpend = {
+									error: false,
+									bb: (estimatedSpend.bb > expectedLiability.bb) ? estimatedSpend.bb : expectedLiability.bb,
+									oi: (estimatedSpend.oi > expectedLiability.oi) ? estimatedSpend.oi : expectedLiability.oi,
+									nb: (estimatedSpend.nb > expectedLiability.nb) ? estimatedSpend.nb : expectedLiability.nb,
+									ls: (estimatedSpend.ls > actualSpend.ls) ? estimatedSpend.ls : actualSpend.ls
+								};
+							} else {
+								leSpend = {
+									error: true,
+									spend: 0,
+									bb: 0,
+									oi: 0,
+									nb: 0,
+									ls: 0
+								};
+							}
+						}
+						expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+						
+					} else if (key.condition == '3') {	//condition == Completed
+												
 						var actQty = kpi_actualQty.quantity;
 						log.debug('actQty', actQty);
-						leSpend = itpm.getSpend({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
-						actualSpend = itpm.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
-						expectedLiability = itpm.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: values.estRedemption});
-						maxLiability = itpm.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
+						
+						actualSpend = itpm.getSpend({
+							returnZero: false, 
+							actual: true, 
+							promotionId: key.pid,
+							itemId: key.item, 
+							quantity: actQty, 
+							rateBB: values.estRateBB, 
+							rateOI: values.estRateOI, 
+							rateNB: values.estRateNB
+							});
+						
+						if (key.noActuals){
+							expectedLiability = itpm.getLiability({
+								returnZero: false, 
+								quantity: values.estTotal, 
+								rateBB: values.estRateBB, 
+								rateOI: values.estRateOI, 
+								rateNB: values.estRateNB, 
+								redemption: values.estRedemption
+								});
+							
+							maxLiability = itpm.getLiability({
+								returnZero: false, 
+								quantity: values.estTotal, 
+								rateBB: values.estRateBB, 
+								rateOI: values.estRateOI, 
+								rateNB: values.estRateNB, 
+								redemption: '100%'
+								});
+						} else {
+							expectedLiability = itpm.getLiability({
+								returnZero: false, 
+								quantity: actQty, 
+								rateBB: values.estRateBB, 
+								rateOI: values.estRateOI, 
+								rateNB: values.estRateNB, 
+								redemption: values.estRedemption
+								});
+							
+							maxLiability = itpm.getLiability({
+								returnZero: false, 
+								quantity: actQty, 
+								rateBB: values.estRateBB, 
+								rateOI: values.estRateOI, 
+								rateNB: values.estRateNB, 
+								redemption: '100%'
+								});
+						}
+						
+						expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+						
+						leSpend = {
+								error: false,
+								spend: 0,
+								bb: 0,
+								oi: 0,
+								nb: 0,
+								ls: 0
+							};
+						
+						if (!actualSpend.error){
+							leSpend.oi = actualSpend.oi;
+							leSpend.nb = actualSpend.nb;
+							
+							if (!estimatedSpend.error){
+								leSpend.ls = (actualSpend.ls > estimatedSpend.ls) ? actualSpend.ls : estimatedSpend.ls;
+							} else {
+								leSpend.error = true;
+							}
+							
+							if (!expectedLiability.error){
+								leSpend.bb = (actualSpend.bb > expectedLiability.bb) ? actualSpend.bb : expectedLiability.bb;
+							} else {
+								leSpend.error = true;
+							}
+						} else {
+							leSpend.error = true;
+						}
 					}
 					break;
 				case '6':	//CLOSED
 					var actQty = kpi_actualQty.quantity;
-					leSpend = itpm.getSpend({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB});
-					actualSpend = itpm.getSpend({returnZero: false, quantity: actQty, rateBB: '0', rateOI: values.estRateOI, rateNB: values.estRateNB});
-					expectedLiability = itpm.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: values.estRedemption});
-					maxLiability = itpm.getLiability({returnZero: false, quantity: actQty, rateBB: values.estRateBB, rateOI: values.estRateOI, rateNB: values.estRateNB, redemption: '100%'});
-					if (key.condition == '3') {
-						//condition == Completed
-						leSpendLS = (key.actSpendLS)?parseFloat(key.actSpendLS):0;
+					leSpendLS = (key.actSpendLS)?parseFloat(key.actSpendLS):0;
+					
+					actualSpend = itpm.getSpend({
+						returnZero: false, 
+						actual: true, 
+						promotionId: key.pid,
+						itemId: key.item, 
+						quantity: actQty, 
+						rateBB: values.estRateBB, 
+						rateOI: values.estRateOI, 
+						rateNB: values.estRateNB
+						});
+					
+					leSpend = actualSpend;
+					
+					if (key.noActuals){
+						expectedLiability = itpm.getLiability({
+							returnZero: false, 
+							quantity: values.estTotal, 
+							rateBB: values.estRateBB, 
+							rateOI: values.estRateOI, 
+							rateNB: values.estRateNB, 
+							redemption: values.estRedemption
+							});
+						
+						maxLiability = itpm.getLiability({
+							returnZero: false, 
+							quantity: values.estTotal, 
+							rateBB: values.estRateBB, 
+							rateOI: values.estRateOI, 
+							rateNB: values.estRateNB, 
+							redemption: '100%'
+							});
+						expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+					} else {
+						expectedLiability = itpm.getLiability({
+							returnZero: false, 
+							quantity: actQty, 
+							rateBB: values.estRateBB, 
+							rateOI: values.estRateOI, 
+							rateNB: values.estRateNB, 
+							redemption: values.estRedemption
+							});
+						
+						maxLiability = itpm.getLiability({
+							returnZero: false, 
+							quantity: actQty, 
+							rateBB: values.estRateBB, 
+							rateOI: values.estRateOI, 
+							rateNB: values.estRateNB, 
+							redemption: '100%'
+							});
+						expectedLiability.ls = maxLiability.ls = parseFloat(key.lsallfactoractual)*plumpsum;
 					}
 					break;
 				default:
@@ -325,23 +540,28 @@ function(search, runtime, record, format, itpm) {
         		values: {
         			'custrecord_itpm_kpi_esttotalqty' : kpi_promoQty,
         			'custrecord_itpm_kpi_actualtotalqty' : kpi_actualQty.quantity,
+        			'custrecord_itpm_kpi_maximumliabilityls' : maxLiability.ls,
         			'custrecord_itpm_kpi_maximumliabilitybb' : maxLiability.bb,
         			'custrecord_itpm_kpi_maximumliabilityoi' : maxLiability.oi,
         			'custrecord_itpm_kpi_maximumliabilitynb' : maxLiability.nb,
+        			'custrecord_itpm_kpi_expectedliabilityls' : expectedLiability.ls,
         			'custrecord_itpm_kpi_expectedliabilitybb' : expectedLiability.bb,
         			'custrecord_itpm_kpi_expectedliabilityoi' : expectedLiability.oi,
         			'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb,
+        			'custrecord_itpm_kpi_estimatedspendls' : estimatedSpend.ls,
         			'custrecord_itpm_kpi_estimatedspendbb' : estimatedSpend.bb,
         			'custrecord_itpm_kpi_estimatedspendoi' : estimatedSpend.oi,
         			'custrecord_itpm_kpi_estimatedspendnb' : estimatedSpend.nb,
+        			'custrecord_itpm_kpi_lespendls' : leSpend.ls,
         			'custrecord_itpm_kpi_lespendbb' : leSpend.bb,
         			'custrecord_itpm_kpi_lespendoi' : leSpend.oi,
         			'custrecord_itpm_kpi_lespendnb' : leSpend.nb,
+        			'custrecord_itpm_kpi_actualspendls' :actualSpend.ls,
         			'custrecord_itpm_kpi_actualspendbb' :actualSpend.bb,
         			'custrecord_itpm_kpi_actualspendoi' :actualSpend.oi,
         			'custrecord_itpm_kpi_actualspendnb' :actualSpend.nb,
-        			'custrecord_itpm_kpi_lastupdatemessage':lastUpdateMsg,
-        			'custrecord_itpm_kpi_lespendls':leSpendLS
+                  	'custrecord_itpm_kpi_factorestls':key.lsallfactorest,
+        			'custrecord_itpm_kpi_lastupdatemessage':lastUpdateMsg
         		},
         		options: {enablesourcing: true, ignoreMandatoryFields: true}
         	});
@@ -351,68 +571,16 @@ function(search, runtime, record, format, itpm) {
         	//====== Logic to calculate Allocation Factors ======
         	//---------------------------------------------------
         	log.debug('====== Allocation Factors Calculations =======');
-        	log.debug('key',key);
-        	log.debug('key.pid',key.pid);
-        	var fieldLookUp = search.lookupFields({
-				type    : 'customrecord_itpm_promotiondeal',
-				id      : key.pid,
-				columns : ['custrecord_itpm_p_status', 'custrecord_itpm_p_allocationtype']
-			});
-
-			promStatus = fieldLookUp.custrecord_itpm_p_status[0].value;
-			promAllocType = fieldLookUp.custrecord_itpm_p_allocationtype[0].value;
-			log.debug('Promotion Status & Allocation type', promStatus+' & '+promAllocType);
-			
-			if(promStatus == 1 || promStatus == 3){  //Draft OR Approved
-				if(promAllocType != 4){  //If not "Manual override"(OR 4)
-					//Calculate Actual Allocation factors Est
-					itpm.processAllocationsDraft(key.pid, promAllocType);
-					if(promStatus == 3){
-						//Calculate Actual Allocation factors Actual
-						itpm.approvedAllocationFactorActual(key.pid);
-					}
-				}
-			}
-			
-			//---------------------------------------------------
-        	//====== Logic to LS Allocations ======
-        	//---------------------------------------------------
-        	//LS Expected Liability and Maximum Liability
-			var kpiLookup = search.lookupFields({
-				type:'customrecord_itpm_kpi',
-				id:key.kpi,
-				columns:['custrecord_itpm_kpi_factorestls','custrecord_itpm_kpi_factoractualls','custrecord_itpm_kpi_adjustedls']
-			});
-			key.lsallfactorest = parseFloat(kpiLookup["custrecord_itpm_kpi_factorestls"]);
-			key.lsallfactoractual = parseFloat(kpiLookup["custrecord_itpm_kpi_factoractualls"]);
-			key.lsadjusted = kpiLookup["custrecord_itpm_kpi_adjustedls"];
-        	var expectedLiabilityLS = 0,maxLiabilityLS = 0;
-        	var estimatedSpendLS = parseFloat(key.lsallfactorest) * parseFloat(key.plumpsum);
-        	if(key.status == 3 || key.status == 7){
-    			if(key.condition == 3 || key.condition == 2){
-    				if(!key.lsadjusted){
-    					expectedLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactorest);
-    					maxLiabilityLS = parseFloat(key.plumpsum) * parseFloat(key.lsallfactoractual);
-    				}else{
-    					expectedLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_expectedliabilityls');
-    					maxLiabilityLS = parseFloat(key.plumpsum) - itpm.getOtherItemLiabilitySUM(key.pid,key.item,'custrecord_itpm_kpi_maximumliabilityls');
-    				}
-    				expectedLiabilityLS = (key.plumpsum == 0)?0:expectedLiabilityLS;
-    				maxLiabilityLS = (key.plumpsum == 0)?0:maxLiabilityLS;
-    	        	var kpiUpdated = record.submitFields({
-    	        		type: 'customrecord_itpm_kpi',
-    	        		id: key.kpi,
-    	        		values: {
-    	        			'custrecord_itpm_kpi_maximumliabilityls' : maxLiabilityLS,
-    	        			'custrecord_itpm_kpi_expectedliabilityls' : expectedLiabilityLS,
-    	        			'custrecord_itpm_kpi_estimatedspendls' : estimatedSpendLS
-    	        		},
-    	        		options: {enablesourcing: true, ignoreMandatoryFields: true}
-    	        	});
-    			}
-    		}
-        	log.debug('LS values',"LS MaximumLib "+maxLiabilityLS+" LS ExpectedLib "+expectedLiabilityLS);
-			
+        	
+        	if (key.pAllocationType != 4) {
+        		if (key.status == 1){
+        			itpm.processAllocationsDraft(key.pid, key.pAllocationType);
+        		} else if (key.status == 3){
+        			itpm.processAllocationsDraft(key.pid, key.pAllocationType);
+        			itpm.approvedAllocationFactorActual(key.pid);
+        		}
+        	}
+        	
     	} catch(ex) {
     		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}

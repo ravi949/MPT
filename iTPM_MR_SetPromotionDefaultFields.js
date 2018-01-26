@@ -22,18 +22,19 @@ function(record, search) {
      */
     function getInputData() {
     	try{
+          log.debug('getInputData', 'Initiated');
     		return search.create({
     			 type: "customrecord_itpm_promotiondeal",
     			   filters: [
-    			      ["custrecord_itpm_p_lsallocation","anyof","@NONE@"], 
+    			      ["custrecord_itpm_p_allocationtype","anyof","@NONE@"], 
     			      "AND", 
     			      ["isinactive","is","F"]
     			   ],
     			   columns: ["id", "custrecord_itpm_p_status"]
-			})
+			});
     		
     	}catch(e){
-    		log.error(e.name+'  getInputData',e.message);
+    		log.error('getInputData_'+e.name, e.message);
     	}
     }
 
@@ -46,7 +47,7 @@ function(record, search) {
     function map(context) {
     	try{
     		var serResult = JSON.parse(context.value);
-    		log.debug('  serResult',serResult);
+    		log.debug('mapContextValue',serResult);
     		var promoID = serResult.values.id;
     		var promoStatus = serResult.values.custrecord_itpm_p_status.value;
 //    		log.debug('  promoID',promoID);
