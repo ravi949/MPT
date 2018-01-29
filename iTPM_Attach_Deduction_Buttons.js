@@ -25,20 +25,34 @@ function(url, https, message) {
 		}
 	}
 	
-	function iTPMsplit(id) {
+	
+	function iTPMsplit(id, splitMethod, ddnSplitTypeID) {
 		try{
-			var msg = displayMessage('info','Splitting Deduction','Please wait while you are redirected to the split deduction screen.');
-			msg.show();
-			var suiteletUrl = url.resolveScript({
-				scriptId:'customscript_itpm_ddn_createeditsuitelet',
-				deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
-				params:{fid:id,from:'ddn',type:'create'}
-			});
+			switch(splitMethod){
+			case "DEFAULT":
+				var msg = displayMessage('info','Splitting Deduction','Please wait while you are redirected to the split deduction screen.');
+				msg.show();
+				var suiteletUrl = url.resolveScript({
+					scriptId:'customscript_itpm_ddn_createeditsuitelet',
+					deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
+					params:{fid:id,from:'ddn',type:'create'}
+				});
+				break;
+			case "CSV":
+				break;
+			case "QUICK":
+				var suiteletUrl = url.resolveTaskLink({
+					id:'EDIT_CUST_'+ddnSplitTypeID,
+					params:{ddn:id}
+				});
+				break;
+			}
 			window.open(suiteletUrl, '_self');
 		} catch(ex) {
 			console.log(ex.name,'function name = iTPMsplit, message'+ex.message);
 		}
 	}
+	
 	
 	function iTPMexpense(id) {
 		try{
