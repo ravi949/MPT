@@ -207,18 +207,18 @@ function(record, search, runtime, itpm) {
     				var factorBB = 1;
     				var factorOI = 1;
     				var lineAmount = 0;
-    				var kpiAdjustedItemBB = 0;
-    				var kpiAdjustedItemOI = 0;
+//    				var kpiAdjustedItemBB = 0;
+//    				var kpiAdjustedItemOI = 0;
     				//Getting KPI values for relative item on Allowances
     				for(var i = 0; i< kpilength; i++){
     					var kpiItem = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'});
     					
-    					if(promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_adjustedbb'})){
-    						kpiAdjustedItemBB = kpiItem;
-    					}
-    					if(promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_adjsutedoi'})){
-    						kpiAdjustedItemOI = kpiItem;
-    					}
+//    					if(promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_adjustedbb'})){
+//    						kpiAdjustedItemBB = kpiItem;
+//    					}
+//    					if(promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_adjsutedoi'})){
+//    						kpiAdjustedItemOI = kpiItem;
+//    					}
     					if(allValues.item == kpiItem){
     						if(promoHasShippments){
     							factorBB = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualbb'});
@@ -246,7 +246,7 @@ function(record, search, runtime, itpm) {
     					log.audit('--BB AMOUNT--'+key.setId, billbackSetReq * factorBB * allValues.contribution);
     					lineAmount = (billbackSetReq * parseFloat(factorBB) * parseFloat(allValues.contribution)).toFixed(2);
     					tempAmountBB += parseFloat(lineAmount);
-    					if(lineAmount > 0 || allValues.item == kpiAdjustedItemBB){
+    					if(lineAmount > 0 ){ //|| allValues.item == kpiAdjustedItemBB){
     						bbLines.push({ lineType:'bb',
         						id:'2',
         						item:allValues.item,
@@ -254,7 +254,7 @@ function(record, search, runtime, itpm) {
         						type:'debit',
         						memo:setlmemo,
         						amount:parseFloat(lineAmount),
-        						adjustItem:kpiAdjustedItemBB,
+//        						adjustItem:kpiAdjustedItemBB,
         						adjustmemo:adjustSetlmemo,
         						allocationFactor:factorBB
         					});
@@ -263,7 +263,7 @@ function(record, search, runtime, itpm) {
     				}else if(allMOP == 3 && offinvoiceSetReq > 0){
     					lineAmount = (offinvoiceSetReq * parseFloat(factorOI) * parseFloat(allValues.contribution)).toFixed(2);
     					tempAmountOI += parseFloat(lineAmount);
-    					if(lineAmount > 0 || allValues.item == kpiAdjustedItemOI){
+    					if(lineAmount > 0 ){//|| allValues.item == kpiAdjustedItemOI){
     						oiLines.push({ lineType:'inv',
     							id:'3',
     							item:allValues.item,
@@ -271,7 +271,7 @@ function(record, search, runtime, itpm) {
     							type:'debit',
     							memo:setlmemo,
     							amount: parseFloat(lineAmount),
-    							adjustItem:kpiAdjustedItemOI,
+//    							adjustItem:kpiAdjustedItemOI,
         						adjustmemo:adjustSetlmemo,
         						allocationFactor:factorOI
     						});
@@ -303,7 +303,7 @@ function(record, search, runtime, itpm) {
     							 +promoLineSearchForKPI[i].getText({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'})
     						     +" on Promotion "+promoLineSearchForKPI[i].getValue('name'),
     						amount:parseFloat(lsLineAmount),
-    						adjustItem:(kpiIsAdjust)?kpisitem:0,
+//    						adjustItem:(kpiIsAdjust)?kpisitem:0,
             				adjustmemo:'',
             				allocationFactor:parseFloat(factorLs)
     					});
@@ -312,25 +312,27 @@ function(record, search, runtime, itpm) {
     		}
 
     		//Adjusting the line Values
-    		var lsLinesLength = lsLines.length;
-    		var bblinesLength = bbLines.length;
-    		var oiLinesLength = oiLines.length;
+    		var lsLinesLength = lsLines.length-1;
+    		var bblinesLength = bbLines.length-1;
+    		var oiLinesLength = oiLines.length-1;
     		if(lsLinesLength > 0){//LS line amount adjusting   
-    			for(var i = 0; i< lsLinesLength; i++){
-    				if(lsLines[i].adjustItem == lsLines[i].item && lumsumSetReq != tempAmountLS){
+//    			for(var i = 0; i< lsLinesLength; i++){
+//    				if(lsLines[i].adjustItem == lsLines[i].item && lumsumSetReq != tempAmountLS){
+    				if(lumsumSetReq != tempAmountLS){
 //    					log.audit(key.setId+' lsLines[i].isAdjust item '+lsLines[i].item,lsLines[i].adjustItem+'  tempAmountBB: '+tempAmountLS+' billbackSetReq: '+lumsumSetReq);
-    					tempAmountLS = parseFloat(tempAmountLS) - parseFloat(lsLines[i].amount);
-    					var lsmemo = lsLines[i].memo;
-    					lsLines[i].amount = (lumsumSetReq - tempAmountLS).toFixed(2);
-    					lsLines[i].memo = 'Adjusted '+lsmemo;
-    					tempAmountLS = parseFloat(tempAmountLS) + parseFloat(lsLines[i].amount);
+    					tempAmountLS = parseFloat(tempAmountLS) - parseFloat(lsLines[lsLinesLength].amount);
+    					var lsmemo = lsLines[lsLinesLength].memo;
+    					lsLines[lsLinesLength].amount = (lumsumSetReq - tempAmountLS).toFixed(2);
+    					lsLines[lsLinesLength].memo = 'Adjusted '+lsmemo;
+    					tempAmountLS = parseFloat(tempAmountLS) + parseFloat(lsLines[lsLinesLength].amount);
     				}
-    			}
+//    			}
     		}
     		if(bblinesLength > 0){//LS line amount adjusting  
-    			for(var i = 0; i < bblinesLength; i++){ 
+    			for(var i = 0; i <= bblinesLength; i++){ 
 					var bbmemo = bbLines[i].memo;
-    				if(bbLines[i].adjustItem == bbLines[i].item && billbackSetReq != tempAmountBB){  
+//    				if(bbLines[i].adjustItem == bbLines[i].item && billbackSetReq != tempAmountBB){
+					if(billbackSetReq != tempAmountBB && i == bblinesLength){
 //    					log.audit(key.setId+' bbLines[i].isAdjust item '+bbLines[i].item,bbLines[i].adjustItem+'  tempAmountBB: '+tempAmountBB+' billbackSetReq: '+billbackSetReq);
     					tempAmountBB = parseFloat(tempAmountBB) - parseFloat(bbLines[i].amount);
     					bbLines[i].amount = (billbackSetReq - tempAmountBB).toFixed(2);
@@ -342,9 +344,10 @@ function(record, search, runtime, itpm) {
     			}
     		}
     		if(oiLinesLength > 0){//LS line amount adjusting  
-    			for(var i = 0; i< oiLinesLength; i++){
+    			for(var i = 0; i<= oiLinesLength; i++){
 					var oimemo = oiLines[i].memo;
-    				if(oiLines[i].adjustItem == oiLines[i].item && offinvoiceSetReq != tempAmountOI){
+//    				if(oiLines[i].adjustItem == oiLines[i].item && offinvoiceSetReq != tempAmountOI){
+					if(offinvoiceSetReq != tempAmountOI && i == oiLinesLength){
 //    					log.audit(key.setId+' bbLines[i].isAdjust item '+oiLines[i].item,oiLines[i].adjustItem+'  tempAmountBB: '+tempAmountOI+' billbackSetReq: '+offinvoiceSetReq);
     					tempAmountOI = parseFloat(tempAmountOI) - parseFloat(oiLines[i].amount);
     					oiLines[i].amount = (offinvoiceSetReq - tempAmountOI).toFixed(2);
@@ -365,7 +368,7 @@ function(record, search, runtime, itpm) {
     				type:'credit',
     				memo:setCreditMemo,
     				amount:lumsumSetReq,
-    				adjustItem:0,
+//    				adjustItem:0,
 					adjustmemo:'',
 					allocationFactor:0
     			});
@@ -380,7 +383,7 @@ function(record, search, runtime, itpm) {
     				type:'credit',
     				memo:setCreditMemo,
     				amount:billbackSetReq,
-    				adjustItem:0,
+//    				adjustItem:0,
 					adjustmemo:'',
 					allocationFactor:0
     			});
@@ -395,7 +398,7 @@ function(record, search, runtime, itpm) {
     				type:'credit',
     				memo:setCreditMemo,
     				amount:offinvoiceSetReq,
-    				adjustItem:0,
+//    				adjustItem:0,
 					adjustmemo:'',
 					allocationFactor:0
     			});
