@@ -994,6 +994,16 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						ignoreMandatoryFields : true
 					}
 				});
+				//setting the original deduction field value
+				var deductionCreatedRec = record.load({
+					type: 'customtransaction_itpm_deduction',
+					id  : deductionId
+				});
+
+				deductionId = deductionCreatedRec.setValue({
+					fieldId:'custbody_itpm_ddn_originalddn',
+					value:deductionId
+				}).save({enableSourcing:false,ignoreMandatoryFields:true});
 			}
 			
 			//creating the other deduction record when click the split
