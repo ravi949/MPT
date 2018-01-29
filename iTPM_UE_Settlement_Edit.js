@@ -95,11 +95,14 @@ function(redirect,runtime,search,ST_Module) {
     					throw {error:'custom',message:" Promotion: "+promoDealRec['name']+" Lump sum should be greater than Zero"};
     				}
     			}
-    			if(lumsumSetReq <= 0 && billbackSetReq <= 0){
-    				throw {error:'custom',message:"Lump Sum AND Bill Back Either of the fields can individually be zero, but not both"};
-    			}else if(settlementReq <= 0 && offInvSetReq <= 0){
+//    			if(lumsumSetReq <= 0 && billbackSetReq <= 0){
+//    				throw {error:'custom',message:"Lump Sum AND Bill Back Either of the fields can individually be zero, but not both"};
+//    			}else if(settlementReq <= 0 && offInvSetReq <= 0){
+//    				throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
+//    			} 
+    			if(lumsumSetReq <= 0 && billbackSetReq <= 0&& offInvSetReq <= 0){
     				throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
-    			} 
+    			}
     			if(!promoHasAllOI){
 					if(offInvSetReq > 0){
 						throw {error:'custom',message:"Off invoice request value should be zero"};
