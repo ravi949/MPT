@@ -6,10 +6,11 @@ define(['N/search',
 		'N/record', 
 		'N/util',
 		'N/runtime',
-		'N/config'
+		'N/config',
+		'N/redirect'
 		],
 
-function(search, record, util, runtime, config) {
+function(search, record, util, runtime, config, redirect) {
 	
 	/**
 	 * @function hasSales()
@@ -1985,6 +1986,182 @@ function(search, record, util, runtime, config) {
     	return parseFloat(kpiSearch[0].getValue({name:fieldId,summary:search.Summary.SUM}));
     }
     
+    /**
+	 * @param {String} customer
+	 * @param {String} deductionOpenBal
+	 * @param {String} jeamount
+	 * @param {String} journalId
+	 * @param {String} creditmemoid
+	 * @param {String} dedid
+	 * @param {Boolean} locationExists
+	 * @param {Boolean} classExists
+	 * @param {Boolean} departmentExists
+	 * 
+	 * @returns
+	 * 
+	 * @description This function is used to apply the credit memo from a deduction. 
+	 *              Functionality: Match To Credit Memo from a Deduction.
+	 *              Used Scripts:  iTPM_SU_Deduction_MatchToCreditMemoList.js, iTPM_UE_Journal_Entry_Process.js
+	 */
+	function applyCreditMemo(customer, deductionOpenBal, jeamount, journalId, creditmemoid, dedid, locationExists, classExists, departmentExists){
+		try{
+			//Applying Credit memo on JE(created for Deduction) through customer payment
+			var paymentId = createCustomerPayment(customer, journalId, creditmemoid, locationExists, classExists, departmentExists);
+			log.debug('Customer Payment ',paymentId);
+			
+			//getting credit memo status
+			var cmLookup = search.lookupFields({
+				type    : search.Type.CREDIT_MEMO,
+				id      : creditmemoid,
+				columns : ['status']
+			});
+			log.debug('CM Status', cmLookup.status[0].text);
+			
+			//Validate and deduct credit memo applied amount from 
+			if(cmLookup.status[0].text == 'Fully Applied'){
+				//Decrease and set the open balance amount on Deduction
+				var ddnOpenBal = parseFloat(deductionOpenBal)-parseFloat(jeamount);
+				log.debug('ddnOpenBal',ddnOpenBal);
+				
+				DedRecId = record.submitFields({
+					type    : 'customtransaction_itpm_deduction',
+					id      : dedid,
+					values  : {'custbody_itpm_ddn_openbal' : ddnOpenBal},
+					options : {enableSourcing: true, ignoreMandatoryFields: true}
+				});
+				log.debug('Decreasing the open balance from deduction after applying the same amount on Credit Memo',DedRecId);
+				
+				//Setting iTPM JE Applied status into Processed
+				jeRecId = record.submitFields({
+					type    : record.Type.JOURNAL_ENTRY,
+					id      : journalId,
+					values  : {'custbody_itpm_je_applied_status' : 'Processed'},
+					options : {enableSourcing: true, ignoreMandatoryFields: true}
+				});
+				log.debug('setting iTPM JE Applied Status',jeRecId);
+				
+				//Redirect To Deduction
+				redirect.toRecord({
+					type : 'customtransaction_itpm_deduction',
+					id : DedRecId					
+				});
+			}
+		}catch(e){
+			log.error(e.name, 'applyCreditMemo'+e.message);
+		}
+	}
+    
+	/**
+	 * @param {String} customer
+	 * @param {String} journalId
+	 * @param {String} creditmemoid
+	 * @param {Boolean} locationExists
+	 * @param {Boolean} classExists
+	 * @param {Boolean} departmentExists
+	 * 
+	 * @returns
+	 * 
+	 * @description This function is used to apply the credit memo from a deduction. 
+	 *              Functionality: Match To Credit Memo from a Deduction.
+	 *              Used Scripts:  iTPM_SU_Deduction_MatchToCreditMemoList.js, iTPM_UE_Journal_Entry_Process.js
+	 */
+	function createCustomerPayment(customer, journalId, creditmemoid, locationExists, classExists, departmentExists){
+		try{
+			//getting location, class and department
+			var cmLookup = search.lookupFields({
+				type    : search.Type.CREDIT_MEMO,
+				id      : creditmemoid,
+				columns : ['location', 'class', 'department']
+			});
+			
+			var customerTransformRec = record.transform({
+				fromType: record.Type.CUSTOMER,
+				fromId: customer,
+				toType: record.Type.CUSTOMER_PAYMENT
+			});
+
+			if(classExists && cmLookup.class.length > 0){
+				customerTransformRec.setValue({
+					fieldId:'class',
+					value:cmLookup.class[0].value
+				});
+			}
+			
+			if(locationExists && cmLookup.location.length > 0){
+				customerTransformRec.setValue({
+					fieldId:'location',
+					value:cmLookup.location[0].value
+				});
+			}
+			
+			if(departmentExists && cmLookup.department.length > 0){
+				customerTransformRec.setValue({
+					fieldId:'department',
+					value:cmLookup.department[0].value
+				});
+			}
+			
+			for(var j=0; j < customerTransformRec.getLineCount('apply');j++){
+				var type = customerTransformRec.getSublistValue({
+					sublistId: 'apply',
+					fieldId: 'trantype',
+					line: j
+				}); 
+				if(type == 'Journal'){
+					var jeId = customerTransformRec.getSublistValue({
+						sublistId: 'apply',
+						fieldId: 'internalid',
+						line: j
+					});
+
+					if(journalId == jeId){
+						log.debug('jeid @ '+j, jeId);
+						customerTransformRec.setSublistValue({
+							sublistId: 'apply',
+							fieldId: 'apply',
+							line: j,
+							value: true
+						});
+					}
+				}
+			}
+
+			for(var c =0; c < customerTransformRec.getLineCount('credit');c++){
+				var type = customerTransformRec.getSublistValue({
+					sublistId: 'credit',
+					fieldId: 'trantype',
+					line: c
+				}); 
+
+				if(type == 'CustCred'){
+					var cmId = customerTransformRec.getSublistValue({
+						sublistId: 'credit',
+						fieldId: 'internalid',
+						line: c
+					});
+
+					if(creditmemoid == cmId){
+						log.debug('cmid @ '+c, cmId);
+						customerTransformRec.setSublistValue({
+							sublistId: 'credit',
+							fieldId: 'apply',
+							line: c,
+							value: true
+						});
+
+					}
+				}
+			}
+			
+			var paymentId = customerTransformRec.save({
+				enableSourcing: false,
+				ignoreMandatoryFields: true
+			});
+			log.debug('customerTransformRec(paymentId)',paymentId);
+		}catch(e){
+			log.error(e.name, 'createCustomerPayment'+e.message);
+		}
+	}
     
     return {
     	getItemUnits : getItemUnits,
@@ -2019,6 +2196,8 @@ function(search, record, util, runtime, config) {
     	hasEstQty : hasEstQty,
     	getEstAllocationFactorLS : getEstAllocationFactorLS,
     	getActAllocationFactorLS : getActAllocationFactorLS,
-    	hasSales : hasSales
+    	hasSales : hasSales,
+    	applyCreditMemo : applyCreditMemo,
+    	createCustomerPayment : createCustomerPayment
     };
 });
