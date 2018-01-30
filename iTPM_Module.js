@@ -2005,6 +2005,15 @@ function(search, record, util, runtime, config, redirect) {
 	 */
 	function applyCreditMemo(customer, deductionOpenBal, jeamount, journalId, creditmemoid, dedid, locationExists, classExists, departmentExists){
 		try{
+			/*log.audit('applyCreditMemo - customer', customer);
+			log.audit('applyCreditMemo - deductionOpenBal', deductionOpenBal);
+			log.audit('applyCreditMemo - jeamount', jeamount);
+			log.audit('applyCreditMemo - journalId', journalId);
+			log.audit('applyCreditMemo - creditmemoid', creditmemoid);
+			log.audit('applyCreditMemo - dedid', dedid);
+			log.audit('applyCreditMemo - locationExists', locationExists);
+			log.audit('applyCreditMemo - classExists', classExists);
+			log.audit('applyCreditMemo - departmentExists', departmentExists);*/
 			//Applying Credit memo on JE(created for Deduction) through customer payment
 			var paymentId = createCustomerPayment(customer, journalId, creditmemoid, locationExists, classExists, departmentExists);
 			log.debug('Customer Payment ',paymentId);
@@ -2045,6 +2054,12 @@ function(search, record, util, runtime, config, redirect) {
 					type : 'customtransaction_itpm_deduction',
 					id : DedRecId					
 				});
+			}else{
+				//Redirect To Journal Entry
+				redirect.toRecord({
+					type : record.Type.JOURNAL_ENTRY,
+					id : journalId					
+				});
 			}
 		}catch(e){
 			log.error(e.name, 'applyCreditMemo'+e.message);
@@ -2067,6 +2082,12 @@ function(search, record, util, runtime, config, redirect) {
 	 */
 	function createCustomerPayment(customer, journalId, creditmemoid, locationExists, classExists, departmentExists){
 		try{
+			/*log.audit('createCustomerPayment - customer', customer);
+			log.audit('createCustomerPayment - journalId', journalId);
+			log.audit('createCustomerPayment - creditmemoid', creditmemoid);
+			log.audit('createCustomerPayment - locationExists', locationExists);
+			log.audit('createCustomerPayment - classExists', classExists);
+			log.audit('createCustomerPayment - departmentExists', departmentExists);*/
 			//getting location, class and department
 			var cmLookup = search.lookupFields({
 				type    : search.Type.CREDIT_MEMO,
@@ -2107,15 +2128,17 @@ function(search, record, util, runtime, config, redirect) {
 					fieldId: 'trantype',
 					line: j
 				}); 
+				log.audit('createCustomerPayment - type', type);
 				if(type == 'Journal'){
 					var jeId = customerTransformRec.getSublistValue({
 						sublistId: 'apply',
 						fieldId: 'internalid',
 						line: j
 					});
-
+					log.audit('createCustomerPayment - jeId', jeId);
+					
 					if(journalId == jeId){
-						log.debug('jeid @ '+j, jeId);
+						log.audit('jeid @ '+j, jeId);
 						customerTransformRec.setSublistValue({
 							sublistId: 'apply',
 							fieldId: 'apply',

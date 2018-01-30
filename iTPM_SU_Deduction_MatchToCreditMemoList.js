@@ -99,6 +99,7 @@ define(['N/ui/serverWidget',
 					log.debug('cmRecId',cmRecId);
 					
 					if(jeDetails.jeiTPMPref){
+						log.audit('From jeDetails.jeiTPMPref', jeDetails.jeiTPMPref);
 						//Applying Credit Memo
 						itpm.applyCreditMemo(jecustomer, deductionRec.getValue('custbody_itpm_ddn_openbal'), jeamount, jeDetails.jeID, creditmemoid, deductionid, locationExists, classExists, departmentExists);
 					}else{
@@ -109,6 +110,7 @@ define(['N/ui/serverWidget',
 								id : jeDetails.jeID					
 							});
 						}else{
+							log.audit('From jeDetails.jePreference', jeDetails.jePreference);
 							//Applying Credit Memo
 							itpm.applyCreditMemo(jecustomer, deductionRec.getValue('custbody_itpm_ddn_openbal'), jeamount, jeDetails.jeID, creditmemoid, deductionid, locationExists, classExists, departmentExists);
 						}
@@ -186,7 +188,7 @@ define(['N/ui/serverWidget',
 				fieldId : 'memo',
 				value   : jememo
 			});
-
+			
 			//Checking for JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
 			var prefJE = itpm.getJEPreferences();
 			if(prefJE.featureEnabled){

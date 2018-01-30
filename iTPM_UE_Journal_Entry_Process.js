@@ -23,8 +23,7 @@ function(search, record, redirect, itpm) {
     function beforeLoad(scriptContext) {
     	try{
     		log.debug('Before Load: scriptContext.type', scriptContext.type);
-        	
-        	if(scriptContext.type === scriptContext.UserEventType.VIEW){
+    		if(scriptContext.type === scriptContext.UserEventType.VIEW){
         		log.debug('JE Record VIEW: Before Load');
         		var jeNewRecordObj = scriptContext.newRecord;
     			var jeAppliedTo = jeNewRecordObj.getValue({fieldId : 'custbody_itpm_appliedto'});
@@ -98,7 +97,7 @@ function(search, record, redirect, itpm) {
     		log.error(e.name, e.message);
     	}
     }
-   
+    
     /**
      * Function definition to be triggered before record is loaded.
      *
@@ -111,7 +110,6 @@ function(search, record, redirect, itpm) {
     function afterSubmit(scriptContext) {
     	try{
     		log.debug('After Submit: scriptContext.type', scriptContext.type);
-    		
     		if (scriptContext.type === scriptContext.UserEventType.EDIT){
     			log.debug('JE Record was edited');
     			var jeNewRecordObj = scriptContext.newRecord;
