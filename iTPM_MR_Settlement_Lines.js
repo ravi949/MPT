@@ -159,9 +159,6 @@ function(record, search, runtime, itpm) {
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualbb'
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualoi'
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualls'
-    				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_adjustedls'
-    				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_adjustedbb'
-    				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_adjsutedoi'
     				],
     				filters:[
     							['internalid','anyof',key.promoId], 'and', 
@@ -210,7 +207,6 @@ function(record, search, runtime, itpm) {
     				//Getting KPI values for relative item on Allowances
     				for(var i = 0; i< kpilength; i++){
     					var kpiItem = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'});
-    					
     					if(allValues.item == kpiItem){
     						if(promoHasShippments){
     							factorBB = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualbb'});
@@ -274,10 +270,9 @@ function(record, search, runtime, itpm) {
     					factorLs = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factorestls'});
     				}    				
     				var lsLineAmount = (lumsumSetReq * parseFloat(factorLs)).toFixed(2);
-    				var kpiIsAdjust = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_adjustedls'});
     				tempAmountLS += parseFloat(lsLineAmount);
     				var kpisitem = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'});
-    				if(lsLineAmount > 0 || kpiIsAdjust){
+    				if(lsLineAmount > 0){
     					lsLines.push({ 
     						lineType:'ls',
     						id:'1',

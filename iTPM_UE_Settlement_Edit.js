@@ -26,15 +26,26 @@ function(redirect,runtime,search,ST_Module) {
     		var eventType = scriptContext.type,contextType = runtime.executionContext
     		if(contextType == 'USERINTERFACE' && eventType == 'edit'){
     			var settlementRec = scriptContext.newRecord;
-    			redirect.toSuitelet({
-    				scriptId:'customscript_itpm_set_createeditsuitelet',
-    				deploymentId:'customdeploy_itpm_set_createeditsuitelet',
-    				returnExternalUrl: false,
-    				parameters:{sid:settlementRec.id,from:'setrec',type:'edit'}
-    			});
+    			//restrict the user to editing an Processed Settlement 
+    			var setlStatus = settlementRec.getValue('transtatus');
+    			if(setlStatus == 'E'){
+					throw {error:'custom',message:" The settlement is in Processing status, It cannot be Edited"};
+				}else if(setlStatus == 'C'){
+					throw {error:'custom',message:" The settlement is Voided, It cannot be Edited"};
+				}else{
+					redirect.toSuitelet({
+	    				scriptId:'customscript_itpm_set_createeditsuitelet',
+	    				deploymentId:'customdeploy_itpm_set_createeditsuitelet',
+	    				returnExternalUrl: false,
+	    				parameters:{sid:settlementRec.id,from:'setrec',type:'edit'}
+	    			});
+				}    			
     		}
     	}catch (e) {
-    		log.error(e.name,'function name = beforeload, message = '+e.message);
+    		if(e.error == 'custom')
+    			throw e.message;
+    		else
+    			log.error(e.name,'function name = beforeload, message = '+e.message);
     	}
     }
 
@@ -73,11 +84,6 @@ function(redirect,runtime,search,ST_Module) {
 			log.debug('offinvoice',offInvSetReq);
 			
     		if(scriptContext.type == 'edit'){
-    			//restrict the user to editing an Processed Settlement 
-    			var setlStatus = settlementRec.getValue('transtatus');
-    			if(setlStatus == 'E'){
-					throw {error:'custom',message:" The settlement is in Processing status, It cannot be Edited"};
-				}
     			settlementOldRec = scriptContext.oldRecord;
     			//the new record value is less than or equal to old record value for this field. If yes, 
     			//allow record to be saved. If not, return a user error (before user submit) - "The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."
@@ -124,7 +130,7 @@ function(redirect,runtime,search,ST_Module) {
     		}
     	}catch(e){
     		if(e.error == 'custom')
-    			throw Error(JSON.stringify(e));
+    			throw e.message;
     		else
     			log.error(e.name,'function name = beforesubmit, message = '+e.message);
     	}
