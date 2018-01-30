@@ -69,7 +69,7 @@ define(['N/runtime',
 					var ddnSplitRecTypeId = scriptObj.getParameter('custscript_itpm_ddn_split_rectypeid');
 					var btn_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
-						label: 'Split',
+						label: 'Quick Split',
 						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"DEFAULT")'
 					});
 					
@@ -81,8 +81,8 @@ define(['N/runtime',
 					
 					var btn_quick_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
-						label: 'Quick Split',
-						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"QUICK",' + ddnSplitRecTypeId + ')'
+						label: 'Split',
+						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"RECORD",' + ddnSplitRecTypeId + ')'
 					});
 					
 					var btn_invoice = sc.form.addButton({

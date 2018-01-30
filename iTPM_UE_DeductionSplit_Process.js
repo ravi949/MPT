@@ -68,7 +68,7 @@ function(record, runtime, serverWidget) {
     	}catch(ex){
     		log.error(ex.name,ex.message);
     		if(ex.name == 'INVALID STATUS'){
-    			throw new Error(ex.message);
+    			throw Error(ex.message);
     		}
     	}
     }
@@ -127,18 +127,18 @@ function(record, runtime, serverWidget) {
     		if(lineCount > 0 && (totalAmount != parseFloat(openBalance))){
     			throw{
     				name:'INVALID TOTAL',
-    				message:'Sum of line amounts should be greater than zero. less than or equal to Deduction Open balance.'
+    				message:'Sum of line amounts should be equal to Deduction Open balance.'
     			}
     		}
     		
     	}catch(ex){
     		log.error(ex.name,ex.message);
     		if(ex.name == 'ZERO AMOUNT FOUND'){
-    			throw new Error(ex.message);
+    			throw Error(ex.message);
     		}else if(ex.name == 'INVALID TOTAL'){
-    			throw new Error(ex.message);
+    			throw Error(ex.message);
     		}else if(ex.name == 'SINGLE LINE'){
-    			throw new Error(ex.message);
+    			throw Error(ex.message);
     		}
     	}
 

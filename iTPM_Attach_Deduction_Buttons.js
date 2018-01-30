@@ -48,7 +48,7 @@ function(url, https, message) {
 					params:{ddn:id}
 				});
 				break;
-			case "QUICK":
+			case "RECORD":
 				var msg = displayMessage('info','Split Record','Please wait while you are redirected to the split record screen.');
 				msg.show();
 				suiteletUrl = url.resolveTaskLink({

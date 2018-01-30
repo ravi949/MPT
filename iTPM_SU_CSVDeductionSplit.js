@@ -35,13 +35,15 @@ function(file, task, search, serverWidget) {
     	}catch(ex){
     		log.error(ex.name,ex.message);
     		if(ex.name == 'INVALID FILE'){
-    			throw new Error(ex.message);
+    			throw Error(ex.message);
     		}else if(ex.name == 'ZERO AMOUNT FOUND'){
-    			throw new Error(ex.message);
+    			throw Error(ex.message);
     		}else if(ex.name == 'INVALID TOTAL'){
-    			throw new Error(ex.message);
+    			throw Error(ex.message);
     		}else if(ex.name == 'INVALID STATUS'){
-    			throw new Error(ex.message);
+    			throw Error(ex.message);
+    		}else if(ex.name == 'INVALID EXTERNALID'){
+    			throw Error(ex.message);
     		}
     	}
     }
@@ -51,6 +53,8 @@ function(file, task, search, serverWidget) {
      * @param response
      */
     function createCSVSplitForm(request,response){
+    	
+    	//validate the deduction status
     	var ddnStatus = search.lookupFields({
     		type:'customtransaction_itpm_deduction',
     		id:request.parameters.ddn,
@@ -69,11 +73,11 @@ function(file, task, search, serverWidget) {
     	    title : 'Simple Form'
     	});
     	
-    	var fileField = form.addField({
+    	form.addField({
     	    id : 'custom_itpm_splitupload',
     	    type : serverWidget.FieldType.FILE,
     	    label : 'Upload CSV File'
-    	});
+    	}).isMandatory = true;
     	
     	form.addField({
     		id : 'custom_itpm_ddnsplit',
@@ -100,6 +104,7 @@ function(file, task, search, serverWidget) {
     	var fileName = fileObj.name.split('.');
     	log.debug('fileName',fileObj);
     	log.debug('parameters',request.parameters);
+    	
     	//If file format is not CSV it will return the error to the user.
     	if(fileName[fileName.length - 1] != 'csv'){
     		throw{
@@ -126,6 +131,15 @@ function(file, task, search, serverWidget) {
 		
 		//Loop through the lines and validate the lines
 		csvToJsonArr.forEach(function(e){
+			//validate the Deduction#
+			if(e["Deduction#"] != '- iTPM Deduction #'+ddnLookup['tranid']){
+				throw{
+					name:'INVALID EXTERNALID',
+					message:'Invalid Deduction#.'
+				}
+			}
+			
+			//validate the iTPM Amount 
 			if(parseFloat(e["iTPM Amount"]) < 0){
 				throw{
 					name:'ZERO AMOUNT FOUND',
@@ -139,9 +153,12 @@ function(file, task, search, serverWidget) {
 		if(totalAmount != openBalance){
 			throw{
 				name:'INVALID TOTAL',
-				message:'Sum of line amounts should be less than or equal to Deduction Open balance.'
+				message:'Sum of line amounts should be equal to Deduction Open balance.'
 			}
 		}
+		
+		var fileId = fileObj.save();
+		log.debug('fileId',fileId);
     }
     
     
