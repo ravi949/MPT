@@ -73,6 +73,11 @@ function(redirect,runtime,search,ST_Module) {
 			log.debug('offinvoice',offInvSetReq);
 			
     		if(scriptContext.type == 'edit'){
+    			//restrict the user to editing an Processed Settlement 
+    			var setlStatus = settlementRec.getValue('transtatus');
+    			if(setlStatus == 'E'){
+					throw {error:'custom',message:" The settlement is in Processing status, It cannot be Edited"};
+				}
     			settlementOldRec = scriptContext.oldRecord;
     			//the new record value is less than or equal to old record value for this field. If yes, 
     			//allow record to be saved. If not, return a user error (before user submit) - "The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."
@@ -101,7 +106,7 @@ function(redirect,runtime,search,ST_Module) {
 //    				throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
 //    			} 
     			if(lumsumSetReq <= 0 && billbackSetReq <= 0&& offInvSetReq <= 0){
-    				throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
+    				throw {error:'custom',message:"Atleast any one settlement request value MUST be greater than zero"}
     			}
     			if(!promoHasAllOI){
 					if(offInvSetReq > 0){
