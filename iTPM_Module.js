@@ -439,8 +439,7 @@ function(search, record, util, runtime, config, redirect) {
 						 'custrecord_itpm_pref_discountdates',
 						 'custrecord_itpm_pref_defaultalltype',
 						 'custrecord_itpm_pref_defaultpricelevel',
-						 'custrecord_itpm_pref_remvcust_frmsplit',
-						 'custrecord_itpm_pref_je_autoapprove'
+						 'custrecord_itpm_pref_remvcust_frmsplit'
 						],
 				filters:[]
 			}).run().each(function(e){
@@ -451,8 +450,7 @@ function(search, record, util, runtime, config, redirect) {
 						prefDiscountDate: e.getText('custrecord_itpm_pref_discountdates'),
 						defaultAllwType: e.getValue('custrecord_itpm_pref_defaultalltype'),
 						defaultPriceLevel:e.getValue('custrecord_itpm_pref_defaultpricelevel'),
-						removeCustomer: e.getValue('custrecord_itpm_pref_remvcust_frmsplit'),
-						autoApproveJE: e.getValue('custrecord_itpm_pref_je_autoapprove')
+						removeCustomer: e.getValue('custrecord_itpm_pref_remvcust_frmsplit')
 				}
 			})
 			return prefObj;

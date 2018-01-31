@@ -46,7 +46,6 @@ define(['N/ui/serverWidget',
 				var locationExists = itpm.locationsEnabled();
 				var classExists = itpm.classesEnabled();
 				var departmentExists = itpm.departmentsEnabled();
-				var prefObj = itpm.getPrefrenceValues();
 				var creditmemoid = parameters.cm;
 
 				//getting remaining amount from credit memo
@@ -84,7 +83,7 @@ define(['N/ui/serverWidget',
 
 				if (cmAccount) jedebitaccount = cmAccount[0].getValue({name:'account'});
 
-				var jeDetails = createJERecord(subsidiaryExists, jesubsidiary, deductionid, prefObj, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid);
+				var jeDetails = createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid);
 				
 				if (jeDetails.jeID){
 					//Set iTPM Applied To field on Credit Memo
@@ -98,22 +97,16 @@ define(['N/ui/serverWidget',
 		        	});
 					log.debug('cmRecId',cmRecId);
 					
-					if(jeDetails.jeiTPMPref){
-						log.audit('From jeDetails.jeiTPMPref', jeDetails.jeiTPMPref);
+					if(jeDetails.jePreference){
+						//Redirect To Journal Entry
+						redirect.toRecord({
+							type : record.Type.JOURNAL_ENTRY,
+							id : jeDetails.jeID					
+						});
+					}else{
+						log.audit('From jeDetails.jePreference', jeDetails.jePreference);
 						//Applying Credit Memo
 						itpm.applyCreditMemo(jecustomer, deductionRec.getValue('custbody_itpm_ddn_openbal'), jeamount, jeDetails.jeID, creditmemoid, deductionid, locationExists, classExists, departmentExists);
-					}else{
-						if(jeDetails.jePreference){
-							//Redirect To Journal Entry
-							redirect.toRecord({
-								type : record.Type.JOURNAL_ENTRY,
-								id : jeDetails.jeID					
-							});
-						}else{
-							log.audit('From jeDetails.jePreference', jeDetails.jePreference);
-							//Applying Credit Memo
-							itpm.applyCreditMemo(jecustomer, deductionRec.getValue('custbody_itpm_ddn_openbal'), jeamount, jeDetails.jeID, creditmemoid, deductionid, locationExists, classExists, departmentExists);
-						}
 					}
 				} else {
 					throw {
@@ -143,7 +136,6 @@ define(['N/ui/serverWidget',
 	 * @param {Boolean} subsidiaryExists
 	 * @param {String} jesubsidiary
 	 * @param {String} deductionid
-	 * @param {Object} prefObj
 	 * @param {String} jecreditaccount
 	 * @param {String} jeamount
 	 * @param {String} jememo
@@ -154,7 +146,7 @@ define(['N/ui/serverWidget',
 	 * 
 	 * @description This function is used to create a Journal Entry record
 	 */
-	function createJERecord(subsidiaryExists, jesubsidiary, deductionid, prefObj, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid){
+	function createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid){
 		try{
 			var jedetails = {};
 
@@ -193,18 +185,16 @@ define(['N/ui/serverWidget',
 			var prefJE = itpm.getJEPreferences();
 			if(prefJE.featureEnabled){
 				if(prefJE.featureName == 'Approval Routing'){
-					log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
 					log.debug('prefJE.featureName', prefJE.featureName);
 					journalEntry.setValue({
 						fieldId:'approvalstatus',
-						value:(prefObj.autoApproveJE)?2:1  //Checking the auto approve preference from "iTPM Preferences"
+						value:1  
 					});
 				}else if(prefJE.featureName == 'General'){
-					log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
 					log.debug('prefJE.featureName', prefJE.featureName);
 					journalEntry.setValue({
 						fieldId:'approved',
-						value:(prefObj.autoApproveJE)?true:false  //Checking the auto approve preference from "iTPM Preferences"
+						value:false  
 					});
 				}
 			}
@@ -262,7 +252,7 @@ define(['N/ui/serverWidget',
 			});
 			
 			if(journalId){
-				jedetails = {jeID:journalId, jeiTPMPref:prefObj.autoApproveJE, jePreference:prefJE.featureEnabled};
+				jedetails = {jeID:journalId, jePreference:prefJE.featureEnabled};
 			}
 			
 			return jedetails;

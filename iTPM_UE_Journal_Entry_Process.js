@@ -34,7 +34,6 @@ function(search, record, redirect, itpm) {
         			var locationExists = itpm.locationsEnabled();
         			var classExists = itpm.classesEnabled();
         			var departmentExists = itpm.departmentsEnabled();
-        			var jeNewRecordObj = scriptContext.newRecord;
         			var prefJE = itpm.getJEPreferences();
         			
         			if(prefJE.featureEnabled && prefJE.featureName == 'General'){
@@ -62,10 +61,10 @@ function(search, record, redirect, itpm) {
         	                var searchObj = search.create({
         					    type: search.Type.TRANSACTION,
         					    columns : ['internalid'],
-        					    filters: [['internalid','anyof', jeAppliedTo],'and',['mainline','is','T']]
+        					    filters: [['internalid','anyof', jeAppliedTo]]
         					});
 
-        					log.debug('iTPM Applied To: Record Type', searchObj.run().getRange(0,2)[0].recordType);
+        					log.debug('iTPM Applied To: Record Type', searchObj.run().getRange(0,1)[0].recordType);
         					
         					if(searchObj.run().getRange(0,1)[0].recordType == 'creditmemo'){
         						log.debug('Credit Memo Processing...');
@@ -138,10 +137,10 @@ function(search, record, redirect, itpm) {
                         	var searchObj = search.create({
         					    type: search.Type.TRANSACTION,
         					    columns : ['internalid'],
-        					    filters: [['internalid','anyof', jeAppliedTo],'and',['mainline','is','T']]
+        					    filters: [['internalid','anyof', jeAppliedTo]]
         					});
 
-        					log.debug('iTPM Applied To: Record Type', searchObj.run().getRange(0,2)[0].recordType);
+        					log.debug('iTPM Applied To: Record Type', searchObj.run().getRange(0,1)[0].recordType);
         					
         					if(searchObj.run().getRange(0,1)[0].recordType == 'creditmemo'){
         						log.debug('Credit Memo Processing...');
