@@ -141,7 +141,7 @@ function(file, search, record, redirect, serverWidget) {
 		//Loop through the lines and validate the lines
 		csvToJsonArr.forEach(function(e){
 			//validate the Deduction#
-			if(e["Deduction ID"] != ddnLookup['tranid']){
+			if(e["Deduction ID"] != '- iTPM Deduction #'+ddnLookup['tranid']){
 				throw{
 					name:'INVALID EXTERNALID',
 					message:'Invalid Deduction#.'
@@ -175,8 +175,11 @@ function(file, search, record, redirect, serverWidget) {
 		var newSplitRecId = record.create({
 			type:'customrecord_itpm_deductionsplit'
 		}).setValue({
+			fieldId:'externalid',
+			value:'- iTPM Deduction #'+ddnLookup['tranid']
+		}).setValue({
 			fieldId:'custrecord_itpm_split_deduction',
-			value:request.parameters.custom_itpm_ddnsplit
+			value:request.parameters.custom_itpm_ddnsplit 
 		}).setValue({
 			fieldId:'custrecord_itpm_split_ddnamount',
 			value:ddnLookup['custbody_itpm_ddn_openbal']
