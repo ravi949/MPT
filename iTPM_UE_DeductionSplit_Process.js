@@ -5,9 +5,10 @@
  */
 define(['N/record',
 		'N/runtime',
+		'N/search',
 		'N/ui/serverWidget'],
 
-function(record, runtime, serverWidget) {
+function(record, runtime, search, serverWidget) {
    
     /**
      * Function definition to be triggered before record is loaded.

@@ -4,16 +4,18 @@
  * @NModuleScope TargetAccount
  */
 define(['N/file', 
-		'N/task',
 		'N/search',
+		'N/record',
+		'N/redirect',
 		'N/ui/serverWidget'],
 /**
  * @param {file} file
- * @param {task} task
  * @param {search} search
+ * @param {record} record
+ * @param {redirect} redirect
  * @param {serverWidget} serverWidget
  */
-function(file, task, search, serverWidget) {
+function(file, search, record, redirect, serverWidget) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -129,10 +131,17 @@ function(file, task, search, serverWidget) {
 		log.debug('csvToJsonArrLength',csvToJsonArrLength);
 		log.debug('csvToJsonArr',csvToJsonArr);
 		
+		if(csvToJsonArr.length <= 1){
+			throw{
+				name:'SINGLE LINE',
+				message:'Please add more than one line.'
+			}
+		}
+		
 		//Loop through the lines and validate the lines
 		csvToJsonArr.forEach(function(e){
 			//validate the Deduction#
-			if(e["Deduction#"] != '- iTPM Deduction #'+ddnLookup['tranid']){
+			if(e["Deduction ID"] != ddnLookup['tranid']){
 				throw{
 					name:'INVALID EXTERNALID',
 					message:'Invalid Deduction#.'
@@ -157,8 +166,46 @@ function(file, task, search, serverWidget) {
 			}
 		}
 		
+		//Save the uploaded csv file into SuiteScripts folder
+		fileObj.folder = '-15';
 		var fileId = fileObj.save();
 		log.debug('fileId',fileId);
+		
+		//Create new deduction split record
+		var newSplitRecId = record.create({
+			type:'customrecord_itpm_deductionsplit'
+		}).setValue({
+			fieldId:'custrecord_itpm_split_deduction',
+			value:request.parameters.custom_itpm_ddnsplit
+		}).setValue({
+			fieldId:'custrecord_itpm_split_ddnamount',
+			value:ddnLookup['custbody_itpm_ddn_openbal']
+		}).setValue({
+			fieldId:'custrecord_itpm_split_ddnopenbal',
+			value:ddnLookup['custbody_itpm_ddn_openbal']
+		}).save({
+			enableSourcing:false,
+			ignoreMandatoryFields:true
+		});
+		
+		//Attach the saved csv file to new split record
+		record.attach({
+		    record: {
+		        type: 'file',
+		        id: fileId
+		    },
+		    to: {
+		        type: 'customrecord_itpm_deductionsplit',
+		        id: newSplitRecId
+		    }
+		});
+		log.debug('newSplitRecId',newSplitRecId);
+		
+		//Redirec to the deduction record
+		redirect.toRecord({
+			type: 'customtransaction_itpm_deduction',
+		    id: request.parameters.custom_itpm_ddnsplit
+		});
     }
     
     
