@@ -82,6 +82,18 @@ function(file, search, record, redirect, serverWidget) {
     	}).isMandatory = true;
     	
     	form.addField({
+    	    id : 'custom_itpm_ddnno',
+    	    type : serverWidget.FieldType.TEXT,
+    	    label : 'Deduction ID'
+    	}).updateDisplayType({
+    	    displayType : serverWidget.FieldDisplayType.INLINE
+    	}).defaultValue = '- iTPM Deduction #'+search.lookupFields({
+    		type:'customtransaction_itpm_deduction',
+    		id:request.parameters.ddn,
+    		columns:['tranid']
+    	})['tranid'];
+    	
+    	form.addField({
     		id : 'custom_itpm_ddnsplit',
     	    type : serverWidget.FieldType.SELECT,
     	    label : 'Split',
