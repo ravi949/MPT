@@ -54,7 +54,7 @@ function(file, task, search, serverWidget) {
      */
     function createCSVSplitForm(request,response){
     	
-    	//validate the deduction status
+    	//Validate the deduction status
     	var ddnStatus = search.lookupFields({
     		type:'customtransaction_itpm_deduction',
     		id:request.parameters.ddn,
@@ -122,7 +122,7 @@ function(file, task, search, serverWidget) {
     	var totalAmount = 0;
     	var openBalance = parseFloat(ddnLookup['custbody_itpm_ddn_openbal']);
     	
-    	//converting the csv to json object
+    	//Converting the csv to json object
 		var csvToJsonArr = new Base64().decode(fileObj.getContents());
 		csvToJsonArr = CSV2JSON(csvToJsonArr);
 		var csvToJsonArrLength = csvToJsonArr.length;
@@ -139,7 +139,7 @@ function(file, task, search, serverWidget) {
 				}
 			}
 			
-			//validate the iTPM Amount 
+			//Validate the iTPM Amount 
 			if(parseFloat(e["iTPM Amount"]) < 0){
 				throw{
 					name:'ZERO AMOUNT FOUND',
@@ -162,7 +162,9 @@ function(file, task, search, serverWidget) {
     }
     
     
-    
+    /**
+     * @description Decode the Base64 code
+     */
     function Base64(){
 		// public method for decoding
 		function decode(input) {
@@ -202,7 +204,11 @@ function(file, task, search, serverWidget) {
 		}
     }
     
- 
+    /**
+     * @param strData
+     * @param strDelimiter
+     * @description converts the csv decoded data into array
+     */
     function CSVToArray(strData, strDelimiter) {
 	    // Check to see if the delimiter is defined. If not,
 	    // then default to comma.
@@ -255,7 +261,11 @@ function(file, task, search, serverWidget) {
 	    log.debug('arrData',arrData)
 	    return arrData.filter(function(e){return e.length > 1});
 	}
-
+    
+    /**
+     * @param csv
+     * @description Converts the csv data into json of array.
+     */
 	function CSV2JSON(csv) {
 	    var array = CSVToArray(csv);
 	    var objArray = [];
