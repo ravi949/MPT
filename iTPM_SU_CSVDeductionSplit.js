@@ -29,11 +29,14 @@ function(file, search, record, redirect, serverWidget) {
     	try{
     		var request = context.request;
     		var response = context.response;
+    		//Methods assign to the json object
     		var objectMethods = {
     				'GET':createCSVSplitForm,
     				'POST':submitCSVSplitForm
     		};
+    		//Invoke the method which was associate to json object
     		objectMethods[request.method](request,response);
+    		
     	}catch(ex){
     		log.error(ex.name,ex.message);
     		if(ex.name == 'INVALID_FILE'){
