@@ -72,8 +72,9 @@ function(record, runtime, search, serverWidget) {
 	 */
     function beforeSubmit(scriptContext) {
     	try{
-    		if(scriptContext.type != 'delete'){
-    			var ddnSplitRec = scriptContext.newRecord;
+    		var ddnSplitRec = scriptContext.newRecord;
+    		var splitProcessCompleted = ddnSplitRec.getValue('custrecord_itpm_ddn_splitprocesscompletd');
+    		if(scriptContext.type != 'delete' && !splitProcessCompleted){
     			var lineAmount = 0,totalAmount = 0;
     			var lineCount = ddnSplitRec.getLineCount('recmachcustrecord_itpm_split');
     			var createFrom = ddnSplitRec.getValue('custrecord_itpm_createfrom');
@@ -109,8 +110,8 @@ function(record, runtime, search, serverWidget) {
     				}
     				totalAmount += parseFloat(lineAmount);
     			}
-
-
+    			
+    			totalAmount = totalAmount.toFixed(2);
     			//if line count > 0 and line total amount is greater than open balance throw error to the user 
     			if(lineCount > 0 && (totalAmount != parseFloat(openBalance))){
     				throw{
@@ -143,7 +144,9 @@ function(record, runtime, search, serverWidget) {
      */
     function afterSubmit(scriptContext) {
     	try{
-    		if(scriptContext.type != 'delete'){
+    		var ddnSplitRec = scriptContext.newRecord;
+    		var splitProcessCompleted = ddnSplitRec.getValue('custrecord_itpm_ddn_splitprocesscompletd');
+    		if(scriptContext.type != 'delete' && !splitProcessCompleted){
     			//changing the split record status
         		record.submitFields({
         			type:'customtransaction_itpm_deduction',

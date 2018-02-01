@@ -438,8 +438,7 @@ function(search, record, util, runtime, config) {
 						 'custrecord_itpm_pref_discountdates',
 						 'custrecord_itpm_pref_defaultalltype',
 						 'custrecord_itpm_pref_defaultpricelevel',
-						 'custrecord_itpm_pref_remvcust_frmsplit',
-						 'custrecord_itpm_pref_je_autoapprove'
+						 'custrecord_itpm_pref_remvcust_frmsplit'
 						],
 				filters:[]
 			}).run().each(function(e){
@@ -450,8 +449,7 @@ function(search, record, util, runtime, config) {
 						prefDiscountDate: e.getText('custrecord_itpm_pref_discountdates'),
 						defaultAllwType: e.getValue('custrecord_itpm_pref_defaultalltype'),
 						defaultPriceLevel:e.getValue('custrecord_itpm_pref_defaultpricelevel'),
-						removeCustomer: e.getValue('custrecord_itpm_pref_remvcust_frmsplit'),
-						autoApproveJE: e.getValue('custrecord_itpm_pref_je_autoapprove')
+						removeCustomer: e.getValue('custrecord_itpm_pref_remvcust_frmsplit')
 				}
 			})
 			return prefObj;
@@ -1993,15 +1991,14 @@ function(search, record, util, runtime, config) {
 	 * @returns {Number} child deduction record id
 	 * @description creating the automated Deduction record 
 	 */
-	function createSplitDeduction(obj){
-		var remainingAmount = obj.amount.toFixed(2);
+	function createSplitDeduction(parentDdnRec,obj){
+		var remainingAmount = parseFloat(obj.amount).toFixed(2);
 
 		//creating the Deduction record for remaining amount
 		var copiedDeductionRec = record.create({
 			type:'customtransaction_itpm_deduction',
 			isDynamic:true
 		});
-		var parentDdnRec = obj.parentRec;
 		var originalDDN = parentDdnRec.getValue('custbody_itpm_ddn_originalddn');
 
 		//setting the applied to and parent deduction values and other main values.
@@ -2034,7 +2031,7 @@ function(search, record, util, runtime, config) {
 			value:parentDdnRec.getValue('custbody_itpm_customer')
 		}).setValue({
 			fieldId:'custbody_itpm_ddn_parentddn',
-			value:(parentDdnRec.getValue('custbody_itpm_ddn_parentddn'))?parentDdnRec.getValue('custbody_itpm_ddn_parentddn') : parentDdnRec.id
+			value:parentDdnRec.id
 		}).setValue({
 			fieldId:'custbody_itpm_appliedto',
 			value:parentDdnRec.id
@@ -2043,7 +2040,7 @@ function(search, record, util, runtime, config) {
 			value:obj.refCode
 		}).setValue({
 			fieldId:'custbody_itpm_ddn_disputed',
-			value:false //when split the deduction if first one checked second set to false
+			value:(obj.ddnDisputed)? obj.ddnDisputed : false //when split the deduction if first one checked second set to false
 		}).setValue({
 			fieldId:'custbody_itpm_amount',
 			value:remainingAmount  //setting the remaining the amount value to the Amount field
@@ -2054,7 +2051,7 @@ function(search, record, util, runtime, config) {
 			fieldId:'memo',
 			value:(obj.memo)?obj.memo : 'Deduction split from Deduction #'+parentDdnRec.getText('tranid')
 		});
-
+		log.debug('obj',obj);
 		//setting the line values to copied deduction record
 		for(var i = 0;i < 2;i++){
 			copiedDeductionRec.selectNewLine({

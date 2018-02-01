@@ -34,15 +34,13 @@ function(record, search, itpm) {
         			'custrecord_itpm_split.custrecord_split_refcode',
         			'custrecord_itpm_split.custrecord_split_disputed',
         			'custrecord_itpm_split.custrecord_split_amount',
-        			'custrecord_itpm_split_deduction.custbody_itpm_ddn_openbal',
         			search.createColumn({
         				name:'internalid',
         				join:'custrecord_itpm_split',
         				sort:search.Sort.ASC
         			})
         		],
-        		filters:[['internalid','is',17],'and',["custrecord_itpm_split.internalid","noneof","@NONE@"],'and',
-        				 ['custrecord_itpm_split_deduction.custbody_itpm_ddn_openbal','greaterthan',0]]
+        		filters:[["custrecord_itpm_split.internalid","noneof","@NONE@"],'and',['custrecord_itpm_ddn_splitprocesscompletd','is',false]]
         	});
     	}catch(ex){
     		log.error('Error in getInputData '+ex.name,ex.message);
@@ -58,21 +56,21 @@ function(record, search, itpm) {
     function map(context) {
     	try{
     		var value = JSON.parse(context.value);
+    		log.debug('value',value);
         	var jsonObj = value["values"];
         	//Dedcution Split record value
         	var ddnSplitRecId = jsonObj["internalid"].value;
         	
         	//Main Deduction record values
         	var ddnId = jsonObj["custrecord_itpm_split_deduction"].value;
-        	var ddnOpenBalance = parseFloat(jsonObj["custrecord_itpm_split_deduction.custbody_itpm_ddn_openbal"]);
         	
         	//Deduction Split Line record values
         	var ddnSplitLineRecId = jsonObj["internalid.custrecord_itpm_split"].value;
-        	var ddnSplitLineRecAmount = parseFloat(jsonObj["custrecord_itpm_split.custrecord_split_amount"]);
+        	var ddnSplitLineRecAmount = parseFloat(jsonObj["custrecord_split_amount.custrecord_itpm_split"]);
         	
-        	var ddnSplitLineMemo = jsonObj['custrecord_itpm_split.custrecord_split_memo'];
-        	var ddnSplitLineRefCode = jsonObj['custrecord_itpm_split.custrecord_split_refcode'];
-        	var ddnDisputed = jsonObj['custrecord_itpm_split.custrecord_split_disputed'];
+        	var ddnSplitLineMemo = jsonObj['custrecord_split_memo.custrecord_itpm_split'];
+        	var ddnSplitLineRefCode = jsonObj['custrecord_split_refcode.custrecord_itpm_split'];
+        	var ddnDisputed = jsonObj['custrecord_split_disputed.custrecord_itpm_split'];
         	
         	log.debug('ddnSplitRecId',ddnSplitRecId);
         	log.debug('ddnId',ddnId);
@@ -83,29 +81,60 @@ function(record, search, itpm) {
         		type:'customtransaction_itpm_deduction',
         		id:ddnId
         	});
+        	var ddnOpenBalance = parseFloat(parentRec.getValue('custbody_itpm_ddn_openbal'));
         	var removeCustFromSplit = itpm.getPrefrenceValues().removeCustomer;
         	var ddnExpenseId = parentRec.getSublistValue({sublistId:'line',fieldId:'account',line:parentRec.getLineCount('line') - 1});
         	
-        	//It will create the auto split deduction
-        	itpm.createSplitDeduction({
-        		parentRec : parentRec,
+        	log.debug('removeCustFromSplit', itpm.getPrefrenceValues());
+        	log.debug('ddnSplitLineRecAmount',ddnSplitLineRecAmount);
+        	log.debug('sadf',{
         		amount : parseFloat(ddnSplitLineRecAmount),
         		ddnExpenseId : ddnExpenseId,
         		removeCustomer : removeCustFromSplit,
         		memo : ddnSplitLineMemo,
         		refCode : ddnSplitLineRefCode,
-        		ddnDisputed : ddnDisputed
+        		ddnDisputed : ddnDisputed == 'T'
+        	});
+        	//It will create the auto split deduction
+        	var splitRecordCreated = itpm.createSplitDeduction(parentRec,{
+        		amount : parseFloat(ddnSplitLineRecAmount),
+        		ddnExpenseId : ddnExpenseId,
+        		removeCustomer : removeCustFromSplit,
+        		memo : ddnSplitLineMemo,
+        		refCode : ddnSplitLineRefCode,
+        		ddnDisputed : ddnDisputed == 'T'
         	});
         	
-        	//loading the parent record again why because parentDeductionRec already save 
-    		//thats why we are loading the record newly	
-    		parentRec.setValue({
-    			fieldId:'custbody_itpm_ddn_openbal',
-    			value: ddnOpenBalance - ddnSplitLineRecAmount
-    		}).save({
-    			enableSourcing: false,
-    			ignoreMandatoryFields : true
-    		});
+        	log.debug('splitRecordCreated',splitRecordCreated);
+        	log.debug('(ddnOpenBalance - ddnSplitLineRecAmount)',(ddnOpenBalance - ddnSplitLineRecAmount))
+        	if(splitRecordCreated){
+        		//loading the parent record again why because parentDeductionRec already save 
+        		//thats why we are loading the record newly	
+        		parentRec.setValue({
+        			fieldId:'custbody_itpm_ddn_openbal',
+        			value: (ddnOpenBalance - ddnSplitLineRecAmount).toFixed(2)
+        		}).setValue({
+        			fieldId:'transtatus',
+        			value:'C'
+        		}).save({
+        			enableSourcing: false,
+        			ignoreMandatoryFields : true
+        		});
+
+        		if((ddnOpenBalance - ddnSplitLineRecAmount) <= 0){
+        			record.submitFields({
+        				type:'customrecord_itpm_deductionsplit',
+        				id:ddnSplitRecId,
+        				values:{
+        					'custrecord_itpm_ddn_splitprocesscompletd':true
+        				},
+        				options:{
+        					enableSourcing:false,
+        					ignoreMandatoryFields:false
+        				}
+        			});
+        		}
+        	}
     	}catch(ex){
     		log.error('Error in Map '+ex.name,ex.message);
     	}

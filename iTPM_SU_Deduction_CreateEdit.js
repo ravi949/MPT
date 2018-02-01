@@ -1003,9 +1003,8 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_ddn_openbal'));
 				var newDdnAmount = parseFloat(amount);
 				if(parentDdnAmount > newDdnAmount){
-					itpm.createSplitDeduction({
-						parentRec : parentRec,
-						amount : parentDdnAmount - newDdnAmount,
+					itpm.createSplitDeduction(parentRec,{
+						amount : (parentDdnAmount - newDdnAmount).toFixed(2),
 						ddnExpenseId : expenseId,
 						removeCustomer : removeCustFromSplit,
 						memo : undefined,
