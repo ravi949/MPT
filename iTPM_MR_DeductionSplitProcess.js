@@ -113,13 +113,13 @@ function(record, search, itpm) {
      * @since 2015.1
      */
     function summarize(summary) {
-
+    	log.debug('summary',summary);
     }
 
     return {
         getInputData: getInputData,
         map: map,
-        reduce: reduce,
+//        reduce: reduce,
         summarize: summarize
     };
     
