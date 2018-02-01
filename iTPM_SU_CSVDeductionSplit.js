@@ -36,15 +36,17 @@ function(file, search, record, redirect, serverWidget) {
     		objectMethods[request.method](request,response);
     	}catch(ex){
     		log.error(ex.name,ex.message);
-    		if(ex.name == 'INVALID FILE'){
+    		if(ex.name == 'INVALID_FILE'){
     			throw Error(ex.message);
-    		}else if(ex.name == 'ZERO AMOUNT FOUND'){
+    		}else if(ex.name == 'ZERO_AMOUNT_FOUND'){
     			throw Error(ex.message);
-    		}else if(ex.name == 'INVALID TOTAL'){
+    		}else if(ex.name == 'INVALID_TOTAL'){
     			throw Error(ex.message);
-    		}else if(ex.name == 'INVALID STATUS'){
+    		}else if(ex.name == 'INVALID_STATUS'){
     			throw Error(ex.message);
-    		}else if(ex.name == 'INVALID EXTERNALID'){
+    		}else if(ex.name == 'INVALID_DEDUCTIONID'){
+    			throw Error(ex.message);
+    		}else if(ex.name == 'LINES_NOT_FOUND'){
     			throw Error(ex.message);
     		}
     	}
@@ -65,7 +67,7 @@ function(file, search, record, redirect, serverWidget) {
     	
     	if(ddnStatus != 'statusA'){
     		throw{
-    			name:'INVALID STATUS',
+    			name:'INVALID_STATUS',
     			message:'Deduction status should be OPEN.'
     		}
     	}
@@ -122,7 +124,7 @@ function(file, search, record, redirect, serverWidget) {
     	//If file format is not CSV it will return the error to the user.
     	if(fileName[fileName.length - 1] != 'csv'){
     		throw{
-    			name:'INVALID FILE',
+    			name:'INVALID_FILE',
     			message:'Please upload valid CSV file.'
     		}
     	}
@@ -145,7 +147,7 @@ function(file, search, record, redirect, serverWidget) {
 		
 		if(csvToJsonArr.length <= 1){
 			throw{
-				name:'SINGLE LINE',
+				name:'LINES_NOT_FOUND',
 				message:'Please add more than one line.'
 			}
 		}
@@ -155,15 +157,15 @@ function(file, search, record, redirect, serverWidget) {
 			//validate the Deduction#
 			if(e["Deduction ID"] != '- iTPM Deduction #'+ddnLookup['tranid']){
 				throw{
-					name:'INVALID EXTERNALID',
-					message:'Invalid Deduction#.'
+					name:'INVALID_DEDUCTIONID',
+					message:'Invalid Deduction ID.'
 				}
 			}
 			
 			//Validate the iTPM Amount 
 			if(parseFloat(e["iTPM Amount"]) < 0){
 				throw{
-					name:'ZERO AMOUNT FOUND',
+					name:'ZERO_AMOUNT_FOUND',
 					message:'Line amount should be greater than zero.'
 				}
 			}
@@ -173,7 +175,7 @@ function(file, search, record, redirect, serverWidget) {
 		//Sum of line amounts is greater than open balance throw error to the user 
 		if(totalAmount != openBalance){
 			throw{
-				name:'INVALID TOTAL',
+				name:'INVALID_TOTAL',
 				message:'Sum of line amounts should be equal to Deduction Open balance.'
 			}
 		}

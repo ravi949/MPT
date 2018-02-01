@@ -34,7 +34,7 @@ function(record, runtime, search, serverWidget) {
             	
             	if(ddnStatus != 'statusA'){
             		throw{
-            			name:'INVALID STATUS',
+            			name:'INVALID_STATUS',
             			message:'Deduction status should be OPEN.'
             		}
             	}
@@ -68,7 +68,7 @@ function(record, runtime, search, serverWidget) {
         	}
     	}catch(ex){
     		log.error(ex.name,ex.message);
-    		if(ex.name == 'INVALID STATUS'){
+    		if(ex.name == 'INVALID_STATUS'){
     			throw Error(ex.message);
     		}
     	}
@@ -94,9 +94,9 @@ function(record, runtime, search, serverWidget) {
     			log.debug('lineCount',lineCount);
 
     			//if line count is equal to 1 than it will return the error to user
-    			if(lineCount == 1){
+    			if(lineCount <= 1){
     				throw{
-    					name:'SINGLE LINE',
+    					name:'LINES_NOT_FOUND',
     					message:'Please add more than one line.'
     				}
     			}
@@ -117,7 +117,7 @@ function(record, runtime, search, serverWidget) {
     				//if line amount is zero it throws the error to the user
     				if(parseFloat(lineAmount) <= 0){
     					throw{
-    						name:'ZERO AMOUNT FOUND',
+    						name:'ZERO_AMOUNT_FOUND',
     						message:'Line amount should be greater than zero.'
     					}
     				}
@@ -128,18 +128,18 @@ function(record, runtime, search, serverWidget) {
     			//if line count > 0 and line total amount is greater than open balance throw error to the user 
     			if(lineCount > 0 && (totalAmount != parseFloat(openBalance))){
     				throw{
-    					name:'INVALID TOTAL',
+    					name:'INVALID_TOTAL',
     					message:'Sum of line amounts should be equal to Deduction Open balance.'
     				}
     			}
     		}
     	}catch(ex){
     		log.error(ex.name,ex.message);
-    		if(ex.name == 'ZERO AMOUNT FOUND'){
+    		if(ex.name == 'ZERO_AMOUNT_FOUND'){
     			throw Error(ex.message);
-    		}else if(ex.name == 'INVALID TOTAL'){
+    		}else if(ex.name == 'INVALID_TOTAL'){
     			throw Error(ex.message);
-    		}else if(ex.name == 'SINGLE LINE'){
+    		}else if(ex.name == 'LINES_NOT_FOUND'){
     			throw Error(ex.message);
     		}
     	}
