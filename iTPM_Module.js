@@ -1986,6 +1986,102 @@ function(search, record, util, runtime, config) {
     }
     
     
+    /**
+	 * @param parentDdnRec
+	 * @param remainingAmount
+	 * @param ddnExpnseAccount
+	 * @returns {Number} child deduction record id
+	 * @description creating the automated Deduction record 
+	 */
+	function createSplitDeduction(parentDdnRec,remainingAmount,ddnExpnseAccount,removeCustFromSplit){
+		remainingAmount = remainingAmount.toFixed(2);
+
+		//creating the Deduction record for remaining amount
+		var copiedDeductionRec = record.create({
+			type:'customtransaction_itpm_deduction'
+		});
+
+		//setting the applied to and parent deduction values and other main values.
+		copiedDeductionRec.setValue({
+			fieldId:'custbody_itpm_ddn_invoice',
+			value:parentDdnRec.getValue('custbody_itpm_ddn_invoice')
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_originalddn',
+			value:parentDdnRec.getValue('custbody_itpm_ddn_originalddn')
+		}).setValue({
+			fieldId:'class',
+			value:parentDdnRec.getValue('class')
+		}).setValue({
+			fieldId:'department',
+			value:parentDdnRec.getValue('department')
+		}).setValue({
+			fieldId:'location',
+			value:parentDdnRec.getValue('location')
+		}).setValue({
+			fieldId:'subsidiary',
+			value:parentDdnRec.getValue('subsidiary')
+		}).setValue({
+			fieldId:'currecny',
+			value:parentDdnRec.getValue('currency')
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_assignedto',
+			value:parentDdnRec.getValue('custbody_itpm_ddn_assignedto')
+		}).setValue({
+			fieldId:'custbody_itpm_customer',
+			value:parentDdnRec.getValue('custbody_itpm_customer')
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_parentddn',
+			value:(parentDdnRec.getValue('custbody_itpm_ddn_parentddn'))?parentDdnRec.getValue('custbody_itpm_ddn_parentddn') : parentDdnRec.id
+		}).setValue({
+			fieldId:'custbody_itpm_appliedto',
+			value:parentDdnRec.id
+		}).setValue({
+			fieldId:'custbody_itpm_otherrefcode',
+			value:''
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_disputed',
+			value:false //when split the deduction if first one checked second set to false
+		}).setValue({
+			fieldId:'custbody_itpm_amount',
+			value:remainingAmount  //setting the remaining the amount value to the Amount field
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_openbal',
+			value:remainingAmount
+		}).setValue({
+			fieldId:'memo',
+			value:'Deduction split from Deduction #'+parentDdnRec.getText('tranid')
+		});
+
+		//setting the line values to copied deduction record
+		for(var i = 0;i < 2;i++){
+			copiedDeductionRec.setSublistValue({
+				sublistId:'line',
+				fieldId:'account',
+				value:ddnExpnseAccount,
+				line:i
+			}).setSublistValue({
+				sublistId:'line',
+				fieldId:(i==0)?'credit':'debit',
+				value:remainingAmount,
+				line:i
+			}).setSublistValue({
+				sublistId:'line',
+				fieldId:'memo',
+				value:'Deduction split from Deduction #'+parentDdnRec.getText('tranid'),
+				line:i
+			}).setSublistValue({
+				sublistId:'line',
+				fieldId:'entity',
+				value:(removeCustFromSplit)?'':parentDdnRec.getValue('custbody_itpm_customer'),
+				line:i
+			});
+		}
+
+		//save the new child deduction record
+		return copiedDeductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});
+	}
+    
+    
     return {
     	getItemUnits : getItemUnits,
     	getActualQty : getActualQty,
@@ -2019,6 +2115,7 @@ function(search, record, util, runtime, config) {
     	hasEstQty : hasEstQty,
     	getEstAllocationFactorLS : getEstAllocationFactorLS,
     	getActAllocationFactorLS : getActAllocationFactorLS,
-    	hasSales : hasSales
+    	hasSales : hasSales,
+    	createSplitDeduction:createSplitDeduction
     };
 });

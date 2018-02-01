@@ -46,25 +46,10 @@ function(record, runtime, search, serverWidget) {
         		    displayType : serverWidget.FieldDisplayType.DISABLED
         		});
         		
-        		
-        		//loading the deduction record
-        		var ddnRec = record.load({
-        			type:'customtransaction_itpm_deduction',
-        			id:params.ddn
-        		});
-        		
-        		//set the deduction values into the deduction split record fields
-        		ddnSplitRec.setValue({
+        		scriptContext.newRecord.setValue({
         			fieldId:'custrecord_itpm_split_deduction',
-        			value:ddnRec.id
-        		}).setValue({
-        			fieldId:'custrecord_itpm_split_ddnamount',
-        			value:ddnRec.getValue('custbody_itpm_amount')
-        		}).setValue({
-        			fieldId:'custrecord_itpm_split_ddnopenbal',
-        			value:ddnRec.getValue('custbody_itpm_ddn_openbal')
-        		});
-        		
+        			value:params.ddn
+        		});       		
         	}
     	}catch(ex){
     		log.error(ex.name,ex.message);
