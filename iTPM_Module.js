@@ -112,8 +112,14 @@ function(search, record, util, runtime, config) {
 				operator: search.Operator.IS,
 				values: 'F'
 			}));
+			pSearch.filters.push(search.createFilter({
+				name: 'custrecord_itpm_estqty_promodeal',
+				operator: search.Operator.ANYOF,
+				values: obj.promotionId
+			}));
 			var results = [];
 			results = pSearch.run().getRange(0,1);
+			log.debug('module_getEstAllocationFactorLS results.length',results.length);
 			if (results.length == 1){
 				return {error: false, hasEstQty: true}
 			} else {
@@ -766,7 +772,7 @@ function(search, record, util, runtime, config) {
     		log.debug('module_getEstAllocationFactor', 'spend: ' + spend);
     		
     		if(itemCount == 1){
-    			return {error: false, factor: 1, adjusted: false}
+    			return {error: false, factor: 1};//, adjusted: false}
     		} else {
     			var mopItems = [];
     			itemSearch.run().each(function(result){
@@ -859,18 +865,17 @@ function(search, record, util, runtime, config) {
         		var itemcount = kpiitemcount_searchObj.runPaged().count;
         		log.debug('KPI Item Count on Promotion', itemcount);
     			
-    			/*if(itemcount == 1){
-    				obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
-    				log.audit('checkbox', obj['kpiValues']);
+    			if(itemcount == 1){
+//    				obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
+    				//log.audit('checkbox', obj['kpiValues']);
     				
     				//Updating the related KPI record
         			var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), obj['kpiValues']);
         			log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
     			}
-    			else if(itemcount > 1){*/
-    			if(itemcount > 1){
+    			else if(itemcount > 1){
     				//var i = itemcount;
-    				var sumallfactors_except_last = 0;
+//    				var sumallfactors_except_last = 0;
     				kpiitemcount_searchObj.run().each(function(result){
     					log.debug('id', result.getValue({name:'id'}));
     					
@@ -891,12 +896,12 @@ function(search, record, util, runtime, config) {
     	        			var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
     	        			log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
     					}else{*/
-    						log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
+//    						log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
     						final_total_eq = (promestspendbb <= 0)?0:(parseFloat((eq/promestspendbb)));
     						obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseInt(final_total_eq.toFixed(6)*100000)/100000;
-    						sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
-    						sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
-    						log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+//    						sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
+//    						sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
+//    						log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
     						
     						//Updating the related KPI record
     	        			var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
@@ -937,16 +942,15 @@ function(search, record, util, runtime, config) {
             		var itemcount = kpiitemcount_searchObj.runPaged().count;
             		log.debug('KPI Item Count on Promotion', itemcount);
 
-    				/*if(itemcount == 1){
-    					obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
+    				if(itemcount == 1){
+    					//obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
     					//Updating the related KPI record
     	    			var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), obj['kpiValues']);
     	    			log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
     				}
-    				else if(itemcount > 1){*/
-            		if(itemcount > 1){
+    				else if(itemcount > 1){
     					//var i = itemcount;
-    					var sumallfactors_except_last = 0;
+    					//var sumallfactors_except_last = 0;
     					
     					kpiitemcount_searchObj.run().each(function(result){
     						log.debug('id', result.getValue({name:'id'}));
@@ -967,9 +971,9 @@ function(search, record, util, runtime, config) {
     		        			
     		        			log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
     						}else{*/
-    							log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
-    							sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+(parseFloat(1/itemcount))).toFixed(5);
-    							log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+    							//log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
+    							//sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+(parseFloat(1/itemcount))).toFixed(5);
+    							//log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
     							obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseFloat(1/itemcount).toFixed(5);
     							
     							//Updating the related KPI record
@@ -1135,12 +1139,12 @@ function(search, record, util, runtime, config) {
 			//=============================================================================================
 			
 			if(estQuantities.length == 1){ //regardless of hasEstQty
-				return {error: false, factor: 1, adjusted: true};
+				return {error: false, factor: 1};//, adjusted: true};
 			} else if(estQuantities.length > 1){
 				
 				var thisFactor = 0;
-				
-				if (hasEstQty){
+				log.debug('module_getEstAllocationFactorLS', 'hasEstQty : '+ obj.hasEstQty);
+				if (obj.hasEstQty){
 					//ALLOCATE BY ESTIMATED REVENUE
 					var totalEstimatedRevenue = 0, thisEstimatedRevenue = 0;
 					for(var x = 0; x < estQuantities.length; x++){
@@ -1161,6 +1165,8 @@ function(search, record, util, runtime, config) {
 			    			}
 			    		}
 			    		estConversion = (estConversion <= 0) ? 1 : estConversion;
+			    		log.debug('module_getEstAllocationFactorLS', 'estConversion : '+estConversion);
+			    		log.debug('module_getEstAllocationFactorLS', 'saleConversion : '+saleConversion);
 			    		if (estQuantities[x].item == obj.itemId){
 			    			thisEstimatedRevenue = parseFloat(estQuantities[x].qty) * parseFloat(itemPrice.price) * (saleConversion / estConversion); 
 			    		}
@@ -1226,7 +1232,7 @@ function(search, record, util, runtime, config) {
 	    		var itemcount = kpiitemcount_searchObj.runPaged().count;
 				log.debug('KPI Item Count on Promotion', itemcount);
 
-				/*if(itemcount == 1){
+				if(itemcount == 1){
 					var objvalueskpi = {
 							kpiValues:{
 								'custrecord_itpm_kpi_factorestls' : 1//,
@@ -1237,10 +1243,9 @@ function(search, record, util, runtime, config) {
 					var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), objvalueskpi['kpiValues']);
 					log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
 				}
-				else if(itemcount > 1){*/
-				if(itemcount > 1){
+				else if(itemcount > 1){
 					//var i = itemcount;
-					var sumallfactors_except_last = 0;
+					//var sumallfactors_except_last = 0;
 					kpiitemcount_searchObj.run().each(function(result){
 						log.debug('id', result.getValue({name:'id'}));
 						
@@ -1283,12 +1288,12 @@ function(search, record, util, runtime, config) {
 							var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
 							log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
 						}else{*/
-							log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
+							//log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
 							final_total_eq = (totalEstimatedRevenue <= 0)?0:(parseFloat((estimatedRevenue/totalEstimatedRevenue)));
 							final_total_eq = parseInt(final_total_eq.toFixed(6)*100000)/100000;
-							sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
-							sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
-							log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+							//sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
+							//sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
+							//log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
 							
 							var objvalueskpi = {
 									kpiValues:{
@@ -1326,10 +1331,10 @@ function(search, record, util, runtime, config) {
 	    		var itemcount = kpiitemcount_searchObj.runPaged().count;
 				log.debug('KPI Item Count on Promotion', itemcount);
 
-				/*if(itemcount == 1){
+				if(itemcount == 1){
 					var objvalueskpi = {
 							kpiValues:{
-								'custrecord_itpm_kpi_factorestls' : //1,
+								'custrecord_itpm_kpi_factorestls' : 1//,
 								//'custrecord_itpm_kpi_adjustedls' : true
 							}
 					}
@@ -1337,10 +1342,9 @@ function(search, record, util, runtime, config) {
 					var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), objvalueskpi['kpiValues']);
 					log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
 				}
-				else if(itemcount > 1){*/
-				if(itemcount > 1){
+				else if(itemcount > 1){
 					//var i = itemcount;
-					var sumallfactors_except_last = 0;
+					//var sumallfactors_except_last = 0;
 					kpiitemcount_searchObj.run().each(function(result){
 						log.debug('id', result.getValue({name:'id'}));
 /*
@@ -1355,9 +1359,9 @@ function(search, record, util, runtime, config) {
 							var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
 							log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
 						}else{*/
-							log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
-							sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+(parseFloat(1/itemcount))).toFixed(5);
-							log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+							//log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
+							//sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+(parseFloat(1/itemcount))).toFixed(5);
+							//log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
 							
 							var objvalueskpi = {
 									kpiValues:{
@@ -1622,15 +1626,14 @@ function(search, record, util, runtime, config) {
 	       }
 			
 
-			/*if(itemcount == 1){
-				obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
+			if(itemcount == 1){
+				//obj['kpiValues'][Object.keys(obj.kpiValues)[1]] = true;
 				
 				//Updating the related KPI record
 				var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), obj['kpiValues']);
 				log.debug('kpiRecUpdate',kpiRecUpdate);
 			}
-			else if(itemcount > 1){*/
-		   if(itemcount > 1){
+			else if(itemcount > 1){
 				//var i = itemcount;
 				var sumallfactors_except_last = 0;
 				kpiitemcount_searchObj.run().each(function(result){
@@ -1654,12 +1657,12 @@ function(search, record, util, runtime, config) {
 						var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
 						log.debug('kpiRecUpdate',kpiRecUpdate);
 					}else{*/
-						log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
+						//log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
 						final_total_eq = (totalexpliability <= 0)?0:(parseFloat((el/totalexpliability)));
 						final_total_eq = parseInt(final_total_eq.toFixed(6)*100000)/100000;
-						sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
-						sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
-						log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+						//sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
+						//sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
+						//log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
 						obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = final_total_eq;
 						
 						//Updating the related KPI record
@@ -1734,7 +1737,7 @@ function(search, record, util, runtime, config) {
 			var itemcount = kpiitemcount_searchObj.runPaged().count;
 			log.debug('KPI Item Count on Promotion', itemcount);
 
-			/*if(itemcount == 1){
+			if(itemcount == 1){
 				var objvalueskpi = {
 						kpiValues:{
 							'custrecord_itpm_kpi_factoractualls' : 1//,
@@ -1745,10 +1748,9 @@ function(search, record, util, runtime, config) {
 				var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), objvalueskpi['kpiValues']);
 				log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
 			}
-			else if(itemcount > 1){*/
-			if(itemcount > 1){
+			else if(itemcount > 1){
 				//var i = itemcount;
-				var sumallfactors_except_last = 0;
+				//var sumallfactors_except_last = 0;
 				kpiitemcount_searchObj.run().each(function(result){
 					log.debug('id', result.getValue({name:'id'}));
 					log.debug('Item ID', result.getValue({name:'custrecord_itpm_kpi_item'}));
@@ -1781,12 +1783,12 @@ function(search, record, util, runtime, config) {
 						var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
 						log.debug('kpiRecUpdate(last item)',kpiRecUpdate);
 					}else{*/
-						log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
+						//log.debug('BEFORE: sumallfactors_except_last', sumallfactors_except_last);
 						final_total_eq = (totalrevenue <= 0)?0:(parseFloat((actualRevenue/totalrevenue)));
 						final_total_eq = parseInt(final_total_eq.toFixed(6)*100000)/100000;
-						sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
-						sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
-						log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
+						//sumallfactors_except_last = (parseFloat(sumallfactors_except_last)+final_total_eq).toFixed(6);
+						//sumallfactors_except_last = parseInt((sumallfactors_except_last*100000))/100000;
+						//log.debug('AFTER: sumallfactors_except_last', sumallfactors_except_last);
 						
 						//Updating the related KPI record
 						var objvalueskpi = {
