@@ -7,15 +7,17 @@ define(['N/file',
 		'N/search',
 		'N/record',
 		'N/redirect',
+		'N/runtime',
 		'N/ui/serverWidget'],
 /**
  * @param {file} file
  * @param {search} search
  * @param {record} record
  * @param {redirect} redirect
+ * @param {runtime} runtime
  * @param {serverWidget} serverWidget
  */
-function(file, search, record, redirect, serverWidget) {
+function(file, search, record, redirect, runtime, serverWidget) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -38,7 +40,7 @@ function(file, search, record, redirect, serverWidget) {
     		objectMethods[request.method](request,response);
     		
     	}catch(ex){
-    		log.error(ex.name,ex.message);
+    		log.error(ex.name,ex);
     		if(ex.name == 'INVALID_FILE'){
     			throw Error(ex.message);
     		}else if(ex.name == 'ZERO_AMOUNT_FOUND'){
@@ -111,6 +113,14 @@ function(file, search, record, redirect, serverWidget) {
     	    label : 'Submit'
     	});
     	
+    	form.addButton({
+    		id : 'custom_itpm_ddnsplitcacel',
+    	    label : 'Cancel',
+    	    functionName:"redirectToBack"
+    	});
+    	
+    	form.clientScriptModulePath =  './iTPM_Attach_Preferences_ClientMethods.js';
+    	
     	response.writePage(form);
     }
     
@@ -123,6 +133,7 @@ function(file, search, record, redirect, serverWidget) {
     	var fileName = fileObj.name.split('.');
     	log.debug('fileName',fileObj);
     	log.debug('parameters',request.parameters);
+    	log.debug('runtime',runtime.getCurrentScript().getRemainingUsage());
     	
     	//If file format is not CSV it will return the error to the user.
     	if(fileName[fileName.length - 1] != 'csv'){
@@ -174,7 +185,9 @@ function(file, search, record, redirect, serverWidget) {
 			}
 			totalAmount += parseFloat(e["iTPM Amount"]);
 		});
-		
+		log.debug('totalAmount',totalAmount);
+		log.debug('openBalance',openBalance);
+		log.debug('end 1 runtime',runtime.getCurrentScript().getRemainingUsage());
 		//Sum of line amounts is greater than open balance throw error to the user 
 		if(totalAmount != openBalance){
 			throw{
@@ -203,6 +216,9 @@ function(file, search, record, redirect, serverWidget) {
 		}).setValue({
 			fieldId:'custrecord_itpm_split_ddnopenbal',
 			value:ddnLookup['custbody_itpm_ddn_openbal']
+		}).setValue({
+			fieldId:'custrecord_itpm_createfrom',
+			value:'CSV_SPLIT'
 		}).save({
 			enableSourcing:false,
 			ignoreMandatoryFields:true
@@ -220,6 +236,7 @@ function(file, search, record, redirect, serverWidget) {
 		    }
 		});
 		log.debug('newSplitRecId',newSplitRecId);
+    	log.debug('end 2 runtime',runtime.getCurrentScript().getRemainingUsage());
 		
 		//Redirec to the deduction record
 		redirect.toRecord({

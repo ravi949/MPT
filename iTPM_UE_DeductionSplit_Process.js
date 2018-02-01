@@ -91,10 +91,11 @@ function(record, runtime, search, serverWidget) {
     			var ddnSplitRec = scriptContext.newRecord;
     			var lineAmount = 0,totalAmount = 0;
     			var lineCount = ddnSplitRec.getLineCount('recmachcustrecord_itpm_split');
+    			var createFrom = ddnSplitRec.getValue('custrecord_itpm_createfrom');
     			log.debug('lineCount',lineCount);
-
-    			//if line count is equal to 1 than it will return the error to user
-    			if(lineCount <= 1){
+    			log.debug('createFrom',createFrom);
+    			//if line count empty or equal to one than we throws the error.
+    			if(createFrom != 'CSV_SPLIT' && lineCount <= 1){
     				throw{
     					name:'LINES_NOT_FOUND',
     					message:'Please add more than one line.'
