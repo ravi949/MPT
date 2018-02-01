@@ -1993,13 +1993,16 @@ function(search, record, util, runtime, config) {
 	 * @returns {Number} child deduction record id
 	 * @description creating the automated Deduction record 
 	 */
-	function createSplitDeduction(parentDdnRec,remainingAmount,ddnExpnseAccount,removeCustFromSplit){
-		remainingAmount = remainingAmount.toFixed(2);
+	function createSplitDeduction(obj){
+		var remainingAmount = obj.amount.toFixed(2);
 
 		//creating the Deduction record for remaining amount
 		var copiedDeductionRec = record.create({
-			type:'customtransaction_itpm_deduction'
+			type:'customtransaction_itpm_deduction',
+			isDynamic:true
 		});
+		var parentDdnRec = obj.parentRec;
+		var originalDDN = parentDdnRec.getValue('custbody_itpm_ddn_originalddn');
 
 		//setting the applied to and parent deduction values and other main values.
 		copiedDeductionRec.setValue({
@@ -2007,7 +2010,10 @@ function(search, record, util, runtime, config) {
 			value:parentDdnRec.getValue('custbody_itpm_ddn_invoice')
 		}).setValue({
 			fieldId:'custbody_itpm_ddn_originalddn',
-			value:parentDdnRec.getValue('custbody_itpm_ddn_originalddn')
+			value:(originalDDN)? originalDDN : parentDdnRec.id
+		}).setValue({
+			fieldId:'subsidiary',
+			value:parentDdnRec.getValue('subsidiary')
 		}).setValue({
 			fieldId:'class',
 			value:parentDdnRec.getValue('class')
@@ -2017,9 +2023,6 @@ function(search, record, util, runtime, config) {
 		}).setValue({
 			fieldId:'location',
 			value:parentDdnRec.getValue('location')
-		}).setValue({
-			fieldId:'subsidiary',
-			value:parentDdnRec.getValue('subsidiary')
 		}).setValue({
 			fieldId:'currecny',
 			value:parentDdnRec.getValue('currency')
@@ -2037,7 +2040,7 @@ function(search, record, util, runtime, config) {
 			value:parentDdnRec.id
 		}).setValue({
 			fieldId:'custbody_itpm_otherrefcode',
-			value:''
+			value:obj.refCode
 		}).setValue({
 			fieldId:'custbody_itpm_ddn_disputed',
 			value:false //when split the deduction if first one checked second set to false
@@ -2049,31 +2052,33 @@ function(search, record, util, runtime, config) {
 			value:remainingAmount
 		}).setValue({
 			fieldId:'memo',
-			value:'Deduction split from Deduction #'+parentDdnRec.getText('tranid')
+			value:(obj.memo)?obj.memo : 'Deduction split from Deduction #'+parentDdnRec.getText('tranid')
 		});
 
 		//setting the line values to copied deduction record
 		for(var i = 0;i < 2;i++){
-			copiedDeductionRec.setSublistValue({
+			copiedDeductionRec.selectNewLine({
+			    sublistId: 'line'
+			});
+			copiedDeductionRec.setCurrentSublistValue({
 				sublistId:'line',
 				fieldId:'account',
-				value:ddnExpnseAccount,
-				line:i
-			}).setSublistValue({
+				value:obj.ddnExpenseId
+			}).setCurrentSublistValue({
 				sublistId:'line',
 				fieldId:(i==0)?'credit':'debit',
-				value:remainingAmount,
-				line:i
-			}).setSublistValue({
+				value:remainingAmount
+			}).setCurrentSublistValue({
 				sublistId:'line',
 				fieldId:'memo',
-				value:'Deduction split from Deduction #'+parentDdnRec.getText('tranid'),
-				line:i
-			}).setSublistValue({
+				value:(obj.memo)?obj.memo : 'Deduction split from Deduction #'+parentDdnRec.getText('tranid')
+			}).setCurrentSublistValue({
 				sublistId:'line',
 				fieldId:'entity',
-				value:(removeCustFromSplit)?'':parentDdnRec.getValue('custbody_itpm_customer'),
-				line:i
+				value:(obj.removeCustomer)?'':parentDdnRec.getValue('custbody_itpm_customer')
+			});
+			copiedDeductionRec.commitLine({
+			    sublistId: 'line'
 			});
 		}
 

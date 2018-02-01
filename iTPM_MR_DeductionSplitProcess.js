@@ -30,6 +30,9 @@ function(record, search, itpm) {
         		columns:[
         			'internalid',
         			'custrecord_itpm_split_deduction',
+        			'custrecord_itpm_split.custrecord_split_memo',
+        			'custrecord_itpm_split.custrecord_split_refcode',
+        			'custrecord_itpm_split.custrecord_split_disputed',
         			'custrecord_itpm_split.custrecord_split_amount',
         			'custrecord_itpm_split_deduction.custbody_itpm_ddn_openbal',
         			search.createColumn({
@@ -67,6 +70,10 @@ function(record, search, itpm) {
         	var ddnSplitLineRecId = jsonObj["internalid.custrecord_itpm_split"].value;
         	var ddnSplitLineRecAmount = parseFloat(jsonObj["custrecord_itpm_split.custrecord_split_amount"]);
         	
+        	var ddnSplitLineMemo = jsonObj['custrecord_itpm_split.custrecord_split_memo'];
+        	var ddnSplitLineRefCode = jsonObj['custrecord_itpm_split.custrecord_split_refcode'];
+        	var ddnDisputed = jsonObj['custrecord_itpm_split.custrecord_split_disputed'];
+        	
         	log.debug('ddnSplitRecId',ddnSplitRecId);
         	log.debug('ddnId',ddnId);
         	log.debug('ddnSplitLineRecId',ddnSplitLineRecId);
@@ -79,7 +86,16 @@ function(record, search, itpm) {
         	var removeCustFromSplit = itpm.getPrefrenceValues().removeCustomer;
         	var ddnExpenseId = parentRec.getSublistValue({sublistId:'line',fieldId:'account',line:parentRec.getLineCount('line') - 1});
         	
-        	itpm.createSplitDeduction(parentRec,ddnSplitLineRecAmount,ddnExpenseId,removeCustFromSplit);
+        	//It will create the auto split deduction
+        	itpm.createSplitDeduction({
+        		parentRec : parentRec,
+        		amount : parseFloat(ddnSplitLineRecAmount),
+        		ddnExpenseId : ddnExpenseId,
+        		removeCustomer : removeCustFromSplit,
+        		memo : ddnSplitLineMemo,
+        		refCode : ddnSplitLineRefCode,
+        		ddnDisputed : ddnDisputed
+        	});
         	
         	//loading the parent record again why because parentDeductionRec already save 
     		//thats why we are loading the record newly	

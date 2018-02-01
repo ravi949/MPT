@@ -1003,7 +1003,15 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_ddn_openbal'));
 				var newDdnAmount = parseFloat(amount);
 				if(parentDdnAmount > newDdnAmount){
-					itpm.createSplitDeduction(parentRec,parentDdnAmount - newDdnAmount,expenseId,removeCustFromSplit);
+					itpm.createSplitDeduction({
+						parentRec : parentRec,
+						amount : parentDdnAmount - newDdnAmount,
+						ddnExpenseId : expenseId,
+						removeCustomer : removeCustFromSplit,
+						memo : undefined,
+						refCode : '',
+						ddnDisputed : ddnDisputed
+					});
 				}
 				
 				//loading the parent record again why because parentDeductionRec already save 
