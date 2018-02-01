@@ -101,7 +101,7 @@ define(['N/runtime',
 				}
 
 				//show button only when user have CREATE or EDIT or FULL permission on -iTPM Settlement Permission custom record
-				if(setPermission >= 2){
+				if(setPermission >= 2 && count == 0){
 					var btn_settlement = sc.form.addButton({
 						id: 'custpage_itpm_settlement',
 						label: 'Settlement',
