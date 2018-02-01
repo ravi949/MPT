@@ -711,6 +711,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 		var invoiceLookup = '';
 		log.debug('createdFrom',createdFrom);
 		log.debug('invoiceno',invoiceno);
+		
 
 		//Fetching tranid's for multiple invoices to set the memo
 		if(userEventType == 'create' && createdFrom != 'ddn'){
@@ -738,7 +739,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 		openbal = params['custom_itpm_ddn_openbal'];
 		followup = params['custom_itpm_ddn_nextaction'];
 		memo = params['custom_itpm_ddn_memo'];
-		status = params['custom_status'];
+		status = params['custom_itpm_ddn_status'];
 		defaultRecvAccnt = params['custom_itpm_ddn_defaultrecvaccnt'];
 		deductionRec = null;
 
