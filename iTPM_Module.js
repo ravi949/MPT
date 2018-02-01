@@ -2006,9 +2006,6 @@ function(search, record, util, runtime, config) {
 			fieldId:'custbody_itpm_ddn_invoice',
 			value:parentDdnRec.getValue('custbody_itpm_ddn_invoice')
 		}).setValue({
-			fieldId:'transtatus',
-			value:'A'
-		}).setValue({
 			fieldId:'custbody_itpm_ddn_originalddn',
 			value:parentDdnRec.getValue('custbody_itpm_ddn_originalddn')
 		}).setValue({
