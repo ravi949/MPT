@@ -152,7 +152,7 @@ function(record, runtime, search, serverWidget) {
         			type:'customtransaction_itpm_deduction',
         			id:scriptContext.newRecord.getValue('custrecord_itpm_split_deduction'),
         			values:{
-        				'transtatus':'F'
+        				'transtatus':'E'
         			},
         			options:{
         				enableSourcing:false,

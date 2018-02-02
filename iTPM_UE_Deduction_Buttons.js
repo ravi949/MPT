@@ -155,7 +155,7 @@ define(['N/runtime',
 					log.debug('OpenBal: ' + openBalance + '; Status: ' + status);
 					openBalance = parseFloat(openBalance);
 					log.debug('Parsed Open Balance', openBalance);
-					if (openBalance > 0 && status != 'A' && status != 'F'){
+					if (openBalance > 0 && status != 'A' && status != 'E'){
 						log.debug('Setting status to OPEN (status Ref A)');
 						sc.newRecord.setValue({
 							fieldId: 'transtatus',
