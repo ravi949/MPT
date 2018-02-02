@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType ScheduledScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  */
 define(['N/file',
 		'N/search', 
