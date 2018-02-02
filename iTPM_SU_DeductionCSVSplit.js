@@ -162,7 +162,7 @@ function(file, search, record, redirect, runtime, serverWidget) {
 		if(csvToJsonArr.length <= 1){
 			throw{
 				name:'LINES_NOT_FOUND',
-				message:'Please add more than one line.'
+				message:'Lines should be more than one.'
 			}
 		}
 		

@@ -84,7 +84,7 @@ function(record, runtime, search, serverWidget) {
     			if(createFrom != 'CSV_SPLIT' && lineCount <= 1){
     				throw{
     					name:'LINES_NOT_FOUND',
-    					message:'Please add more than one line.'
+    					message:'Line should be more than one.'
     				}
     			}
 
