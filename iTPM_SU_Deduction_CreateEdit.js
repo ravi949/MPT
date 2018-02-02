@@ -1002,6 +1002,8 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				var parentRec = record.load({type:'customtransaction_itpm_deduction',id:params['custom_itpm_ddn_parentrecid']});
 				var parentDdnAmount = parseFloat(parentRec.getValue('custbody_itpm_ddn_openbal'));
 				var newDdnAmount = parseFloat(amount);
+				log.debug('openBalance',parentDdnAmount);
+				log.debug('newDdnAmount',newDdnAmount);
 				if(parentDdnAmount > newDdnAmount){
 					itpm.createSplitDeduction(parentRec,{
 						amount : (parentDdnAmount - newDdnAmount).toFixed(2),
