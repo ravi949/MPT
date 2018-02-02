@@ -1009,7 +1009,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						removeCustomer : removeCustFromSplit,
 						memo : undefined,
 						refCode : '',
-						ddnDisputed : ddnDisputed
+						ddnDisputed : false
 					});
 				}
 				
