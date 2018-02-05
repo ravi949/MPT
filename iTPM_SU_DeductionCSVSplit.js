@@ -136,6 +136,7 @@ function(file, search, record, redirect, runtime, serverWidget) {
     	log.debug('fileName',fileObj);
     	log.debug('parameters',request.parameters);
     	log.debug('runtime',runtime.getCurrentScript().getRemainingUsage());
+    	log.debug('encodeing',fileObj.encoding);
     	
     	//If file format is not CSV it will return the error to the user.
     	if(fileName[fileName.length - 1] != 'csv'){
@@ -192,12 +193,18 @@ function(file, search, record, redirect, runtime, serverWidget) {
     	var totalAmount = 0;
     	var openBalance = parseFloat(ddnLookup['custbody_itpm_ddn_openbal']);
     	
-    	//Converting the csv to json object
-		var csvToJsonArr = new Base64().decode(fileObj.getContents());
+    	//Converting the csv to json based on fileType (Actually the file type is given like this MISCBINARY and CSV) object
+    	if(fileObj.fileType == 'MISCBINARY'){
+    		var csvToJsonArr = new Base64().decode(fileObj.getContents());
+    	}else if(fileObj.fileType == 'CSV'){
+    		csvToJsonArr = fileObj.getContents();
+    	}
+		
+		log.debug('before convertions',csvToJsonArr);
 		csvToJsonArr = CSV2JSON(csvToJsonArr);
 		var csvToJsonArrLength = csvToJsonArr.length;
 		log.debug('csvToJsonArrLength',csvToJsonArrLength);
-		log.debug('csvToJsonArr',csvToJsonArr);
+		log.debug('after csvToJsonArr',csvToJsonArr);
 		
 		if(csvToJsonArr.length <= 1){
 			throw{
