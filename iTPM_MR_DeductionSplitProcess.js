@@ -109,19 +109,23 @@ function(record, search, itpm) {
         	log.debug('(ddnOpenBalance - ddnSplitLineRecAmount)',(ddnOpenBalance - ddnSplitLineRecAmount))
         	if(splitRecordCreated){
         		//loading the parent record again why because parentDeductionRec already save 
-        		//thats why we are loading the record newly	
-        		parentRec.setValue({
-        			fieldId:'custbody_itpm_ddn_openbal',
-        			value: (ddnOpenBalance - ddnSplitLineRecAmount).toFixed(2)
-        		}).setValue({
-        			fieldId:'transtatus',
-        			value:'C'
-        		}).save({
-        			enableSourcing: false,
-        			ignoreMandatoryFields : true
-        		});
-
-        		if((ddnOpenBalance - ddnSplitLineRecAmount) <= 0){
+        		//thats why we are loading the record newly
+        		var remainingAmount = (ddnOpenBalance - ddnSplitLineRecAmount).toFixed(2);
+        		if(remainingAmount >= 0){
+        			parentRec.setValue({
+        				fieldId:'custbody_itpm_ddn_openbal',
+        				value: remainingAmount
+        			}).setValue({
+        				fieldId:'transtatus',
+        				value:(remainingAmount == 0)?'C':'E'
+        			}).save({
+        				enableSourcing: false,
+        				ignoreMandatoryFields : true
+        			});
+        		}
+        		
+        		//Set the -iTPM Deduction Split record split process completed if deduction amount is zero
+        		if(remainingAmount <= 0){
         			record.submitFields({
         				type:'customrecord_itpm_deductionsplit',
         				id:ddnSplitRecId,
