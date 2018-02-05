@@ -96,8 +96,10 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     			throw Error(e.message);
     		else if(e.name == "INVALID_AMOUNT")
     			throw Error(e.message);
-    		else
+    		else{
     			log.error(e.name,'record type = -iTPM Settlement, record id = '+JSON.stringify(params)+', message = '+e.message);
+    			throw Error(e.message);
+    		}
     	}
     }
     

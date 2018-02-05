@@ -36,6 +36,12 @@ define(['N/record',
 						message:'This settlement has been voided.'
 					};
 				}
+				if(settlementStatus == 'E'){
+					throw {
+						name:'SETTLEMENT_PROCESSING_STATUS',
+						message:'This settlement is in process, wait for till the process is completed.'
+					};
+				}
 
 				var subsidiaryExists = itpm.subsidiariesEnabled();
 				var currencyExists = itpm.currenciesEnabled();
@@ -249,6 +255,9 @@ define(['N/record',
 		}catch(e){
 			log.error(e.name,'record id = '+context.request.parameters.sid+', message = '+e.message);
 			if(e.name == 'SETTLEMENT_INVALID_STATUS'){
+				throw Error(e.message);
+			}
+			if(e.name == 'SETTLEMENT_PROCESSING_STATUS'){
 				throw Error(e.message);
 			}
 		}
