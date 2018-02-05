@@ -53,6 +53,8 @@ function(file, search, record, redirect, runtime, serverWidget) {
     			throw Error(ex.message);
     		}else if(ex.name == 'LINES_NOT_FOUND'){
     			throw Error(ex.message);
+    		}else if(ex.name == 'MISSING_HEADER'){
+    			throw Error(ex.message);
     		}
     	}
     }
@@ -142,6 +144,44 @@ function(file, search, record, redirect, runtime, serverWidget) {
     			message:'Please upload valid CSV file.'
     		}
     	}
+    	
+    	//validating the headers of the lines
+    	var iterator = fileObj.lines.iterator(),
+    	mainHeaders = ["Deduction ID","iTPM Amount","Split Memo","Split Reference Code","Split Disputed?"];
+		mandatoryFieldsIndexs = [];
+		
+		//headers validation
+		iterator.each(function (e) {
+		  var headers = e.value.split(','),  
+		  lineCount = mainHeaders.length,headerFound = true;
+		  log.debug('headers',headers);
+		  for(var h = 0;h<lineCount;h++){
+			 headerFound = headers.some(function(e){return e == mainHeaders[h]});
+			 if(!headerFound){
+				throw{
+					name:'MISSING_HEADER',
+					message:'Required headers are missing.'
+				}
+			 }else{
+				 switch(mainHeaders[h]){
+				 case "Deduction ID":
+					 mandatoryFieldsIndexs.push({index:headers.indexOf("Deduction ID"),field:"Deduction ID"});break;
+				 case "iTPM Amount":
+					 mandatoryFieldsIndexs.push({index:headers.indexOf("iTPM Amount"),field:"iTPM Amount"});break;
+				 case "Split Memo":
+					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split Memo"),field:"Split Memo"});break;
+				 case "Split Reference Code":
+					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split Reference Code"),field:"Split Reference Code"});break;
+				 case "Split Disputed?":
+					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split Disputed?"),field:"Split Disputed?"});break;
+				 }
+			 }  
+		  }
+		  return false
+		});
+    	
+    	
+		//Loaded deduction record and Convert the csv file into json
     	log.debug('fileObj lines',fileObj.getContents());
     	
     	var ddnLookup = search.lookupFields({
