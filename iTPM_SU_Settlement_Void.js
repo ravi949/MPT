@@ -39,7 +39,7 @@ define(['N/record',
 				if(settlementStatus == 'E'){
 					throw {
 						name:'SETTLEMENT_PROCESSING_STATUS',
-						message:'This settlement is in process, wait for till the process is completed.'
+						message:'This settlement is "In Process", please wait for it to be completed.'
 					};
 				}
 
