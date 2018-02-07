@@ -1534,7 +1534,6 @@ define(['N/search',
 				log.debug('kpiRecUpdate',kpiRecUpdate);
 			}
 			else if(itemcount > 1){
-				var sumallfactors_except_last = 0;
 				kpiitemcount_searchObj.run().each(function(result){
 					log.debug('id', result.getValue({name:'id'}));
 
