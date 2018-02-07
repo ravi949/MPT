@@ -762,7 +762,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				value:amount,
 				ignoreFieldChange:true
 			});
-			
+
 			if(createdFrom == 'ddn'){
 				deductionRec.setValue({
 					fieldId:'custbody_itpm_ddn_parentddn',
@@ -898,15 +898,15 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			log.debug('expenseId',expenseId);
 			
 			if(createdFrom == 'inv'){   //If deduction creating from invoice
-				
+
 				var recievableAccntId = search.lookupFields({
 					type:search.Type.INVOICE,
 					id:params['custom_itpm_ddn_parentrecid'],
 					columns:['internalid','account']
 				})['account'][0].value; //Conflict resolved
-				
+
 				lineMemo = (params['custom_itpm_ddn_multiinv'] == 'yes')?('Deduction applied on Invoices '+invoiceLookup):('Deduction applied on Invoice #'+invoiceLookup);
-				
+
 				if(defaultRecvAccnt == "-10"){
 					defaultRecvAccnt = config.load({
 						type:config.Type.ACCOUNTING_PREFERENCES
@@ -916,7 +916,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				receivbaleAccntsList = [{accountId:defaultRecvAccnt,amount:amount,fid:'credit',memo:lineMemo},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo}];
 
 			}else if(createdFrom == 'ddn'){   //If deduction creating from deduction split
-				
+
 				var dedRec = record.load({
 					type:'customtransaction_itpm_deduction',
 					id:(params['custom_itpm_ddn_parentddn'] == "")?originalno:params['custom_itpm_ddn_parentddn']
@@ -924,7 +924,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				lineMemo = 'Deduction split from Deduction #'+dedRec.getText({fieldId:'tranid'});
 				expenseId = dedRec.getSublistValue({sublistId:'line',fieldId:'account',line:dedRec.getLineCount('line') - 1});
 				receivbaleAccntsList = [{accountId:expenseId,amount:amount,fid:'credit',memo:lineMemo},{accountId:expenseId,amount:amount,fid:'debit',memo:lineMemo}];
-			
+
 			}else if(createdFrom == 'creditmemo'){   //If deduction creating from credit memo
 			
 				lineMemo = 'Deduction applied on CreditMemo '+invoiceLookup;
@@ -1024,7 +1024,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 						ddnDisputed : false
 					});
 				}
-				
+
 				//loading the parent record again why because parentDeductionRec already save 
 				//thats why we are loading the record newly	
 				parentRec.setValue({
@@ -1041,15 +1041,15 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				var multiInv = params['custom_itpm_ddn_multiinv'] == 'yes';
 				var memo;
 				var deductionCreatedRec = record.load({
-		            type: 'customtransaction_itpm_deduction',
-		            id  : deductionId
-		        });
-				
+					type: 'customtransaction_itpm_deduction',
+					id  : deductionId
+				});
+
 				deductionId = deductionCreatedRec.setValue({
-		                fieldId:'custbody_itpm_ddn_originalddn',
-		                value:deductionId
-		        }).save({enableSourcing:false,ignoreMandatoryFields:true});
-				
+					fieldId:'custbody_itpm_ddn_originalddn',
+					value:deductionId
+				}).save({enableSourcing:false,ignoreMandatoryFields:true});
+
 				if(multiInv){ //create customer payment for all invoices
 					multiInvoicesList(invoiceno[0]).each(function(result){
 						memo = 'Deduction '+deductionCreatedRec.getValue('tranid')+' applied to Invoice '+result.getValue({name: "internalid", join: "appliedToTransaction"});

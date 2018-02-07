@@ -70,7 +70,7 @@ define(['N/runtime',
 				//show button only when user have EDIT or FULL permission on -iTPM Deduction Permission custom record
 				if(ddnPermission >= 3 && count == 0){ 
           
-          var ddnSplitRecTypeId = scriptObj.getParameter('custscript_itpm_ddn_split_rectypeid');
+					var ddnSplitRecTypeId = scriptObj.getParameter('custscript_itpm_ddn_split_rectypeid');
           
 					var btn_split = sc.form.addButton({
 						id: 'custpage_itpm_split',

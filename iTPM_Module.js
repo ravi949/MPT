@@ -2168,6 +2168,25 @@ define(['N/search',
 		}
 	}
 
+	/**
+     * @param ddnId
+     * @param setReqAmount
+     * @returns Throws Error if Deduction Open Balance is less than Settlement Request Amount
+     */
+    function validateDeductionOpenBal(ddnId,setReqAmount){
+    	var ddnOpenBal = search.lookupFields({
+			type:'customtransaction_itpm_deduction',
+			id:ddnId,
+			columns:['custbody_itpm_ddn_openbal']
+		})["custbody_itpm_ddn_openbal"];
+		var diff = parseFloat(ddnOpenBal) - parseFloat(setReqAmount);
+		if(diff < 0){
+			throw{
+				name:'INVALID_AMOUNT',
+				message:'Please enter a valid amount.'
+			}
+		}
+    }
 
 	return {
 		getItemUnits : getItemUnits,
@@ -2205,6 +2224,7 @@ define(['N/search',
 		hasSales : hasSales,
 		createSplitDeduction:createSplitDeduction,
 		validateDeduction:validateDeduction,
+		validateDeductionOpenBal:validateDeductionOpenBal,
 		applyCreditMemo : applyCreditMemo,
 		createCustomerPayment : createCustomerPayment
 	};
