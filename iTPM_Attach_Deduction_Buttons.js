@@ -25,20 +25,44 @@ function(url, https, message) {
 		}
 	}
 	
-	function iTPMsplit(id) {
+	
+	function iTPMsplit(id, splitMethod, ddnSplitTypeID) {
 		try{
-			var msg = displayMessage('info','Splitting Deduction','Please wait while you are redirected to the split deduction screen.');
-			msg.show();
-			var suiteletUrl = url.resolveScript({
-				scriptId:'customscript_itpm_ddn_createeditsuitelet',
-				deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
-				params:{fid:id,from:'ddn',type:'create'}
-			});
+			var suiteletUrl;
+			switch(splitMethod){
+			case "DEFAULT":
+				var msg = displayMessage('info','Splitting Deduction','Please wait while you are redirected to the split deduction screen.');
+				msg.show();
+				suiteletUrl = url.resolveScript({
+					scriptId:'customscript_itpm_ddn_createeditsuitelet',
+					deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
+					params:{fid:id,from:'ddn',type:'create'}
+				});
+				break;
+			case "CSV":
+				var msg = displayMessage('info','CSV Split Record','Please wait while you are redirected to the CSV split record screen.');
+				msg.show();
+				suiteletUrl = url.resolveScript({
+					scriptId:'customscript_itpm_ddn_csvsplit',
+					deploymentId:'customdeploy_itpm_ddn_csvsplit',
+					params:{ddn:id}
+				});
+				break;
+			case "RECORD":
+				var msg = displayMessage('info','Split Record','Please wait while you are redirected to the split record screen.');
+				msg.show();
+				suiteletUrl = url.resolveTaskLink({
+					id:'EDIT_CUST_'+ddnSplitTypeID,
+					params:{ddn:id}
+				});
+				break;
+			}
 			window.open(suiteletUrl, '_self');
 		} catch(ex) {
 			console.log(ex.name,'function name = iTPMsplit, message'+ex.message);
 		}
 	}
+	
 	
 	function iTPMexpense(id) {
 		try{
