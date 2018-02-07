@@ -4,9 +4,9 @@
  * @NModuleScope TargetAccount
  */
 define(['N/record',
-	'N/redirect',
-	'N/search',
-	'./iTPM_Module.js'
+		'N/redirect',
+		'N/search',
+		'./iTPM_Module.js'
 	],
 
 	function(record, redirect, search, itpm) {
@@ -72,22 +72,22 @@ define(['N/record',
 					}
 
 					//Checking for JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
-    				var prefJE = itpm.getJEPreferences();
-    				if(prefJE.featureEnabled){
-    					if(prefJE.featureName == 'Approval Routing'){
-    						log.debug('prefJE.featureName', prefJE.featureName);
-    						JERec.setValue({
-    							fieldId:'approvalstatus',
-    							value:1
-    						});
-    					}else if(prefJE.featureName == 'General'){
-    						log.debug('prefJE.featureName', prefJE.featureName);
-    						JERec.setValue({
-    							fieldId:'approved',
-    							value:false
-    						});
-    					}
-    				}
+					var prefJE = itpm.getJEPreferences();
+					if(prefJE.featureEnabled){
+						if(prefJE.featureName == 'Approval Routing'){
+							log.debug('prefJE.featureName', prefJE.featureName);
+							JERec.setValue({
+								fieldId:'approvalstatus',
+								value:1
+							});
+						}else if(prefJE.featureName == 'General'){
+							log.debug('prefJE.featureName', prefJE.featureName);
+							JERec.setValue({
+								fieldId:'approved',
+								value:false
+							});
+						}
+					}
 
 					JERec.setValue({
 						fieldId:'custbody_itpm_appliedto',
@@ -183,7 +183,7 @@ define(['N/record',
 
 							log.debug('jeser ',jeser[0].id );
 
-							var JEcopy= record.copy({
+							var JEcopy = record.copy({
 								type: 'journalentry',
 								id: jeser[0].id,
 								isDynamic: true
