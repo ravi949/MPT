@@ -359,7 +359,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
     	}	
 
     	//setting the todate
-    	ddnForm.addField({
+    	var trandateField = ddnForm.addField({
     		id : 'custom_itpm_ddn_trandate',
     		type : serverWidget.FieldType.DATE,
     		label:'Date',
@@ -368,7 +368,9 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
     		displayType : serverWidget.FieldDisplayType.NORMAL
     	}).updateBreakType({
     		breakType : serverWidget.FieldBreakType.STARTCOL
-    	}).defaultValue = format.format({
+    	});
+    	trandateField.isMandatory = true;
+    	trandateField.defaultValue = format.format({
     		value:(params.type == 'edit')?recObj.getValue('trandate'):new Date(),
     		type: format.Type.DATE
     	});
