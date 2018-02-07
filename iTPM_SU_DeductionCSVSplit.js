@@ -8,7 +8,8 @@ define(['N/file',
 		'N/record',
 		'N/redirect',
 		'N/runtime',
-		'N/ui/serverWidget'],
+		'N/ui/serverWidget',
+		'./iTPM_Module.js'],
 /**
  * @param {file} file
  * @param {search} search
@@ -17,7 +18,7 @@ define(['N/file',
  * @param {runtime} runtime
  * @param {serverWidget} serverWidget
  */
-function(file, search, record, redirect, runtime, serverWidget) {
+function(file, search, record, redirect, runtime, serverWidget, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -65,19 +66,8 @@ function(file, search, record, redirect, runtime, serverWidget) {
      */
     function createCSVSplitForm(request,response){
     	
-    	//Validate the deduction status
-    	var ddnStatus = search.lookupFields({
-    		type:'customtransaction_itpm_deduction',
-    		id:request.parameters.ddn,
-    		columns:['status']
-    	})['status'][0]['value'];
-    	
-    	if(ddnStatus != 'statusA'){
-    		throw{
-    			name:'INVALID_STATUS',
-    			message:'Deduction status should be OPEN.'
-    		}
-    	}
+    	//validate the deduction 
+    	itpm.validateDeduction(request.parameters.ddn);
     	
     	//Create the form.
     	var form = serverWidget.createForm({

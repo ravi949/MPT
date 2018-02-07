@@ -6,9 +6,10 @@
 define(['N/record',
 		'N/runtime',
 		'N/search',
-		'N/ui/serverWidget'],
+		'N/ui/serverWidget',
+		'./iTPM_Module.js'],
 
-function(record, runtime, search, serverWidget) {
+function(record, runtime, search, serverWidget, itpm) {
    
     /**
      * Function definition to be triggered before record is loaded.
@@ -26,19 +27,8 @@ function(record, runtime, search, serverWidget) {
         		var ddnSplitRec = scriptContext.newRecord;
         		log.debug('params',params.ddn);
         		
-        		var ddnStatus = search.lookupFields({
-            		type:'customtransaction_itpm_deduction',
-            		id:params.ddn,
-            		columns:['status']
-            	})['status'][0]['value'];
-            	
-            	if(ddnStatus != 'statusA'){
-            		throw{
-            			name:'INVALID_STATUS',
-            			message:'Deduction status should be OPEN.'
-            		}
-            	}
-        		
+        		//validate the deduction is validat 
+        		itpm.validateDeduction(params.ddn);
         		
         		scriptContext.form.getField({
         			id:'custrecord_itpm_split_deduction'

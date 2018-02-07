@@ -2083,6 +2083,23 @@ function(search, record, util, runtime, config) {
 		return copiedDeductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});
 	}
     
+
+	function validateDeduction(ddnID){
+		//Validate the deduction status
+		var ddnStatus = search.lookupFields({
+			type:'customtransaction_itpm_deduction',
+			id:ddnID,
+			columns:['status']
+		})['status'][0]['value'];
+		
+		if(ddnStatus != 'statusA'){
+			throw{
+				name:'INVALID_STATUS',
+				message:'Deduction status should be OPEN.'
+			}
+		}
+	}
+	
     
     return {
     	getItemUnits : getItemUnits,
@@ -2118,6 +2135,7 @@ function(search, record, util, runtime, config) {
     	getEstAllocationFactorLS : getEstAllocationFactorLS,
     	getActAllocationFactorLS : getActAllocationFactorLS,
     	hasSales : hasSales,
-    	createSplitDeduction:createSplitDeduction
+    	createSplitDeduction:createSplitDeduction,
+    	validateDeduction:validateDeduction
     };
 });
