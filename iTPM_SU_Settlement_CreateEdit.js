@@ -52,19 +52,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     			
     			//validation for creating settlement from deduction
     			if(params.custom_itpm_st_created_frm == 'ddn'){
-    				var ddnOpenBal = search.lookupFields({
-    					type:'customtransaction_itpm_deduction',
-    					id:params.custom_itpm_st_ddn_id,
-    					columns:['custbody_itpm_ddn_openbal']
-    				})["custbody_itpm_ddn_openbal"];
-    				var setReqAmount = params['custom_itpm_st_reql'].replace(/,/g,'');
-    				var diff = parseFloat(ddnOpenBal) - parseFloat(setReqAmount);
-    				if(diff < 0){
-    					throw{
-    						name:'INVALID_AMOUNT',
-    						message:'Please enter a valid amount.'
-    					}
-    				}
+    				itpm.validateDeductionOpenBal(params.custom_itpm_st_ddn_id,params['custom_itpm_st_reql'].replace(/,/g,''));
     			}
 //    			saveTheSettlement(request.parameters);
     			var eventType = request.parameters.custom_user_eventype;
