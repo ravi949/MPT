@@ -49,6 +49,11 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     			response.writePage(settlementForm);
     		}
     		if(request.method == 'POST'){
+    			
+    			//validation for creating settlement from deduction
+    			if(params.custom_itpm_st_created_frm == 'ddn'){
+    				itpm.validateDeductionOpenBal(params.custom_itpm_st_ddn_id,params['custom_itpm_st_reql'].replace(/,/g,''));
+    			}
 //    			saveTheSettlement(request.parameters);
     			var eventType = request.parameters.custom_user_eventype;
     			var setId = null;
@@ -77,8 +82,12 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     			throw Error(e.message);
     		else if(e.name == "DEDUCTION_INVALID_STATUS")
     			throw Error(e.message);
-    		else
+    		else if(e.name == "INVALID_AMOUNT")
+    			throw Error(e.message);
+    		else{
     			log.error(e.name,'record type = -iTPM Settlement, record id = '+JSON.stringify(params)+', message = '+e.message);
+    			throw Error(e.message);
+    		}
     	}
     }
     

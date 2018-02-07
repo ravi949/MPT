@@ -1985,6 +1985,25 @@ function(search, record, util, runtime, config, redirect) {
     }
     
     /**
+     * @param ddnId
+     * @param setReqAmount
+     * @returns Throws Error if Deduction Open Balance is less than Settlement Request Amount
+     */
+    function validateDeductionOpenBal(ddnId,setReqAmount){
+    	var ddnOpenBal = search.lookupFields({
+			type:'customtransaction_itpm_deduction',
+			id:ddnId,
+			columns:['custbody_itpm_ddn_openbal']
+		})["custbody_itpm_ddn_openbal"];
+		var diff = parseFloat(ddnOpenBal) - parseFloat(setReqAmount);
+		if(diff < 0){
+			throw{
+				name:'INVALID_AMOUNT',
+				message:'Please enter a valid amount.'
+			}
+		}
+    }
+
 	 * @param {String} customer
 	 * @param {String} deductionOpenBal
 	 * @param {String} jeamount
@@ -2218,6 +2237,7 @@ function(search, record, util, runtime, config, redirect) {
     	getEstAllocationFactorLS : getEstAllocationFactorLS,
     	getActAllocationFactorLS : getActAllocationFactorLS,
     	hasSales : hasSales,
+    	validateDeductionOpenBal:validateDeductionOpenBal
     	applyCreditMemo : applyCreditMemo,
     	createCustomerPayment : createCustomerPayment
     };
