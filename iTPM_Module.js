@@ -1094,7 +1094,7 @@ function(search, record, util, runtime, config, redirect) {
 
 				var thisFactor = 0;
 				
-				if (hasEstQty){
+				if (obj.hasEstQty){
 					//ALLOCATE BY ESTIMATED REVENUE
 					var totalEstimatedRevenue = 0, thisEstimatedRevenue = 0;
 					for(var x = 0; x < estQuantities.length; x++){
@@ -2204,7 +2204,7 @@ function(search, record, util, runtime, config, redirect) {
     	getActAllocationFactorLS : getActAllocationFactorLS,
     	hasSales : hasSales,
     	createSplitDeduction:createSplitDeduction,
-    	validateDeduction:validateDeduction
+    	validateDeduction:validateDeduction,
     	applyCreditMemo : applyCreditMemo,
     	createCustomerPayment : createCustomerPayment
     };
