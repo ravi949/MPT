@@ -69,10 +69,25 @@ define(['N/runtime',
 				
 				//show button only when user have EDIT or FULL permission on -iTPM Deduction Permission custom record
 				if(ddnPermission >= 3 && count == 0){ 
+          
+          var ddnSplitRecTypeId = scriptObj.getParameter('custscript_itpm_ddn_split_rectypeid');
+          
 					var btn_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
+						label: 'Quick Split',
+						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"DEFAULT")'
+					});
+					
+					var btn_split_csv = sc.form.addButton({
+						id: 'custpage_itpm_split',
+						label: 'Split (CSV)',
+						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"CSV")'
+					});
+					
+					var btn_quick_split = sc.form.addButton({
+						id: 'custpage_itpm_split',
 						label: 'Split',
-						functionName: 'iTPMsplit(' + sc.newRecord.id + ')'
+						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"RECORD",' + ddnSplitRecTypeId + ')'
 					});
 					
 					var btn_invoice = sc.form.addButton({
@@ -145,7 +160,7 @@ define(['N/runtime',
 					log.debug('OpenBal: ' + openBalance + '; Status: ' + status);
 					openBalance = parseFloat(openBalance);
 					log.debug('Parsed Open Balance', openBalance);
-					if (openBalance > 0 && status != 'A'){
+					if (openBalance > 0 && status != 'A' && status != 'E'){
 						log.debug('Setting status to OPEN (status Ref A)');
 						sc.newRecord.setValue({
 							fieldId: 'transtatus',
