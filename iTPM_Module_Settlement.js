@@ -428,49 +428,22 @@ function(config, record, search, itpm) {
 				});
 			}
 			
-			//Checking the auto approve preference from "iTPM Preferences"
-			if(prefObj.autoApproveJE){ //force Approving the JE
-				log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
-				
-				//Checking for JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
-				var prefJE = itpm.getJEPreferences();
-				
-				if(prefJE.featureEnabled){
-					if(prefJE.featureName == 'Approval Routing'){
-						log.debug('prefJE.featureName', prefJE.featureName);
-						journalRecord.setValue({
-        					fieldId:'approvalstatus',
-        					value:2
-        				});
-					}else if(prefJE.featureName == 'General'){
-						log.debug('prefJE.featureName', prefJE.featureName);
-						journalRecord.setValue({
-        					fieldId:'approved',
-        					value:true
-        				});
-					}
-				}
-				
-			}else if(!prefObj.autoApproveJE){ //putting JE under Pending Approval
-				log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
-				
-				//Checking the JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
-				var prefJE = itpm.getJEPreferences();
-				
-				if(prefJE.featureEnabled){
-					if(prefJE.featureName == 'Approval Routing'){
-						log.debug('prefJE.featureName', prefJE.featureName);
-						journalRecord.setValue({
-        					fieldId:'approvalstatus',
-        					value:1
-        				});
-					}else if(prefJE.featureName == 'General'){
-						log.debug('prefJE.featureName', prefJE.featureName);
-						journalRecord.setValue({
-        					fieldId:'approved',
-        					value:false
-        				});
-					}
+			//Checking the JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
+			var prefJE = itpm.getJEPreferences();
+			
+			if(prefJE.featureEnabled){
+				if(prefJE.featureName == 'Approval Routing'){
+					log.debug('prefJE.featureName', prefJE.featureName);
+					journalRecord.setValue({
+    					fieldId:'approvalstatus',
+    					value:1
+    				});
+				}else if(prefJE.featureName == 'General'){
+					log.debug('prefJE.featureName', prefJE.featureName);
+					journalRecord.setValue({
+    					fieldId:'approved',
+    					value:false
+    				});
 				}
 			}
 			

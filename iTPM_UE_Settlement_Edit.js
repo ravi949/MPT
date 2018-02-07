@@ -26,15 +26,26 @@ function(redirect,runtime,search,ST_Module) {
     		var eventType = scriptContext.type,contextType = runtime.executionContext
     		if(contextType == 'USERINTERFACE' && eventType == 'edit'){
     			var settlementRec = scriptContext.newRecord;
-    			redirect.toSuitelet({
-    				scriptId:'customscript_itpm_set_createeditsuitelet',
-    				deploymentId:'customdeploy_itpm_set_createeditsuitelet',
-    				returnExternalUrl: false,
-    				parameters:{sid:settlementRec.id,from:'setrec',type:'edit'}
-    			});
+    			//restrict the user to editing an Processed Settlement 
+    			var setlStatus = settlementRec.getValue('transtatus');
+    			if(setlStatus == 'E'){
+					throw {error:'custom',message:" The settlement is in Processing status, It cannot be Edited"};
+				}else if(setlStatus == 'C'){
+					throw {error:'custom',message:" The settlement is Voided, It cannot be Edited"};
+				}else{
+					redirect.toSuitelet({
+	    				scriptId:'customscript_itpm_set_createeditsuitelet',
+	    				deploymentId:'customdeploy_itpm_set_createeditsuitelet',
+	    				returnExternalUrl: false,
+	    				parameters:{sid:settlementRec.id,from:'setrec',type:'edit'}
+	    			});
+				}    			
     		}
     	}catch (e) {
-    		log.error(e.name,'function name = beforeload, message = '+e.message);
+    		if(e.error == 'custom')
+    			throw e.message;
+    		else
+    			log.error(e.name,'function name = beforeload, message = '+e.message);
     	}
     }
 
@@ -95,11 +106,14 @@ function(redirect,runtime,search,ST_Module) {
     					throw {error:'custom',message:" Promotion: "+promoDealRec['name']+" Lump sum should be greater than Zero"};
     				}
     			}
-    			if(lumsumSetReq <= 0 && billbackSetReq <= 0){
-    				throw {error:'custom',message:"Lump Sum AND Bill Back Either of the fields can individually be zero, but not both"};
-    			}else if(settlementReq <= 0 && offInvSetReq <= 0){
-    				throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
-    			} 
+//    			if(lumsumSetReq <= 0 && billbackSetReq <= 0){
+//    				throw {error:'custom',message:"Lump Sum AND Bill Back Either of the fields can individually be zero, but not both"};
+//    			}else if(settlementReq <= 0 && offInvSetReq <= 0){
+//    				throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
+//    			} 
+    			if(lumsumSetReq <= 0 && billbackSetReq <= 0&& offInvSetReq <= 0){
+    				throw {error:'custom',message:"Atleast any one settlement request value MUST be greater than zero"}
+    			}
     			if(!promoHasAllOI){
 					if(offInvSetReq > 0){
 						throw {error:'custom',message:"Off invoice request value should be zero"};
@@ -116,7 +130,7 @@ function(redirect,runtime,search,ST_Module) {
     		}
     	}catch(e){
     		if(e.error == 'custom')
-    			throw Error(JSON.stringify(e));
+    			throw e.message;
     		else
     			log.error(e.name,'function name = beforesubmit, message = '+e.message);
     	}
