@@ -360,12 +360,12 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 
     	//setting the todate
     	ddnForm.addField({
-    		id : 'custom_trandate',
+    		id : 'custom_itpm_ddn_trandate',
     		type : serverWidget.FieldType.DATE,
     		label:'Date',
     		container:'custom_primry_information'
     	}).updateDisplayType({
-    		displayType : serverWidget.FieldDisplayType.DISABLED
+    		displayType : serverWidget.FieldDisplayType.NORMAL
     	}).updateBreakType({
     		breakType : serverWidget.FieldBreakType.STARTCOL
     	}).defaultValue = format.format({
@@ -707,10 +707,12 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 		var invoiceno = params['custom_itpm_ddn_invoice'].replace(/\u0005/g,',').split(",");
 		var createdFrom = params['custom_itpm_ddn_createdfrom'];
 		var userEventType = params['custom_itpm_usereventype'];
+		var trandate = format.parse({ value:params['custom_itpm_ddn_trandate'], type: format.Type.DATE });
 		var deductionId;
 		var invoiceLookup = '';
 		log.debug('createdFrom',createdFrom);
 		log.debug('invoiceno',invoiceno);
+		log.debug('trandate',typeof trandate);
 		
 
 		//Fetching tranid's for multiple invoices to set the memo
@@ -805,6 +807,9 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			fieldId:'transtatus',
 			value:status,
 			ignoreFieldChange:true
+		}).setValue({
+			fieldId:'trandate',
+			value:trandate
 		});
 		
 		
