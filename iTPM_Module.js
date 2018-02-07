@@ -3,14 +3,14 @@
  * @NModuleScope TargetAccount
  */
 define(['N/search', 
-		'N/record', 
-		'N/util',
-		'N/runtime',
-		'N/config',
-		'N/redirect'
-		],
+	'N/record', 
+	'N/util',
+	'N/runtime',
+	'N/config',
+	'N/redirect'
+	],
 
-function(search, record, util, runtime, config, redirect) {
+	function(search, record, util, runtime, config, redirect) {
 	/**
 	 * @function hasSales()
 	 * @param {Object} obj
@@ -440,14 +440,14 @@ function(search, record, util, runtime, config, redirect) {
 			search.create({
 				type:'customrecord_itpm_preferences',
 				columns:['custrecord_itpm_pref_ddnaccount',
-						 'custrecord_itpm_pref_settlementsaccount',
-						 'custrecord_itpm_pref_expenseaccount',
-						 'custrecord_itpm_pref_discountdates',
-						 'custrecord_itpm_pref_defaultalltype',
-						 'custrecord_itpm_pref_defaultpricelevel',
-						 'custrecord_itpm_pref_remvcust_frmsplit'
-						],
-				filters:[]
+					'custrecord_itpm_pref_settlementsaccount',
+					'custrecord_itpm_pref_expenseaccount',
+					'custrecord_itpm_pref_discountdates',
+					'custrecord_itpm_pref_defaultalltype',
+					'custrecord_itpm_pref_defaultpricelevel',
+					'custrecord_itpm_pref_remvcust_frmsplit'
+					],
+					filters:[]
 			}).run().each(function(e){
 				prefObj = {
 						dednExpAccnt : e.getValue('custrecord_itpm_pref_ddnaccount'),
@@ -1093,7 +1093,7 @@ function(search, record, util, runtime, config, redirect) {
 			} else if(estQuantities.length > 1){
 
 				var thisFactor = 0;
-				
+
 				if (obj.hasEstQty){
 					//ALLOCATE BY ESTIMATED REVENUE
 					var totalEstimatedRevenue = 0, thisEstimatedRevenue = 0;
@@ -1799,57 +1799,57 @@ function(search, record, util, runtime, config, redirect) {
 		}catch(e){
 			log.error(e.name, 'getInvoiceSearch'+e.message);
 		}
-  }
-    
-    /**
-     * @param promoId
-     * @param itemId
-     * @returns SUM of Expected Liability LS for other items
-     */
-   function getOtherKpiExpectedLibSUM(promoId,itemId){
-    	//get the SUM of Expected Liability LS for other items
-    	var kpiSearch = search.create({
-    		type:'customrecord_itpm_kpi',
-    		columns:[
-    			search.createColumn({
-    				name:'custrecord_itpm_kpi_expectedliabilityls',
-    				summary:search.Summary.SUM
-    			})
-    		],
-    		filters:[
-    			['custrecord_itpm_kpi_promotiondeal','anyof',promoId],'and',
-    			['custrecord_itpm_kpi_item','noneof',itemId],'and',
-    			['isinactive','is',false]
-    		]
-    	}).run().getRange(0,1);
-    	return parseFloat(kpiSearch[0].getValue({name:'custrecord_itpm_kpi_expectedliabilityls',summary:search.Summary.SUM}));
-    }
-   
-   /**
-    * @param promoId
-    * @param itemId
-    * @returns SUM of Maximum Liability LS for other items
-    */
-    function getOtherItemLiabilitySUM(promoId,itemId,fieldId){
-    	//get the SUM of Maximum Liability LS for other items
-    	var kpiSearch = search.create({
-    		type:'customrecord_itpm_kpi',
-    		columns:[
-    			search.createColumn({
-    				name:fieldId,
-    				summary:search.Summary.SUM
-    			})
-    		],
-    		filters:[
-    			['custrecord_itpm_kpi_promotiondeal','anyof',promoId],'and',
-    			['custrecord_itpm_kpi_item','noneof',itemId],'and',
-    			['isinactive','is',false]
-    		]
-    	}).run().getRange(0,1);
-    	return parseFloat(kpiSearch[0].getValue({name:fieldId,summary:search.Summary.SUM}));
-    }
-    
-    /**
+	}
+
+	/**
+	 * @param promoId
+	 * @param itemId
+	 * @returns SUM of Expected Liability LS for other items
+	 */
+	function getOtherKpiExpectedLibSUM(promoId,itemId){
+		//get the SUM of Expected Liability LS for other items
+		var kpiSearch = search.create({
+			type:'customrecord_itpm_kpi',
+			columns:[
+				search.createColumn({
+					name:'custrecord_itpm_kpi_expectedliabilityls',
+					summary:search.Summary.SUM
+				})
+				],
+				filters:[
+					['custrecord_itpm_kpi_promotiondeal','anyof',promoId],'and',
+					['custrecord_itpm_kpi_item','noneof',itemId],'and',
+					['isinactive','is',false]
+					]
+		}).run().getRange(0,1);
+		return parseFloat(kpiSearch[0].getValue({name:'custrecord_itpm_kpi_expectedliabilityls',summary:search.Summary.SUM}));
+	}
+
+	/**
+	 * @param promoId
+	 * @param itemId
+	 * @returns SUM of Maximum Liability LS for other items
+	 */
+	function getOtherItemLiabilitySUM(promoId,itemId,fieldId){
+		//get the SUM of Maximum Liability LS for other items
+		var kpiSearch = search.create({
+			type:'customrecord_itpm_kpi',
+			columns:[
+				search.createColumn({
+					name:fieldId,
+					summary:search.Summary.SUM
+				})
+				],
+				filters:[
+					['custrecord_itpm_kpi_promotiondeal','anyof',promoId],'and',
+					['custrecord_itpm_kpi_item','noneof',itemId],'and',
+					['isinactive','is',false]
+					]
+		}).run().getRange(0,1);
+		return parseFloat(kpiSearch[0].getValue({name:fieldId,summary:search.Summary.SUM}));
+	}
+
+	/**
 	 * @param {String} customer
 	 * @param {String} deductionOpenBal
 	 * @param {String} jeamount
@@ -1880,7 +1880,7 @@ function(search, record, util, runtime, config, redirect) {
 			//Applying Credit memo on JE(created for Deduction) through customer payment
 			var paymentId = createCustomerPayment(customer, journalId, creditmemoid, locationExists, classExists, departmentExists);
 			log.debug('Customer Payment ',paymentId);
-			
+
 			//getting credit memo status
 			var cmLookup = search.lookupFields({
 				type    : search.Type.CREDIT_MEMO,
@@ -1888,13 +1888,13 @@ function(search, record, util, runtime, config, redirect) {
 				columns : ['status']
 			});
 			log.debug('CM Status', cmLookup.status[0].text);
-			
+
 			//Validate and deduct credit memo applied amount from 
 			if(cmLookup.status[0].text == 'Fully Applied'){
 				//Decrease and set the open balance amount on Deduction
 				var ddnOpenBal = parseFloat(deductionOpenBal)-parseFloat(jeamount);
 				log.debug('ddnOpenBal',ddnOpenBal);
-				
+
 				DedRecId = record.submitFields({
 					type    : 'customtransaction_itpm_deduction',
 					id      : dedid,
@@ -1902,7 +1902,7 @@ function(search, record, util, runtime, config, redirect) {
 					options : {enableSourcing: true, ignoreMandatoryFields: true}
 				});
 				log.debug('Decreasing the open balance from deduction after applying the same amount on Credit Memo',DedRecId);
-				
+
 				//Setting iTPM JE Applied status into Processed
 				jeRecId = record.submitFields({
 					type    : record.Type.JOURNAL_ENTRY,
@@ -1911,7 +1911,7 @@ function(search, record, util, runtime, config, redirect) {
 					options : {enableSourcing: true, ignoreMandatoryFields: true}
 				});
 				log.debug('setting iTPM JE Applied Status',jeRecId);
-				
+
 				//Redirect To Deduction
 				redirect.toRecord({
 					type : 'customtransaction_itpm_deduction',
@@ -1928,7 +1928,7 @@ function(search, record, util, runtime, config, redirect) {
 			log.error(e.name, 'applyCreditMemo'+e.message);
 		}
 	}
-    
+
 	/**
 	 * @param {String} customer
 	 * @param {String} journalId
@@ -1957,7 +1957,7 @@ function(search, record, util, runtime, config, redirect) {
 				id      : creditmemoid,
 				columns : ['location', 'class', 'department']
 			});
-			
+
 			var customerTransformRec = record.transform({
 				fromType: record.Type.CUSTOMER,
 				fromId: customer,
@@ -1970,21 +1970,21 @@ function(search, record, util, runtime, config, redirect) {
 					value:cmLookup.class[0].value
 				});
 			}
-			
+
 			if(locationExists && cmLookup.location.length > 0){
 				customerTransformRec.setValue({
 					fieldId:'location',
 					value:cmLookup.location[0].value
 				});
 			}
-			
+
 			if(departmentExists && cmLookup.department.length > 0){
 				customerTransformRec.setValue({
 					fieldId:'department',
 					value:cmLookup.department[0].value
 				});
 			}
-			
+
 			for(var j=0; j < customerTransformRec.getLineCount('apply');j++){
 				var type = customerTransformRec.getSublistValue({
 					sublistId: 'apply',
@@ -1999,7 +1999,7 @@ function(search, record, util, runtime, config, redirect) {
 						line: j
 					});
 					log.audit('createCustomerPayment - jeId', jeId);
-					
+
 					if(journalId == jeId){
 						log.audit('jeid @ '+j, jeId);
 						customerTransformRec.setSublistValue({
@@ -2038,7 +2038,7 @@ function(search, record, util, runtime, config, redirect) {
 					}
 				}
 			}
-			
+
 			var paymentId = customerTransformRec.save({
 				enableSourcing: false,
 				ignoreMandatoryFields: true
@@ -2048,8 +2048,8 @@ function(search, record, util, runtime, config, redirect) {
 			log.error(e.name, 'createCustomerPayment'+e.message);
 		}
 	}
-    
-    /**
+
+	/**
 	 * @param parentDdnRec
 	 * @param remainingAmount
 	 * @param ddnExpnseAccount
@@ -2120,7 +2120,7 @@ function(search, record, util, runtime, config, redirect) {
 		//setting the line values to copied deduction record
 		for(var i = 0;i < 2;i++){
 			copiedDeductionRec.selectNewLine({
-			    sublistId: 'line'
+				sublistId: 'line'
 			});
 			copiedDeductionRec.setCurrentSublistValue({
 				sublistId:'line',
@@ -2129,7 +2129,7 @@ function(search, record, util, runtime, config, redirect) {
 			}).setCurrentSublistValue({
 				sublistId:'line',
 				fieldId:(i==0)?'credit':'debit',
-				value:remainingAmount
+						value:remainingAmount
 			}).setCurrentSublistValue({
 				sublistId:'line',
 				fieldId:'memo',
@@ -2140,14 +2140,14 @@ function(search, record, util, runtime, config, redirect) {
 				value:(obj.removeCustomer)?'':parentDdnRec.getValue('custbody_itpm_customer')
 			});
 			copiedDeductionRec.commitLine({
-			    sublistId: 'line'
+				sublistId: 'line'
 			});
 		}
 
 		//save the new child deduction record
 		return copiedDeductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});
 	}
-    
+
 	/**
 	 * @param ddnID
 	 * @returns error if deduction not open
@@ -2159,7 +2159,7 @@ function(search, record, util, runtime, config, redirect) {
 			id:ddnID,
 			columns:['status']
 		})['status'][0]['value'];
-		
+
 		if(ddnStatus != 'statusA'){
 			throw{
 				name:'INVALID_STATUS',
@@ -2167,45 +2167,45 @@ function(search, record, util, runtime, config, redirect) {
 			}
 		}
 	}
-	
-    
-    return {
-    	getItemUnits : getItemUnits,
-    	getActualQty : getActualQty,
-    	getLiability : getLiability,
-    	getSpend : getSpend,
-    	getImpactPrice:getImpactPrice,
-    	getDefaultValidMOP:getDefaultValidMOP,
-    	getPrefrenceValues:getPrefrenceValues,
-    	getItemGroupItems:getItemGroupItems,
-    	locationsEnabled : locationsEnabled,
-    	departmentsEnabled : departmentsEnabled,
-    	classesEnabled : classesEnabled,
-    	subsidiariesEnabled:subsidiariesEnabled,
-    	currenciesEnabled:currenciesEnabled,
-    	getClassifications:getClassifications,
-    	getUserPermission:getUserPermission,
-    	getJEPreferences:getJEPreferences,
-    	processAllocationsDraft : processAllocationsDraft,
-    	calculateEstAllocationsBBOIDraft : calculateEstAllocationsBBOIDraft,
-    	calculateAllocationsLSforDraft : calculateAllocationsLSforDraft,
-    	updateKPIActualEvenly : updateKPIActualEvenly,
-    	approvedAllocationFactorActual : approvedAllocationFactorActual,
-    	calculateActualBBandOIApproved : calculateActualBBandOIApproved,
-    	calculateActualLSApproved : calculateActualLSApproved,
-    	processActualNO : processActualNO,
-    	promAllowanceSearch : promAllowanceSearch,
-    	kpiSearch : kpiSearch,
-    	updateKPI : updateKPI,
-    	getInvoiceSearch : getInvoiceSearch,
-    	getOtherItemLiabilitySUM:getOtherItemLiabilitySUM,
-    	hasEstQty : hasEstQty,
-    	getEstAllocationFactorLS : getEstAllocationFactorLS,
-    	getActAllocationFactorLS : getActAllocationFactorLS,
-    	hasSales : hasSales,
-    	createSplitDeduction:createSplitDeduction,
-    	validateDeduction:validateDeduction,
-    	applyCreditMemo : applyCreditMemo,
-    	createCustomerPayment : createCustomerPayment
-    };
+
+
+	return {
+		getItemUnits : getItemUnits,
+		getActualQty : getActualQty,
+		getLiability : getLiability,
+		getSpend : getSpend,
+		getImpactPrice:getImpactPrice,
+		getDefaultValidMOP:getDefaultValidMOP,
+		getPrefrenceValues:getPrefrenceValues,
+		getItemGroupItems:getItemGroupItems,
+		locationsEnabled : locationsEnabled,
+		departmentsEnabled : departmentsEnabled,
+		classesEnabled : classesEnabled,
+		subsidiariesEnabled:subsidiariesEnabled,
+		currenciesEnabled:currenciesEnabled,
+		getClassifications:getClassifications,
+		getUserPermission:getUserPermission,
+		getJEPreferences:getJEPreferences,
+		processAllocationsDraft : processAllocationsDraft,
+		calculateEstAllocationsBBOIDraft : calculateEstAllocationsBBOIDraft,
+		calculateAllocationsLSforDraft : calculateAllocationsLSforDraft,
+		updateKPIActualEvenly : updateKPIActualEvenly,
+		approvedAllocationFactorActual : approvedAllocationFactorActual,
+		calculateActualBBandOIApproved : calculateActualBBandOIApproved,
+		calculateActualLSApproved : calculateActualLSApproved,
+		processActualNO : processActualNO,
+		promAllowanceSearch : promAllowanceSearch,
+		kpiSearch : kpiSearch,
+		updateKPI : updateKPI,
+		getInvoiceSearch : getInvoiceSearch,
+		getOtherItemLiabilitySUM:getOtherItemLiabilitySUM,
+		hasEstQty : hasEstQty,
+		getEstAllocationFactorLS : getEstAllocationFactorLS,
+		getActAllocationFactorLS : getActAllocationFactorLS,
+		hasSales : hasSales,
+		createSplitDeduction:createSplitDeduction,
+		validateDeduction:validateDeduction,
+		applyCreditMemo : applyCreditMemo,
+		createCustomerPayment : createCustomerPayment
+	};
 });
