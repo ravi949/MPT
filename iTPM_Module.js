@@ -112,6 +112,7 @@ function(search, record, util, runtime, config) {
 				operator: search.Operator.IS,
 				values: 'F'
 			}));
+			//Added Promotion id filter to search
 			pSearch.filters.push(search.createFilter({
 				name: 'custrecord_itpm_estqty_promodeal',
 				operator: search.Operator.ANYOF,
