@@ -7,7 +7,7 @@ define(['N/record',
 		'N/redirect',
 		'N/search',
 		'./iTPM_Module.js'
-	],
+		],
 
 	function(record, redirect, search, itpm) {
 
@@ -187,7 +187,13 @@ define(['N/record',
 								type: 'journalentry',
 								id: jeser[0].id,
 								isDynamic: true
-							});            				
+							});
+							var JEcopyMemo = 'Reversing JE '+JEcopy.getValue('tranid') +' for Voiding Settlement # '+SetRec.getValue('tranid');
+							JEcopy.setValue({
+								fieldId:'memo',
+								value:JEcopyMemo
+							});
+							log.debug('JEcopyMemo   ',JEcopyMemo);
 							var JElineCount = JEcopy.getLineCount('line');
 							for(var i = 0;i < JElineCount;i++){
 								var JEcredit = JEcopy.getSublistValue({sublistId:'line',fieldId:'credit',line:i});
@@ -198,12 +204,17 @@ define(['N/record',
 									sublistId:'line',
 									fieldId:'debit',
 									value:(JEcredit > 0)?JEcredit:'',
-											line:i
+									line:i
 								}).setCurrentSublistValue({
 									sublistId:'line',
 									fieldId:'credit',
 									value:(JEdebit > 0)?JEdebit:'',
-											line:i
+									line:i
+								}).setCurrentSublistValue({
+									sublistId:'line',
+									fieldId:'memo',
+									value:JEcopyMemo,
+									line:i
 								});
 								JEcopy.commitLine({
 									sublistId: 'line'
