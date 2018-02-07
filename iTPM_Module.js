@@ -632,9 +632,9 @@ define(['N/search',
 					items.push({
 						memberid:memberid,
 						saleunit:(itemLookup['saleunit'].length > 0)?itemLookup['saleunit'][0].value:0,
-								unitstype:(itemLookup['unitstype'].length > 0)?itemLookup['unitstype'][0].value:0,
-										baseprice:itemLookup['baseprice'],
-										isAvailable:itemLookup['custitem_itpm_available']
+						unitstype:(itemLookup['unitstype'].length > 0)?itemLookup['unitstype'][0].value:0,
+						baseprice:itemLookup['baseprice'],
+						isAvailable:itemLookup['custitem_itpm_available']
 					});
 				}
 			}
@@ -757,13 +757,14 @@ define(['N/search',
 					['isinactive', 'is', false], 'and',
 					['custrecord_itpm_kpi_promotiondeal', 'anyof', obj.promotionId]
 					],
-					columns: [
-						search.createColumn({
-							name: fieldId,
-							summary: search.Summary.SUM
-						})
-						]
+				columns: [
+					search.createColumn({
+						name: fieldId,
+						summary: search.Summary.SUM
+					})
+					]
 			});
+			//KPI adjusted checkboxes related code has been removed except this block of code
 			var spend = kpiSpendSearch.run().getRange(0,1);
 			spend = (spend.length == 1) ? spend[0].getValue({name: fieldId, summary: 'SUM'}) : 0;
 			log.debug('module_getEstAllocationFactor', 'spend: ' + spend);
@@ -781,12 +782,12 @@ define(['N/search',
 						['isinactive', 'is', false], 'and',
 						['custrecord_itpm_kpi_item', 'anyof', mopItems]
 						],
-						columns: [
-							search.createColumn({
-								name: 'id',
-								sort: search.Sort.DESC
-							})
-							]
+					columns: [
+						search.createColumn({
+							name: 'id',
+							sort: search.Sort.DESC
+						})
+						]
 				});
 				var adjustedKpi = kpiSearch.run().getRange(0,1)[0].getValue('id');
 				log.debug('adjustedKpi', adjustedKpi);
@@ -815,14 +816,14 @@ define(['N/search',
 					"AND",
 					["custrecord_itpm_kpi_promotiondeal.isinactive", "is", "F"]
 					],
-					columns: [ 
-						search.createColumn({
-							name: obj['kpiEstimatedSpend'],
-							join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
-							summary: "SUM",
-							sort: search.Sort.ASC
-						})
-						]
+				columns: [ 
+					search.createColumn({
+						name: obj['kpiEstimatedSpend'],
+						join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
+						summary: "SUM",
+						sort: search.Sort.ASC
+					})
+					]
 			});
 
 			var promestspendbb = promSearchObjbb.run().getRange(0,1)[0].getValue({
@@ -991,7 +992,7 @@ define(['N/search',
 					['custrecord_itpm_kpi_promotiondeal', 'anyof', obj.promotionId], 'and',
 					['isinactive', 'is', 'F']
 					],
-					columns: ['id', 'custrecord_itpm_kpi_item']
+				columns: ['id', 'custrecord_itpm_kpi_item']
 			});
 			itemSearch.run().each(function(result){
 				items.push(result.getValue('custrecord_itpm_kpi_item'));
@@ -1012,16 +1013,16 @@ define(['N/search',
 					['shipping','is',false],'and',
 					['mainline', 'is', false]
 					],
-					columns: [
-						search.createColumn({
-							name: 'item',
-							summary: search.Summary.GROUP
-						}),
-						search.createColumn({
-							name: 'amount',
-							summary: search.Summary.SUM
-						})
-						]
+				columns: [
+					search.createColumn({
+						name: 'item',
+						summary: search.Summary.GROUP
+					}),
+					search.createColumn({
+						name: 'amount',
+						summary: search.Summary.SUM
+					})
+					]
 			});
 			invoiceSearch.run().each(function(result){
 				var itemRevenue = result.getValue({name: 'amount', summary: 'SUM'});
@@ -1480,14 +1481,14 @@ define(['N/search',
 					"AND",
 					["custrecord_itpm_kpi_promotiondeal.isinactive", "is", "F"]
 					],
-					columns: [ 
-						search.createColumn({
-							name: obj['kpiESorEL'],
-							join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
-							summary: "SUM",
-							sort: search.Sort.ASC
-						})
-						]
+				columns: [ 
+					search.createColumn({
+						name: obj['kpiESorEL'],
+						join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
+						summary: "SUM",
+						sort: search.Sort.ASC
+					})
+					]
 			});
 
 			var totalexpliability = promSearchObjbb.run().getRange(0,1)[0].getValue({
