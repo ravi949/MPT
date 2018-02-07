@@ -2183,7 +2183,7 @@ define(['N/search',
 		if(diff < 0){
 			throw{
 				name:'INVALID_AMOUNT',
-				message:'Please enter a valid amount.'
+				message:'Deduction Open Balance should be greater or equal to applied amount.'
 			}
 		}
     }
