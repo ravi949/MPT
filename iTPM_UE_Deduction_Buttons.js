@@ -6,11 +6,12 @@
  * split the deduction into two and creating the two journal entries for each deduction and changed the parent deduction status to resolved.
  */
 define(['N/runtime',
-	'N/redirect',
-	'./iTPM_Module.js'
+		'N/redirect',
+		'N/search',
+		'./iTPM_Module.js'
 	],
 
-	function(runtime, redirect, itpm) {
+	function(runtime, redirect, search, itpm) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -62,9 +63,12 @@ define(['N/runtime',
 			){				
 				log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
 				sc.form.clientScriptModulePath = clientScriptPath;
-
+				
+				//Get JE with Pending Approval, if there is any open deduction created a JE
+				var count = jeSearchToShowDeductionButtons(sc.newRecord.id);
+				
 				//show button only when user have EDIT or FULL permission on -iTPM Deduction Permission custom record
-				if(ddnPermission >= 3){ 
+				if(ddnPermission >= 3 && count == 0){ 
 					var btn_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
 						label: 'Split',
@@ -97,7 +101,7 @@ define(['N/runtime',
 				}
 
 				//show button only when user have CREATE or EDIT or FULL permission on -iTPM Settlement Permission custom record
-				if(setPermission >= 2){
+				if(setPermission >= 2 && count == 0){
 					var btn_settlement = sc.form.addButton({
 						id: 'custpage_itpm_settlement',
 						label: 'Settlement',
@@ -162,7 +166,38 @@ define(['N/runtime',
 			log.error(ex.name, ex.message + '; RecordId: ' + sc.newRecord.id);
 		}
 	}
-
+	
+	/**
+	 * @param {String} deductionId
+	 * 
+	 * @return {Number} count
+	 * 
+	 * @description This function is used to get all the Journal entries under pending approval which were created from any of open deductions.
+	 *              For now, it supports for Match To Credit Memo process
+	 */
+	function jeSearchToShowDeductionButtons(deductionId){
+		var jeSearchObj = search.create({
+			type: "journalentry",
+			filters: [
+				["type","anyof","Journal"], 
+				"AND", 
+				["multisubsidiary","is","F"], 
+				"AND", 
+				["advintercompany","is","F"], 
+				"AND", 
+				["status","anyof","Journal:A"],
+				"AND", 
+				["custbody_itpm_createdfrom","anyof",deductionId],
+				],
+				columns: [
+					"internalid"
+					]
+		});
+		log.debug('count',jeSearchObj.runPaged().count);
+		
+		return jeSearchObj.runPaged().count;
+	}
+	
 	return {
 		beforeLoad: beforeLoad,
 		beforeSubmit:beforeSubmit
