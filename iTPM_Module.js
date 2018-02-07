@@ -2083,7 +2083,10 @@ function(search, record, util, runtime, config) {
 		return copiedDeductionRec.save({enableSourcing:false,ignoreMandatoryFields:true});
 	}
     
-
+	/**
+	 * @param ddnID
+	 * @returns error if deduction not open
+	 */
 	function validateDeduction(ddnID){
 		//Validate the deduction status
 		var ddnStatus = search.lookupFields({
