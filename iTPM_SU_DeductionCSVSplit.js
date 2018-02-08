@@ -214,7 +214,7 @@ function(file, search, record, redirect, runtime, serverWidget, itpm) {
 			}
 			
 			//Validate the iTPM Amount 
-			if(parseFloat(e["iTPM Amount"]) < 0){
+			if(parseFloat(e["iTPM Amount"]) <= 0){
 				throw{
 					name:'ZERO_AMOUNT_FOUND',
 					message:'Line amount should be greater than zero.'
