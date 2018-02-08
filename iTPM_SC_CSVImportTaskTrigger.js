@@ -24,13 +24,23 @@ function(file, search, task) {
     	try{
     		search.create({
                 type:'customrecord_itpm_deductionsplit',
-                columns:['file.folder','file.name','file.internalid'],
+                columns:[
+                	search.createColumn({
+                        name: "internalid",
+                        summary: search.Summary.GROUP
+                     }),
+                     search.createColumn({
+                        name: "internalid",
+                        join:'file',
+                        summary: search.Summary.GROUP
+                     })
+                ],
                 filters:[['file.name','isnotempty',null],'and',["custrecord_itpm_split.internalid","anyof","@NONE@"]]
              }).run().each(function(e){
                 var csvTaskStatus = task.create({
                     taskType: task.TaskType.CSV_IMPORT,
                     mappingId: 'CUSTIMPORT_ITPM_DDN_SPLITIMPRT',
-                    importFile: file.load({id:e.getValue({name:'internalid',join:'file'})})
+                    importFile: file.load({id:e.getValue({name:'internalid',join:'file',summary:search.Summary.GROUP})})
                 }).submit();
                 log.debug('csvTaskStatus ',csvTaskStatus);
                 return true;
