@@ -37,6 +37,7 @@ function(file, search, task) {
                 ],
                 filters:[['file.name','isnotempty',null],'and',["custrecord_itpm_split.internalid","anyof","@NONE@"]]
              }).run().each(function(e){
+            	log.debug('file id',e.getValue({name:'internalid',join:'file',summary:search.Summary.GROUP}));
                 var csvTaskStatus = task.create({
                     taskType: task.TaskType.CSV_IMPORT,
                     mappingId: 'CUSTIMPORT_ITPM_DDN_SPLITIMPRT',
