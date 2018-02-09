@@ -188,7 +188,13 @@ define(['N/record',
 								id: jeser[0].id,
 								isDynamic: true
 							});
-							var JEcopyMemo = 'Reversing JE '+JEcopy.getValue('tranid') +' for Voiding Settlement # '+SetRec.getValue('tranid');
+							var parentJEtranid = search.lookupFields({
+							    type: 'journalentry',
+							    id: jeser[0].id,
+							    columns: ['tranid']
+							}).tranid ;
+							log.debug('parentJEtranid ',parentJEtranid  );
+							var JEcopyMemo = 'Reversing JE '+ parentJEtranid +' for Voiding Settlement # '+SetRec.getValue('tranid');
 							JEcopy.setValue({
 								fieldId:'memo',
 								value:JEcopyMemo
