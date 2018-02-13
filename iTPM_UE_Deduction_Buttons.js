@@ -2,8 +2,6 @@
  * @NApiVersion 2.x
  * @NScriptType UserEventScript
  * @NModuleScope TargetAccount
- * if parent deduction amount is less than new deduction amount then.
- * split the deduction into two and creating the two journal entries for each deduction and changed the parent deduction status to resolved.
  */
 define(['N/runtime',
 		'N/redirect',
@@ -45,12 +43,11 @@ define(['N/runtime',
 			log.debug('ddnPermission',ddnPermission);
 			log.debug('setPermission',setPermission);
 
-			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
-			status = sc.newRecord.getValue({fieldId:'transtatus'}),
-//			clientScriptPath = runtime.getCurrentScript().getParameter({name:'custscript_itpm_ue_ddn_cspath'}),
-			clientScriptPath = './iTPM_Attach_Deduction_Buttons.js',
-			eventType = sc.type,
-			runtimeContext = runtime.executionContext; 
+			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'});
+			var status = sc.newRecord.getValue({fieldId:'transtatus'});
+			var clientScriptPath = './iTPM_Attach_Deduction_Buttons.js';
+			var eventType = sc.type;
+			var runtimeContext = runtime.executionContext; 
 
 			log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
 
@@ -195,11 +192,7 @@ define(['N/runtime',
 			type: "journalentry",
 			filters: [
 				["type","anyof","Journal"], 
-				"AND", 
-				["multisubsidiary","is","F"], 
-				"AND", 
-				["advintercompany","is","F"], 
-				"AND", 
+				"AND",
 				["status","anyof","Journal:A"],
 				"AND", 
 				["custbody_itpm_createdfrom","anyof",deductionId],
