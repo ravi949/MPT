@@ -185,6 +185,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
     				invAmount += parseFloat(result.getValue({name: "amountremaining", join: "appliedToTransaction"}));
     				return true;
     			});
+    			invAmount = invAmount.toFixed(2);
     		}else{
     			tranIds = recObj.id;
     			invAmount = recObj.getValue('amountremainingtotalbox');
@@ -855,7 +856,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			});
 		}
 
-		if(deptno != ''){
+		if(locationno != ''){
 			deductionRec.setValue({
 				fieldId:'location',
 				value:locationno,
@@ -863,7 +864,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			});
 		}
 
-		if(locationno != ''){
+		if(deptno != ''){
 			deductionRec.setValue({
 				fieldId:'department',
 				value:deptno,
@@ -1060,12 +1061,14 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 				if(multiInv){ //create customer payment for all invoices
 					multiInvoicesList(invoiceno[0]).each(function(result){
 						memo = 'Deduction '+deductionCreatedRec.getValue('tranid')+' applied to Invoice '+result.getValue({name: "internalid", join: "appliedToTransaction"});
-						createCustomerPayment(result.getValue({name: "internalid", join: "appliedToTransaction"}), memo, deductionId, multiInv); 
+						params['invoiceid'] = result.getValue({name: "internalid", join: "appliedToTransaction"});
+						createCustomerPayment(params, memo, deductionId, multiInv); 
 						return true;
 					});
 				}else{ //create customer payment for one invoice
 					memo = 'Deduction '+deductionCreatedRec.getValue('tranid')+' applied to Invoice '+invoiceLookup;
-					createCustomerPayment(invoiceno[0], memo, deductionId, multiInv); 
+					params['invoiceid'] = invoiceno[0];
+					createCustomerPayment(params, memo, deductionId, multiInv); 
 				}
 			}
 		}else{
@@ -1085,27 +1088,39 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
      * @param {Number} deductionId
      * @param {Boolean} multiInv
      */
-    function createCustomerPayment(invoiceId, memo, deductionId, multiInv){
-    	log.debug('invoiceId',invoiceId);
+    function createCustomerPayment(params, memo, deductionId, multiInv){
+    	log.debug('invoiceId',params['invoiceid']);
     	//Customer Payment process for each invoice
     	var invTransformRec = record.transform({
     		fromType: record.Type.INVOICE,
-    		fromId: invoiceId,
+    		fromId: params['invoiceid'],
     		toType: record.Type.CUSTOMER_PAYMENT
     	});
 
     	var transFormRecLineCount = invTransformRec.getLineCount('credit');
-
+    	
+    	if(classesEnabled){
+    		invTransformRec.setValue({
+        		fieldId:'class',
+        		value:params['custom_itpm_ddn_class']
+        	});
+    	}
+    	
+    	if(locationsEnabled){
+    		invTransformRec.setValue({
+        		fieldId:'location',
+        		value:params['custom_itpm_ddn_location']
+        	});
+    	}
+    	
+    	if(departmentsEnabled){
+    		invTransformRec.setValue({
+        		fieldId:'department',
+        		value:params['custom_itpm_ddn_department']
+        	});
+    	}
+    	
     	invTransformRec.setValue({
-    		fieldId:'class',
-    		value:classno
-    	}).setValue({
-    		fieldId:'location',
-    		value:locationno
-    	}).setValue({
-    		fieldId:'department',
-    		value:deptno
-    	}).setValue({
     		fieldId:'memo',
     		value:memo
     	});
