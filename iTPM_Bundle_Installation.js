@@ -12,10 +12,11 @@
  * 
  */
 define(['N/config',
-		'N/task'
+		'N/task',
+		'N/runtime'
 		],
 
-function(config,task) {
+function(config,task, runtime) {
 	
 	function checkRequirements() {
 		try{
@@ -92,7 +93,35 @@ function(config,task) {
     		scriptId: 'customscript_itpm_mr_setpromodefaultval',
     		deploymentId: 'customdeploy_itpm_mr_setpromodefaultval'
     	}).submit();
+    	
+    	//script to modify status filter on all iTPM saved searches
+    	//Getting Record Type Id's for both "- iTPM Settlement Record" and "- iTPM Deduction Record"
+    	var scriptObj = runtime.getCurrentScript();
+		var settlemntRecID = scriptObj.getParameter({name: 'custscript_itpm_settlement_rectype_id'});
+		var deductionRecID = scriptObj.getParameter({name: 'custscript_itpm_deduction_rectype_id'});
+		log.debug('Script Parameters', 'settlemntRecID: '+settlemntRecID+' and deductionRecID: '+deductionRecID);
 
+		//Adding Filters to Saved Search: - iTPM Settlements Applied To Deduction
+		var myDeductionSearch = search.load({
+			id: 'customsearch_itpm_ddn_settlementsapplied'
+		});
+		
+		myDeductionSearch.filters = search.createFilter({
+			"name"    : "type",
+			"operator": "anyof",
+			"values"  : "Custom"+deductionRecID
+		});
+		
+		myDeductionSearch.filters.push(search.createFilter({
+			"name"    : "status",
+			"join"    : "custbody_itpm_settlementrec",
+			"operator": "anyof",
+			"values"  : ["Custom"+settlemntRecID+":B","Custom"+settlemntRecID+":E"]
+		}));
+			
+		myDeductionSearch.save();
+		
+		
     }
     
     function checkForFeaturesEnableOrNot(){
