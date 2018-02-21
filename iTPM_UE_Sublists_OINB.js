@@ -35,10 +35,10 @@ function(runtime, serverWidget, search, record, itpm) {
         	var customerId = sc.newRecord.getValue('entity');
         	var trandate = sc.newRecord.getText('trandate');
         	var transhipdate = sc.newRecord.getText('shipdate');
-        	var showShipDates = (prefDatesType == "Ship Date" || prefDatesType == "Both" || prefDatesType == "Either");
-        	var showOrderDates = (prefDatesType == "Order Date" || prefDatesType == "Both" || prefDatesType == "Either");
+        	var showShipDates = (prefDatesType == "1" || prefDatesType == "3" || prefDatesType == "4");
+        	var showOrderDates = (prefDatesType == "2" || prefDatesType == "3" || prefDatesType == "4");
         	var orderStartDate,orderEndDate;
-        	var tranShipDateNotEmpty = (((prefDatesType == 'Ship Date' || prefDatesType == 'Both') && transhipdate) || prefDatesType == 'Either' || prefDatesType == 'Order Date');
+        	var tranShipDateNotEmpty = (((prefDatesType == '1' || prefDatesType == '3') && transhipdate) || prefDatesType == '4' || prefDatesType == '2');
         	//Adding tab(iTPM) to the form
         	sc.form.addTab({
         	    id    : 'custpage_itpm_tab',
@@ -547,22 +547,22 @@ function(runtime, serverWidget, search, record, itpm) {
     		
     		//Adding the filters to the tranFilters array
     		switch(prefDatesType){
-    		case "Ship Date":
+    		case "1":
     			tranFilters.push("AND",["custrecord_itpm_p_shipstart","onorbefore",transhipdate]);
     			tranFilters.push("AND",["custrecord_itpm_p_shipend","onorafter",transhipdate]);
     			break;
-    		case "Order Date":
+    		case "2":
     			tranFilters.push("AND",["custrecord_itpm_p_orderstart","onorbefore",trandate]);
     			tranFilters.push("AND",["custrecord_itpm_p_orderend","onorafter",trandate]);
     			break;
-    		case "Both":
+    		case "3":
     			tranFilters.push("AND",[
     				[["custrecord_itpm_p_shipstart","onorbefore",transhipdate],"AND",["custrecord_itpm_p_shipend","onorafter",transhipdate]],
     				"AND",
     				[["custrecord_itpm_p_orderstart","onorbefore",trandate],"AND",["custrecord_itpm_p_orderend","onorafter",trandate]]
     			]);
     			break;
-    		case "Either":
+    		case "4":
     			var eitherFil = [
     				[["custrecord_itpm_p_orderstart","onorbefore",trandate],"AND",["custrecord_itpm_p_orderend","onorafter",trandate]]
     			];

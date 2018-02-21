@@ -389,7 +389,7 @@ define(['N/record', 'N/search','N/redirect','N/runtime','./iTPM_Module'],
 				type:'customrecord_itpm_preferences',	 
 				id:searchResults[0].getValue('internalid')
 			});
-			return loadedRec.getText({fieldId: 'custrecord_itpm_pref_discountdates'});
+			return loadedRec.getValue({fieldId: 'custrecord_itpm_pref_discountdates'});
 		}catch(e){
 			log.error(e.name, e.message);
 		}    	
@@ -415,22 +415,22 @@ define(['N/record', 'N/search','N/redirect','N/runtime','./iTPM_Module'],
 
 		//Adding the filters to the tranFilters array
 		switch(prefDatesType){
-		case 'Ship Date':
+		case '1':
 			tranFilters.push('AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipstart','onorbefore',trandate]); 
 			tranFilters.push('AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipend','onorafter',trandate]);
 			break;
-		case 'Order Date':
+		case '2':
 			tranFilters.push('AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderstart','onorbefore',trandate]);
 			tranFilters.push('AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderend','onorafter',trandate]);
 			break;
-		case 'Both':
+		case '3':
 			tranFilters.push('AND',[
 			                        [['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipend','onorafter',trandate]],
 			                        'AND',
 			                        [['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderend','onorafter',trandate]]
 			                        ]);
 			break;
-		case 'Either':
+		case '4':
 			tranFilters.push('AND',[
 			                        [['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipend','onorafter',trandate]],
 			                        'OR',

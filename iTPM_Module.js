@@ -453,7 +453,7 @@ define(['N/search',
 						dednExpAccnt : e.getValue('custrecord_itpm_pref_ddnaccount'),
 						expenseAccnt : e.getValue('custrecord_itpm_pref_expenseaccount'),
 						accountPayable : e.getValue('custrecord_itpm_pref_settlementsaccount'),
-						prefDiscountDate: e.getText('custrecord_itpm_pref_discountdates'),
+						prefDiscountDate: e.getValue('custrecord_itpm_pref_discountdates'),
 						defaultAllwType: e.getValue('custrecord_itpm_pref_defaultalltype'),
 						defaultPriceLevel:e.getValue('custrecord_itpm_pref_defaultpricelevel'),
 						removeCustomer: e.getValue('custrecord_itpm_pref_remvcust_frmsplit')
