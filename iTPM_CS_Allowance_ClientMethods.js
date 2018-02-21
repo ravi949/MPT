@@ -216,7 +216,8 @@ function(message, url, https, search, dialog) {
 			}).then(function(response){
 				var objResponse =  JSON.parse(response.body);
 				var unitField = rec.getField({fieldId: 'custpage_itpm_all_unit'});
-				if (!(objResponse.error)){
+				console.log(objResponse);
+				if (objResponse.success){
 					unitField.removeSelectOption({value:null});
 					var unitsList = objResponse.unitsList;
 					unitField.insertSelectOption({
@@ -231,6 +232,8 @@ function(message, url, https, search, dialog) {
 							isSelected:rec.getValue('custrecord_itpm_all_uom') == unitsList[x].internalId
 						});
 					}
+				}else {
+					log.error('Response Object', 'Error returned in Units List.');
 				}
 			});
 		} catch(ex) {
@@ -262,7 +265,7 @@ function(message, url, https, search, dialog) {
 				}).then(function(response){
 					var objResponse =  JSON.parse(response.body);
 					console.log(objResponse);
-					if (!(objResponse.error)){
+					if (objResponse.success){
 						var itemUnitRate = parseFloat(objResponse.unitsList.filter(function(e){return e.internalId == itemSaleUnit})[0].rate);
 						var rate = (dynUnit)? parseFloat(objResponse.unitsList.filter(function(e){return e.internalId == dynUnit})[0].rate) : 0;
 						rec.setValue({
