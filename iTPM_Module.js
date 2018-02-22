@@ -69,7 +69,7 @@ define(['N/search',
 				items.push(result.getValue('custrecord_itpm_kpi_item'));
 			});
 			//getting the sub customers of the customer
-			var subCustIds = gettingSubCustomers(obj.customerId);
+			var subCustIds = getSubCustomers(obj.customerId);
 			log.debug('hasSales:subCustIds',subCustIds);
 			//get invoices
 			var invoiceSearch = search.create({
@@ -410,7 +410,7 @@ define(['N/search',
 				values: itemId
 			}));
 			//getting the sub customers of the customer
-			var subCustIds = gettingSubCustomers(customerId);
+			var subCustIds = getSubCustomers(customerId);
 			log.debug('getActualQty:subCustIds',subCustIds);
 			qtySearch.filters.push(search.createFilter({
 				name: 'entity',
@@ -989,7 +989,7 @@ define(['N/search',
 //				break;
 //			default: //default use ship dates
 				start = obj.shipStart;
-			end = obj.shipEnd;
+				end = obj.shipEnd;
 //			break;
 //			}
 			//get promotion items
@@ -1008,7 +1008,7 @@ define(['N/search',
 				}
 			});
 			//getting the sub customers of the customer
-			var subCustIds = gettingSubCustomers(obj.customerId);
+			var subCustIds = getSubCustomers(obj.customerId);
 			log.debug('getActAllocationFactorLS:subCustIds',subCustIds);
 			//get invoices
 			var invoiceSearch = search.create({
@@ -1793,7 +1793,7 @@ define(['N/search',
 	function getInvoiceSearch(searchColumn,items,custId,st,end){
 		try{
 			//getting the sub customers of the customer
-			var subCustIds = gettingSubCustomers(custId);
+			var subCustIds = getSubCustomers(custId);
 			log.debug('getActualQty:subCustIds',subCustIds);
 			
 			return search.create({
@@ -2206,39 +2206,21 @@ define(['N/search',
      * @param custId
      * @returns sub-customers ID's of a parent customer 
      */
-    function gettingSubCustomers(custId){
+    function getSubCustomers(custId){
     	try{
-    		log.audit('custId',custId);
-    		var iteratorVal = false;
-    		var custRange = 4;//Variable to limit the customer relations to a maximum of 4.
-    		var custIds = [custId];
-    		var tempCustIds = [];
-    		tempCustIds.push(custId); 
-    		do{
-    			var iterateCustIds = tempCustIds;
-    			tempCustIds = [];
-    			search.create({
-    				type: "customer",
-    				filters: [["internalid","anyof",iterateCustIds],"and",["subCustomer.internalid","noneof","@NONE@"]],
-    				columns: [{name: "internalid",join: "subCustomer"}]
-    			}).run().each(function(k){ 
-    				tempCustIds.push(k.getValue({name:'internalid', join:'subCustomer'}));	
-    				return true;
-    			});
-    			if(tempCustIds.length > 0){ 
-    				iteratorVal = true;
-    				custIds = custIds.concat(tempCustIds);
-    			}else{
-    				iteratorVal = false;
-    			}
-    			custRange--;
-    			log.audit('tempCustIds',tempCustIds);
-    		}while(iteratorVal && custRange > 0);
-    		log.audit('custIds',custIds);
+    		var custIds = [];
+    		search.create({
+				type: "customer",
+				filters: [["parent",'anyof',custId]],
+				columns: ['internalid']
+			}).run().each(function(k){ 
+				custIds.push(k.getValue({name:'internalid'}));	
+				return true;
+			});
     		return custIds;
     	} catch(ex){
-    		log.error ('module_gettingSubCustomers', ex.name +'; ' + ex.message + '; ');
-    		return custId;
+    		log.error ('module_getSubCustomers', ex.name +'; ' + ex.message + '; ');
+    		return [custId];
     	}
     }
 
@@ -2281,6 +2263,6 @@ define(['N/search',
 		validateDeductionOpenBal:validateDeductionOpenBal,
 		applyCreditMemo : applyCreditMemo,
 		createCustomerPayment : createCustomerPayment,
-		gettingSubCustomers : gettingSubCustomers
+		getSubCustomers : getSubCustomers
 	};
 });
