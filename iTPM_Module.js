@@ -453,7 +453,7 @@ define(['N/search',
 						dednExpAccnt : e.getValue('custrecord_itpm_pref_ddnaccount'),
 						expenseAccnt : e.getValue('custrecord_itpm_pref_expenseaccount'),
 						accountPayable : e.getValue('custrecord_itpm_pref_settlementsaccount'),
-						prefDiscountDate: e.getText('custrecord_itpm_pref_discountdates'),
+						prefDiscountDate: e.getValue('custrecord_itpm_pref_discountdates'),
 						defaultAllwType: e.getValue('custrecord_itpm_pref_defaultalltype'),
 						defaultPriceLevel:e.getValue('custrecord_itpm_pref_defaultpricelevel'),
 						removeCustomer: e.getValue('custrecord_itpm_pref_remvcust_frmsplit')
@@ -882,7 +882,7 @@ define(['N/search',
 						eq = (eq)?eq:0;
 
 						final_total_eq = (promestspendbb <= 0)?0:(parseFloat((eq/promestspendbb)));
-						obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseInt(final_total_eq.toFixed(6)*100000)/100000;    						
+						obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = final_total_eq.toFixed(6);
 						//Updating the related KPI record
 						var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
 						log.debug('kpiRecUpdate',kpiRecUpdate);
@@ -935,7 +935,7 @@ define(['N/search',
 								columns : [obj['kpiEstimatedSpend']]
 							});    						
 							var eq = fieldLookUp[obj['kpiEstimatedSpend']];    						
-							obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseFloat(1/itemcount).toFixed(5);    							
+							obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseFloat(1/itemcount).toFixed(6);    							
 							//Updating the related KPI record
 							var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
 							log.debug('kpiRecUpdate',kpiRecUpdate);
@@ -1036,7 +1036,7 @@ define(['N/search',
 			});
 			totalRevenue = (totalRevenue) ? totalRevenue : 1;
 			thisFactor = thisRevenue / totalRevenue;
-			thisFactor = Math.floor(thisFactor.toFixed(6)*100000)/100000;
+			thisFactor = thisFactor.toFixed(6);
 			return {error: false, factor: thisFactor};
 		} catch(ex){
 			log.error ('module_getActAllocationFactorLS', ex.name +'; ' + ex.message + '; ' + JSON.stringify(obj));
@@ -1225,7 +1225,7 @@ define(['N/search',
 						totalEstimatedRevenue = (totalEstimatedRevenue)?totalEstimatedRevenue:0;
 						log.debug('totalEstimatedRevenue', totalEstimatedRevenue);
 						final_total_eq = (totalEstimatedRevenue <= 0)?0:(parseFloat((estimatedRevenue/totalEstimatedRevenue)));
-						final_total_eq = parseInt(final_total_eq.toFixed(6)*100000)/100000;
+						final_total_eq = final_total_eq.toFixed(6);
 
 						var objvalueskpi = {
 								kpiValues:{
@@ -1274,7 +1274,7 @@ define(['N/search',
 
 						var objvalueskpi = {
 								kpiValues:{
-									'custrecord_itpm_kpi_factorestls' : parseFloat(1/itemcount).toFixed(5)
+									'custrecord_itpm_kpi_factorestls' : parseFloat(1/itemcount).toFixed(6)
 								}
 						}
 						//Updating the related KPI record
@@ -1548,7 +1548,7 @@ define(['N/search',
 					log.debug('el',el);
 
 					final_total_eq = (totalexpliability <= 0)?0:(parseFloat((el/totalexpliability)));
-					final_total_eq = parseInt(final_total_eq.toFixed(6)*100000)/100000;
+					final_total_eq = final_total_eq.toFixed(6);
 					obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = final_total_eq;
 
 					//Updating the related KPI record
@@ -1650,7 +1650,7 @@ define(['N/search',
 					actualRevenue = (actualRevenue)?actualRevenue:0;
 					log.debug('actualRevenue',actualRevenue);
 					final_total_eq = (totalrevenue <= 0)?0:(parseFloat((actualRevenue/totalrevenue)));
-					final_total_eq = parseInt(final_total_eq.toFixed(6)*100000)/100000;
+					final_total_eq = final_total_eq.toFixed(6);
 					//Updating the related KPI record
 					var objvalueskpi = {
 							kpiValues:{
