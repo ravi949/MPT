@@ -34,27 +34,28 @@ define(['N/search',
 				}
 			}
 			//1 = Ship Date, 2 = Order Date, 3 = Both, 4 = Either
-			var datePref = getPrefrenceValues().prefDiscountDate; //need to correct spelling
+//			log.audit('getPrefrenceValues().prefDiscountDate;',getPrefrenceValues().prefDiscountDate);
+//			var datePref = getPrefrenceValues().prefDiscountDate; //need to correct spelling
 			var start, end, items = [];
-			switch (datePref){
-			case '2':
-				start = obj.orderStart;
-				end = obj.orderEnd;
-				break;
-			case '3':
-				start = (Date.parse(obj.shipStart) >= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
-				end = (Date.parse(obj.shipEnd) >= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
-				break;
-			case '4':
-				start = (Date.parse(obj.shipStart) <= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
-				end = (Date.parse(obj.shipEnd) <= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
-				break;
-			default: //default use ship dates
+//			switch (datePref){
+//			case '2':
+//				start = obj.orderStart;
+//				end = obj.orderEnd;
+//				break;
+//			case '3':
+//				start = (Date.parse(obj.shipStart) >= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+//				end = (Date.parse(obj.shipEnd) >= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+//				break;
+//			case '4':
+//				start = (Date.parse(obj.shipStart) <= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+//				end = (Date.parse(obj.shipEnd) <= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+//				break;
+//			default: //default use ship dates
 				start = obj.shipStart;
-			end = obj.shipEnd;
-			break;
-			}
-
+				end = obj.shipEnd;
+//			break;
+//			}
+			log.audit('obj',obj);
 			//get promotion items
 			var itemSearch = search.create({
 				type: 'customrecord_itpm_kpi',
@@ -67,12 +68,15 @@ define(['N/search',
 			itemSearch.run().each(function(result){
 				items.push(result.getValue('custrecord_itpm_kpi_item'));
 			});
+			//getting the sub customers of the customer
+			var subCustIds = gettingSubCustomers(obj.customerId);
+			log.debug('hasSales:subCustIds',subCustIds);
 			//get invoices
 			var invoiceSearch = search.create({
 				type: search.Type.INVOICE,
 				filters: [
 					['item', 'anyof', items], 'and',
-					['entity', 'anyof', obj.customerId], 'and',
+					['entity', 'anyof', subCustIds], 'and',
 					['trandate', 'within', start, end]
 					],
 					columns: ['tranid']
@@ -405,10 +409,13 @@ define(['N/search',
 				operator: search.Operator.ANYOF,
 				values: itemId
 			}));
+			//getting the sub customers of the customer
+			var subCustIds = gettingSubCustomers(customerId);
+			log.debug('getActualQty:subCustIds',subCustIds);
 			qtySearch.filters.push(search.createFilter({
 				name: 'entity',
 				operator: search.Operator.ANYOF,
-				values: customerId
+				values: subCustIds
 			}));
 			qtySearch.filters.push(search.createFilter({
 				name: 'trandate',
@@ -965,26 +972,26 @@ define(['N/search',
 	function getActAllocationFactorLS(obj){
 		try{
 			//1 = Ship Date, 2 = Order Date, 3 = Both, 4 = Either
-			var datePref = getPrefrenceValues().prefDiscountDate; //need to correct spelling
+//			var datePref = getPrefrenceValues().prefDiscountDate; //need to correct spelling
 			var start, end, items = [], kpiItems = [], thisItem, thisFactor, thisRevenue, revenue, totalRevenue;
-			switch (datePref){
-			case '2':
-				start = obj.orderStart;
-				end = obj.orderEnd;
-				break;
-			case '3':
-				start = (Date.parse(obj.shipStart) >= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
-				end = (Date.parse(obj.shipEnd) >= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
-				break;
-			case '4':
-				start = (Date.parse(obj.shipStart) <= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
-				end = (Date.parse(obj.shipEnd) <= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
-				break;
-			default: //default use ship dates
+//			switch (datePref){
+//			case '2':
+//				start = obj.orderStart;
+//				end = obj.orderEnd;
+//				break;
+//			case '3':
+//				start = (Date.parse(obj.shipStart) >= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+//				end = (Date.parse(obj.shipEnd) >= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+//				break;
+//			case '4':
+//				start = (Date.parse(obj.shipStart) <= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+//				end = (Date.parse(obj.shipEnd) <= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+//				break;
+//			default: //default use ship dates
 				start = obj.shipStart;
 			end = obj.shipEnd;
-			break;
-			}
+//			break;
+//			}
 			//get promotion items
 			var itemSearch = search.create({
 				type: 'customrecord_itpm_kpi',
@@ -1000,12 +1007,15 @@ define(['N/search',
 					thisItem = result.getValue('custrecord_itpm_kpi_item');
 				}
 			});
+			//getting the sub customers of the customer
+			var subCustIds = gettingSubCustomers(obj.customerId);
+			log.debug('getActAllocationFactorLS:subCustIds',subCustIds);
 			//get invoices
 			var invoiceSearch = search.create({
 				type: search.Type.INVOICE,
 				filters: [
 					['item', 'anyof', items], 'and',
-					['entity', 'anyof', obj.customerId], 'and',
+					['entity', 'anyof', subCustIds], 'and',
 					['trandate', 'within', start, end], 'and',
 					['status','anyof',['CustInvc:A','CustInvc:B']],'and',
 					['taxline', 'is', false], 'and',
@@ -1780,14 +1790,18 @@ define(['N/search',
 	 * @param {String} end - end date
 	 * @returns {Object} search
 	 */
-	function getInvoiceSearch(searchColumn,items,custIds,st,end){
+	function getInvoiceSearch(searchColumn,items,custId,st,end){
 		try{
+			//getting the sub customers of the customer
+			var subCustIds = gettingSubCustomers(custId);
+			log.debug('getActualQty:subCustIds',subCustIds);
+			
 			return search.create({
 				type:search.Type.INVOICE,
 				columns:searchColumn,
 				filters:[
 					['item','anyof',items],'and',
-					['entity','anyof',custIds],'and',
+					['entity','anyof',subCustIds],'and',
 					['trandate','within',st,end],'and',
 					['status','anyof',['CustInvc:A','CustInvc:B']],'and',
 					['taxline','is',false],'and',
@@ -2187,6 +2201,46 @@ define(['N/search',
 			}
 		}
     }
+    
+    /**
+     * @param custId
+     * @returns sub-customers ID's of a parent customer 
+     */
+    function gettingSubCustomers(custId){
+    	try{
+    		log.audit('custId',custId);
+    		var iteratorVal = false;
+    		var custRange = 4;//Variable to limit the customer relations to a maximum of 4.
+    		var custIds = [custId];
+    		var tempCustIds = [];
+    		tempCustIds.push(custId); 
+    		do{
+    			var iterateCustIds = tempCustIds;
+    			tempCustIds = [];
+    			search.create({
+    				type: "customer",
+    				filters: [["internalid","anyof",iterateCustIds],"and",["subCustomer.internalid","noneof","@NONE@"]],
+    				columns: [{name: "internalid",join: "subCustomer"}]
+    			}).run().each(function(k){ 
+    				tempCustIds.push(k.getValue({name:'internalid', join:'subCustomer'}));	
+    				return true;
+    			});
+    			if(tempCustIds.length > 0){ 
+    				iteratorVal = true;
+    				custIds = custIds.concat(tempCustIds);
+    			}else{
+    				iteratorVal = false;
+    			}
+    			custRange--;
+    			log.audit('tempCustIds',tempCustIds);
+    		}while(iteratorVal && custRange > 0);
+    		log.audit('custIds',custIds);
+    		return custIds;
+    	} catch(ex){
+    		log.error ('module_gettingSubCustomers', ex.name +'; ' + ex.message + '; ');
+    		return custId;
+    	}
+    }
 
 	return {
 		getItemUnits : getItemUnits,
@@ -2226,6 +2280,7 @@ define(['N/search',
 		validateDeduction:validateDeduction,
 		validateDeductionOpenBal:validateDeductionOpenBal,
 		applyCreditMemo : applyCreditMemo,
-		createCustomerPayment : createCustomerPayment
+		createCustomerPayment : createCustomerPayment,
+		gettingSubCustomers : gettingSubCustomers
 	};
 });
