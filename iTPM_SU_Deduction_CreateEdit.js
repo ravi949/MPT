@@ -11,9 +11,10 @@ define(['N/ui/serverWidget',
 		'N/redirect',
 		'N/config',
 		'N/format',
-		'./iTPM_Module.js'],
+		'./iTPM_Module.js'
+		],
 
-function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
+function(serverWidget, record, search, runtime, redirect, config, format, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -39,10 +40,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			params.from = (request.method == 'GET')?params.from:params['custom_itpm_ddn_createdfrom'];
 			params.fid = (request.method == 'POST' && params.from == 'ddn')?params['custom_itpm_ddn_parentrecid']:params.fid;
 			if(userEventType == 'create'){
-				var statusObj = checkWhetherIdValidOrNot(params.fid,params.from);
-				if(!statusObj.success){
-					throw Error(statusObj.errormessage);
-				}
+				validateRecord(params.fid,params.from);
 			}
 			
 			if(request.method == 'GET'){
@@ -50,11 +48,13 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
 			}else if(request.method == 'POST'){
 				submitDeductionForm(request,response,params);
 			}
-		}catch(e){
+		}catch(ex){
 			var recType = (params.from == 'inv')?'Invoice':'iTPM Deduction';
 			var eventType = (params.type != 'edit')?'create':'edit';
-			log.error(e.name,'record type = '+recType+', record id='+params.fid+', event type = '+eventType+' message='+e);
-			throw Error(e.message);
+			log.error(ex.name,'record type = '+recType+', record id='+params.fid+', event type = '+eventType+' message='+ex);
+			if(ex.name == 'INVALID_STATUS' || ex.name == 'INVALID_PARAMETERS'){
+				throw new Error(ex.message);
+			}
 		}
 	}
 	
@@ -65,92 +65,71 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
      * @returns {Object} error
      * @description checking for the id valid or not
      */
-    function checkWhetherIdValidOrNot(id,from){
-    	try{
-    		var loadedRec;
-    		//Deduction record type id
-			var ddnRecTypeId = runtime.getCurrentScript().getParameter('custscript_itpm_ddn_createedit_rectypeid');
-			log.debug('from',from);
-    		if(from == 'inv'){
-    			log.debug('inv',from);
-    			loadedRec = record.load({
-    				type:record.Type.INVOICE,
-    				id:id
-    			});
+	function validateRecord(id,from){
+		//Deduction record type id
+		var ddnRecTypeId = runtime.getCurrentScript().getParameter('custscript_itpm_ddn_createedit_rectypeid');
+		log.debug('from',from);
+		if(from == 'inv'){
+			log.debug('inv',from);
+			var invStatus = record.load({
+				type:record.Type.INVOICE,
+				id:id
+			}).getValue('status');
 
-    			var invStatus = loadedRec.getValue('status');
-    			
-    			//invoice dont have any ITPM DEDUCTION records
-    			var invoiceDeductionsAreEmpty = search.create({
-    				type:'customtransaction_itpm_deduction',
-    				columns:['internalid'],
-    				filters:[
-    					['custbody_itpm_ddn_invoice','anyof',id],'and',
-    					['status','anyof',["Custom"+ddnRecTypeId+":A","Custom"+ddnRecTypeId+":B"]]
-    				]
-    			}).run().getRange(0,5).length == 0;
+			//invoice dont have any ITPM DEDUCTION records
+			var invoiceDeductionsAreEmpty = search.create({
+				type:'customtransaction_itpm_deduction',
+				columns:['internalid'],
+				filters:[
+					['custbody_itpm_ddn_invoice','anyof',id],'and',
+					['status','anyof',["Custom"+ddnRecTypeId+":A","Custom"+ddnRecTypeId+":B"]]
+					]
+			}).run().getRange(0,5).length == 0;
 
-    			if (invStatus != 'Paid In Full' && invoiceDeductionsAreEmpty){
-    				return {success:true};
-    			} else {
-    				throw {
-    					name: 'checkWhetherIdValidOrNot',
-    					message: 'Invoice conditions not met, OR, Invoice Deductions not empty.'
-    				};
-    			}
-    		} else if(from == 'ddn'){
-    			log.debug('ddn',from);
-    			loadedRec = record.load({
-    				type:'customtransaction_itpm_deduction',
-    				id:id
-    			});
-    			if (loadedRec.getValue('transtatus') == 'A') {
-    				return {success:true};
-    			} else {
-    				throw {
-    					name: 'checkWhetherIdValidOrNot', 
-    					message: 'Deduction status not OPEN.'
-    				};
-    			}
-    		}else if(from == 'creditmemo'){
-    			log.debug('cre',from);
-    			//deduction should not be applied to any deduction
-    			var itpmAppliedTo = search.lookupFields({
-    				type:search.Type.TRANSACTION,
-    				id:id,
-    				columns:['custbody_itpm_appliedto']
-    			})['custbody_itpm_appliedto'][0]['value'];
-    			
-    			//searching for exists deduction which is not Open,Pending and Resolved
-    			var ddnStatus = true;
-    			if(itpmAppliedTo != ""){
-    				ddnStatus = search.lookupFields({
-    					type:'customtransaction_itpm_deduction',
-    					id:itpmAppliedTo,
-    					columns:['internalid','status']
-    				})['status'][0].value;
-    				ddnStatus = (ddnStatus != 'statusA' && ddnStatus != 'statusB' && ddnStatus != 'statusC');
-    			}
-    			log.debug('itpmAppliedTo',itpmAppliedTo == "");
-    			log.debug('ddnStatus',ddnStatus);
-    			if(ddnStatus){
-    				return {success:true};
-    			}else{
-    				throw {
-    					name: 'checkWhetherIdValidOrNot', 
-    					message: 'Credit Memo already applied to a deduction.'
-    				};
-    			}
-    		}
-    		// if neither of the IF statement clauses are satisfied
-    		throw {
-				name: 'checkWhetherIdValidOrNot', 
+			if(invStatus == 'Paid In Full' && !invoiceDeductionsAreEmpty){
+				throw {
+					name: 'INVALID_STATUS',
+					message: 'Invoice conditions not met, OR, Invoice Deductions not empty.'
+				};
+			}
+		} else if(from == 'ddn'){
+			//validate the deduction
+			itpm.validateDeduction(id);
+		}else if(from == 'creditmemo'){
+			log.debug('createfrom',from);
+			//deduction should not be applied to any deduction
+			var itpmAppliedTo = search.lookupFields({
+				type:search.Type.TRANSACTION,
+				id:id,
+				columns:['custbody_itpm_appliedto']
+			})['custbody_itpm_appliedto'][0]['value'];
+
+			//searching for exists deduction which is not Open,Pending and Resolved
+			var ddnStatus = true;
+			if(itpmAppliedTo != ""){
+				ddnStatus = search.lookupFields({
+					type:'customtransaction_itpm_deduction',
+					id:itpmAppliedTo,
+					columns:['internalid','status']
+				})['status'][0].value;
+				ddnStatus = (ddnStatus != 'statusA' && ddnStatus != 'statusB' && ddnStatus != 'statusC');
+			}
+			log.debug('itpmAppliedTo',itpmAppliedTo == "");
+			log.debug('ddnStatus',ddnStatus);
+			if(!ddnStatus){
+				throw {
+					name: 'INVALID_STATUS', 
+					message: 'Credit Memo already applied to a deduction.'
+				};
+			}
+		}else{
+			// if neither of the IF statement clauses are satisfied
+			throw {
+				name: 'INVALID_PARAMETERS', 
 				message: 'Could not find required parameter FROM in request.'
 			};
-    	}catch(e){
-    		return {success:false,errormessage:e.message}
-    	}
-    }
+		}
+	}
     
     
     /**
