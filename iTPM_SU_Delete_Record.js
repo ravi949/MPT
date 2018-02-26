@@ -20,20 +20,54 @@ function(record, search) {
     	try{
     		if(context.request.method == 'GET'){
             	var params = context.request.parameters;
-            	log.debug('Deduction ID', params.did);
+            	var responseObj;
+            	log.debug('params', params);
             	
-            	var ddnRecord = record.delete({
-         	       type: params.rectype,
-         	       id: params.did,
-         	       isDynamic: true                       
-         	   	});
+            	//Loading the record
+            	var recObj = record.load({
+            		type:params.recordid,
+            		id:params.id
+            	});
             	
-            	var ddnListId = search.load({
-            		id:'customsearch_itpm_deduction_defaultview'
-            	}).searchId;
-            	
-            	context.response.write(JSON.stringify({success:true,searchid:ddnListId}));
-        	}
+            	//If record type is Deduction.
+            	if(params.rectype == 'ddn'){
+            		var creditMemos = recObj.getValue('custbody_itpm_ddn_invoice');
+            		var createFrom = search.lookupFields({
+            			type:search.Type.TRANSACTION,
+            			id:creditMemos[0],
+            			columns:['type']
+            		})['type'][0]['value'];
+            		log.debug('createFrom', createFrom);
+            		if(createFrom == 'CustCred'){
+            			creditMemos.forEach(function(cid){
+            				record.submitFields({
+            					type:record.Type.CREDIT_MEMO,
+            					id:cid,
+            					values:{
+            						'custbody_itpm_appliedto':' '
+            					},
+            					options:{
+            						enableSourcing:false,
+            						ignoreMandatoryFields:true
+            					}
+            				});
+            			});
+            		}
+
+            		var ddnRecord = record.delete({
+            			type: params.recordid,
+            			id: params.id,
+            			isDynamic: true                       
+            		});
+
+            		var ddnListId = search.load({
+            			id:'customsearch_itpm_deduction_defaultview'
+            		}).searchId;
+
+            		responseObj = JSON.stringify({success:true,searchid:ddnListId});
+            	}
+            	context.response.write(responseObj);
+    		}
     	}catch(ex){
     		log.error(ex.name,ex.message);
     		context.response.write(JSON.stringify({success:false,message:ex.message}));

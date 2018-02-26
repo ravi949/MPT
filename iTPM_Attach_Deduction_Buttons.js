@@ -173,9 +173,9 @@ function(url, https, message) {
 			var suiteletUrl = url.resolveScript({
 				scriptId:'customscript_itpm_delete_record',
 				deploymentId:'customdeploy_itpm_delete_record',
-				params:{rectype:'customtransaction_itpm_deduction',did:id}
+				params:{recordid:'customtransaction_itpm_deduction',rectype:'ddn',id:id}
 			});
-			console.log(suiteletUrl);
+			
 			https.get.promise({
 				url: suiteletUrl
 			})
