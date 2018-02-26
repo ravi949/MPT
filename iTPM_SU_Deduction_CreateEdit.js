@@ -342,8 +342,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
     		container:'custom_primry_information'
     	}).defaultValue = (params.type == 'edit')?recObj.getValue('custbody_itpm_otherrefcode'):'';
 
-
-    	if(customerParentId != ''){
+    	if(customerParentId){
     		//setting the parent value from the customer
     		ddnForm.addField({
     			id : 'custom_itpm_ddn_parentcustomer',
@@ -668,7 +667,7 @@ function(serverWidget,record,search,runtime,redirect,config,format,itpm) {
     		container:'custom_itpm_ddn_transdetails'
     	}).updateDisplayType({
     		displayType : serverWidget.FieldDisplayType.DISABLED
-    	}).defaultValue = (params.type == 'create')? 0 : recObj.getValue('custbody_itpm_ddn_totexp');;
+    	}).defaultValue = (params.type == 'create')? 0 : recObj.getValue('custbody_itpm_ddn_totexp');
     	/*------- TRANSACTION DETAIL End --------*/
 
     	ddnForm.addSubmitButton({label:'Submit'});

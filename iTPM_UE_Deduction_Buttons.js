@@ -45,6 +45,8 @@ define(['N/runtime',
 
 			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'});
 			var status = sc.newRecord.getValue({fieldId:'transtatus'});
+			var itpmAmount = sc.newRecord.getValue({fieldId:'custbody_itpm_amount'});
+			var parentDeduction = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_parentddn'});
 			var clientScriptPath = './iTPM_Attach_Deduction_Buttons.js';
 			var eventType = sc.type;
 			var runtimeContext = runtime.executionContext; 
@@ -120,7 +122,17 @@ define(['N/runtime',
 						functionName: 'iTPMsettlement(' + sc.newRecord.id + ')'
 					});
 				}				
-
+				
+				log.error('JE_Permssion, ddnPermission', JE_Permssion+' & '+ddnPermission);  
+	    		log.error('Openbal, itpmAmount and parentDeduction', openBalance+' & '+itpmAmount+' & '+parentDeduction);
+				if(JE_Permssion == 4 && ddnPermission == 4 && openBalance == itpmAmount && !parentDeduction){
+					var btn_delete = sc.form.addButton({
+						id: 'custpage_itpm_delete',
+						label: 'Delete',
+						functionName: 'deleteDeduction(' + sc.newRecord.id + ')'
+					});
+				}
+				
 			} else if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
 				redirect.toSuitelet({
 					scriptId:'customscript_itpm_ddn_createeditsuitelet',
