@@ -442,33 +442,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 			}
 	    }
 	    
-    	//location
-	    if(locationsExists){
-	    	var locationField = settlementForm.addField({
-	    		id:'custom_itpm_st_location',
-	    		type:serverWidget.FieldType.SELECT,
-	    		label:'Location',
-	    		container:'custom_classification_group'
-	    	}).updateBreakType({
-				breakType : serverWidget.FieldBreakType.STARTCOL
-			});
-		    
-		    locationField.addSelectOption({
-				   value:' ',
-				   text:' '
-			 });
-
-		    itpm.getClassifications(subsid, 'location', subsidiaryExists).forEach(function(e){
-		    	locationField.addSelectOption({
-				   value:e.id,
-				   text:e.name,
-				   isSelected:locationSet == e.id
-		    	})
-		    	return true;
-		    });
-	    }
-
-    	//department
+	  //department
 	    if(departmentsExists){
 	    	var deptField = settlementForm.addField({
 	    		id:'custom_itpm_st_department',
@@ -520,7 +494,33 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 		    	return true;
 		    })
 	    }
-    	
+	    
+    	//location
+	    if(locationsExists){
+	    	var locationField = settlementForm.addField({
+	    		id:'custom_itpm_st_location',
+	    		type:serverWidget.FieldType.SELECT,
+	    		label:'Location',
+	    		container:'custom_classification_group'
+	    	}).updateBreakType({
+				breakType : serverWidget.FieldBreakType.STARTCOL
+			});
+		    
+		    locationField.addSelectOption({
+				   value:' ',
+				   text:' '
+			 });
+
+		    itpm.getClassifications(subsid, 'location', subsidiaryExists).forEach(function(e){
+		    	locationField.addSelectOption({
+				   value:e.id,
+				   text:e.name,
+				   isSelected:locationSet == e.id
+		    	})
+		    	return true;
+		    });
+	    }
+
 	    /*  CLASSIFICATION end  */
 	   
 	    /*  PROMOTION INFORMATION Start  */
