@@ -30,32 +30,8 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 
     		if(request.method == 'GET'){
     			createSettlementForm(request,response);
-    		}
-    		if(request.method == 'POST'){
-    			
-    			//validation for creating settlement from deduction
-    			if(params.custom_itpm_st_created_frm == 'ddn'){
-    				itpm.validateDeductionOpenBal(params.custom_itpm_st_ddn_id,params['custom_itpm_st_reql'].replace(/,/g,''));
-    			}
-
-    			var eventType = request.parameters.custom_user_eventype;
-    			var setId = null;
-    			if(eventType != 'edit'){
-    				setId = ST_Module.createSettlement(params);
-        			if(params.custom_itpm_st_created_frm == 'ddn'){
-        				params.ddn = params.custom_itpm_st_ddn_id,
-        				params.sid = setId;
-        				setId = ST_Module.applyToDeduction(params,'D');//Here 'D' indicating Deduction.
-        			}
-    			}else if(eventType == 'edit'){
-    				setId = ST_Module.editSettlement(params);
-    			}
-    			
-    	    	redirect.toRecord({
-    				id : setId,
-    				type : 'customtransaction_itpm_settlement', 
-    				isEditMode:false
-    			});
+    		}else if(request.method == 'POST'){
+    			submitSettlementForm(request,response);
     		}
     	}catch(e){    	
     		log.error(e.name,e.message);
@@ -719,6 +695,34 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 	    
 	    settlementForm.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
 	    response.writePage(settlementForm);
+    }
+    
+    
+    function submitSettlementForm(request,response){
+    	var params = request.parameters;
+    	//validation for creating settlement from deduction
+		if(params.custom_itpm_st_created_frm == 'ddn'){
+			itpm.validateDeductionOpenBal(params.custom_itpm_st_ddn_id,params['custom_itpm_st_reql'].replace(/,/g,''));
+		}
+
+		var eventType = request.parameters.custom_user_eventype;
+		var setId = null;
+		if(eventType != 'edit'){
+			setId = ST_Module.createSettlement(params);
+			if(params.custom_itpm_st_created_frm == 'ddn'){
+				params.ddn = params.custom_itpm_st_ddn_id,
+				params.sid = setId;
+				setId = ST_Module.applyToDeduction(params,'D');//Here 'D' indicating Deduction.
+			}
+		}else if(eventType == 'edit'){
+			setId = ST_Module.editSettlement(params);
+		}
+		
+    	redirect.toRecord({
+			id : setId,
+			type : 'customtransaction_itpm_settlement', 
+			isEditMode:false
+		});
     }
     
     return {
