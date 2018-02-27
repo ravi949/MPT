@@ -183,6 +183,9 @@ function(url, https, message) {
 				var responseBody = JSON.parse(response.body);
 				if(responseBody.success){
 					window.location.href = window.location.origin+'/app/common/search/searchresults.nl?searchid='+responseBody.searchid;
+				}else{
+					alert(responseBody.message);
+					window.location.reload();
 				}
 				console.log(response);
 			})

@@ -1,4 +1,4 @@
-/**
+	/**
  * @NApiVersion 2.x
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
@@ -70,7 +70,7 @@ function(record, search) {
     		}
     	}catch(ex){
     		log.error(ex.name,ex.message);
-    		context.response.write(JSON.stringify({success:false,message:ex.message}));
+    		context.response.write(JSON.stringify({success:false,message:ex.message.split('Summary of impact changes')[0]}));
     	}	    	
     }
 
