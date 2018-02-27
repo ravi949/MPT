@@ -29,24 +29,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     		var request = context.request,response = context.response,params = request.parameters;
 
     		if(request.method == 'GET'){
-
-    			var settlementForm = serverWidget.createForm({
-    				title : '- iTPM Settlement'
-    			});
-
-    			settlementForm.addSubmitButton({
-    				label : 'Submit'
-    			});
-
-    			settlementForm.addButton({
-    				label : 'Cancel',
-    				id:'custpage_cancelbtn',
-    				functionName:'redirectToBack'
-    			});
-
-    			addFieldsToTheSettlementForm(settlementForm,request.parameters);
-
-    			response.writePage(settlementForm);
+    			createSettlementForm(request,response);
     		}
     		if(request.method == 'POST'){
     			
@@ -54,7 +37,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     			if(params.custom_itpm_st_created_frm == 'ddn'){
     				itpm.validateDeductionOpenBal(params.custom_itpm_st_ddn_id,params['custom_itpm_st_reql'].replace(/,/g,''));
     			}
-//    			saveTheSettlement(request.parameters);
+
     			var eventType = request.parameters.custom_user_eventype;
     			var setId = null;
     			if(eventType != 'edit'){
@@ -92,8 +75,27 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     }
     
     
-    //adding the fields to the settlement form
-    function addFieldsToTheSettlementForm(settlementForm,params){
+    /**
+     * @param request
+     * @param response
+     * @Description Create the settlement form
+     */
+    function createSettlementForm(request,response){
+    	var params = request.parameters;
+    	var settlementForm = serverWidget.createForm({
+			title : '- iTPM Settlement'
+		});
+
+		settlementForm.addSubmitButton({
+			label : 'Submit'
+		});
+
+		settlementForm.addButton({
+			label : 'Cancel',
+			id:'custpage_cancelbtn',
+			functionName:'redirectToBack'
+		});
+    	
     	var eventType = params.type;
     	var subsidiaryExists = itpm.subsidiariesEnabled();
 		var currencyExists = itpm.currenciesEnabled();
@@ -406,18 +408,13 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 	    }
 	    
 	    //memo field
-	    var memoField = settlementForm.addField({
+	    settlementForm.addField({
 			id : 'custpage_memo',
 			type : serverWidget.FieldType.TEXT,
 			label : 'Memo',
 			container:'custom_primaryinfo_group'
-		});
-	    if(!isEdit){
-	    	memoField.updateDisplayType({
-	    		displayType : serverWidget.FieldDisplayType.DISABLED
-	    	});
-	    }
-	    memoField.defaultValue = (isEdit)?memo:'';
+		}).defaultValue = (isEdit)?memo:'';
+	    
 	    /*  PRIMARY INFORMATION End  */
 	    
 	    /*  CLASSIFICATION Start  */
@@ -721,6 +718,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     	/*  TRANSACTION DETAIL Start  */
 	    
 	    settlementForm.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
+	    response.writePage(settlementForm);
     }
     
     return {
