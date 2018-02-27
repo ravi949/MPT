@@ -582,9 +582,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     	}).updateDisplayType({
 			displayType : displayTypeSetup
 		}).defaultValue = netPromotionLiablty;
-	    
-	  
-
+	   
 	    //ship start date
 	    settlementForm.addField({
     		id:'custom_itpm_st_shp_stdate',
@@ -648,20 +646,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
 			displayType : (promoLumSum > 0 || promoHasAllNB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	})
-    	
-    	/*if(!isEdit){                      //Commented as per new enhancement to remove Reason Code
-    		//reason code
-    	    settlementForm.addField({
-        		id:'custom_itpm_st_reason_code',
-        		type:serverWidget.FieldType.SELECT,
-        		label:'Reason Code',
-        		source:'customlist_itpm_set_reasoncode',
-        		container:'custom_transdetail_group'
-        	}).updateBreakType({
-    			breakType : serverWidget.FieldBreakType.STARTCOL
-    		}).isMandatory = true;
-    	}*/
+    	});
     	
     	//Settlement request : Bill back
     	var amountBBField = settlementForm.addField({
@@ -672,7 +657,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     	}).updateDisplayType({
 			//displayType : (promoTypeMOP.some(function(e){return e.value == 1}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
     		displayType : (promoHasAllBB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	})
+    	});
     	
     	//Settlement request : Missed off-invoice
     	settlementForm.addField({
@@ -698,6 +683,11 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     }
     
     
+    /**
+     * @param request
+     * @param response
+     * @Description submit the settlement record to the server
+     */
     function submitSettlementForm(request, response){
     	var params = request.parameters;
     	//validation for creating settlement from deduction
