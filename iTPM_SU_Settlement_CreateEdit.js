@@ -14,7 +14,7 @@ define(['N/ui/serverWidget',
 		'./iTPM_Module.js'
 		],
 
-function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
+function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -56,7 +56,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
      * @param response
      * @Description Create the settlement form
      */
-    function createSettlementForm(request,response){
+    function createSettlementForm(request, response){
     	var params = request.parameters;
     	var settlementForm = serverWidget.createForm({
 			title : '- iTPM Settlement'
@@ -698,7 +698,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     }
     
     
-    function submitSettlementForm(request,response){
+    function submitSettlementForm(request, response){
     	var params = request.parameters;
     	//validation for creating settlement from deduction
 		if(params.custom_itpm_st_created_frm == 'ddn'){
