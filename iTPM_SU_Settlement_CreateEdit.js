@@ -54,7 +54,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     			if(params.custom_itpm_st_created_frm == 'ddn'){
     				itpm.validateDeductionOpenBal(params.custom_itpm_st_ddn_id,params['custom_itpm_st_reql'].replace(/,/g,''));
     			}
-//    			saveTheSettlement(request.parameters);
+
     			var eventType = request.parameters.custom_user_eventype;
     			var setId = null;
     			if(eventType != 'edit'){
