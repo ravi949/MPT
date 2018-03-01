@@ -172,7 +172,7 @@ function(search, runtime, record, format, itpm) {
     				kpi : kpiID,
     				lsallfactorest: kpiLSAllFactorEST.toString(),
     				lsallfactoractual: kpiLSAllFactorActual.toString(),
-    				//lsadjusted: kpiLSAllAdjusted,
+    				pAllocationType:pAllocationType,
     				item: kpiItemID,
     				unit: kpiUnitID,
     				actSpendLS: (kpiActualSpendLS)?parseFloat(kpiActualSpendLS):0,
@@ -216,7 +216,7 @@ function(search, runtime, record, format, itpm) {
     	try{
         	var key = JSON.parse(context.key);
         	var values = JSON.parse(context.values[0]);
-        	
+        	log.debug('key',key);
         	/**** START CALCULATIONS ****/
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
         	var kpi_promoQty = values.estPromoted;
