@@ -68,10 +68,10 @@ function(config, record, search, itpm) {
 				type:'customtransaction_itpm_settlement',
 				isDynamic:true
 			});
-
+			
 			newSettlementRecord.setValue({
 				fieldId:'memo',
-				value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+loadedPromoRec.name
+				value:params['custpage_memo']
 			});
 
 			//it's creating from the dedcution record
