@@ -34,27 +34,28 @@ define(['N/search',
 				}
 			}
 			//1 = Ship Date, 2 = Order Date, 3 = Both, 4 = Either
-			var datePref = getPrefrenceValues().prefDiscountDate; //need to correct spelling
+//			log.audit('getPrefrenceValues().prefDiscountDate;',getPrefrenceValues().prefDiscountDate);
+//			var datePref = getPrefrenceValues().prefDiscountDate; //need to correct spelling
 			var start, end, items = [];
-			switch (datePref){
-			case '2':
-				start = obj.orderStart;
-				end = obj.orderEnd;
-				break;
-			case '3':
-				start = (Date.parse(obj.shipStart) >= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
-				end = (Date.parse(obj.shipEnd) >= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
-				break;
-			case '4':
-				start = (Date.parse(obj.shipStart) <= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
-				end = (Date.parse(obj.shipEnd) <= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
-				break;
-			default: //default use ship dates
+//			switch (datePref){
+//			case '2':
+//				start = obj.orderStart;
+//				end = obj.orderEnd;
+//				break;
+//			case '3':
+//				start = (Date.parse(obj.shipStart) >= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+//				end = (Date.parse(obj.shipEnd) >= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+//				break;
+//			case '4':
+//				start = (Date.parse(obj.shipStart) <= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+//				end = (Date.parse(obj.shipEnd) <= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+//				break;
+//			default: //default use ship dates
 				start = obj.shipStart;
-			end = obj.shipEnd;
-			break;
-			}
-
+				end = obj.shipEnd;
+//			break;
+//			}
+			log.audit('obj',obj);
 			//get promotion items
 			var itemSearch = search.create({
 				type: 'customrecord_itpm_kpi',
@@ -67,12 +68,15 @@ define(['N/search',
 			itemSearch.run().each(function(result){
 				items.push(result.getValue('custrecord_itpm_kpi_item'));
 			});
+			//getting the sub customers of the customer
+			var subCustIds = getSubCustomers(obj.customerId);
+			log.debug('hasSales:subCustIds',subCustIds);
 			//get invoices
 			var invoiceSearch = search.create({
 				type: search.Type.INVOICE,
 				filters: [
 					['item', 'anyof', items], 'and',
-					['entity', 'anyof', obj.customerId], 'and',
+					['entity', 'anyof', subCustIds], 'and',
 					['trandate', 'within', start, end]
 					],
 					columns: ['tranid']
@@ -405,10 +409,13 @@ define(['N/search',
 				operator: search.Operator.ANYOF,
 				values: itemId
 			}));
+			//getting the sub customers of the customer
+			var subCustIds = getSubCustomers(customerId);
+			log.debug('getActualQty:subCustIds',subCustIds);
 			qtySearch.filters.push(search.createFilter({
 				name: 'entity',
 				operator: search.Operator.ANYOF,
-				values: customerId
+				values: subCustIds
 			}));
 			qtySearch.filters.push(search.createFilter({
 				name: 'trandate',
@@ -882,7 +889,7 @@ define(['N/search',
 						eq = (eq)?eq:0;
 
 						final_total_eq = (promestspendbb <= 0)?0:(parseFloat((eq/promestspendbb)));
-						obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseInt(final_total_eq.toFixed(6)*100000)/100000;    						
+						obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = final_total_eq.toFixed(6);
 						//Updating the related KPI record
 						var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
 						log.debug('kpiRecUpdate',kpiRecUpdate);
@@ -935,7 +942,7 @@ define(['N/search',
 								columns : [obj['kpiEstimatedSpend']]
 							});    						
 							var eq = fieldLookUp[obj['kpiEstimatedSpend']];    						
-							obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseFloat(1/itemcount).toFixed(5);    							
+							obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = parseFloat(1/itemcount).toFixed(6);    							
 							//Updating the related KPI record
 							var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), obj['kpiValues']);
 							log.debug('kpiRecUpdate',kpiRecUpdate);
@@ -965,26 +972,26 @@ define(['N/search',
 	function getActAllocationFactorLS(obj){
 		try{
 			//1 = Ship Date, 2 = Order Date, 3 = Both, 4 = Either
-			var datePref = getPrefrenceValues().prefDiscountDate; //need to correct spelling
+//			var datePref = getPrefrenceValues().prefDiscountDate; //need to correct spelling
 			var start, end, items = [], kpiItems = [], thisItem, thisFactor, thisRevenue, revenue, totalRevenue;
-			switch (datePref){
-			case '2':
-				start = obj.orderStart;
-				end = obj.orderEnd;
-				break;
-			case '3':
-				start = (Date.parse(obj.shipStart) >= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
-				end = (Date.parse(obj.shipEnd) >= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
-				break;
-			case '4':
-				start = (Date.parse(obj.shipStart) <= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
-				end = (Date.parse(obj.shipEnd) <= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
-				break;
-			default: //default use ship dates
+//			switch (datePref){
+//			case '2':
+//				start = obj.orderStart;
+//				end = obj.orderEnd;
+//				break;
+//			case '3':
+//				start = (Date.parse(obj.shipStart) >= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+//				end = (Date.parse(obj.shipEnd) >= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+//				break;
+//			case '4':
+//				start = (Date.parse(obj.shipStart) <= Date.parse(obj.orderStart)) ? obj.shipStart : obj.orderStart;
+//				end = (Date.parse(obj.shipEnd) <= Date.parse(obj.orderEnd)) ? obj.orderEnd : obj.shipEnd;
+//				break;
+//			default: //default use ship dates
 				start = obj.shipStart;
-			end = obj.shipEnd;
-			break;
-			}
+				end = obj.shipEnd;
+//			break;
+//			}
 			//get promotion items
 			var itemSearch = search.create({
 				type: 'customrecord_itpm_kpi',
@@ -1000,12 +1007,15 @@ define(['N/search',
 					thisItem = result.getValue('custrecord_itpm_kpi_item');
 				}
 			});
+			//getting the sub customers of the customer
+			var subCustIds = getSubCustomers(obj.customerId);
+			log.debug('getActAllocationFactorLS:subCustIds',subCustIds);
 			//get invoices
 			var invoiceSearch = search.create({
 				type: search.Type.INVOICE,
 				filters: [
 					['item', 'anyof', items], 'and',
-					['entity', 'anyof', obj.customerId], 'and',
+					['entity', 'anyof', subCustIds], 'and',
 					['trandate', 'within', start, end], 'and',
 					['status','anyof',['CustInvc:A','CustInvc:B']],'and',
 					['taxline', 'is', false], 'and',
@@ -1036,7 +1046,7 @@ define(['N/search',
 			});
 			totalRevenue = (totalRevenue) ? totalRevenue : 1;
 			thisFactor = thisRevenue / totalRevenue;
-			thisFactor = Math.floor(thisFactor.toFixed(6)*100000)/100000;
+			thisFactor = thisFactor.toFixed(6);
 			return {error: false, factor: thisFactor};
 		} catch(ex){
 			log.error ('module_getActAllocationFactorLS', ex.name +'; ' + ex.message + '; ' + JSON.stringify(obj));
@@ -1225,7 +1235,7 @@ define(['N/search',
 						totalEstimatedRevenue = (totalEstimatedRevenue)?totalEstimatedRevenue:0;
 						log.debug('totalEstimatedRevenue', totalEstimatedRevenue);
 						final_total_eq = (totalEstimatedRevenue <= 0)?0:(parseFloat((estimatedRevenue/totalEstimatedRevenue)));
-						final_total_eq = parseInt(final_total_eq.toFixed(6)*100000)/100000;
+						final_total_eq = final_total_eq.toFixed(6);
 
 						var objvalueskpi = {
 								kpiValues:{
@@ -1274,7 +1284,7 @@ define(['N/search',
 
 						var objvalueskpi = {
 								kpiValues:{
-									'custrecord_itpm_kpi_factorestls' : parseFloat(1/itemcount).toFixed(5)
+									'custrecord_itpm_kpi_factorestls' : parseFloat(1/itemcount).toFixed(6)
 								}
 						}
 						//Updating the related KPI record
@@ -1548,7 +1558,7 @@ define(['N/search',
 					log.debug('el',el);
 
 					final_total_eq = (totalexpliability <= 0)?0:(parseFloat((el/totalexpliability)));
-					final_total_eq = parseInt(final_total_eq.toFixed(6)*100000)/100000;
+					final_total_eq = final_total_eq.toFixed(6);
 					obj['kpiValues'][Object.keys(obj.kpiValues)[0]] = final_total_eq;
 
 					//Updating the related KPI record
@@ -1650,7 +1660,7 @@ define(['N/search',
 					actualRevenue = (actualRevenue)?actualRevenue:0;
 					log.debug('actualRevenue',actualRevenue);
 					final_total_eq = (totalrevenue <= 0)?0:(parseFloat((actualRevenue/totalrevenue)));
-					final_total_eq = parseInt(final_total_eq.toFixed(6)*100000)/100000;
+					final_total_eq = final_total_eq.toFixed(6);
 					//Updating the related KPI record
 					var objvalueskpi = {
 							kpiValues:{
@@ -1780,14 +1790,18 @@ define(['N/search',
 	 * @param {String} end - end date
 	 * @returns {Object} search
 	 */
-	function getInvoiceSearch(searchColumn,items,custIds,st,end){
+	function getInvoiceSearch(searchColumn,items,custId,st,end){
 		try{
+			//getting the sub customers of the customer
+			var subCustIds = getSubCustomers(custId);
+			log.debug('getActualQty:subCustIds',subCustIds);
+			
 			return search.create({
 				type:search.Type.INVOICE,
 				columns:searchColumn,
 				filters:[
 					['item','anyof',items],'and',
-					['entity','anyof',custIds],'and',
+					['entity','anyof',subCustIds],'and',
 					['trandate','within',st,end],'and',
 					['status','anyof',['CustInvc:A','CustInvc:B']],'and',
 					['taxline','is',false],'and',
@@ -2187,6 +2201,28 @@ define(['N/search',
 			}
 		}
     }
+    
+    /**
+     * @param custId
+     * @returns sub-customers ID's of a parent customer 
+     */
+    function getSubCustomers(custId){
+    	try{
+    		var custIds = [];
+    		search.create({
+				type: "customer",
+				filters: [["parent",'anyof',custId]],
+				columns: ['internalid']
+			}).run().each(function(k){ 
+				custIds.push(k.getValue({name:'internalid'}));	
+				return true;
+			});
+    		return custIds;
+    	} catch(ex){
+    		log.error ('module_getSubCustomers', ex.name +'; ' + ex.message + '; ');
+    		return [custId];
+    	}
+    }
 
 	return {
 		getItemUnits : getItemUnits,
@@ -2226,6 +2262,7 @@ define(['N/search',
 		validateDeduction:validateDeduction,
 		validateDeductionOpenBal:validateDeductionOpenBal,
 		applyCreditMemo : applyCreditMemo,
-		createCustomerPayment : createCustomerPayment
+		createCustomerPayment : createCustomerPayment,
+		getSubCustomers : getSubCustomers
 	};
 });

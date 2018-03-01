@@ -7,10 +7,11 @@
 define(['N/ui/serverWidget',
 		'N/search',
 		'N/record',
-		'N/format'
+		'N/format', 
+		'./iTPM_Module.js'
 		],
 
-function(serverWidget,search,record,format) {
+function(serverWidget,search,record,format, itpm) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -111,14 +112,16 @@ function(serverWidget,search,record,format) {
 				promotionStdate.defaultValue = startDateYear;
 				promotionEndate.defaultValue = endDateYear;
 				
-				var CustId = promoDealRecord['custrecord_itpm_p_customer'][0].value;
+				var custId = promoDealRecord['custrecord_itpm_p_customer'][0].value;
 
 				var customerRecord = record.load({
 					type : record.Type.CUSTOMER,
-					id : CustId
+					id : custId
 				});
 				customerDescription.defaultValue = customerRecord.getValue('entityid');
-				//Create hierarchical promotions
+				var custIds = itpm.getSubCustomers(custId);
+				log.audit('custIds',custIds);
+				/*//Create hierarchical promotions
 				// for customer search
 				var iteratorVal = false;
 				var custRange = 4;//Variable to limit the customer relations to a maximum of 4.
@@ -143,7 +146,7 @@ function(serverWidget,search,record,format) {
 						iteratorVal = false;
 					}
 					custRange--;
-				}while(iteratorVal && custRange > 0);
+				}while(iteratorVal && custRange > 0);*/
 
 				//estimated volume search to get the items list
 				var estVolumeItems = [];

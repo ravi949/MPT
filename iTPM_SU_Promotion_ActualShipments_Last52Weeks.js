@@ -4,14 +4,19 @@
  * @NModuleScope TargetAccount
  * Suitelet script to generate and return a report of actual shipments based on Item Fulfillment records for the items selected in the Allowances of a Promotion.
  */
-define(['N/format', 'N/record', 'N/search', 'N/ui/serverWidget'],
+define(['N/format', 
+		'N/record', 
+		'N/search', 
+		'N/ui/serverWidget', 
+		'./iTPM_Module.js'
+		],
 /**
  * @param {format} format
  * @param {record} record
  * @param {search} search
  * @param {serverWidget} serverWidget
  */
-function(format, record, search, serverWidget) {
+function(format, record, search, serverWidget, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -109,20 +114,22 @@ function(format, record, search, serverWidget) {
 				promotionStdate.defaultValue = startDateYear;
 				promotionEndate.defaultValue = endDateYear;
 				
-				var CustId = promoDealRecord['custrecord_itpm_p_customer'][0].value;
+				var custId = promoDealRecord['custrecord_itpm_p_customer'][0].value;
 
 				var customerRecord = record.load({
 					type : record.Type.CUSTOMER,
-					id : CustId
+					id : custId
 				});
 				customerDescription.defaultValue = customerRecord.getValue('entityid');
-				//Create hierarchical promotions
+				var custIds = itpm.getSubCustomers(custId);
+				log.audit('custIds',custIds);
+				/*//Create hierarchical promotions
 				// for customer search
 				var iteratorVal = false;
 				var custRange = 4;//Variable to limit the customer relations to a maximum of 4.
-				var custIds = [CustId];
+				var custIds = [custId];
 				var tempCustIds = [];
-				tempCustIds.push(CustId); 
+				tempCustIds.push(custId); 
 				do{
 					var iterateCustIds = tempCustIds;
 					tempCustIds = [];
@@ -141,8 +148,8 @@ function(format, record, search, serverWidget) {
 						iteratorVal = false;
 					}
 					custRange--;
-				}while(iteratorVal && custRange > 0);
-
+				}while(iteratorVal && custRange > 0);*/
+				
 				//estimated volume search to get the items list
 				var estVolumeItems = [];
 				search.create({
