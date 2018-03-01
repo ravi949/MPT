@@ -26,8 +26,19 @@ define(['N/runtime',
 			//prevent copy of the deduction record
 			if(sc.type == 'copy'){
 				throw{
-					name:'copy deduction',
+					name:'COPY_NOT_ALLOWED',
 					message:'Copying a deduction is not allowed.'
+				};
+			}
+			
+			var status = sc.newRecord.getValue({fieldId:'transtatus'});
+			var contextType = contextType = runtime.executionContext;
+			
+			//Restrict the user edit deduction record if status is Processing
+			if(contextType == 'USERINTERFACE' && sc.type == 'edit' && status == 'E'){
+				throw{
+					name:'INVALID_EDIT',
+					message:'The Deduction is in Processing status, It cannot be Edited.'
 				};
 			}
 			
@@ -143,7 +154,9 @@ define(['N/runtime',
 			}
 		} catch(ex) {
 			log.error('DDN_UE_BeforeLoad', ex.name + '; message: ' + ex.message +'; Id:' + sc.newRecord.id);
-			if(ex.name == 'copy deduction'){
+			if(ex.name == 'COPY_NOT_ALLOWED'){
+				throw new Error(ex.message);
+			}else if(ex.name == 'INVALID_EDIT'){
 				throw new Error(ex.message);
 			}
 		}

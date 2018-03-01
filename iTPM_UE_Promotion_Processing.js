@@ -79,18 +79,6 @@ function(serverWidget,record,runtime,url,search,itpm) {
             		}
         		}
         		
-    			//this block for showing the overlapping promotions in promotion record subtab
-        		if(scriptContext.type == 'view' || scriptContext.type == 'edit'){
-        			var params = {
-        				rectype:promoRec.getValue('rectype'),
-        				cid:promoRec.getValue('custrecord_itpm_p_customer'),
-        				pdid:promoRec.id,
-        				start:promoRec.getText('custrecord_itpm_p_shipstart'),
-        				end:promoRec.getText('custrecord_itpm_p_shipend')
-        			}   
-        			//Add the overlap promotion to the new subtab
-        			addOverlapSublists(promoForm,params,scriptContext.type);
-        		}
         		if (scriptContext.type == 'view' || scriptContext.type == 'edit'){
         			var actualSalesURL = url.resolveScript({
         				scriptId: 'customscript_itpm_promo_actualsales',
@@ -195,6 +183,20 @@ function(serverWidget,record,runtime,url,search,itpm) {
         				ignoreFieldChange: true
         			});
         		}
+        		
+        		//this block for showing the overlapping promotions in promotion record subtab
+        		if(scriptContext.type == 'view' || scriptContext.type == 'edit'){
+        			var params = {
+        				rectype:promoRec.getValue('rectype'),
+        				cid:promoRec.getValue('custrecord_itpm_p_customer'),
+        				pdid:promoRec.id,
+        				start:promoRec.getText('custrecord_itpm_p_shipstart'),
+        				end:promoRec.getText('custrecord_itpm_p_shipend')
+        			}   
+        			//Add the overlap promotion to the new subtab
+        			addOverlapSublists(promoForm,params,scriptContext.type);
+        		}
+        		
     		}
     	}catch(e){
     		log.error(e.name, e.message +'; beforeLoad; trigger type: ' + scriptContext.type + '; recordID: ' + scriptContext.newRecord.id + '; recordType: ' + scriptContext.newRecord.type);

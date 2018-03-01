@@ -88,10 +88,10 @@ function(record, http, search, runtime, itpm) {
     				}
     			} else {
     				log.error('ITEM_ID_NULL', 'No value in Item Id parameter.');
-    				response.write(JSON.stringify({error:true}));
+    				response.write(JSON.stringify({success:false}));
     			}
-    			log.debug('JSON response', JSON.stringify({error:false, unitsList : returnArray}));
-    			response.write(JSON.stringify({error:false, unitsList : returnArray}));
+    			log.debug('JSON response', JSON.stringify({success:true, unitsList : returnArray}));
+    			response.write(JSON.stringify({success:true, unitsList : returnArray}));
     			
     		}else if(request.method == http.Method.GET && params.price == "true"){
     			
@@ -102,7 +102,7 @@ function(record, http, search, runtime, itpm) {
     	} catch(ex) {
     		log.error(ex.name, ex.message + '; by User:' + JSON.stringify(runtime.getCurrentUser()) + '; on parameters : ' + JSON.stringify(context.request.parameters));
     		//console.log(log.error(ex.name, ex.message + '; on parameters = ' + JSON.stringify(context.request.parameters)));
-    		context.response.write(JSON.stringify({error:true}));
+    		context.response.write(JSON.stringify({success:false}));
     	}
     	
     }

@@ -14,7 +14,7 @@ define(['N/ui/serverWidget',
 		'./iTPM_Module.js'
 		],
 
-function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
+function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -29,50 +29,9 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     		var request = context.request,response = context.response,params = request.parameters;
 
     		if(request.method == 'GET'){
-
-    			var settlementForm = serverWidget.createForm({
-    				title : '- iTPM Settlement'
-    			});
-
-    			settlementForm.addSubmitButton({
-    				label : 'Submit'
-    			});
-
-    			settlementForm.addButton({
-    				label : 'Cancel',
-    				id:'custpage_cancelbtn',
-    				functionName:'redirectToBack'
-    			});
-
-    			addFieldsToTheSettlementForm(settlementForm,request.parameters);
-
-    			response.writePage(settlementForm);
-    		}
-    		if(request.method == 'POST'){
-    			
-    			//validation for creating settlement from deduction
-    			if(params.custom_itpm_st_created_frm == 'ddn'){
-    				itpm.validateDeductionOpenBal(params.custom_itpm_st_ddn_id,params['custom_itpm_st_reql'].replace(/,/g,''));
-    			}
-//    			saveTheSettlement(request.parameters);
-    			var eventType = request.parameters.custom_user_eventype;
-    			var setId = null;
-    			if(eventType != 'edit'){
-    				setId = ST_Module.createSettlement(params);
-        			if(params.custom_itpm_st_created_frm == 'ddn'){
-        				params.ddn = params.custom_itpm_st_ddn_id,
-        				params.sid = setId;
-        				setId = ST_Module.applyToDeduction(params,'D');//Here 'D' indicating Deduction.
-        			}
-    			}else if(eventType == 'edit'){
-    				setId = ST_Module.editSettlement(params);
-    			}
-    			
-    	    	redirect.toRecord({
-    				id : setId,
-    				type : 'customtransaction_itpm_settlement', 
-    				isEditMode:false
-    			});
+    			createSettlementForm(request,response);
+    		}else if(request.method == 'POST'){
+    			submitSettlementForm(request,response);
     		}
     	}catch(e){    	
     		log.error(e.name,e.message);
@@ -92,8 +51,27 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     }
     
     
-    //adding the fields to the settlement form
-    function addFieldsToTheSettlementForm(settlementForm,params){
+    /**
+     * @param request
+     * @param response
+     * @Description Create the settlement form
+     */
+    function createSettlementForm(request, response){
+    	var params = request.parameters;
+    	var settlementForm = serverWidget.createForm({
+			title : '- iTPM Settlement'
+		});
+
+		settlementForm.addSubmitButton({
+			label : 'Submit'
+		});
+
+		settlementForm.addButton({
+			label : 'Cancel',
+			id:'custpage_cancelbtn',
+			functionName:'redirectToBack'
+		});
+    	
     	var eventType = params.type;
     	var subsidiaryExists = itpm.subsidiariesEnabled();
 		var currencyExists = itpm.currenciesEnabled();
@@ -406,18 +384,13 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 	    }
 	    
 	    //memo field
-	    var memoField = settlementForm.addField({
+	    settlementForm.addField({
 			id : 'custpage_memo',
 			type : serverWidget.FieldType.TEXT,
 			label : 'Memo',
 			container:'custom_primaryinfo_group'
-		});
-	    if(!isEdit){
-	    	memoField.updateDisplayType({
-	    		displayType : serverWidget.FieldDisplayType.DISABLED
-	    	});
-	    }
-	    memoField.defaultValue = (isEdit)?memo:'';
+		}).defaultValue = (isEdit)?memo:'';
+	    
 	    /*  PRIMARY INFORMATION End  */
 	    
 	    /*  CLASSIFICATION Start  */
@@ -469,33 +442,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 			}
 	    }
 	    
-    	//location
-	    if(locationsExists){
-	    	var locationField = settlementForm.addField({
-	    		id:'custom_itpm_st_location',
-	    		type:serverWidget.FieldType.SELECT,
-	    		label:'Location',
-	    		container:'custom_classification_group'
-	    	}).updateBreakType({
-				breakType : serverWidget.FieldBreakType.STARTCOL
-			});
-		    
-		    locationField.addSelectOption({
-				   value:' ',
-				   text:' '
-			 });
-
-		    itpm.getClassifications(subsid, 'location', subsidiaryExists).forEach(function(e){
-		    	locationField.addSelectOption({
-				   value:e.id,
-				   text:e.name,
-				   isSelected:locationSet == e.id
-		    	})
-		    	return true;
-		    });
-	    }
-
-    	//department
+	  //department
 	    if(departmentsExists){
 	    	var deptField = settlementForm.addField({
 	    		id:'custom_itpm_st_department',
@@ -547,7 +494,33 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
 		    	return true;
 		    })
 	    }
-    	
+	    
+    	//location
+	    if(locationsExists){
+	    	var locationField = settlementForm.addField({
+	    		id:'custom_itpm_st_location',
+	    		type:serverWidget.FieldType.SELECT,
+	    		label:'Location',
+	    		container:'custom_classification_group'
+	    	}).updateBreakType({
+				breakType : serverWidget.FieldBreakType.STARTCOL
+			});
+		    
+		    locationField.addSelectOption({
+				   value:' ',
+				   text:' '
+			 });
+
+		    itpm.getClassifications(subsid, 'location', subsidiaryExists).forEach(function(e){
+		    	locationField.addSelectOption({
+				   value:e.id,
+				   text:e.name,
+				   isSelected:locationSet == e.id
+		    	})
+		    	return true;
+		    });
+	    }
+
 	    /*  CLASSIFICATION end  */
 	   
 	    /*  PROMOTION INFORMATION Start  */
@@ -586,6 +559,8 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({
 			displayType : displayTypeSetup
+		}).updateBreakType({
+			breakType : serverWidget.FieldBreakType.STARTCOL
 		}).defaultValue = promotionDesc;
 	    
 	  //INCURRED PROMOTIONAL LIABILITY
@@ -609,9 +584,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     	}).updateDisplayType({
 			displayType : displayTypeSetup
 		}).defaultValue = netPromotionLiablty;
-	    
-	  
-
+	   
 	    //ship start date
 	    settlementForm.addField({
     		id:'custom_itpm_st_shp_stdate',
@@ -675,20 +648,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
 			displayType : (promoLumSum > 0 || promoHasAllNB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	})
-    	
-    	/*if(!isEdit){                      //Commented as per new enhancement to remove Reason Code
-    		//reason code
-    	    settlementForm.addField({
-        		id:'custom_itpm_st_reason_code',
-        		type:serverWidget.FieldType.SELECT,
-        		label:'Reason Code',
-        		source:'customlist_itpm_set_reasoncode',
-        		container:'custom_transdetail_group'
-        	}).updateBreakType({
-    			breakType : serverWidget.FieldBreakType.STARTCOL
-    		}).isMandatory = true;
-    	}*/
+    	});
     	
     	//Settlement request : Bill back
     	var amountBBField = settlementForm.addField({
@@ -699,7 +659,7 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     	}).updateDisplayType({
 			//displayType : (promoTypeMOP.some(function(e){return e.value == 1}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
     		displayType : (promoHasAllBB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	})
+    	});
     	
     	//Settlement request : Missed off-invoice
     	settlementForm.addField({
@@ -721,6 +681,40 @@ function(serverWidget,search,record,redirect,format,url,ST_Module,itpm) {
     	/*  TRANSACTION DETAIL Start  */
 	    
 	    settlementForm.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
+	    response.writePage(settlementForm);
+    }
+    
+    
+    /**
+     * @param request
+     * @param response
+     * @Description submit the settlement record to the server
+     */
+    function submitSettlementForm(request, response){
+    	var params = request.parameters;
+    	//validation for creating settlement from deduction
+		if(params.custom_itpm_st_created_frm == 'ddn'){
+			itpm.validateDeductionOpenBal(params.custom_itpm_st_ddn_id,params['custom_itpm_st_reql'].replace(/,/g,''));
+		}
+
+		var eventType = request.parameters.custom_user_eventype;
+		var setId = null;
+		if(eventType != 'edit'){
+			setId = ST_Module.createSettlement(params);
+			if(params.custom_itpm_st_created_frm == 'ddn'){
+				params.ddn = params.custom_itpm_st_ddn_id,
+				params.sid = setId;
+				setId = ST_Module.applyToDeduction(params,'D');//Here 'D' indicating Deduction.
+			}
+		}else if(eventType == 'edit'){
+			setId = ST_Module.editSettlement(params);
+		}
+		
+    	redirect.toRecord({
+			id : setId,
+			type : 'customtransaction_itpm_settlement', 
+			isEditMode:false
+		});
     }
     
     return {
