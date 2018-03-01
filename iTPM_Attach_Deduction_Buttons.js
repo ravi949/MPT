@@ -165,13 +165,47 @@ function(url, https, message) {
     	history.go(-1);
     }
 	
+	function deleteDeduction(id){
+		try{
+			var msg = displayMessage('info','Deleting Deduction','Please wait while deleting the Deduction.');
+			msg.show();
+			
+			var suiteletUrl = url.resolveScript({
+				scriptId:'customscript_itpm_delete_record',
+				deploymentId:'customdeploy_itpm_delete_record',
+				params:{recordid:'customtransaction_itpm_deduction',rectype:'ddn',id:id}
+			});
+			
+			https.get.promise({
+				url: suiteletUrl
+			})
+			.then(function(response){
+				var responseBody = JSON.parse(response.body);
+				if(responseBody.success){
+					window.location.href = window.location.origin+'/app/common/search/searchresults.nl?searchid='+responseBody.searchid;
+				}else{
+					alert(responseBody.message);
+					window.location.reload();
+				}
+				console.log(response);
+			})
+			.catch(function onRejected(reason) {
+				console.log(reason);
+			});
+			
+		}catch(ex) {
+			console.log(ex.name, 'function name = deleteDeduction, message'+ex.message);
+		}
+	}
+	
     return {
         iTPMsplit : iTPMsplit,
         iTPMexpense : iTPMexpense,
         iTPMinvoice : iTPMinvoice,
         iTPMsettlement : iTPMsettlement,
         iTPMcreditmemo : iTPMcreditmemo,
-        redirectToBack : redirectToBack
+        redirectToBack : redirectToBack,
+        deleteDeduction: deleteDeduction
     };
     
 });
