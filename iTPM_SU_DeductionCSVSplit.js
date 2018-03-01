@@ -69,9 +69,16 @@ function(file, search, record, redirect, runtime, serverWidget, itpm) {
     	//validate the deduction 
     	itpm.validateDeduction(request.parameters.ddn);
     	
+    	//Deduction body field values
+    	var ddnLookup = search.lookupFields({
+    		type:'customtransaction_itpm_deduction',
+    		id:request.parameters.ddn,
+    		columns:['tranid','custbody_itpm_ddn_openbal']
+    	});
+    	
     	//Create the form.
     	var form = serverWidget.createForm({
-    	    title : 'Simple Form'
+    	    title : 'Deduction Split (CSV) Form'
     	});
     	
     	form.addField({
@@ -81,17 +88,23 @@ function(file, search, record, redirect, runtime, serverWidget, itpm) {
     	}).isMandatory = true;
     	
     	form.addField({
+    	    id : 'custom_itpm_ddnopenbal',
+    	    type : serverWidget.FieldType.CURRENCY,
+    	    label : 'Open Balance'
+    	}).updateDisplayType({
+    	    displayType : serverWidget.FieldDisplayType.INLINE
+    	}).defaultValue = ddnLookup['custbody_itpm_ddn_openbal'];
+    	
+    	form.addField({
     	    id : 'custom_itpm_ddnno',
     	    type : serverWidget.FieldType.TEXT,
     	    label : 'Deduction ID'
     	}).updateDisplayType({
     	    displayType : serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = '- iTPM Deduction #'+search.lookupFields({
-    		type:'customtransaction_itpm_deduction',
-    		id:request.parameters.ddn,
-    		columns:['tranid']
-    	})['tranid'];
-    	
+    	}).updateLayoutType({
+    	    layoutType: serverWidget.FieldLayoutType.MIDROW
+    	}).defaultValue = '- iTPM Deduction #'+ddnLookup['tranid'];
+   
     	form.addField({
     		id : 'custom_itpm_ddnsplit',
     	    type : serverWidget.FieldType.SELECT,
