@@ -559,6 +559,8 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     		container:'custom_promotioninfo_group'
     	}).updateDisplayType({
 			displayType : displayTypeSetup
+		}).updateBreakType({
+			breakType : serverWidget.FieldBreakType.STARTCOL
 		}).defaultValue = promotionDesc;
 	    
 	  //INCURRED PROMOTIONAL LIABILITY
