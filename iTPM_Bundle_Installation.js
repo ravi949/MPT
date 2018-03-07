@@ -13,11 +13,11 @@
  */
 define(['N/config',
 		'N/task',
-		'N/runtime',
-		'N/search'
+		'N/search',
+		'N/record'
 		],
 
-function(config, task, runtime, search) {
+function(config, task, search, record) {
 	
 	function checkRequirements() {
 		try{
@@ -61,7 +61,6 @@ function(config, task, runtime, search) {
      * @since 2016.1
      */
     function beforeInstall(params) {
-    	//checkForFeaturesEnableOrNot();
     	checkRequirements();
     }
 
@@ -88,7 +87,6 @@ function(config, task, runtime, search) {
      * @since 2016.1
      */
     function beforeUpdate(params) {
-    	//checkForFeaturesEnableOrNot();
     	checkRequirements();
     }
 
@@ -112,27 +110,22 @@ function(config, task, runtime, search) {
     	updateSearchFilters();
     }
     
-    function checkForFeaturesEnableOrNot(){
-    	var configRecObj = config.load({
-    	    type: config.Type.FEATURES
-    	}),
-    	isCustTransChecked = configRecObj.getValue('customtransactions'),
-    	isAdavncedPDForHTMLChecked = configRecObj.getValue('advancedprinting');
-    	
-    	if(!isCustTransChecked || !isAdavncedPDForHTMLChecked){
-    		var errorMsg = (!isCustTransChecked && !isAdavncedPDForHTMLChecked)?'CUSTOM TRANSACTIONS & Advanced PDF/HTML TEMPLATES':(!isCustTransChecked)?'CUSTOM TRANSACTIONS':'Advanced PDF/HTML TEMPLATES';
-    		throw Error('iTPM requries that '+errorMsg+' Templates be enabled on your account. Please contact your account Administrator.')
-    	}  
-     }
     
     function updateSearchFilters(){
     	try{
     		//Getting Record Type Id's for both "- iTPM Settlement Record" and "- iTPM Deduction Record"
-        	var scriptObj = runtime.getCurrentScript();
-    		var settlemntRecID = scriptObj.getParameter({name: 'custscript_itpm_settlement_rectype_id'});
-    		var deductionRecID = scriptObj.getParameter({name: 'custscript_itpm_deduction_rectype_id'});
-    		log.debug('Script Parameters', 'settlemntRecID: '+settlemntRecID+' and deductionRecID: '+deductionRecID);
+    		var deductionRecID = record.create({
+    			type:'customtransaction_itpm_deduction'
+    		}).getValue('type').split('custom')[1];
 
+    		log.error('deduction type',deductionRecID);
+
+    		var settlemntRecID = record.create({
+    			type:'customtransaction_itpm_settlement'
+    		}).getValue('type').split('custom')[1];
+   
+    		log.error('settlement type',settlemntRecID);
+    		
     		//1. Adding Filters to Saved Search: - iTPM Bill Back Actual Spend
     		var mySettlementSearch1 = search.load({
     			id: 'customsearch_itpm_billbackactualspend'
