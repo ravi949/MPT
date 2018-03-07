@@ -219,7 +219,7 @@ function(file, search, record, redirect, runtime, serverWidget, itpm) {
 		//Loop through the lines and validate the lines
 		csvToJsonArr.forEach(function(e){
 			//validate the Deduction#
-			if(e["Deduction ID"] != '- iTPM Deduction #'+ddnLookup['tranid']){
+			if(e["Deduction_ID"] != '- iTPM Deduction #'+ddnLookup['tranid']){
 				throw{
 					name:'INVALID_DEDUCTIONID',
 					message:'Invalid Deduction ID.'
@@ -227,13 +227,13 @@ function(file, search, record, redirect, runtime, serverWidget, itpm) {
 			}
 			
 			//Validate the iTPM Amount 
-			if(parseFloat(e["iTPM Amount"]) <= 0){
+			if(parseFloat(e["Split_Amount"]) <= 0){
 				throw{
 					name:'ZERO_AMOUNT_FOUND',
 					message:'Line amount should be greater than zero.'
 				}
 			}
-			totalAmount += parseFloat(e["iTPM Amount"]);
+			totalAmount += parseFloat(e["Split_Amount"]);
 		});
 		log.debug('totalAmount',totalAmount);
 		log.debug('openBalance',openBalance);
