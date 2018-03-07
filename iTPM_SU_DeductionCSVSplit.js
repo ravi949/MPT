@@ -168,15 +168,15 @@ function(file, search, record, redirect, runtime, serverWidget, itpm) {
 				}
 			 }else{
 				 switch(mainHeaders[h]){
-				 case "Deduction ID":
+				 case "Deduction_ID":
 					 mandatoryFieldsIndexs.push({index:headers.indexOf("Deduction ID"),field:"Deduction ID"});break;
-				 case "iTPM Amount":
+				 case "Split_Amount":
 					 mandatoryFieldsIndexs.push({index:headers.indexOf("iTPM Amount"),field:"iTPM Amount"});break;
-				 case "Split Memo":
+				 case "Split_Memo":
 					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split Memo"),field:"Split Memo"});break;
-				 case "Split Reference Code":
+				 case "Split_ReferenceCode":
 					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split Reference Code"),field:"Split Reference Code"});break;
-				 case "Split Disputed?":
+				 case "Split_Disputed?":
 					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split Disputed?"),field:"Split Disputed?"});break;
 				 }
 			 }  
