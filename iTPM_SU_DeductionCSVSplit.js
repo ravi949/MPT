@@ -151,7 +151,7 @@ function(file, search, record, redirect, runtime, serverWidget, itpm) {
     	
     	//validating the headers of the lines
     	var iterator = fileObj.lines.iterator(),
-    	mainHeaders = ["Deduction ID","iTPM Amount","Split Memo","Split Reference Code","Split Disputed?"];
+    	mainHeaders = ["Deduction_ID","Split_Amount","Split_Memo","Split_ReferenceCode","Split_Disputed?"];
 		mandatoryFieldsIndexs = [];
 		
 		//headers validation
@@ -169,15 +169,15 @@ function(file, search, record, redirect, runtime, serverWidget, itpm) {
 			 }else{
 				 switch(mainHeaders[h]){
 				 case "Deduction_ID":
-					 mandatoryFieldsIndexs.push({index:headers.indexOf("Deduction ID"),field:"Deduction ID"});break;
+					 mandatoryFieldsIndexs.push({index:headers.indexOf("Deduction_ID"),field:"Deduction_ID"});break;
 				 case "Split_Amount":
-					 mandatoryFieldsIndexs.push({index:headers.indexOf("iTPM Amount"),field:"iTPM Amount"});break;
+					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split_Amount"),field:"Split_Amount"});break;
 				 case "Split_Memo":
-					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split Memo"),field:"Split Memo"});break;
+					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split_Memo"),field:"Split_Memo"});break;
 				 case "Split_ReferenceCode":
-					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split Reference Code"),field:"Split Reference Code"});break;
+					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split_ReferenceCode"),field:"Split_ReferenceCode"});break;
 				 case "Split_Disputed?":
-					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split Disputed?"),field:"Split Disputed?"});break;
+					 mandatoryFieldsIndexs.push({index:headers.indexOf("Split_Disputed?"),field:"Split_Disputed?"});break;
 				 }
 			 }  
 		  }
