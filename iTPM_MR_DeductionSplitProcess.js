@@ -40,7 +40,9 @@ function(record, search, itpm) {
         				sort:search.Sort.ASC
         			})
         		],
-        		filters:[["custrecord_itpm_split.internalid","noneof","@NONE@"],'and',['custrecord_itpm_ddn_splitprocesscompletd','is',false]]
+        		filters:[["custrecord_itpm_split.internalid","noneof","@NONE@"],'and',
+        				 ['custrecord_itpm_ddn_splitprocesscompletd','is',false],'and',
+        				 ["custrecord_itpm_import_completed","is",true]]
         	});
     	}catch(ex){
     		log.error('Error in getInputData '+ex.name,ex.message);
