@@ -235,9 +235,14 @@ function(file, search, record, redirect, runtime, serverWidget, itpm) {
 			}
 			totalAmount += parseFloat(e["Split_Amount"]);
 		});
+		
+		//Currency value fixing to 2 decimal places
+		totalAmount = totalAmount.toFixed(2);
+		
 		log.debug('totalAmount',totalAmount);
 		log.debug('openBalance',openBalance);
 		log.debug('end 1 runtime',runtime.getCurrentScript().getRemainingUsage());
+		
 		//Sum of line amounts is greater than open balance throw error to the user 
 		if(totalAmount != openBalance){
 			throw{
