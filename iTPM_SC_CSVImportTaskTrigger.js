@@ -23,7 +23,7 @@ function(file, search, task) {
     function execute(scriptContext) {
     	try{
     		
-    		//if(scriptContext.type != scriptContext.InvocationType.SCHEDULED)return;
+    		if(scriptContext.type != scriptContext.InvocationType.SCHEDULED)return;
     		
     		search.create({
                 type:'customrecord_itpm_deductionsplit',
