@@ -77,6 +77,11 @@ function(record, runtime, search, serverWidget, itpm) {
     					message:'Line should be more than one.'
     				}
     			}
+    			
+    			scriptContext.newRecord.setValue({
+    				fieldId:'custrecord_itpm_import_completed',
+    				value:(createFrom != 'CSV_SPLIT')
+    			});
 
     			//loading the deduction record
     			var openBalance = record.load({
