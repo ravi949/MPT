@@ -23,7 +23,7 @@ function(file, search, task) {
     function execute(scriptContext) {
     	try{
     		
-    		if(scriptContext.type != scriptContext.InvocationType.SCHEDULED)return;
+    		//if(scriptContext.type != scriptContext.InvocationType.SCHEDULED)return;
     		
     		search.create({
                 type:'customrecord_itpm_deductionsplit',
@@ -38,7 +38,10 @@ function(file, search, task) {
                         summary: search.Summary.GROUP
                      })
                 ],
-                filters:[['file.name','isnotempty',null],'and',["custrecord_itpm_split.internalid","anyof","@NONE@"]]
+                filters:[['file.name','isnotempty',null],'and',
+                		 ["custrecord_itpm_split.internalid","anyof","@NONE@"],'and',
+                		 ['custrecord_itpm_ddn_splitprocesscompletd','is',false],'and',
+                		 ["custrecord_itpm_import_completed","is",false]]
              }).run().each(function(e){
             	log.debug('file id',e.getValue({name:'internalid',join:'file',summary:search.Summary.GROUP}));
                 var csvTaskStatus = task.create({
