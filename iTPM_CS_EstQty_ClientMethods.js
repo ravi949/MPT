@@ -94,7 +94,7 @@ function(https, url) {
     			url: output
     		}).then(function(objResponse){
     			objResponse = JSON.parse(objResponse.body);
-    			if(!objResponse.error){
+    			if(objResponse.success){
     				var unitField = estqty.getField({fieldId:'custpage_itpm_estqty_unit'});
     				unitField.removeSelectOption({value:null});
     				var unitsList = objResponse.unitsList;
