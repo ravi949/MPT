@@ -79,7 +79,7 @@ function(url, https, message) {
 			}).then(function(response){
 				msg.hide();
 				var bodyObj = JSON.parse(response.body);
-				if(bodyObj.error){
+				if(!bodyObj.success){
 					var errMsg = displayMessage('error','Error',bodyObj.message);
 					errMsg.show({duration: 5000});
 				}else{
@@ -112,7 +112,7 @@ function(url, https, message) {
 			}).then(function(response){
 				msg.hide();
 				var bodyObj = JSON.parse(response.body);
-				if(bodyObj.error){
+				if(!bodyObj.success){
 					var errMsg = displayMessage('error','Error',bodyObj.message);
 					errMsg.show({duration: 5000});
 				}else{
