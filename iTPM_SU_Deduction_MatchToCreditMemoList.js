@@ -114,7 +114,7 @@ define(['N/ui/serverWidget',
 						message: 'Journal Entry was not created. Journal ID is empty.'
 					}
 				}
-				response.write(JSON.stringify({error:false,journalId:jeDetails.jeID}));
+				response.write(JSON.stringify({success:true,journalId:jeDetails.jeID}));
 
 			}else if(request.method == 'GET' && parameters.submit == 'false') {
 				log.debug('GET METHOD(parameters.submit)', parameters.submit);
