@@ -7,11 +7,12 @@
 define(['N/ui/serverWidget',
 		'N/search',
 		'N/record',
-		'N/format', 
+		'N/format',
+		'N/url',
 		'./iTPM_Module.js'
 		],
 
-function(serverWidget,search,record,format, itpm) {
+function(serverWidget, search, record, format, url, itpm) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -27,11 +28,26 @@ function(serverWidget,search,record,format, itpm) {
 			var response = context.response;
 
 			if(request.method == 'GET'){
-
+				
+				var shippmentURL;
 				var startno = request.parameters.st;
-				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
+				var yearResult = request.parameters.yr;//current for current year, previous for previous year and last52 weeks
+				var suiteletTitle;
+				
+				switch(yearResult){
+				case 'current':
+					suiteletTitle = 'Actual Shipments';
+					break;
+				case 'previous':
+					suiteletTitle = 'Actual Shipments (Previous Year)';
+					break;
+				case 'last52':
+					suiteletTitle = 'Actual Shipments for last 52 weeks';
+					break;
+				}
+				
 				var form = serverWidget.createForm({
-					title : 'Actual Shipments'+((yearResult == 1)?(' (Previous Year)'):'')
+					title : suiteletTitle
 				});
 				
 				//Adding the body fields to the form
@@ -88,16 +104,27 @@ function(serverWidget,search,record,format, itpm) {
 				var promoDealRecord = search.lookupFields({
 					type: 'customrecord_itpm_promotiondeal',
 					id: request.parameters.pid,
-					columns: ['internalid','name','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_customer']
+					columns: ['internalid',
+							  'name',
+							  'custrecord_itpm_p_description',
+							  'custrecord_itpm_p_shipstart',
+							  'custrecord_itpm_p_shipend',
+							  'custrecord_itpm_p_customer'
+							 ]
 				});
-
+				
 				var startDate = new Date(promoDealRecord['custrecord_itpm_p_shipstart']);
 				var endDate = new Date(promoDealRecord['custrecord_itpm_p_shipend']);
-
-				if(yearResult == 1){
+				
+				if(yearResult == 'last52'){
+					startDate = new Date();
+					startDate.setFullYear(startDate.getFullYear()-1);
+					endDate = new Date();
+				}else if(yearResult == 'previous'){
 					startDate.setFullYear(startDate.getFullYear()-1);
 					endDate.setFullYear(endDate.getFullYear()-1);
 				}
+				
 				var startDateYear = format.format({
 					value: startDate,
 					type: format.Type.DATE
@@ -121,32 +148,6 @@ function(serverWidget,search,record,format, itpm) {
 				customerDescription.defaultValue = customerRecord.getValue('entityid');
 				var custIds = itpm.getSubCustomers(custId);
 				log.audit('custIds',custIds);
-				/*//Create hierarchical promotions
-				// for customer search
-				var iteratorVal = false;
-				var custRange = 4;//Variable to limit the customer relations to a maximum of 4.
-				var custIds = [CustId];
-				var tempCustIds = [];
-				tempCustIds.push(CustId); 
-				do{
-					var iterateCustIds = tempCustIds;
-					tempCustIds = [];
-					search.create({
-						type: "customer",
-						filters: [["internalid","anyof",iterateCustIds],"and",["subCustomer.internalid","noneof","@NONE@"]],
-						columns: [{name: "internalid",join: "subCustomer"}]
-					}).run().each(function(k){ 
-						tempCustIds.push(k.getValue({name:'internalid', join:'subCustomer'}));	
-						return true;
-					});
-					if(tempCustIds.length > 0){ 
-						iteratorVal = true;
-						custIds = custIds.concat(tempCustIds);
-					}else{
-						iteratorVal = false;
-					}
-					custRange--;
-				}while(iteratorVal && custRange > 0);*/
 
 				//estimated volume search to get the items list
 				var estVolumeItems = [];
@@ -180,7 +181,7 @@ function(serverWidget,search,record,format, itpm) {
 				actualShipmentSublist.addField({
 					id : 'custpage_shippmentid',
 					type : serverWidget.FieldType.TEXT,
-					label : 'SHIPPMENT ID'
+					label : 'ITEM FULFILLMENT'
 				});
 				
 				actualShipmentSublist.addField({
@@ -227,7 +228,15 @@ function(serverWidget,search,record,format, itpm) {
 					});
 					//search for item fulfillment filters are ship start,end date and est volume items
 					var searchColumn = ['internalid','tranid','item','item.description','quantity','unit',sortOnName,sortOnDate];
-					var itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custIds,startDateYear,endDateYear);
+					var searchColumnObj = {
+							type : yearResult,
+							columns : searchColumn,
+							items  : estVolumeItems,
+							customers : custIds,
+							start : startDateYear,
+							end : endDateYear
+					};
+					var itemFulResult = getItemFulfillmentSearch(searchColumnObj);
 
 					var pagedData = itemFulResult.runPaged({
 					    pageSize:20
@@ -268,9 +277,14 @@ function(serverWidget,search,record,format, itpm) {
 					
 					for(var i = 0;dataCount != null,i < dataCount;i++){
 						if(page.data[i].getValue('item') != ''){
-
+							
 							var quantity = page.data[i].getValue('quantity');
 							var unit = page.data[i].getValue('unit');
+							shippmentURL = url.resolveRecord({
+								recordType: record.Type.ITEM_FULFILLMENT,
+							    recordId: page.data[i].id,
+							    isEditMode: false
+							});
 
 //							log.debug('unit',unit) //not getting the uom
 							actualShipmentSublist.setSublistValue({
@@ -287,7 +301,7 @@ function(serverWidget,search,record,format, itpm) {
 							actualShipmentSublist.setSublistValue({
 								id:'custpage_shippmentid',
 								line:i,
-								value:page.data[i].getValue('tranid')
+								value:"<a href="+shippmentURL+">"+page.data[i].getValue('tranid')+"</a>"
 							});
 							
 							actualShipmentSublist.setSublistValue({
@@ -343,10 +357,11 @@ function(serverWidget,search,record,format, itpm) {
 				itemSummarySublist.addField({
 					id:'custpage_itemsummary_quantity',
 					type:serverWidget.FieldType.TEXT,
-					label:'Quantity'
+					label:(yearResult == 'last52')?'Average QTY Of Shipments (WEEKLY)':'Quantity'
 				});
 				
-				searchColumn = [search.createColumn({
+				//search columns GROUP the elements
+				searchColumnObj['columns'] = [search.createColumn({
 				    name: 'item',
 				    summary:search.Summary.GROUP
 				}),search.createColumn({
@@ -360,7 +375,7 @@ function(serverWidget,search,record,format, itpm) {
 				
 				if(estVolumeItems.length > 0){
 					//searching for the items which present in the promotion est qty.
-					itemFulResult = getInvoiceSearch(searchColumn,estVolumeItems,custIds,startDateYear,endDateYear);
+					itemFulResult = getItemFulfillmentSearch(searchColumnObj);
 					var i = 0;
 					itemFulResult.run().each(function(e){
 						itemSummarySublist.setSublistValue({
@@ -402,20 +417,23 @@ function(serverWidget,search,record,format, itpm) {
 	 * @param {String} end - end date
 	 * @returns {Object} search
 	 */
-	function getInvoiceSearch(searchColumn,items,custIds,st,end){
+	function getItemFulfillmentSearch(obj){
+		var searchFilters = [
+			['item','anyof',obj.items],'and',
+			['entity','anyof', obj.customers],'and',
+			['trandate','within',obj.start,obj.end],'and',
+			['taxline','is',false],'and',
+			['cogs','is',false],'and',
+			['shipping','is',false],'and',
+			['item.isinactive','is',false]
+		];
+		if(obj.type != 'last52'){
+			searchFilters.push('and',['status','anyof','ItemShip:C']); //item shipped
+		}
 		return search.create({
 			type:search.Type.ITEM_FULFILLMENT,
-			columns:searchColumn,
-			filters:[
-				['item','anyof',items],'and',
-				['entity','anyof', custIds],'and',
-				['trandate','within',st,end],'and',
-				['status','anyof','ItemShip:C'],'and', //item shipped
-				['taxline','is',false],'and',
-				['cogs','is',false],'and',
-				['shipping','is',false],'and',
-				['item.isinactive','is',false]
-				]
+			columns:obj.columns,
+			filters:searchFilters
 		});
 	}
 	

@@ -31,8 +31,21 @@ define(['N/ui/serverWidget',
 				var startno = request.parameters.st;
 				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var endno = parseInt(startno)+20;
+				
+				switch(yearResult){
+				case 'current':
+					suiteletTitle = 'Actual Sales';
+					break;
+				case 'previous':
+					suiteletTitle = 'Actual Sales (Previous Year)';
+					break;
+				case 'last52':
+					suiteletTitle = 'Actual Sales for last 52 weeks';
+					break;
+				}
+				
 				var form = serverWidget.createForm({
-					title : 'Actual Sales'+((yearResult == 1)?(' (Previous Year)'):'')
+					title : suiteletTitle
 				});
 
 				//Adding body fields to the form
@@ -90,16 +103,27 @@ define(['N/ui/serverWidget',
 				var promoDealRecord = search.lookupFields({
 					type: 'customrecord_itpm_promotiondeal',
 					id: request.parameters.pid,
-					columns: ['internalid','name','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_customer']
+					columns: ['internalid',
+							  'name',
+							  'custrecord_itpm_p_description',
+							  'custrecord_itpm_p_shipstart',
+							  'custrecord_itpm_p_shipend',
+							  'custrecord_itpm_p_customer'
+							 ]
 				});
 
 				var startDate = new Date(promoDealRecord['custrecord_itpm_p_shipstart']);
 				var endDate = new Date(promoDealRecord['custrecord_itpm_p_shipend']);
-
-				if(yearResult == 1){
+				
+				if(yearResult == 'last52'){
+					startDate = new Date();
+					startDate.setFullYear(startDate.getFullYear()-1);
+					endDate = new Date();
+				}else if(yearResult == 'previous'){
 					startDate.setFullYear(startDate.getFullYear()-1);
 					endDate.setFullYear(endDate.getFullYear()-1);
 				}
+				
 				var startDateYear = format.format({
 					value: startDate,
 					type: format.Type.DATE
@@ -122,32 +146,6 @@ define(['N/ui/serverWidget',
 				customerDescription.defaultValue = customerRecord.getValue('entityid');
 				var custIds = itpm.getSubCustomers(custId);
 				log.audit('custIds',custIds);
-				/*//Create hierarchical promotions
-				// for customer search
-				var iteratorVal = false;
-				var custRange = 4;//Variable to limit the customer relations to a maximum of 4.
-				var custIds = [custId];
-				var tempCustIds = [];
-				tempCustIds.push(custId); 
-				do{
-					var iterateCustIds = tempCustIds;
-					tempCustIds = [];
-					search.create({
-						type: "customer",
-						filters: [["internalid","anyof",iterateCustIds],"and",["subCustomer.internalid","noneof","@NONE@"]],
-						columns: [{name: "internalid",join: "subCustomer"}]
-					}).run().each(function(k){ 
-						tempCustIds.push(k.getValue({name:'internalid', join:'subCustomer'}));	
-						return true;
-					});
-					if(tempCustIds.length > 0){ 
-						iteratorVal = true;
-						custIds = custIds.concat(tempCustIds);
-					}else{
-						iteratorVal = false;
-					}
-					custRange--;
-				}while(iteratorVal && custRange > 0);*/
 				
 				//estimated volume search to get the items list
 				var estVolumeItems = [];
@@ -241,7 +239,15 @@ define(['N/ui/serverWidget',
 					
 					//search for invoice filters are ship start,end date and est volume items and with status Open and Paid in full
 					var searchColumn = ['internalid','tranid','item','item.description','amount','rate','quantity','unit',sortOnName,sortOnDate];
-					var invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custIds,startDateYear,endDateYear);
+					var searchColumnObj = {
+							type : yearResult,
+							columns : searchColumn,
+							items : estVolumeItems,
+							customers : custIds,
+							start : startDateYear,
+							end : endDateYear
+					}; 
+					var invSearchResult = getInvoiceSearch(searchColumnObj);
 					
 					var pagedData = invSearchResult.runPaged({
 					    pageSize:20
@@ -373,7 +379,8 @@ define(['N/ui/serverWidget',
 					label:'Quantity'
 				});
 				
-				searchColumn = [search.createColumn({
+				//search columns GROUP the elements
+				searchColumnObj['columns'] = [search.createColumn({
 				    name: 'item',
 				    summary:search.Summary.GROUP
 				}),search.createColumn({
@@ -387,7 +394,7 @@ define(['N/ui/serverWidget',
 				
 				if(estVolumeItems.length > 0){
 					//searching for the items which present in the promotion est qty.
-					invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custIds,startDateYear,endDateYear);
+					invSearchResult = getInvoiceSearch(searchColumnObj);
 					var i = 0;
 					invSearchResult.run().each(function(e){
 						itemSummarySublist.setSublistValue({
@@ -429,14 +436,14 @@ define(['N/ui/serverWidget',
 	 * @param {String} end - end date
 	 * @returns {Object} search
 	 */
-	function getInvoiceSearch(searchColumn,items,custIds,st,end){
+	function getInvoiceSearch(obj){
 		return search.create({
 			type:search.Type.INVOICE,
-			columns:searchColumn,
+			columns:obj.columns,
 				filters:[
-					['item','anyof',items],'and',
-					['entity','anyof',custIds],'and',
-					['trandate','within',st,end],'and',
+					['item','anyof',obj.items],'and',
+					['entity','anyof',obj.customers],'and',
+					['trandate','within',obj.start,obj.end],'and',
 					['status','anyof',['CustInvc:A','CustInvc:B']],'and', //open and paid in full
 					['taxline','is',false],'and',
 					['cogs','is',false],'and',
