@@ -309,8 +309,7 @@ define(['N/ui/serverWidget',
 						type : serverWidget.FieldType.URL,
 						label : 'Apply To'
 					});
-				}
-				else{
+				}else{
 					list.addColumn({
 						id : 'custpage_'+result.name,
 						type : serverWidget.FieldType.TEXT,
@@ -362,9 +361,18 @@ define(['N/ui/serverWidget',
 
 					var temp = {};
 					for(var i=0; i<listIds.length; i++){
-
+						//get url for Credit Memo
+						var cmurl = url.resolveRecord({
+						    recordType: 'creditmemo',
+						    recordId: result.id,
+						    isEditMode: false
+						});
+						
 						if(listIds[i] == 'custpage_entity'){
 							temp[listIds[i]] = result.getText(''+ids[i]+'');
+							log.debug('temp',temp);
+						}else if(listIds[i] == 'custpage_tranid'){
+							temp[listIds[i]] = "<a href="+cmurl+">"+result.getValue(''+ids[i]+'')+"</a>";
 							log.debug('temp',temp);
 						}else{
 							temp[listIds[i]] = result.getValue(''+ids[i]+'');
@@ -393,9 +401,18 @@ define(['N/ui/serverWidget',
 
 				var temp = {};
 				for(var i=0; i<listIds.length; i++){
-
+					//get url for Credit Memo
+					var cmurl = url.resolveRecord({
+					    recordType: 'creditmemo',
+					    recordId: result.id,
+					    isEditMode: false
+					});
+					
 					if(listIds[i] == 'custpage_entity'){
 						temp[listIds[i]] = result.getText(''+ids[i]+'');
+						log.debug('temp',temp);
+					}else if(listIds[i] == 'custpage_tranid'){
+						temp[listIds[i]] = "<a href="+cmurl+">"+result.getValue(''+ids[i]+'')+"</a>";
 						log.debug('temp',temp);
 					}else{
 						temp[listIds[i]] = result.getValue(''+ids[i]+'');
