@@ -8,10 +8,11 @@ define(['N/ui/serverWidget',
 		'N/search',
 		'N/record',
 		'N/format', 
+		'N/url',
 		'./iTPM_Module.js'
 		],
 
- function(serverWidget,search,record,format, itpm) {
+ function(serverWidget, search, record, format, url, itpm) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -31,6 +32,7 @@ define(['N/ui/serverWidget',
 				var startno = request.parameters.st;
 				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var endno = parseInt(startno)+20;
+				var invoiceURL;
 				
 				switch(yearResult){
 				case 'current':
@@ -302,11 +304,17 @@ define(['N/ui/serverWidget',
 								line:i,
 								value:page.data[i].getValue({name:'description',join:'item'})
 							});
+							
+							invoiceURL = url.resolveRecord({
+								recordType:record.Type.INVOICE,
+								recordId:page.data[i].id,
+								isEditMode:false
+							});
 
 							actualSalesSublist.setSublistValue({
 								id:'custpage_invoiceid',
 								line:i,
-								value:page.data[i].getValue('tranid')
+								value:"<a href="+invoiceURL+">"+page.data[i].getValue('tranid')+"</a>"
 							});
 							
 							actualSalesSublist.setSublistValue({
