@@ -136,6 +136,9 @@ function(record, search, runtime, itpm) {
     			type:'customtransaction_itpm_settlement',
     			id:key.setId
     		});
+    		log.debug('settlementRec Status in Reduce',settlementRec.getValue('transtatus'));
+    		if(settlementRec.getValue('transtatus') == 'C') return;
+    		
     		var linecount = settlementRec.getLineCount({sublistId:'line'});
     		var setCreditMemo = settlementRec.getSublistValue({ sublistId: 'line',fieldId: 'memo',line: linecount-1});
     		var accountPayable = itpm.getPrefrenceValues().accountPayable;
@@ -447,9 +450,17 @@ function(record, search, runtime, itpm) {
     				fieldId:'transtatus',
     				value:'A'
     			});
-    		}    		
-    		
-    		settlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
+    		}    
+    		var setStatus = search.lookupFields({
+    		    type: 'customtransaction_itpm_settlement',
+    		    id: key.setId,
+    		    columns: ['status']
+    		});
+    		log.debug('setStatus in Reduce',setStatus.status[0].value);
+    		// If the settlement status is VOID, then we are preventing to save the record. 
+    		if(setStatus.status[0].value != 'statusC'){
+        		settlementRec.save({enableSourcing:false,ignoreMandatoryFields:true});
+    		}
     		
     		for(var i = 0; i< kpilength; i++){
     			var kpiItem = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'});
