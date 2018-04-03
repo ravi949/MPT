@@ -86,7 +86,7 @@ function(serverWidget,record,runtime,url,search,itpm) {
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':0,
+        					'yr':'current',
         					'st':0
         				}
         			});
@@ -98,19 +98,19 @@ function(serverWidget,record,runtime,url,search,itpm) {
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':1,
+        					'yr':'previous',
         					'st':0
         				}
         			});
 
         			//Actual Sales Last 52 weeks Suitelet URL
         			var actualSalesURLForLast52Weeks = url.resolveScript({
-        				scriptId: 'customscript_itpm_promo_actualsales_52w',
-        				deploymentId: 'customdeploy_itpm_promo_actualsales_52w',
+        				scriptId: 'customscript_itpm_promo_actualsales',
+        				deploymentId: 'customdeploy_itpm_promo_actualsales',
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':0,
+        					'yr':'last52',
         					'st':0
         				}
         			});
@@ -122,7 +122,7 @@ function(serverWidget,record,runtime,url,search,itpm) {
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':0,
+        					'yr':'current',
         					'st':0
         				}
         			});
@@ -134,19 +134,19 @@ function(serverWidget,record,runtime,url,search,itpm) {
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':1,
+        					'yr':'previous',
         					'st':0
         				}
         			});
         			
         			//Actual Shipments Last 52 weeks Suitelet URL
         			var actualShippmentsURLForLast52Weeks = url.resolveScript({
-        				scriptId: 'customscript_itpm_promo_ashipments_52w',
-        				deploymentId: 'customdeploy_itpm_promo_ashipments_52w',
+        				scriptId: 'customscript_itpm_promo_actualshippments',
+        				deploymentId: 'customdeploy_itpm_promo_actualshippments',
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':0,
+        					'yr':'last52',
         					'st':0
         				}
         			});
