@@ -44,6 +44,12 @@ function(serverWidget, search, record, format, url, itpm) {
 				case 'last52':
 					suiteletTitle = 'Actual Shipments for last 52 weeks';
 					break;
+				default:
+					throw{
+						name:"INVALID_YEAR_PARAMETER",
+						message:"Invalid year parameter."
+					};
+					break;
 				}
 				
 				var form = serverWidget.createForm({
@@ -405,6 +411,9 @@ function(serverWidget, search, record, format, url, itpm) {
 			}
 
 		}catch(ex){
+			if(e.name == "INVALID_YEAR_PARAMETER"){
+				throw new Error(e.message);
+			}
 			log.error(ex.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+ex.message);
 		}
 	}

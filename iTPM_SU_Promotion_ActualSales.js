@@ -44,6 +44,12 @@ define(['N/ui/serverWidget',
 				case 'last52':
 					suiteletTitle = 'Actual Sales for last 52 weeks';
 					break;
+				default:
+					throw{
+						name:"INVALID_YEAR_PARAMETER",
+						message:"Invalid year parameter."
+					};
+					break;
 				}
 				
 				var form = serverWidget.createForm({
@@ -431,6 +437,9 @@ define(['N/ui/serverWidget',
 			}
 
 		}catch(e){
+			if(e.name == "INVALID_YEAR_PARAMETER"){
+				throw new Error(e.message);
+			}
 			log.error(e.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+e.message);
 		}
 
