@@ -349,7 +349,7 @@ define(['N/ui/serverWidget',
 
 			var searchLength = creditMemoSearchObj.run().getRange(0,2).length;
 
-			if(searchLength > 1){
+			if(searchLength > 0){
 
 				listcolumn.addParamToURL({
 					param : 'cm',
@@ -392,46 +392,10 @@ define(['N/ui/serverWidget',
 				list.addRows({
 					rows : a
 				});
-			}else if(searchLength > 0){
-				var result = creditMemoSearchObj.run().getRange(0,1)[0];
-				listcolumn.addParamToURL({
-					param : 'cm',
-					value : result.getValue(''+ids[0]+'')
-				});
-
-				var temp = {};
-				for(var i=0; i<listIds.length; i++){
-					//get url for Credit Memo
-					var cmurl = url.resolveRecord({
-					    recordType: 'creditmemo',
-					    recordId: result.id,
-					    isEditMode: false
-					});
-					
-					if(listIds[i] == 'custpage_entity'){
-						temp[listIds[i]] = result.getText(''+ids[i]+'');
-						log.debug('temp',temp);
-					}else if(listIds[i] == 'custpage_tranid'){
-						temp[listIds[i]] = "<a href="+cmurl+">"+result.getValue(''+ids[i]+'')+"</a>";
-						log.debug('temp',temp);
-					}else{
-						temp[listIds[i]] = result.getValue(''+ids[i]+'');
-						log.debug('temp',temp);
-					}
-
-					if(i==(listIds.length)-1){
-						a.push(temp);
-						log.debug('a',a);
-						var temp = {};
-					}
-				}
-
-				list.addRow({
-					row: a[0]
-				});
 			}
-
+			
 			return list;
+			
 		}catch(e){
 			log.error(e.name, e.message);
 		}
