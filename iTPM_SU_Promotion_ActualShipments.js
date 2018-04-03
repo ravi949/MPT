@@ -211,13 +211,13 @@ function(serverWidget, search, record, format, url, itpm) {
 				actualShipmentSublist.addField({
 					id : 'custpage_shippmentuom',
 					type : serverWidget.FieldType.TEXT,
-					label : 'SHIPPMENT UOM'
+					label : 'SHIPMENT UOM'
 				});
 
 				actualShipmentSublist.addField({
 					id : 'custpage_shippmentqty',
 					type : serverWidget.FieldType.TEXT,
-					label : 'SHIPPMENT QTY'
+					label : 'SHIPMENT QTY'
 				});
 
 				if(estVolumeItems.length>0){
