@@ -185,7 +185,7 @@ define(['N/ui/serverWidget',
 				actualSalesSublist.addField({
 					id : 'custpage_invoiceid',
 					type : serverWidget.FieldType.TEXT,
-					label : 'INVOICE ID'
+					label : 'INVOICE'
 				});
 				
 				actualSalesSublist.addField({
