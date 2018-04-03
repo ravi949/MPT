@@ -36,13 +36,7 @@ define(['N/record',
 						message:'This settlement has been voided.'
 					};
 				}
-				if(settlementStatus == 'E'){
-					throw {
-						name:'SETTLEMENT_PROCESSING_STATUS',
-						message:'This settlement is "In Process", please wait for it to be completed.'
-					};
-				}
-
+				
 				var subsidiaryExists = itpm.subsidiariesEnabled();
 				var currencyExists = itpm.currenciesEnabled();
 				var lineCount = SetRec.getLineCount('line');
