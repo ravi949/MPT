@@ -236,6 +236,7 @@ function(record, redirect, serverWidget, search, runtime) {
 					text:e.getValue('itemid'),
 					isSelected:e.getValue('internalid') == discountItemId
 				});
+				return true;
 			});
 
 			//adding a button to redirecting to the previous form
