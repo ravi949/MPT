@@ -624,7 +624,8 @@ function(config, record, search, itpm) {
     		if(errObj && errObj.error == 'custom')
     			throw {name:'CUSTOM',message:errObj.message};
     		else 
-    			throw Error('error occured in iTPM_Module_Settlement , function name = editSettlement,message = '+e.message);
+    			throw Error(e.message);
+    			//throw Error('error occured in iTPM_Module_Settlement , function name = editSettlement,message = '+e.message);
 		}
 	}
 	

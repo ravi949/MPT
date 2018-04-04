@@ -625,7 +625,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 	    		container:'custom_transdetail_group'
 	    	}).updateDisplayType({
 				displayType : serverWidget.FieldDisplayType.DISABLED
-			}).defaultValue = ddnOpenBal;
+			}).defaultValue = format.parse({value:ddnOpenBal, type: format.Type.CURRENCY}).toFixed(2);
 	    }
 	    
 	    //settlement request
@@ -637,8 +637,8 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     		label:'AMOUNT',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = settlementReqValue;
+			displayType : serverWidget.FieldDisplayType.DISABLED
+    	}).defaultValue = format.parse({value:settlementReqValue, type: format.Type.CURRENCY}).toFixed(2);
     	
     	//SETTLEMENT REQUEST : LUMP SUM
     	var amountLSField = settlementForm.addField({
@@ -672,11 +672,11 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 		}).updateDisplayType({
 			//displayType : (promoTypeMOP.some(function(e){return e.value == 3 || e.value == 2 }))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
 			displayType : (promoHasAllOI)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqoi'):0;
+    	}).defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqoi'), type: format.Type.CURRENCY}).toFixed(2):'0.00';
     	
     	//setting the amount lum sum and amount bill back field values based on iTPM preferences feature
-    	amountLSField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqls'):0;
-    	amountBBField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqbb'):0;
+    	amountLSField.defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqls'), type: format.Type.CURRENCY}).toFixed(2):'0.00';
+    	amountBBField.defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqbb'), type: format.Type.CURRENCY}).toFixed(2):'0.00';
     	
     	/*  TRANSACTION DETAIL Start  */
 	    

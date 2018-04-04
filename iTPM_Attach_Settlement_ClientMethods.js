@@ -52,12 +52,7 @@ define(['N/ui/message',
 				totalSettlementReqAmnt = settlementLS + settlementBB+ settlementOI;
 				currentRecord.setValue({
 					fieldId:'custom_itpm_st_reql',
-					value:totalSettlementReqAmnt,
-					ignoreFieldChange:true
-				}).setValue({
-					fieldId:'custpage_lumsum_setreq',
-					value:lumpsumSetReqAmnt,
-					ignoreFieldChange:true
+					value:totalSettlementReqAmnt
 				});
 			}
 
@@ -65,12 +60,7 @@ define(['N/ui/message',
 				totalSettlementReqAmnt = settlementLS + settlementBB+ settlementOI;
 				currentRecord.setValue({
 					fieldId:'custom_itpm_st_reql',
-					value:totalSettlementReqAmnt,
-					ignoreFieldChange:true
-				}).setValue({
-					fieldId:'custpage_billback_setreq',
-					value:billBackSetReq,
-					ignoreFieldChange:true
+					value:totalSettlementReqAmnt
 				});
 			}
 			if(fieldName == 'custpage_offinvoice_setreq'){
@@ -78,12 +68,7 @@ define(['N/ui/message',
 				totalSettlementReqAmnt = settlementLS + settlementBB+ settlementOI;
 				currentRecord.setValue({
 					fieldId:'custom_itpm_st_reql',
-					value:totalSettlementReqAmnt,
-					ignoreFieldChange:true
-				}).setValue({
-					fieldId:'custpage_offinvoice_setreq',
-					value:offinvReq,
-					ignoreFieldChange:true
+					value:totalSettlementReqAmnt
 				});
 			}
 
