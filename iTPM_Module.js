@@ -67,6 +67,7 @@ define(['N/search',
 			});
 			itemSearch.run().each(function(result){
 				items.push(result.getValue('custrecord_itpm_kpi_item'));
+				return true;
 			});
 			//getting the sub customers of the customer
 			var subCustIds = getSubCustomers(obj.customerId);
