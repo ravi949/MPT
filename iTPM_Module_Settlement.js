@@ -510,6 +510,11 @@ function(config, record, search, itpm) {
 				id:params.custom_itpm_st_recordid
 			});
 			var linecount = loadedSettlementRec.getLineCount({sublistId:'line'});
+			
+			log.debug('params.custom_itpm_st_reql',params.custpage_lumsum_setreq);
+			log.debug('params.custom_itpm_st_reql',params.custpage_offinvoice_setreq == '');
+			log.debug('params.custom_itpm_st_reql',parseFloat(params.custpage_billback_setreq.replace(/,/g,'')));
+			
 			loadedSettlementRec.setValue({
 				fieldId:'custbody_itpm_otherrefcode',
 				value:params.custom_itpm_st_otherref_code
@@ -518,13 +523,13 @@ function(config, record, search, itpm) {
 				value:parseFloat(params.custom_itpm_st_reql.replace(/,/g,''))
 			}).setValue({
 				fieldId:'custbody_itpm_set_reqls',
-				value:parseFloat(params.custpage_lumsum_setreq.replace(/,/g,''))
+				value:(params.custpage_lumsum_setreq == '')?0:parseFloat(params.custpage_lumsum_setreq.replace(/,/g,''))
 			}).setValue({
 				fieldId:'custbody_itpm_set_reqoi',
-				value:parseFloat(params.custpage_offinvoice_setreq.replace(/,/g,''))
+				value:(params.custpage_offinvoice_setreq == '')?0:parseFloat(params.custpage_offinvoice_setreq.replace(/,/g,''))
 			}).setValue({
 				fieldId:'custbody_itpm_set_reqbb',
-				value:parseFloat(params.custpage_billback_setreq.replace(/,/g,''))
+				value:(params.custpage_billback_setreq == '')?0:parseFloat(params.custpage_billback_setreq.replace(/,/g,''))
 			}).setValue({
 				fieldId:'memo',
 				value:params.custpage_memo
