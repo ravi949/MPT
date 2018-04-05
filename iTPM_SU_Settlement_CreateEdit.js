@@ -125,7 +125,6 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 			var incrdPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itepm_p_incurredpromotionalle'});
 			var netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'});
         	var promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']);
-//        	var promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'];
         	var customerId = promoDealRec['custrecord_itpm_p_customer'][0].value;
         	var customerText = promoDealRec['custrecord_itpm_p_customer'][0].text;
         	var promotionDesc = promoDealRec['custrecord_itpm_p_description'];
@@ -222,7 +221,6 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     		}); 
         	
         	var promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']);
-//        	var promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'];
         	var promoHasAllBB = ST_Module.getAllowanceMOP(promoId,1);
         	var promoHasAllOI = ST_Module.getAllowanceMOP(promoId,3);
         	var promoHasAllNB = ST_Module.getAllowanceMOP(promoId,2);
@@ -647,7 +645,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     		label:'AMOUNT : LUMP SUM',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
-			displayType : (promoLumSum > 0 || promoHasAllNB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+			displayType : (promoLumSum > 0 || promoHasAllNB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.DISABLED
     	});
     	
     	//Settlement request : Bill back
@@ -657,8 +655,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     		label : 'AMOUNT : Bill back',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
-			//displayType : (promoTypeMOP.some(function(e){return e.value == 1}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    		displayType : (promoHasAllBB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+			displayType : (promoHasAllBB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.DISABLED
     	});
     	
     	//Settlement request : Missed off-invoice
@@ -670,13 +667,12 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     	}).updateBreakType({
 			breakType : serverWidget.FieldBreakType.STARTCOL
 		}).updateDisplayType({
-			//displayType : (promoTypeMOP.some(function(e){return e.value == 3 || e.value == 2 }))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-			displayType : (promoHasAllOI)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqoi'), type: format.Type.CURRENCY}).toFixed(2):'0.00';
+			displayType : (promoHasAllOI)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.DISABLED
+    	}).defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqoi'), type: format.Type.CURRENCY}).toFixed(2):0;
     	
     	//setting the amount lum sum and amount bill back field values based on iTPM preferences feature
-    	amountLSField.defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqls'), type: format.Type.CURRENCY}).toFixed(2):'0.00';
-    	amountBBField.defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqbb'), type: format.Type.CURRENCY}).toFixed(2):'0.00';
+    	amountLSField.defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqls'), type: format.Type.CURRENCY}).toFixed(2):0;
+    	amountBBField.defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqbb'), type: format.Type.CURRENCY}).toFixed(2):0;
     	
     	/*  TRANSACTION DETAIL Start  */
 	    
