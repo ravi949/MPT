@@ -87,9 +87,9 @@ function(config, record, search, itpm) {
 			//Scenario 2: Preference set to Match Bill Back (this means overpay is posted on Lump Sum by default)
 			//If Promotion HAS Lump Sum then Bill Back Request = LESSER OF [Net Bill Back Liability OR Settlement Request] AND Lump Sum Request = Settlement Request - Bill Back Request
 			//If Promotion DOES NOT HAVE Lump Sum, then Bill Back Request = Settlement Request
-			var lumsumSetReq = params['custpage_lumsum_setreq'].replace(/,/g,'');
-			var billbackSetReq = params['custpage_billback_setreq'].replace(/,/g,'');
-			var offinvoiceSetReq = params['custpage_offinvoice_setreq'].replace(/,/g,''); 
+			var lumsumSetReq = (params['custpage_lumsum_setreq'] == '')? 0 : params['custpage_lumsum_setreq'].replace(/,/g,'');
+			var billbackSetReq = (params['custpage_billback_setreq'] == '')? 0 : params['custpage_billback_setreq'].replace(/,/g,'');
+			var offinvoiceSetReq = (params['custpage_offinvoice_setreq'] == '')? 0 : params['custpage_offinvoice_setreq'].replace(/,/g,''); 
 			var setReqAmount = params['custom_itpm_st_reql'].replace(/,/g,'');
 
 			if(createdFromDDN){
