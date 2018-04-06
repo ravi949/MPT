@@ -1457,15 +1457,14 @@ define(['N/search',
 							kpiESorEL: 'custrecord_itpm_kpi_expectedliabilityoi', 
 							mop: 3, // for OI
 							kpiValues: {
-								'custrecord_itpm_kpi_factoractualoi': 1
+								'custrecord_itpm_kpi_factoractualoi': 1,
+								'custrecord_itpm_kpi_allocfactcalculated': true
 							}
 					}			
 					calculateActualBBandOIApproved(objOI);
-
+					//Setting "true" value to the Is Allocation Factor Calculations Completed? check-box after updating the allocation calculations
+					//Based on the function call we added in the function calculateActualLSApproved() for checking that value
 					calculateActualLSApproved(promID);
-					//set true value to the Is Allocation Factor Calculations Completed? check-box after updating the allocation calculations
-					var kpiRecUpdate = updateKPI('custrecord_itpm_kpi_allocfactcalculated', true);
-					log.error('kpiRecUpdate after updating the allocation calculations',kpiRecUpdate);
 				}else{
 					log.debug('ACTUAL NO');
 					processActualNO(promID);
@@ -1636,10 +1635,12 @@ define(['N/search',
 			if(itemcount == 1){
 				var objvalueskpi = {
 						kpiValues:{
-							'custrecord_itpm_kpi_factoractualls' : 1
+							'custrecord_itpm_kpi_factoractualls' : 1,
+							'custrecord_itpm_kpi_allocfactcalculated': true
 						}
 				}
 				//Updating the related KPI record
+				//Setting "true" value to the Is Allocation Factor Calculations Completed? check-box after updating the allocation calculations
 				var kpiRecUpdate = updateKPI((kpiitemcount_searchObj.run().getRange({start:0, end:1}))[0].getValue({ name:'id'}), objvalueskpi['kpiValues']);
 				log.debug('kpiRecUpdate(only 1 item)',kpiRecUpdate);
 			}
@@ -1665,9 +1666,11 @@ define(['N/search',
 					final_total_eq = (totalrevenue <= 0)?0:(parseFloat((actualRevenue/totalrevenue)));
 					final_total_eq = final_total_eq.toFixed(6);
 					//Updating the related KPI record
+					//Setting "true" value to the Is Allocation Factor Calculations Completed? check-box after updating the allocation calculations
 					var objvalueskpi = {
 							kpiValues:{
-								'custrecord_itpm_kpi_factoractualls' : final_total_eq
+								'custrecord_itpm_kpi_factoractualls' : final_total_eq,
+								'custrecord_itpm_kpi_allocfactcalculated': true
 							}
 					}
 					var kpiRecUpdate = updateKPI(result.getValue({name:'id'}), objvalueskpi['kpiValues']);
