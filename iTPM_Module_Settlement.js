@@ -634,6 +634,11 @@ function(config, record, search, itpm) {
 		}
 	}
 	
+	
+	/**
+	 * @param lineObj
+	 * @description
+	 */
 	function getSettlementLines(lineObj){
 		log.debug('lineObj.  ',lineObj);
 	   return [{
@@ -675,7 +680,12 @@ function(config, record, search, itpm) {
 		}];
 		
 	}
-	//Returning True/False based on the allowances on the promotion
+	
+	/**
+	 * @param pId
+	 * @param mop
+	 * @description Returning True/False based on the allowances on the promotion
+	 */
 	function getAllowanceMOP(pId,mop){
 		return search.create({
 			type:'customrecord_itpm_promotiondeal',
@@ -690,6 +700,7 @@ function(config, record, search, itpm) {
 						     ]
 		}).run().getRange(0,10).length > 0;
 	}
+	
     return {
         createSettlement:createSettlement,
         editSettlement:editSettlement,
