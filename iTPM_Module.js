@@ -1463,6 +1463,9 @@ define(['N/search',
 					calculateActualBBandOIApproved(objOI);
 
 					calculateActualLSApproved(promID);
+					//set true value to the Is Allocation Factor Calculations Completed? check-box after updating the allocation calculations
+					var kpiRecUpdate = updateKPI('custrecord_itpm_kpi_allocfactcalculated', true);
+					log.error('kpiRecUpdate after updating the allocation calculations',kpiRecUpdate);
 				}else{
 					log.debug('ACTUAL NO');
 					processActualNO(promID);
@@ -1705,7 +1708,8 @@ define(['N/search',
 						kpiValues:{
 							'custrecord_itpm_kpi_factoractualls' : result.getValue('custrecord_itpm_kpi_factorestls'),
 							'custrecord_itpm_kpi_factoractualbb' : result.getValue('custrecord_itpm_kpi_factorestbb'),
-							'custrecord_itpm_kpi_factoractualoi' : result.getValue('custrecord_itpm_kpi_factorestoi')
+							'custrecord_itpm_kpi_factoractualoi' : result.getValue('custrecord_itpm_kpi_factorestoi'),
+							'custrecord_itpm_kpi_allocfactcalculated' : true
 						}
 				}
 
