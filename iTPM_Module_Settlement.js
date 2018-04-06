@@ -54,8 +54,13 @@ function(config, record, search, itpm) {
 					['custbody_itpm_set_reqoi','equalto',0],'and',['custbody_itpm_set_reqls','equalto',0]]
 			}).run().getRange(0,2).length > 0;
 
-			if(searchResultFound)
-				throw Error("settlement not completed");
+			if(searchResultFound){
+				throw{
+					name:"SETTLEMENT_NOT_COMPLETED",
+					message:"There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion."
+				}
+			}
+				
 
 			var loadedPromoRec = search.lookupFields({
 				type:'customrecord_itpm_promotiondeal',
@@ -263,13 +268,14 @@ function(config, record, search, itpm) {
     		if(e.message.search('{') > -1){
     			errObj = JSON.parse(e.message.replace(/Error: /g,''));
     		}
-			var recordType = (params.custom_itpm_st_created_frm == 'ddn')?'iTPM Deduction':'iTPM Promotion';
-			if(e.message == 'settlement not completed')
+
+			if(e.name == 'SETTLEMENT_NOT_COMPLETED')
 				throw {name:'SETTLEMENT_NOT_COMPLETED',message:e.message};
 			else if(errObj && errObj.error == 'custom')
     			throw {name:'CUSTOM',message:errObj.message};
 			else
-				throw Error('record type='+recordType+', module=iTPM_Module_settlement.js, function name = createSettlement, message='+e.message);
+				throw Error(e.message);
+				//throw Error('record type='+recordType+', module=iTPM_Module_settlement.js, function name = createSettlement, message='+e.message);
 		}
 	}
 	
@@ -690,14 +696,14 @@ function(config, record, search, itpm) {
 		return search.create({
 			type:'customrecord_itpm_promotiondeal',
 			columns:['custrecord_itpm_all_promotiondeal.internalid'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop'
-					 ],
-					 filters:[
-						       ['internalid','anyof',pId], 'and', 
-						       ['custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop','anyof', mop], 'and', 
-						       ['custrecord_itpm_all_promotiondeal.isinactive','is','F']
-						     ]
+				,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item'
+				,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop'
+			],
+			filters:[
+				['internalid','anyof',pId], 'and', 
+				['custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop','anyof', mop], 'and', 
+				['custrecord_itpm_all_promotiondeal.isinactive','is','F']
+			]
 		}).run().getRange(0,10).length > 0;
 	}
 	

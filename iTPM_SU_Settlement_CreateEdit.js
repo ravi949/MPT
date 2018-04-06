@@ -36,7 +36,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     	}catch(e){    	
     		log.error(e.name,e.message);
     		if(e.name == 'SETTLEMENT_NOT_COMPLETED')
-    			throw Error("There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion.");
+    			throw Error(e.message);
     		else if(e.name == 'CUSTOM')
     			throw Error(e.message);
     		else if(e.name == "DEDUCTION_INVALID_STATUS")
