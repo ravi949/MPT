@@ -7,11 +7,18 @@
 
 define(['N/url',
 		'N/https',
-		'N/ui/message'
+		'N/ui/message',
+		'N/ui/dialog'
 		],
 
-function(url, https, message) {
+function(url, https, message, dialog) {
 	
+	/**
+	 * @param type
+	 * @param title
+	 * @param text
+	 * @description displays the message on the record
+	 */
 	function displayMessage(type,title,text){
 		try{
 			var msg = message.create({
@@ -25,7 +32,12 @@ function(url, https, message) {
 		}
 	}
 	
-	
+	/**
+	 * @param id
+	 * @param splitMethod
+	 * @param ddnSplitTypeID
+	 * @description call the deduction split suitelet
+	 */
 	function iTPMsplit(id, splitMethod, ddnSplitTypeID) {
 		try{
 			var suiteletUrl;
@@ -63,7 +75,10 @@ function(url, https, message) {
 		}
 	}
 	
-	
+	/**
+	 * @param id
+	 * @description call the expense suitelet
+	 */
 	function iTPMexpense(id) {
 		try{
 			var msg = displayMessage('info','Expensing Deduction','Please wait while the expense is created and applied.');
@@ -98,39 +113,60 @@ function(url, https, message) {
 		}
 	}
 	
-	function iTPMinvoice(id) {
+	/**
+	 * @param id
+	 * @param openBalance
+	 * @description call the re-invoice suitelet
+	 */
+	function iTPMinvoice(id, openBalance) {
 		try{
-			var msg = displayMessage('info','Re-Invoicing Deduction','Please wait while the open balance is moved to A/R.');
-			msg.show();
-			var suiteletUrl = url.resolveScript({
-				scriptId:'customscript_itpm_ddn_reinvoice_script',
-				deploymentId:'customdeploy_itpm_ddn_reinvoice_script',
-				params:{ddn:id}
-			});
-			https.get.promise({
-				url: suiteletUrl
-			}).then(function(response){
-				msg.hide();
-				var bodyObj = JSON.parse(response.body);
-				if(!bodyObj.success){
-					var errMsg = displayMessage('error','Error',bodyObj.message);
-					errMsg.show({duration: 5000});
-				}else{
-					var recUrl = url.resolveRecord({
-						recordType: 'customtransaction_itpm_deduction',
-						recordId: id,
-						params:{itpm:'invoice'}
+			dialog.create({
+				title: "Confirm",
+	            message: "You are about to REINVOICE <b>$"+openBalance+'</b>',
+	            buttons:[{label:'Continue',value:true},{label:'Cancel',value:false}]
+			}).then(function(result){
+				if(result){
+					//Re-invoice the deduction logic
+					var msg = displayMessage('info','Re-Invoicing Deduction','Please wait while the open balance is moved to A/R.');
+					msg.show();
+					var suiteletUrl = url.resolveScript({
+						scriptId:'customscript_itpm_ddn_reinvoice_script',
+						deploymentId:'customdeploy_itpm_ddn_reinvoice_script',
+						params:{ddn:id}
 					});
-					window.open(recUrl, '_self');
+					https.get.promise({
+						url: suiteletUrl
+					}).then(function(response){
+						msg.hide();
+						var bodyObj = JSON.parse(response.body);
+						if(!bodyObj.success){
+							var errMsg = displayMessage('error','Error',bodyObj.message);
+							errMsg.show({duration: 5000});
+						}else{
+							var recUrl = url.resolveRecord({
+								recordType: 'customtransaction_itpm_deduction',
+								recordId: id,
+								params:{itpm:'invoice'}
+							});
+							window.open(recUrl, '_self');
+						}
+					}).catch(function(ex){
+						console.log(ex);
+					});
+					
 				}
-			}).catch(function(ex){
-				console.log(ex);
+			}).catch(function(reason){
+				console.log(reason);
 			});
 		} catch(ex) {
 			console.log(ex.name,'function name = iTPMinvoice, message'+ex.message);
 		}
 	}
 	
+	/**
+	 * @param id
+	 * @description redirect to the settlement creation suitelet
+	 */
 	function iTPMsettlement(id) {
 		try{
 			var msg = displayMessage('info','New Settlement','Please wait while the iTPM Settlement screen is loaded.');
@@ -146,6 +182,11 @@ function(url, https, message) {
 		}
 	}
 	
+	/**
+	 * @param id
+	 * @param customerid
+	 * @description redirect to the credit memo creation suitelet
+	 */
 	function iTPMcreditmemo(id, customerid) {
 		try{
 			var msg = displayMessage('info','Credit Memo List','Please wait while you are redirected to the Credit Memo list screen.');
@@ -161,11 +202,20 @@ function(url, https, message) {
 		}
 	}
 	
+	/**
+	 * @param from
+	 * @param id
+	 * @description redirect to previous page
+	 */
 	function redirectToBack(from,id){
     	history.go(-1);
     }
 	
-	function deleteDeduction(id){
+	/**
+	 * @param id
+	 * @description delete the deduction
+	 */
+	function iTPMDeleteDeduction(id){
 		try{
 			var msg = displayMessage('info','Deleting Deduction','Please wait while deleting the Deduction.');
 			msg.show();
