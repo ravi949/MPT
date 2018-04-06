@@ -48,30 +48,14 @@ define(['N/ui/message',
 			var settlementOI = offinvReq > 0?offinvReq:0;
 
 			//this fields changes are trigger when settlement record is edited 
-			if(fieldName == 'custpage_lumsum_setreq'){    					
+			if(fieldName == 'custpage_lumsum_setreq' || fieldName == 'custpage_billback_setreq' || fieldName == 'custpage_offinvoice_setreq'){    					
 				totalSettlementReqAmnt = settlementLS + settlementBB+ settlementOI;
 				currentRecord.setValue({
 					fieldId:'custom_itpm_st_reql',
 					value:totalSettlementReqAmnt
 				});
 			}
-
-			if(fieldName == 'custpage_billback_setreq'){
-				totalSettlementReqAmnt = settlementLS + settlementBB+ settlementOI;
-				currentRecord.setValue({
-					fieldId:'custom_itpm_st_reql',
-					value:totalSettlementReqAmnt
-				});
-			}
-			if(fieldName == 'custpage_offinvoice_setreq'){
-				//if user enters SETTLEMENT REQUEST : MISSED OFF-INVOICE then add the entered value to SETTLEMENT REQUEST
-				totalSettlementReqAmnt = settlementLS + settlementBB+ settlementOI;
-				currentRecord.setValue({
-					fieldId:'custom_itpm_st_reql',
-					value:totalSettlementReqAmnt
-				});
-			}
-
+			
 			//this field change get the net promotion liability while creating the settlement from list promotions
 			if(fieldName == 'custpage_promotion'){
 				var promoId = currentRecord.getValue('custpage_promotion');
