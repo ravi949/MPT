@@ -255,7 +255,7 @@ function(url, https, message, dialog) {
         iTPMsettlement : iTPMsettlement,
         iTPMcreditmemo : iTPMcreditmemo,
         redirectToBack : redirectToBack,
-        deleteDeduction: deleteDeduction
+        iTPMDeleteDeduction: iTPMDeleteDeduction
     };
     
 });
