@@ -111,7 +111,7 @@ function(redirect,runtime,search,ST_Module) {
 //    			}else if(settlementReq <= 0 && offInvSetReq <= 0){
 //    				throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
 //    			} 
-    			if(lumsumSetReq <= 0 && billbackSetReq <= 0&& offInvSetReq <= 0){
+    			if(lumsumSetReq <= 0 && billbackSetReq <= 0 && offInvSetReq <= 0){
     				throw {error:'custom',message:"Atleast any one settlement request value MUST be greater than zero"}
     			}
     			if(!promoHasAllOI){

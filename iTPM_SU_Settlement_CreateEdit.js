@@ -36,7 +36,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     	}catch(e){    	
     		log.error(e.name,e.message);
     		if(e.name == 'SETTLEMENT_NOT_COMPLETED')
-    			throw Error("There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion.");
+    			throw Error(e.message);
     		else if(e.name == 'CUSTOM')
     			throw Error(e.message);
     		else if(e.name == "DEDUCTION_INVALID_STATUS")
@@ -125,7 +125,6 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 			var incrdPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itepm_p_incurredpromotionalle'});
 			var netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'});
         	var promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']);
-//        	var promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'];
         	var customerId = promoDealRec['custrecord_itpm_p_customer'][0].value;
         	var customerText = promoDealRec['custrecord_itpm_p_customer'][0].text;
         	var promotionDesc = promoDealRec['custrecord_itpm_p_description'];
@@ -222,7 +221,6 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     		}); 
         	
         	var promoLumSum = parseFloat(promoDealRec['custrecord_itpm_p_lumpsum']);
-//        	var promoTypeMOP = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_validmop'];
         	var promoHasAllBB = ST_Module.getAllowanceMOP(promoId,1);
         	var promoHasAllOI = ST_Module.getAllowanceMOP(promoId,3);
         	var promoHasAllNB = ST_Module.getAllowanceMOP(promoId,2);
@@ -625,7 +623,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 	    		container:'custom_transdetail_group'
 	    	}).updateDisplayType({
 				displayType : serverWidget.FieldDisplayType.DISABLED
-			}).defaultValue = ddnOpenBal;
+			}).defaultValue = format.parse({value:ddnOpenBal, type: format.Type.CURRENCY}).toFixed(2);
 	    }
 	    
 	    //settlement request
@@ -637,8 +635,8 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     		label:'AMOUNT',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
-			displayType : serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = settlementReqValue;
+			displayType : serverWidget.FieldDisplayType.DISABLED
+    	}).defaultValue = format.parse({value:settlementReqValue, type: format.Type.CURRENCY}).toFixed(2);
     	
     	//SETTLEMENT REQUEST : LUMP SUM
     	var amountLSField = settlementForm.addField({
@@ -647,7 +645,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     		label:'AMOUNT : LUMP SUM',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
-			displayType : (promoLumSum > 0 || promoHasAllNB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+			displayType : (promoLumSum > 0 || promoHasAllNB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.DISABLED
     	});
     	
     	//Settlement request : Bill back
@@ -657,8 +655,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     		label : 'AMOUNT : Bill back',
     		container:'custom_transdetail_group'
     	}).updateDisplayType({
-			//displayType : (promoTypeMOP.some(function(e){return e.value == 1}))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    		displayType : (promoHasAllBB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
+			displayType : (promoHasAllBB)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.DISABLED
     	});
     	
     	//Settlement request : Missed off-invoice
@@ -670,13 +667,12 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     	}).updateBreakType({
 			breakType : serverWidget.FieldBreakType.STARTCOL
 		}).updateDisplayType({
-			//displayType : (promoTypeMOP.some(function(e){return e.value == 3 || e.value == 2 }))?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-			displayType : (promoHasAllOI)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.INLINE
-    	}).defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqoi'):0;
+			displayType : (promoHasAllOI)?serverWidget.FieldDisplayType.NORMAL:serverWidget.FieldDisplayType.DISABLED
+    	}).defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqoi'), type: format.Type.CURRENCY}).toFixed(2):0;
     	
     	//setting the amount lum sum and amount bill back field values based on iTPM preferences feature
-    	amountLSField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqls'):0;
-    	amountBBField.defaultValue = (isEdit)?settlementRec.getValue('custbody_itpm_set_reqbb'):0;
+    	amountLSField.defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqls'), type: format.Type.CURRENCY}).toFixed(2):0;
+    	amountBBField.defaultValue = (isEdit)?format.parse({value:settlementRec.getValue('custbody_itpm_set_reqbb'), type: format.Type.CURRENCY}).toFixed(2):0;
     	
     	/*  TRANSACTION DETAIL Start  */
 	    
