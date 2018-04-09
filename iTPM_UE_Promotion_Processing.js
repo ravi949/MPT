@@ -56,8 +56,16 @@ function(serverWidget,record,runtime,url,search,itpm) {
         			var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
         			rolePermission = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
         			var showSettlementButton = (rolePermission  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
+        			var kpiAlocationCalcIsComplete = search.create({
+        				   type: "customrecord_itpm_kpi",
+        				   filters: [
+        					   			["custrecord_itpm_kpi_allocfactcalculated","is","F"],  "AND", 
+        					   			["custrecord_itpm_kpi_promotiondeal","anyof",promoRec.id]
+        					   		],
+        				   columns: [ 'custrecord_itpm_kpi_promotiondeal', 'custrecord_itpm_kpi_item', 'custrecord_itpm_kpi_esttotalqty' ]
+        				}).run().getRange(0,10).length > 0;
         			
-        			if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn')){
+        			if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn') && !kpiAlocationCalcIsComplete){
         				promoForm.addButton({
         					id:'custpage_newsettlementbtn',
         					label:'New Settlement',
