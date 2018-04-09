@@ -103,7 +103,7 @@ define(['N/runtime',
 					var btn_invoice = sc.form.addButton({
 						id: 'custpage_itpm_invoice',
 						label: 'Re-Invoice',
-						functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
+						functionName: 'iTPMinvoice(' + sc.newRecord.id + ','+openBalance+')'
 					});			
 					
 					var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
@@ -140,7 +140,7 @@ define(['N/runtime',
 					var btn_delete = sc.form.addButton({
 						id: 'custpage_itpm_delete',
 						label: 'Delete',
-						functionName: 'deleteDeduction(' + sc.newRecord.id + ')'
+						functionName: 'iTPMDeleteDeduction(' + sc.newRecord.id + ')'
 					});
 				}
 				
