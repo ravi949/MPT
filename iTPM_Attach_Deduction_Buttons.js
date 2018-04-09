@@ -121,7 +121,7 @@ function(url, https, message, dialog) {
 	function iTPMinvoice(id, openBalance) {
 		try{
 			dialog.create({
-				title: "Confirm",
+				title: "Are you sure?",
 	            message: "You are about to REINVOICE <b>$"+openBalance+'</b>',
 	            buttons:[{label:'Continue',value:true},{label:'Cancel',value:false}]
 			}).then(function(result){
