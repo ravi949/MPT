@@ -3,12 +3,12 @@
  * @NModuleScope TargetAccount
  */
 define(['N/search', 
-	'N/record', 
-	'N/util',
-	'N/runtime',
-	'N/config',
-	'N/redirect'
-	],
+		'N/record', 
+		'N/util',
+		'N/runtime',
+		'N/config',
+		'N/redirect'
+		],
 
 	function(search, record, util, runtime, config, redirect) {
 	/**

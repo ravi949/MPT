@@ -4,8 +4,8 @@
  * @NModuleScope TargetAccount
  */
 define(['N/record', 
-	'N/search'
-	],
+        'N/search'
+        ],
 	/**
 	 * @param {record} record
 	 * @param {search} search

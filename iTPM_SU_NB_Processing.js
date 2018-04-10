@@ -3,7 +3,12 @@
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
  */
-define(['N/record', 'N/search','N/redirect','N/runtime','./iTPM_Module'],
+define(['N/record', 
+        'N/search',
+        'N/redirect',
+        'N/runtime',
+        './iTPM_Module'
+        ],
 		/**
 		 * @param {record} record
 		 * @param {search} search

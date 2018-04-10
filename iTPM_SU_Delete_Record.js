@@ -4,7 +4,8 @@
  * @NModuleScope TargetAccount
  */
 define(['N/record',
-		'N/search'],
+		'N/search'
+        ],
 
 function(record, search) {
    
