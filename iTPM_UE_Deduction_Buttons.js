@@ -2,15 +2,14 @@
  * @NApiVersion 2.x
  * @NScriptType UserEventScript
  * @NModuleScope TargetAccount
- * if parent deduction amount is less than new deduction amount then.
- * split the deduction into two and creating the two journal entries for each deduction and changed the parent deduction status to resolved.
  */
 define(['N/runtime',
-	'N/redirect',
-	'./iTPM_Module.js'
+		'N/redirect',
+		'N/search',
+		'./iTPM_Module.js'
 	],
 
-	function(runtime, redirect, itpm) {
+	function(runtime, redirect, search, itpm) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -27,8 +26,19 @@ define(['N/runtime',
 			//prevent copy of the deduction record
 			if(sc.type == 'copy'){
 				throw{
-					name:'copy deduction',
+					name:'COPY_NOT_ALLOWED',
 					message:'Copying a deduction is not allowed.'
+				};
+			}
+			
+			var status = sc.newRecord.getValue({fieldId:'transtatus'});
+			var contextType = contextType = runtime.executionContext;
+			
+			//Restrict the user edit deduction record if status is Processing
+			if(contextType == 'USERINTERFACE' && sc.type == 'edit' && status == 'E'){
+				throw{
+					name:'INVALID_EDIT',
+					message:'The Deduction is in Processing status, It cannot be Edited.'
 				};
 			}
 			
@@ -44,12 +54,13 @@ define(['N/runtime',
 			log.debug('ddnPermission',ddnPermission);
 			log.debug('setPermission',setPermission);
 
-			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'}),
-			status = sc.newRecord.getValue({fieldId:'transtatus'}),
-//			clientScriptPath = runtime.getCurrentScript().getParameter({name:'custscript_itpm_ue_ddn_cspath'}),
-			clientScriptPath = './iTPM_Attach_Deduction_Buttons.js',
-			eventType = sc.type,
-			runtimeContext = runtime.executionContext; 
+			var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'});
+			var status = sc.newRecord.getValue({fieldId:'transtatus'});
+			var itpmAmount = sc.newRecord.getValue({fieldId:'custbody_itpm_amount'});
+			var parentDeduction = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_parentddn'});
+			var clientScriptPath = './iTPM_Attach_Deduction_Buttons.js';
+			var eventType = sc.type;
+			var runtimeContext = runtime.executionContext; 
 
 			log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
 
@@ -62,19 +73,37 @@ define(['N/runtime',
 			){				
 				log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
 				sc.form.clientScriptModulePath = clientScriptPath;
-
+				
+				//Get JE with Pending Approval, if there is any open deduction created a JE
+				var count = jeSearchToShowDeductionButtons(sc.newRecord.id);
+				
 				//show button only when user have EDIT or FULL permission on -iTPM Deduction Permission custom record
-				if(ddnPermission >= 3){ 
+				if(ddnPermission >= 3 && count == 0){ 
+          
+					var ddnSplitRecTypeId = scriptObj.getParameter('custscript_itpm_ddn_split_rectypeid');
+          
 					var btn_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
+						label: 'Quick Split',
+						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"DEFAULT")'
+					});
+					
+					var btn_split_csv = sc.form.addButton({
+						id: 'custpage_itpm_split',
+						label: 'Split (CSV)',
+						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"CSV")'
+					});
+					
+					var btn_quick_split = sc.form.addButton({
+						id: 'custpage_itpm_split',
 						label: 'Split',
-						functionName: 'iTPMsplit(' + sc.newRecord.id + ')'
+						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"RECORD",' + ddnSplitRecTypeId + ')'
 					});
 					
 					var btn_invoice = sc.form.addButton({
 						id: 'custpage_itpm_invoice',
 						label: 'Re-Invoice',
-						functionName: 'iTPMinvoice(' + sc.newRecord.id + ')'
+						functionName: 'iTPMinvoice(' + sc.newRecord.id + ','+openBalance+')'
 					});			
 					
 					var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
@@ -97,14 +126,24 @@ define(['N/runtime',
 				}
 
 				//show button only when user have CREATE or EDIT or FULL permission on -iTPM Settlement Permission custom record
-				if(setPermission >= 2){
+				if(setPermission >= 2 && count == 0){
 					var btn_settlement = sc.form.addButton({
 						id: 'custpage_itpm_settlement',
 						label: 'Settlement',
 						functionName: 'iTPMsettlement(' + sc.newRecord.id + ')'
 					});
 				}				
-
+				
+				log.error('JE_Permssion, ddnPermission', JE_Permssion+' & '+ddnPermission);  
+	    		log.error('Openbal, itpmAmount and parentDeduction', openBalance+' & '+itpmAmount+' & '+parentDeduction);
+				if(JE_Permssion == 4 && ddnPermission == 4 && openBalance == itpmAmount && !parentDeduction){
+					var btn_delete = sc.form.addButton({
+						id: 'custpage_itpm_delete',
+						label: 'Delete',
+						functionName: 'iTPMDeleteDeduction(' + sc.newRecord.id + ')'
+					});
+				}
+				
 			} else if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
 				redirect.toSuitelet({
 					scriptId:'customscript_itpm_ddn_createeditsuitelet',
@@ -115,7 +154,9 @@ define(['N/runtime',
 			}
 		} catch(ex) {
 			log.error('DDN_UE_BeforeLoad', ex.name + '; message: ' + ex.message +'; Id:' + sc.newRecord.id);
-			if(ex.name == 'copy deduction'){
+			if(ex.name == 'COPY_NOT_ALLOWED'){
+				throw new Error(ex.message);
+			}else if(ex.name == 'INVALID_EDIT'){
 				throw new Error(ex.message);
 			}
 		}
@@ -141,7 +182,7 @@ define(['N/runtime',
 					log.debug('OpenBal: ' + openBalance + '; Status: ' + status);
 					openBalance = parseFloat(openBalance);
 					log.debug('Parsed Open Balance', openBalance);
-					if (openBalance > 0 && status != 'A'){
+					if (openBalance > 0 && status != 'A' && status != 'E'){
 						log.debug('Setting status to OPEN (status Ref A)');
 						sc.newRecord.setValue({
 							fieldId: 'transtatus',
@@ -162,7 +203,34 @@ define(['N/runtime',
 			log.error(ex.name, ex.message + '; RecordId: ' + sc.newRecord.id);
 		}
 	}
-
+	
+	/**
+	 * @param {String} deductionId
+	 * 
+	 * @return {Number} count
+	 * 
+	 * @description This function is used to get all the Journal entries under pending approval which were created from any of open deductions.
+	 *              For now, it supports for Match To Credit Memo process
+	 */
+	function jeSearchToShowDeductionButtons(deductionId){
+		var jeSearchObj = search.create({
+			type: "journalentry",
+			filters: [
+				["type","anyof","Journal"], 
+				"AND",
+				["status","anyof","Journal:A"],
+				"AND", 
+				["custbody_itpm_createdfrom","anyof",deductionId],
+				],
+				columns: [
+					"internalid"
+					]
+		});
+		log.debug('count',jeSearchObj.runPaged().count);
+		
+		return jeSearchObj.runPaged().count;
+	}
+	
 	return {
 		beforeLoad: beforeLoad,
 		beforeSubmit:beforeSubmit

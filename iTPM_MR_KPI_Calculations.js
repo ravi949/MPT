@@ -60,7 +60,7 @@ function(search, runtime, record, format, itpm) {
         		kpiLSAllFactorEST = line['custrecord_itpm_kpi_factorestls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],
         		kpiLSAllFactorActual = line['custrecord_itpm_kpi_factoractualls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],
         		kpiActualSpendLS = line['custrecord_itpm_kpi_actualspendls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'],
-        		kpiLSAllAdjusted = line['custrecord_itpm_kpi_adjustedls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'] == 'T',
+        		//kpiLSAllAdjusted = line['custrecord_itpm_kpi_adjustedls.CUSTRECORD_ITPM_KPI_PROMOTIONDEAL'] == 'T',
         		pTypeID = line['internalid.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeImpactID = line['custrecord_itpm_pt_financialimpact.CUSTRECORD_ITPM_P_TYPE'].value,
         		pTypeValidMOP = line['custrecord_itpm_pt_validmop.CUSTRECORD_ITPM_P_TYPE'],
@@ -128,10 +128,10 @@ function(search, runtime, record, format, itpm) {
     		
     		if(kpiLSAllFactorEST){
     			kpiLSAllFactorEST = kpiLSAllFactorEST.factor;
-    			kpiLSAllAdjusted = kpiLSAllFactorEST.adjusted;
+    			//kpiLSAllAdjusted = kpiLSAllFactorEST.adjusted;
     		} else {
     			kpiLSAllFactorEST = 0;
-    			kpiLSAllAdjusted = false;
+    			//kpiLSAllAdjusted = false;
     		}
     		
     		//LS Allocation Factor Actual
@@ -157,8 +157,8 @@ function(search, runtime, record, format, itpm) {
         					orderStart: orderStart,
         					orderEnd: orderEnd,
         					customerId: customerId,
-        					kpiId: kpiID,
-        					adjusted: kpiLSAllAdjusted
+        					kpiId: kpiID//,
+        					//adjusted: kpiLSAllAdjusted
         				});
         				kpiLSAllFactorActual = (kpiLSAllFactorActual) ? kpiLSAllFactorActual.factor : 0;
         			}
@@ -172,7 +172,7 @@ function(search, runtime, record, format, itpm) {
     				kpi : kpiID,
     				lsallfactorest: kpiLSAllFactorEST.toString(),
     				lsallfactoractual: kpiLSAllFactorActual.toString(),
-    				lsadjusted: kpiLSAllAdjusted,
+    				pAllocationType:pAllocationType,
     				item: kpiItemID,
     				unit: kpiUnitID,
     				actSpendLS: (kpiActualSpendLS)?parseFloat(kpiActualSpendLS):0,
@@ -216,7 +216,7 @@ function(search, runtime, record, format, itpm) {
     	try{
         	var key = JSON.parse(context.key);
         	var values = JSON.parse(context.values[0]);
-        	
+        	log.debug('key',key);
         	/**** START CALCULATIONS ****/
         	// KPI Promoted Qty, Actual Qty, and Estimated Spend are the same regardless of status and condition
         	var kpi_promoQty = values.estPromoted;

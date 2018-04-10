@@ -28,7 +28,7 @@ function(record, search, runtime, itpm) {
 
 				if(deductionRec.getValue('transtatus') != 'A'){
 					context.response.write(JSON.stringify({
-						error:true,
+						success:false,
 						message:'Re-invoice can be created if the deduction status is OPEN. Please refresh the page to check the status.'
 					}));
 					return;
@@ -127,51 +127,23 @@ function(record, search, runtime, itpm) {
         			});
     			}
     			
-    			//Checking the auto approve preference from "iTPM Preferences"
-    			if(prefObj.autoApproveJE){ //force Approving the JE
-    				log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
-    				
-    				//Checking for JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
-    				var prefJE = itpm.getJEPreferences();
-    				
-    				if(prefJE.featureEnabled){
-    					if(prefJE.featureName == 'Approval Routing'){
-    						log.debug('prefJE.featureName', prefJE.featureName);
-    						journalEntry.setValue({
-            					fieldId:'approvalstatus',
-            					value:2
-            				});
-    					}else if(prefJE.featureName == 'General'){
-    						log.debug('prefJE.featureName', prefJE.featureName);
-    						journalEntry.setValue({
-            					fieldId:'approved',
-            					value:true
-            				});
-    					}
-    				}
-    				
-    			}else if(!prefObj.autoApproveJE){ //putting JE under Pending Approval
-    				log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
-    				
-    				//Checking the JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
-    				var prefJE = itpm.getJEPreferences();
-    				
-    				if(prefJE.featureEnabled){
-    					if(prefJE.featureName == 'Approval Routing'){
-    						log.debug('prefJE.featureName', prefJE.featureName);
-    						journalEntry.setValue({
-            					fieldId:'approvalstatus',
-            					value:1
-            				});
-    					}else if(prefJE.featureName == 'General'){
-    						log.debug('prefJE.featureName', prefJE.featureName);
-    						journalEntry.setValue({
-            					fieldId:'approved',
-            					value:false
-            				});
-    					}
-    				}
-    			}
+    			//Checking for JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
+				var prefJE = itpm.getJEPreferences();
+				if(prefJE.featureEnabled){
+					if(prefJE.featureName == 'Approval Routing'){
+						log.debug('prefJE.featureName', prefJE.featureName);
+						journalEntry.setValue({
+        					fieldId:'approvalstatus',
+        					value:1
+        				});
+					}else if(prefJE.featureName == 'General'){
+						log.debug('prefJE.featureName', prefJE.featureName);
+						journalEntry.setValue({
+        					fieldId:'approved',
+        					value:false
+        				});
+					}
+				}
     			
         		//DEBIT LINE ON A/R
         		journalEntry.selectNewLine({
@@ -238,7 +210,7 @@ function(record, search, runtime, itpm) {
         				message: 'Journal Entry not created successfully. Journal ID empty.'
         			}
         		}
-        		context.response.write(JSON.stringify({error:false,journalId:journalId}));
+        		context.response.write(JSON.stringify({success:true,journalId:journalId}));
     		} catch(ex) {
     			log.error(ex.name, ex.message + '; ddnId: ' + ddnId);
     		}

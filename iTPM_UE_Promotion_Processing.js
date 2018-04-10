@@ -56,8 +56,16 @@ function(serverWidget,record,runtime,url,search,itpm) {
         			var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
         			rolePermission = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
         			var showSettlementButton = (rolePermission  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
+        			var kpiAlocationCalcIsComplete = search.create({
+        				   type: "customrecord_itpm_kpi",
+        				   filters: [
+        					   			["custrecord_itpm_kpi_allocfactcalculated","is","F"],  "AND", 
+        					   			["custrecord_itpm_kpi_promotiondeal","anyof",promoRec.id]
+        					   		],
+        				   columns: [ 'custrecord_itpm_kpi_promotiondeal', 'custrecord_itpm_kpi_item', 'custrecord_itpm_kpi_esttotalqty' ]
+        				}).run().getRange(0,10).length > 0;
         			
-        			if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn')){
+        			if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn') && !kpiAlocationCalcIsComplete){
         				promoForm.addButton({
         					id:'custpage_newsettlementbtn',
         					label:'New Settlement',
@@ -79,18 +87,6 @@ function(serverWidget,record,runtime,url,search,itpm) {
             		}
         		}
         		
-    			//this block for showing the overlapping promotions in promotion record subtab
-        		if(scriptContext.type == 'view' || scriptContext.type == 'edit'){
-        			var params = {
-        				rectype:promoRec.getValue('rectype'),
-        				cid:promoRec.getValue('custrecord_itpm_p_customer'),
-        				pdid:promoRec.id,
-        				start:promoRec.getText('custrecord_itpm_p_shipstart'),
-        				end:promoRec.getText('custrecord_itpm_p_shipend')
-        			}   
-        			//Add the overlap promotion to the new subtab
-        			addOverlapSublists(promoForm,params,scriptContext.type);
-        		}
         		if (scriptContext.type == 'view' || scriptContext.type == 'edit'){
         			var actualSalesURL = url.resolveScript({
         				scriptId: 'customscript_itpm_promo_actualsales',
@@ -98,7 +94,7 @@ function(serverWidget,record,runtime,url,search,itpm) {
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':0,
+        					'yr':'current',
         					'st':0
         				}
         			});
@@ -110,19 +106,19 @@ function(serverWidget,record,runtime,url,search,itpm) {
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':1,
+        					'yr':'previous',
         					'st':0
         				}
         			});
 
         			//Actual Sales Last 52 weeks Suitelet URL
         			var actualSalesURLForLast52Weeks = url.resolveScript({
-        				scriptId: 'customscript_itpm_promo_actualsales_52w',
-        				deploymentId: 'customdeploy_itpm_promo_actualsales_52w',
+        				scriptId: 'customscript_itpm_promo_actualsales',
+        				deploymentId: 'customdeploy_itpm_promo_actualsales',
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':0,
+        					'yr':'last52',
         					'st':0
         				}
         			});
@@ -134,7 +130,7 @@ function(serverWidget,record,runtime,url,search,itpm) {
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':0,
+        					'yr':'current',
         					'st':0
         				}
         			});
@@ -146,19 +142,19 @@ function(serverWidget,record,runtime,url,search,itpm) {
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':1,
+        					'yr':'previous',
         					'st':0
         				}
         			});
         			
         			//Actual Shipments Last 52 weeks Suitelet URL
         			var actualShippmentsURLForLast52Weeks = url.resolveScript({
-        				scriptId: 'customscript_itpm_promo_ashipments_52w',
-        				deploymentId: 'customdeploy_itpm_promo_ashipments_52w',
+        				scriptId: 'customscript_itpm_promo_actualshippments',
+        				deploymentId: 'customdeploy_itpm_promo_actualshippments',
         				returnExternalUrl: false,
         				params: {
         					'pid':scriptContext.newRecord.id,
-        					'yr':0,
+        					'yr':'last52',
         					'st':0
         				}
         			});
@@ -195,6 +191,20 @@ function(serverWidget,record,runtime,url,search,itpm) {
         				ignoreFieldChange: true
         			});
         		}
+        		
+        		//this block for showing the overlapping promotions in promotion record subtab
+        		if(scriptContext.type == 'view' || scriptContext.type == 'edit'){
+        			var params = {
+        				rectype:promoRec.getValue('rectype'),
+        				cid:promoRec.getValue('custrecord_itpm_p_customer'),
+        				pdid:promoRec.id,
+        				start:promoRec.getText('custrecord_itpm_p_shipstart'),
+        				end:promoRec.getText('custrecord_itpm_p_shipend')
+        			}   
+        			//Add the overlap promotion to the new subtab
+        			addOverlapSublists(promoForm,params,scriptContext.type);
+        		}
+        		
     		}
     	}catch(e){
     		log.error(e.name, e.message +'; beforeLoad; trigger type: ' + scriptContext.type + '; recordID: ' + scriptContext.newRecord.id + '; recordType: ' + scriptContext.newRecord.type);

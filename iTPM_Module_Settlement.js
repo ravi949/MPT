@@ -54,8 +54,13 @@ function(config, record, search, itpm) {
 					['custbody_itpm_set_reqoi','equalto',0],'and',['custbody_itpm_set_reqls','equalto',0]]
 			}).run().getRange(0,2).length > 0;
 
-			if(searchResultFound)
-				throw Error("settlement not completed");
+			if(searchResultFound){
+				throw{
+					name:"SETTLEMENT_NOT_COMPLETED",
+					message:"There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion."
+				}
+			}
+				
 
 			var loadedPromoRec = search.lookupFields({
 				type:'customrecord_itpm_promotiondeal',
@@ -68,10 +73,10 @@ function(config, record, search, itpm) {
 				type:'customtransaction_itpm_settlement',
 				isDynamic:true
 			});
-
+			
 			newSettlementRecord.setValue({
 				fieldId:'memo',
-				value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+loadedPromoRec.name
+				value:params['custpage_memo']
 			});
 
 			//it's creating from the dedcution record
@@ -82,9 +87,9 @@ function(config, record, search, itpm) {
 			//Scenario 2: Preference set to Match Bill Back (this means overpay is posted on Lump Sum by default)
 			//If Promotion HAS Lump Sum then Bill Back Request = LESSER OF [Net Bill Back Liability OR Settlement Request] AND Lump Sum Request = Settlement Request - Bill Back Request
 			//If Promotion DOES NOT HAVE Lump Sum, then Bill Back Request = Settlement Request
-			var lumsumSetReq = params['custpage_lumsum_setreq'].replace(/,/g,'');
-			var billbackSetReq = params['custpage_billback_setreq'].replace(/,/g,'');
-			var offinvoiceSetReq = params['custpage_offinvoice_setreq'].replace(/,/g,''); 
+			var lumsumSetReq = (params['custpage_lumsum_setreq'] == '')? 0 : params['custpage_lumsum_setreq'].replace(/,/g,'');
+			var billbackSetReq = (params['custpage_billback_setreq'] == '')? 0 : params['custpage_billback_setreq'].replace(/,/g,'');
+			var offinvoiceSetReq = (params['custpage_offinvoice_setreq'] == '')? 0 : params['custpage_offinvoice_setreq'].replace(/,/g,''); 
 			var setReqAmount = params['custom_itpm_st_reql'].replace(/,/g,'');
 
 			if(createdFromDDN){
@@ -263,13 +268,14 @@ function(config, record, search, itpm) {
     		if(e.message.search('{') > -1){
     			errObj = JSON.parse(e.message.replace(/Error: /g,''));
     		}
-			var recordType = (params.custom_itpm_st_created_frm == 'ddn')?'iTPM Deduction':'iTPM Promotion';
-			if(e.message == 'settlement not completed')
+
+			if(e.name == 'SETTLEMENT_NOT_COMPLETED')
 				throw {name:'SETTLEMENT_NOT_COMPLETED',message:e.message};
 			else if(errObj && errObj.error == 'custom')
     			throw {name:'CUSTOM',message:errObj.message};
 			else
-				throw Error('record type='+recordType+', module=iTPM_Module_settlement.js, function name = createSettlement, message='+e.message);
+				throw Error(e.message);
+				//throw Error('record type='+recordType+', module=iTPM_Module_settlement.js, function name = createSettlement, message='+e.message);
 		}
 	}
 	
@@ -428,49 +434,22 @@ function(config, record, search, itpm) {
 				});
 			}
 			
-			//Checking the auto approve preference from "iTPM Preferences"
-			if(prefObj.autoApproveJE){ //force Approving the JE
-				log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
-				
-				//Checking for JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
-				var prefJE = itpm.getJEPreferences();
-				
-				if(prefJE.featureEnabled){
-					if(prefJE.featureName == 'Approval Routing'){
-						log.debug('prefJE.featureName', prefJE.featureName);
-						journalRecord.setValue({
-        					fieldId:'approvalstatus',
-        					value:2
-        				});
-					}else if(prefJE.featureName == 'General'){
-						log.debug('prefJE.featureName', prefJE.featureName);
-						journalRecord.setValue({
-        					fieldId:'approved',
-        					value:true
-        				});
-					}
-				}
-				
-			}else if(!prefObj.autoApproveJE){ //putting JE under Pending Approval
-				log.debug('prefObj.autoApproveJE', prefObj.autoApproveJE);
-				
-				//Checking the JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
-				var prefJE = itpm.getJEPreferences();
-				
-				if(prefJE.featureEnabled){
-					if(prefJE.featureName == 'Approval Routing'){
-						log.debug('prefJE.featureName', prefJE.featureName);
-						journalRecord.setValue({
-        					fieldId:'approvalstatus',
-        					value:1
-        				});
-					}else if(prefJE.featureName == 'General'){
-						log.debug('prefJE.featureName', prefJE.featureName);
-						journalRecord.setValue({
-        					fieldId:'approved',
-        					value:false
-        				});
-					}
+			//Checking the JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
+			var prefJE = itpm.getJEPreferences();
+			
+			if(prefJE.featureEnabled){
+				if(prefJE.featureName == 'Approval Routing'){
+					log.debug('prefJE.featureName', prefJE.featureName);
+					journalRecord.setValue({
+    					fieldId:'approvalstatus',
+    					value:1
+    				});
+				}else if(prefJE.featureName == 'General'){
+					log.debug('prefJE.featureName', prefJE.featureName);
+					journalRecord.setValue({
+    					fieldId:'approved',
+    					value:false
+    				});
 				}
 			}
 			
@@ -537,6 +516,11 @@ function(config, record, search, itpm) {
 				id:params.custom_itpm_st_recordid
 			});
 			var linecount = loadedSettlementRec.getLineCount({sublistId:'line'});
+			
+			log.debug('params.custom_itpm_st_reql',params.custpage_lumsum_setreq);
+			log.debug('params.custom_itpm_st_reql',params.custpage_offinvoice_setreq == '');
+			log.debug('params.custom_itpm_st_reql',parseFloat(params.custpage_billback_setreq.replace(/,/g,'')));
+			
 			loadedSettlementRec.setValue({
 				fieldId:'custbody_itpm_otherrefcode',
 				value:params.custom_itpm_st_otherref_code
@@ -545,13 +529,13 @@ function(config, record, search, itpm) {
 				value:parseFloat(params.custom_itpm_st_reql.replace(/,/g,''))
 			}).setValue({
 				fieldId:'custbody_itpm_set_reqls',
-				value:parseFloat(params.custpage_lumsum_setreq.replace(/,/g,''))
+				value:(params.custpage_lumsum_setreq == '')?0:parseFloat(params.custpage_lumsum_setreq.replace(/,/g,''))
 			}).setValue({
 				fieldId:'custbody_itpm_set_reqoi',
-				value:parseFloat(params.custpage_offinvoice_setreq.replace(/,/g,''))
+				value:(params.custpage_offinvoice_setreq == '')?0:parseFloat(params.custpage_offinvoice_setreq.replace(/,/g,''))
 			}).setValue({
 				fieldId:'custbody_itpm_set_reqbb',
-				value:parseFloat(params.custpage_billback_setreq.replace(/,/g,''))
+				value:(params.custpage_billback_setreq == '')?0:parseFloat(params.custpage_billback_setreq.replace(/,/g,''))
 			}).setValue({
 				fieldId:'memo',
 				value:params.custpage_memo
@@ -651,10 +635,16 @@ function(config, record, search, itpm) {
     		if(errObj && errObj.error == 'custom')
     			throw {name:'CUSTOM',message:errObj.message};
     		else 
-    			throw Error('error occured in iTPM_Module_Settlement , function name = editSettlement,message = '+e.message);
+    			throw Error(e.message);
+    			//throw Error('error occured in iTPM_Module_Settlement , function name = editSettlement,message = '+e.message);
 		}
 	}
 	
+	
+	/**
+	 * @param lineObj
+	 * @description
+	 */
 	function getSettlementLines(lineObj){
 		log.debug('lineObj.  ',lineObj);
 	   return [{
@@ -696,21 +686,27 @@ function(config, record, search, itpm) {
 		}];
 		
 	}
-	//Returning True/False based on the allowances on the promotion
+	
+	/**
+	 * @param pId
+	 * @param mop
+	 * @description Returning True/False based on the allowances on the promotion
+	 */
 	function getAllowanceMOP(pId,mop){
 		return search.create({
 			type:'customrecord_itpm_promotiondeal',
 			columns:['custrecord_itpm_all_promotiondeal.internalid'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item'
-					 ,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop'
-					 ],
-					 filters:[
-						       ['internalid','anyof',pId], 'and', 
-						       ['custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop','anyof', mop], 'and', 
-						       ['custrecord_itpm_all_promotiondeal.isinactive','is','F']
-						     ]
+				,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item'
+				,'custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop'
+			],
+			filters:[
+				['internalid','anyof',pId], 'and', 
+				['custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop','anyof', mop], 'and', 
+				['custrecord_itpm_all_promotiondeal.isinactive','is','F']
+			]
 		}).run().getRange(0,10).length > 0;
 	}
+	
     return {
         createSettlement:createSettlement,
         editSettlement:editSettlement,

@@ -7,10 +7,12 @@
 define(['N/ui/serverWidget',
 		'N/search',
 		'N/record',
-		'N/format'
+		'N/format', 
+		'N/url',
+		'./iTPM_Module.js'
 		],
 
- function(serverWidget,search,record,format) {
+ function(serverWidget, search, record, format, url, itpm) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -30,8 +32,28 @@ define(['N/ui/serverWidget',
 				var startno = request.parameters.st;
 				var yearResult = request.parameters.yr;//0 for current year, 1 for previous year
 				var endno = parseInt(startno)+20;
+				var invoiceURL;
+				
+				switch(yearResult){
+				case 'current':
+					suiteletTitle = 'Actual Sales';
+					break;
+				case 'previous':
+					suiteletTitle = 'Actual Sales (Previous Year)';
+					break;
+				case 'last52':
+					suiteletTitle = 'Actual Sales for last 52 weeks';
+					break;
+				default:
+					throw{
+						name:"INVALID_YEAR_PARAMETER",
+						message:"Invalid year parameter."
+					};
+					break;
+				}
+				
 				var form = serverWidget.createForm({
-					title : 'Actual Sales'+((yearResult == 1)?(' (Previous Year)'):'')
+					title : suiteletTitle
 				});
 
 				//Adding body fields to the form
@@ -89,16 +111,27 @@ define(['N/ui/serverWidget',
 				var promoDealRecord = search.lookupFields({
 					type: 'customrecord_itpm_promotiondeal',
 					id: request.parameters.pid,
-					columns: ['internalid','name','custrecord_itpm_p_description','custrecord_itpm_p_shipstart','custrecord_itpm_p_shipend','custrecord_itpm_p_customer']
+					columns: ['internalid',
+							  'name',
+							  'custrecord_itpm_p_description',
+							  'custrecord_itpm_p_shipstart',
+							  'custrecord_itpm_p_shipend',
+							  'custrecord_itpm_p_customer'
+							 ]
 				});
 
 				var startDate = new Date(promoDealRecord['custrecord_itpm_p_shipstart']);
 				var endDate = new Date(promoDealRecord['custrecord_itpm_p_shipend']);
-
-				if(yearResult == 1){
+				
+				if(yearResult == 'last52'){
+					startDate = new Date();
+					startDate.setFullYear(startDate.getFullYear()-1);
+					endDate = new Date();
+				}else if(yearResult == 'previous'){
 					startDate.setFullYear(startDate.getFullYear()-1);
 					endDate.setFullYear(endDate.getFullYear()-1);
 				}
+				
 				var startDateYear = format.format({
 					value: startDate,
 					type: format.Type.DATE
@@ -113,39 +146,14 @@ define(['N/ui/serverWidget',
 				promotionStdate.defaultValue = startDateYear;
 				promotionEndate.defaultValue = endDateYear;    		
 
-				var CustId = promoDealRecord['custrecord_itpm_p_customer'][0].value;
+				var custId = promoDealRecord['custrecord_itpm_p_customer'][0].value;
 				var customerRecord = record.load({
 					type : record.Type.CUSTOMER,
-					id : CustId
+					id : custId
 				}); 
 				customerDescription.defaultValue = customerRecord.getValue('entityid');
-				
-				//Create hierarchical promotions
-				// for customer search
-				var iteratorVal = false;
-				var custRange = 4;//Variable to limit the customer relations to a maximum of 4.
-				var custIds = [CustId];
-				var tempCustIds = [];
-				tempCustIds.push(CustId); 
-				do{
-					var iterateCustIds = tempCustIds;
-					tempCustIds = [];
-					search.create({
-						type: "customer",
-						filters: [["internalid","anyof",iterateCustIds],"and",["subCustomer.internalid","noneof","@NONE@"]],
-						columns: [{name: "internalid",join: "subCustomer"}]
-					}).run().each(function(k){ 
-						tempCustIds.push(k.getValue({name:'internalid', join:'subCustomer'}));	
-						return true;
-					});
-					if(tempCustIds.length > 0){ 
-						iteratorVal = true;
-						custIds = custIds.concat(tempCustIds);
-					}else{
-						iteratorVal = false;
-					}
-					custRange--;
-				}while(iteratorVal && custRange > 0);
+				var custIds = itpm.getSubCustomers(custId);
+				log.audit('custIds',custIds);
 				
 				//estimated volume search to get the items list
 				var estVolumeItems = [];
@@ -177,7 +185,7 @@ define(['N/ui/serverWidget',
 				actualSalesSublist.addField({
 					id : 'custpage_invoiceid',
 					type : serverWidget.FieldType.TEXT,
-					label : 'INVOICE ID'
+					label : 'INVOICE'
 				});
 				
 				actualSalesSublist.addField({
@@ -239,7 +247,15 @@ define(['N/ui/serverWidget',
 					
 					//search for invoice filters are ship start,end date and est volume items and with status Open and Paid in full
 					var searchColumn = ['internalid','tranid','item','item.description','amount','rate','quantity','unit',sortOnName,sortOnDate];
-					var invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custIds,startDateYear,endDateYear);
+					var searchColumnObj = {
+							type : yearResult,
+							columns : searchColumn,
+							items : estVolumeItems,
+							customers : custIds,
+							start : startDateYear,
+							end : endDateYear
+					}; 
+					var invSearchResult = getInvoiceSearch(searchColumnObj);
 					
 					var pagedData = invSearchResult.runPaged({
 					    pageSize:20
@@ -294,11 +310,17 @@ define(['N/ui/serverWidget',
 								line:i,
 								value:page.data[i].getValue({name:'description',join:'item'})
 							});
+							
+							invoiceURL = url.resolveRecord({
+								recordType:record.Type.INVOICE,
+								recordId:page.data[i].id,
+								isEditMode:false
+							});
 
 							actualSalesSublist.setSublistValue({
 								id:'custpage_invoiceid',
 								line:i,
-								value:page.data[i].getValue('tranid')
+								value:"<a href="+invoiceURL+">"+page.data[i].getValue('tranid')+"</a>"
 							});
 							
 							actualSalesSublist.setSublistValue({
@@ -371,7 +393,8 @@ define(['N/ui/serverWidget',
 					label:'Quantity'
 				});
 				
-				searchColumn = [search.createColumn({
+				//search columns GROUP the elements
+				searchColumnObj['columns'] = [search.createColumn({
 				    name: 'item',
 				    summary:search.Summary.GROUP
 				}),search.createColumn({
@@ -385,7 +408,7 @@ define(['N/ui/serverWidget',
 				
 				if(estVolumeItems.length > 0){
 					//searching for the items which present in the promotion est qty.
-					invSearchResult = getInvoiceSearch(searchColumn,estVolumeItems,custIds,startDateYear,endDateYear);
+					invSearchResult = getInvoiceSearch(searchColumnObj);
 					var i = 0;
 					invSearchResult.run().each(function(e){
 						itemSummarySublist.setSublistValue({
@@ -414,6 +437,9 @@ define(['N/ui/serverWidget',
 			}
 
 		}catch(e){
+			if(e.name == "INVALID_YEAR_PARAMETER"){
+				throw new Error(e.message);
+			}
 			log.error(e.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+e.message);
 		}
 
@@ -427,14 +453,14 @@ define(['N/ui/serverWidget',
 	 * @param {String} end - end date
 	 * @returns {Object} search
 	 */
-	function getInvoiceSearch(searchColumn,items,custIds,st,end){
+	function getInvoiceSearch(obj){
 		return search.create({
 			type:search.Type.INVOICE,
-			columns:searchColumn,
+			columns:obj.columns,
 				filters:[
-					['item','anyof',items],'and',
-					['entity','anyof',custIds],'and',
-					['trandate','within',st,end],'and',
+					['item','anyof',obj.items],'and',
+					['entity','anyof',obj.customers],'and',
+					['trandate','within',obj.start,obj.end],'and',
 					['status','anyof',['CustInvc:A','CustInvc:B']],'and', //open and paid in full
 					['taxline','is',false],'and',
 					['cogs','is',false],'and',
