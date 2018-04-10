@@ -387,6 +387,15 @@ define(['N/ui/serverWidget',
 					type:serverWidget.FieldType.TEXT,
 					label:'Item Description'
 				});
+				
+				if(yearResult == 'last52'){
+					itemSummarySublist.addField({
+						id:'custpage_itemsummary_average',
+						type:serverWidget.FieldType.TEXT,
+						label:'Average QTY Of Sales (WEEKLY)'
+					});
+				}
+				
 				itemSummarySublist.addField({
 					id:'custpage_itemsummary_quantity',
 					type:serverWidget.FieldType.TEXT,
@@ -421,10 +430,17 @@ define(['N/ui/serverWidget',
 							line:i,
 							value:e.getValue({name:'description',join:'item',summary:search.Summary.GROUP})
 						});
+						if(yearResult == 'last52'){
+							itemSummarySublist.setSublistValue({
+								id:'custpage_itemsummary_average',
+								line:i,
+								value:(parseFloat(e.getValue({name:'quantity',summary:search.Summary.SUM}))/52).toFixed(2) 
+							});
+						}
 						itemSummarySublist.setSublistValue({
 							id:'custpage_itemsummary_quantity',
 							line:i,
-							value:e.getValue({name:'quantity',summary:search.Summary.SUM})
+							value:e.getValue({name:'quantity',summary:search.Summary.SUM}) 
 						});
 						i++;
 						return true;
