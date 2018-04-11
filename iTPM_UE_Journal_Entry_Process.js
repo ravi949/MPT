@@ -187,7 +187,7 @@ function(search, record, redirect, itpm) {
         					log.debug('iTPM Applied To: Record Type', searchObj.run().getRange(0,1)[0].recordType);
         					
         					if(searchObj.run().getRange(0,1)[0].recordType == 'creditmemo'){
-        						log.debug('Credit Memo Processing...');
+        						log.debug('Credit Memo is Processing...');
             	            	
         						//getting open balance from deduction
             					var dedLookup = search.lookupFields({
@@ -207,6 +207,32 @@ function(search, record, redirect, itpm) {
             					log.debug('Credit Memo Amount remaining', cmLookup.amountremaining);
             					
         						itpm.applyCreditMemo(cmLookup.entity[0].value, dedLookup.custbody_itpm_ddn_openbal, cmLookup.amountremaining, jeNewRecordObj.id, jeAppliedTo, jeCreatedFrom, locationExists, classExists, departmentExists);
+        					}
+        					else if(searchObj.run().getRange(0,1)[0].recordType == 'customtransaction_itpm_deduction'){
+        						log.debug('Deduction is Processing...');
+        						
+        						var jeamount = jeNewRecordObj.getSublistValue({
+        						    sublistId: 'line',
+        						    fieldId: 'credit',
+        						    line: 0
+        						});
+        						log.debug('NL: Amount in Credit Line', jeamount);
+        						var ddnLookup = search.lookupFields({
+        							type    : 'customtransaction_itpm_deduction',
+        							id      : jeAppliedTo,
+        							columns : ['custbody_itpm_ddn_openbal']
+        						});
+        						log.debug('NL: Deduction Open Balance', ddnLookup);
+        						var ddnOpenBal = parseFloat(ddnLookup.custbody_itpm_ddn_openbal)-parseFloat(jeamount);
+        						log.debug('NL: Deduction Open Balance after expensing', ddnOpenBal);
+        						var dedStatus = (ddnOpenBal > 0)?'A':'C';
+        						DedRecId = record.submitFields({
+        							type    : 'customtransaction_itpm_deduction',
+        							id      : jeAppliedTo,
+        							values  : {'custbody_itpm_ddn_openbal' : ddnOpenBal, 'transtatus' : dedStatus},
+        							options : {enableSourcing: true, ignoreMandatoryFields: true}
+        						});
+        						log.debug('Decreasing the open balance from deduction after expensing',DedRecId);
         					}
         	            }
                     }
@@ -229,7 +255,42 @@ function(search, record, redirect, itpm) {
     function afterSubmit(scriptContext) {
     	try{
     		log.debug('After Submit: scriptContext.type', scriptContext.type);
-    		if (scriptContext.type === scriptContext.UserEventType.EDIT){
+    		if(scriptContext.type === scriptContext.UserEventType.CREATE){
+    			var jeNewRecordObj = scriptContext.newRecord;
+    			var jeAppliedTo = jeNewRecordObj.getValue({fieldId : 'custbody_itpm_appliedto'});
+    			if(jeAppliedTo){
+    				var prefJE = itpm.getJEPreferences();
+    				if(prefJE.featureEnabled && (prefJE.featureName == 'General' || prefJE.featureName == 'Approval Routing')){
+        				//Adding New Logic April-11-2018
+                    	log.debug("Entered into New Logic");
+                    	log.debug("NL: Ded Id", jeAppliedTo);
+                    	
+                    	var searchObj = search.create({
+    					    type: search.Type.TRANSACTION,
+    					    columns : ['internalid'],
+    					    filters: [['internalid','anyof', jeAppliedTo]]
+    					});
+
+    					log.debug('NL: iTPM Applied To: Record Type', searchObj.run().getRange(0,1)[0].recordType);
+    					
+                    	//Updating the related Deduction record to change status to Pending(B)
+            			if(searchObj.run().getRange(0,1)[0].recordType == 'customtransaction_itpm_deduction'){
+            				var dedRecUpdate = record.submitFields({
+                        		type: 'customtransaction_itpm_deduction',
+                        		id: jeAppliedTo,
+                        		values: {
+                        			'transtatus' : 'B',
+                        		},
+                        		options: {enablesourcing: true, ignoreMandatoryFields: true}
+                        	});
+            				
+            				log.debug("NL: Deduction Status Updated");
+            			}
+            			//********* ----- *******
+        			}
+    			}
+    		}
+    		else if(scriptContext.type === scriptContext.UserEventType.EDIT){
     			log.debug('JE Record was edited');
     			var jeNewRecordObj = scriptContext.newRecord;
     			var jeAppliedTo = jeNewRecordObj.getValue({fieldId : 'custbody_itpm_appliedto'});
@@ -285,7 +346,7 @@ function(search, record, redirect, itpm) {
         						itpm.applyCreditMemo(cmLookup.entity[0].value, dedLookup.custbody_itpm_ddn_openbal, cmLookup.amountremaining, jeNewRecordObj.id, jeAppliedTo, jeCreatedFrom, locationExists, classExists, departmentExists);
         					}
                         }
-        			}
+        			}	
     			}
     		}
     	}catch(e){
