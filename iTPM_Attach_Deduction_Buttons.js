@@ -81,7 +81,14 @@ function(url, https, message, dialog) {
 	 */
 	function iTPMexpense(id) {
 		try{
-			var msg = displayMessage('info','Expensing Deduction','Please wait while the expense is created and applied.');
+			var msg = displayMessage('info','Expensing Deduction','Please wait while Redirecting to Journal Entry Form....');
+			msg.show();
+			
+			//redirecting to journal entry
+			Url = url.resolveTaskLink('EDIT_TRAN_JOURNAL',{'did':id});			
+			window.open(Url,'_self');
+			
+			/*var msg = displayMessage('info','Expensing Deduction','Please wait while the expense is created and applied.');
 			msg.show();
 			var suiteletUrl = url.resolveScript({
 				scriptId:'customscript_itpm_ddn_expense',
@@ -107,7 +114,7 @@ function(url, https, message, dialog) {
 				}
 			}).catch(function(ex){
 				console.log(ex);
-			});
+			});*/
 		} catch(ex) {
 			console.log(ex.name,'function name = iTPMexpense, message'+ex.message);
 		}

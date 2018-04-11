@@ -23,6 +23,126 @@ function(search, record, redirect, itpm) {
     function beforeLoad(scriptContext) {
     	try{
     		log.debug('Before Load: scriptContext.type', scriptContext.type);
+    		
+    		//TRIGGER ONLY IN CREATE MODE
+    		if(scriptContext.type == 'create'){
+    			if(scriptContext.request.parameters.did){
+    				log.debug('params: deduction ID',scriptContext.request.parameters.did);
+    				var subsidiaryExists = itpm.subsidiariesEnabled();
+    				var currencyExists = itpm.currenciesEnabled();
+    				var itpmPreferences = itpm.getPrefrenceValues();
+    				var prefJE = itpm.getJEPreferences();
+    				    				
+    				var deductionRecordObj = record.load({
+    					type: 'customtransaction_itpm_deduction',
+    					id: scriptContext.request.parameters.did,
+    					isDynamic: true
+    				});
+    				
+    				var ddnAccount = search.create({
+    					type: search.Type.TRANSACTION,
+    					filters:[['internalid', 'anyof', scriptContext.request.parameters.did],'and',
+    						['debitamount', 'greaterthan', '0']],
+    						columns:[{name:'account'}]
+    				}).run().getRange(0,1);
+    				
+    				ddnAccount = ddnAccount[0].getValue({name:'account'});
+    				var expAccount = itpmPreferences.expenseAccnt;
+    				
+    				//Setting JE Record with Preloaded values from deduction
+    				if (subsidiaryExists){
+    					scriptContext.newRecord.setValue({
+        					fieldId: 'subsidiary',
+        					value: deductionRecordObj.getValue('subsidiary')
+        				});
+    				}
+    				if(currencyExists){
+    					scriptContext.newRecord.setValue({
+        					fieldId: 'currency',
+        					value: deductionRecordObj.getValue('currency')
+        				});
+    				}
+    				scriptContext.newRecord.setValue({
+    					fieldId: 'custbody_itpm_appliedto',
+    					value: scriptContext.request.parameters.did
+    				});
+    				scriptContext.newRecord.setValue({
+    					fieldId: 'memo',
+    					value: 'Expense for Deduction '+deductionRecordObj.getValue('tranid')
+    				});
+    				
+    				//Checking for JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
+    				if(prefJE.featureEnabled){
+    					if(prefJE.featureName == 'Approval Routing'){
+    						log.debug('prefJE.featureName', prefJE.featureName);
+    						scriptContext.newRecord.setValue({
+            					fieldId:'approvalstatus',
+            					value:1
+            				});
+    					}else if(prefJE.featureName == 'General'){
+    						log.debug('prefJE.featureName', prefJE.featureName);
+    						scriptContext.newRecord.setValue({
+            					fieldId:'approved',
+            					value:false
+            				});
+    					}
+    				}
+    				
+    				//Adding Credit Line
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'account',
+    					value:ddnAccount,
+    					line:0
+    				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'credit',
+    					value: deductionRecordObj.getValue('custbody_itpm_ddn_openbal'),
+    					line:0
+    				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'memo',
+    					value: 'Expense for Deduction '+ deductionRecordObj.getValue('tranid'),
+    					line:0
+    				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'entity',
+    					value: deductionRecordObj.getValue('custbody_itpm_customer'),
+    					line:0
+    				});
+    				
+    				//Adding Debit Line
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'account',
+    					value:expAccount,
+    					line:1
+    				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'debit',
+    					value: deductionRecordObj.getValue('custbody_itpm_ddn_openbal'),
+    					line:1
+    				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'memo',
+    					value: 'Expense for Deduction '+ deductionRecordObj.getValue('tranid'),
+    					line:1
+    				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'entity',
+    					value: deductionRecordObj.getValue('custbody_itpm_customer'),
+    					line:1
+    				});
+   				}
+    		}
+    		
+    		//TRIGGER ONLY IN VIEW MODE
     		if(scriptContext.type === scriptContext.UserEventType.VIEW){
         		log.debug('JE Record VIEW: Before Load');
         		var jeNewRecordObj = scriptContext.newRecord;
