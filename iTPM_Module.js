@@ -542,7 +542,7 @@ define(['N/search',
 			var itemResult = search.create({
 				type:search.Type.ITEM,
 				columns:[
-					'pricing.pricelevel',
+					//'pricing.pricelevel',
 					'pricing.unitprice',
 					'baseprice',
 					'saleunit'
@@ -569,14 +569,34 @@ define(['N/search',
 				}));
 			}
 			itemResult = itemResult.run().getRange(0,1);
-			price = itemResult[0].getValue({name:'unitprice',join:'pricing'});
-			log.debug('price',price);
-			price = (isNaN(price))?params.baseprice:price;
-			return {
-				price:price,
-				baseprice:itemResult[0].getValue({name:'baseprice'}),
-				saleunit:itemResult[0].getValue({name:'saleunit'})
-			};
+			if(itemResult.length > 0){
+				log.audit('itemResult in if',itemResult);
+				price = itemResult[0].getValue({name:'unitprice',join:'pricing'});
+				log.debug('price',price);
+				price = (isNaN(price))?params.baseprice:price;
+				return {
+					price:price,
+					baseprice:itemResult[0].getValue({name:'baseprice'}),
+					saleunit:itemResult[0].getValue({name:'saleunit'})
+				};
+			}else{
+				var itemResult = search.create({
+					type:search.Type.ITEM,
+					columns:[
+						'saleunit'
+						],
+						filters:[['internalid','anyof',params.itemid],'and',
+							['isinactive','is',false]
+						]
+				});
+				itemResult = itemResult.run().getRange(0,1);
+				log.audit('itemResult in else',itemResult);
+				return {
+					price:0,
+					baseprice:0,
+					saleunit:itemResult[0].getValue({name:'saleunit'})
+				};
+			}
 		}catch(e){
 			log.error(e.name,e.message + '; params: ' + JSON.stringify(params));
 			return {
