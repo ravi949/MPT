@@ -158,7 +158,7 @@ function(record, runtime, search, serverWidget, itpm) {
     		}
     		
     		//setting the externalid after record submit
-    		if(scriptContext.type == 'create' && ddnSplitRec.getValue('externalid') == ''){
+    		if(scriptContext.type == 'create' && ddnSplitRec.getValue('externalid')){
     			var tranId = search.lookupFields({
     	    		type:'customtransaction_itpm_deduction',
     	    		id:ddnSplitRec.getValue('custrecord_itpm_split_deduction'),
