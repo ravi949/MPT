@@ -580,7 +580,7 @@ define(['N/search',
 					saleunit:itemResult[0].getValue({name:'saleunit'})
 				};
 			}else{
-				var itemResult = search.create({
+				itemResult = search.create({
 					type:search.Type.ITEM,
 					columns:[
 						'saleunit'
