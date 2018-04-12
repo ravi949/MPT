@@ -24,6 +24,7 @@ function(record, search) {
      */
     function getInputData() {
     	try{
+    		//searching the deduction split record which has externalid empty or null
     		return search.create({
     			type:'customrecord_itpm_deductionsplit',
     			columns:['internalid','custrecord_itpm_split_deduction'],
@@ -48,6 +49,7 @@ function(record, search) {
         	log.debug('context',obj.values);
         	log.debug('key',context.key);
         	
+        	//saving the deduction split record with externalid
         	record.submitFields({
         		type:'customrecord_itpm_deductionsplit',
         		id:context.key,
