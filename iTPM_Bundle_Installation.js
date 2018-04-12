@@ -100,10 +100,18 @@ function(config, task, search, record) {
      * @since 2016.1
      */
     function afterUpdate(params) {
+    	//task for set the promotion default values
     	task.create({
     		taskType: task.TaskType.MAP_REDUCE,
     		scriptId: 'customscript_itpm_mr_setpromodefaultval',
     		deploymentId: 'customdeploy_itpm_mr_setpromodefaultval'
+    	}).submit();
+    	
+    	//task for set the externalid on deduction split record
+    	task.create({
+    		taskType: task.TaskType.MAP_REDUCE,
+    		scriptId: 'customscript_itpm_ddn_spilt_externalid',
+    		deploymentId: 'customdeploy_itpm_ddn_spilt_externalid'
     	}).submit();
     	
     	//script to modify status filter on all iTPM saved searches
