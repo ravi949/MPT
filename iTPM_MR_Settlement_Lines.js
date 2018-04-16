@@ -188,7 +188,7 @@ function(record, search, runtime, itpm) {
 				estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
 				return true;
 			});
-    		var promoHasShippments = promoHasInvoice(estVolumeItems
+    		var promoHasShippments = promoHasShipments(estVolumeItems
     												 ,promoDealRecord['custrecord_itpm_p_customer'][0].value
     												 ,promoDealRecord['custrecord_itpm_p_shipstart']
     												 ,promoDealRecord['custrecord_itpm_p_shipend']
@@ -522,7 +522,7 @@ function(record, search, runtime, itpm) {
 	 * @param {String} end - end date
 	 * @returns {Object} search
 	 */
-	function promoHasInvoice(items,custIds,st,end){
+	function promoHasShipments(items,custIds,st,end){
 		return search.create({
 			type:search.Type.ITEM_FULFILLMENT,
 			columns:['internalid','tranid','item'],
