@@ -21,7 +21,17 @@ function() {
 	 * @since 2015.2
 	 */
 	function fieldChanged(scriptContext){
-		console.log('search');
+		if(scriptContext.fieldId == 'custpage_itpm_pref_subsidiary'){
+			var params = (new URL(document.location)).searchParams;
+			var type = params.get('type');
+			console.log(scriptContext.currentRecord.getValue('custpage_itpm_pref_subsidiary'));
+			if(type == 'edit'){
+				window.location.href = window.location.href.split('&whence=')[0]+'&whence=&type='+type+'&pfid='+params.get('pfid')+'&subid='+scriptContext.currentRecord.getValue('custpage_itpm_pref_subsidiary');
+			}else{
+				window.location.href = window.location.href.split('&whence=')[0]+'&whence=&type='+type+'&subid='+scriptContext.currentRecord.getValue('custpage_itpm_pref_subsidiary');
+			}
+			
+		}
 	}
 	
     /*it will redirect the user to previous screen*/
