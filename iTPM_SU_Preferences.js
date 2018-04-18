@@ -18,6 +18,8 @@ define(['N/record',
 */
 function(record, redirect, serverWidget, search, runtime, url) {
 
+	var scriptObj = runtime.getCurrentScript();
+	
 	/**
 	 * @param { string } type Discount 
 	 * @return { search } item search
@@ -49,7 +51,7 @@ function(record, redirect, serverWidget, search, runtime, url) {
 	/*
 	 * @description returning the preferences records resultset
 	 */
-	function getPreferences(id){
+	function getPreferences(id, subid){
 		var searchOptions = {
 				type:'customrecord_itpm_preferences',
 				columns:['internalid',
@@ -66,6 +68,9 @@ function(record, redirect, serverWidget, search, runtime, url) {
 			};
 		if(id){
 			searchOptions['filters'] = ['internalid','anyof',id];
+		}
+		if(subid){
+			searchOptions['filters'] = ['custrecord_itpm_pref_subsidiary','anyof',subid];
 		}
 		return search.create(searchOptions).run();
 	}
@@ -89,6 +94,24 @@ function(record, redirect, serverWidget, search, runtime, url) {
 			});
 			
 			if(params.type == 'create' || params.type == 'edit' || params.type == 'view'){
+				
+				//if event type is create and subsidiary defined than we are searching and show warning
+				if(params.type == 'create' &&  params.subid){
+					var prefLength = getPreferences(undefined, params.subid).getRange(0,2).length;
+					if(prefLength > 0){
+						//showing the warning message about the subsidiary
+						form.addField({
+							id : 'custpage_itpm_warningmsg',
+							type : serverWidget.FieldType.INLINEHTML,
+							label : 'Warning Message'
+						}).defaultValue = '<script>require(["N/ui/message"],function(message){'+
+										  'var myMsg2 = message.create({title: "Duplicate Subsidiary",'+
+										  'message: "You cannot create a another record for same subsidiary",'+
+										  'type: message.Type.WARNING});'+
+										  'myMsg2.show();})</script>';
+					}
+				}
+				
 				//setting the event type
 				form.addField({
 					id : 'custpage_itpm_eventtype',
@@ -242,8 +265,12 @@ function(record, redirect, serverWidget, search, runtime, url) {
 					container:'custpage_setup_preference'
 				});
 				
+				//if subsidiary value defined than we are filtering the values
 				if(params.subid){
+					//setting the subsidiary field value
 					subsidiaryField.defaultValue = params.subid;
+					
+					//setting the discount item values to the field
 					getItems('Discount', params.subid).each(function(e){
 						discountItemField.addSelectOption({
 							value:e.getValue('internalid'),
@@ -252,6 +279,7 @@ function(record, redirect, serverWidget, search, runtime, url) {
 						return true;
 					});
 
+					//get the account the with selected subsidiary
 					getAccounts(params.subid).each(function(e){
 						expenseAccntField.addSelectOption({
 						    value : e.getValue('internalid'),
@@ -344,7 +372,6 @@ function(record, redirect, serverWidget, search, runtime, url) {
 				}
 				
 			}else{
-				var scriptObj = runtime.getCurrentScript();
 				
 				prefSublist = form.addSublist({
 				    id : 'custpage_itpm_prefrecords',
@@ -482,7 +509,8 @@ function(record, redirect, serverWidget, search, runtime, url) {
 	 * @param {Object} request
 	 */
 	function savePreferenceRecord(request){
-
+		
+		//reading the values from request parameters
 		var deductionAccount = request.parameters.custpage_itpm_pref_ddnaccount,
 		expenseAccount = request.parameters.custpage_itpm_pref_expenseaccount,
 		accountPayableId = request.parameters.custpage_itpm_pref_accountpayable,
@@ -496,6 +524,16 @@ function(record, redirect, serverWidget, search, runtime, url) {
 		var eventType = request.parameters.custpage_itpm_eventtype;
 		var pfid = request.parameters.custpage_itpm_pfid;
 		var preferanceRecord;
+		
+		//searching for the records with same subsidiary before saving the record
+		var prefLength = getPreferences(undefined, subsidiary).getRange(0,2).length;
+		if(prefLength > 0){
+			throw{
+				name:'DUPLICATE_SUBSIDIARY',
+				message:'There are already have the record with same subsidiary'
+			}
+		}
+		
 		if(eventType == 'create'){
 			preferanceRecord = record.create({
 				type: 'customrecord_itpm_preferences',
@@ -624,35 +662,18 @@ function(record, redirect, serverWidget, search, runtime, url) {
 		}
 		if(request.method == 'POST'){
 			try{
-				var scriptObj = runtime.getCurrentScript();
-//				prefSearchRes = search.create({
-//					type:'customrecord_itpm_preferences',
-//					columns:['internalid']
-//				}).run().getRange(0,1);
-//				if(prefSearchRes.length == 0){
-//					var preferanceRecord = record.create({
-//						 type: 'customrecord_itpm_preferences',
-//						 isDynamic: true
-//					});
-//					savePreferenceRecord(preferanceRecord,request);
-//				}
-//				//if preferences record is available then updates the preferences record 
-//				if(prefSearchRes.length > 0){
-//					var prefSearchResId = prefSearchRes[0].getValue('internalid');
-//					var preferanceRecord = record.load({
-//					    type: 'customrecord_itpm_preferences', 
-//					    id: prefSearchResId,
-//					    isDynamic: true,
-//					});
-//					savePreferenceRecord(preferanceRecord,request);
-//				}
+				//invoke the function to save the record
 				savePreferenceRecord(request);
+				//after save redirect to the same suitelet
 				redirect.toSuitelet({
 				    scriptId: scriptObj.id,
 				    deploymentId: scriptObj.deploymentId
 				});
 				
 			}catch(ex){
+				if(ex.name == 'DUPLICATE_SUBSIDIARY'){
+					throw new Error(ex.message);
+				}
 				log.error(ex.name, ex.message + '; Method: ' + request.method);
 				throw ex.message + '; Method: ' + request.method;
 			}			
