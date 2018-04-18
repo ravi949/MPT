@@ -88,7 +88,27 @@ function(record, redirect, serverWidget, search, runtime, url) {
 				label : 'Setup'
 			});
 			
-			if(params.type == 'create' || params.type == 'edit'){
+			if(params.type == 'create' || params.type == 'edit' || params.type == 'view'){
+				//setting the event type
+				form.addField({
+					id : 'custpage_itpm_eventtype',
+					type : serverWidget.FieldType.TEXT,
+					label : 'Event Type'
+				}).updateDisplayType({
+				    displayType : serverWidget.FieldDisplayType.HIDDEN
+				}).defaultValue = params.type;
+				
+				//preference record id
+				//setting the event type
+				form.addField({
+					id : 'custpage_itpm_pfid',
+					type : serverWidget.FieldType.SELECT,
+					label : 'Preference Record',
+					source:'customrecord_itpm_preferences'
+				}).updateDisplayType({
+				    displayType : serverWidget.FieldDisplayType.HIDDEN
+				}).defaultValue = params.pfid;
+				
 				//Subsidiary Field
 				var subsidiaryField = form.addField({
 					id: 'custpage_itpm_pref_subsidiary',
@@ -222,10 +242,6 @@ function(record, redirect, serverWidget, search, runtime, url) {
 					container:'custpage_setup_preference'
 				});
 				
-				form.addSubmitButton({
-					label: 'Submit'
-				});
-				
 				if(params.subid){
 					subsidiaryField.defaultValue = params.subid;
 					getItems('Discount', params.subid).each(function(e){
@@ -233,7 +249,8 @@ function(record, redirect, serverWidget, search, runtime, url) {
 							value:e.getValue('internalid'),
 							text:e.getValue('itemid')
 						});
-					})
+						return true;
+					});
 
 					getAccounts(params.subid).each(function(e){
 						expenseAccntField.addSelectOption({
@@ -257,7 +274,7 @@ function(record, redirect, serverWidget, search, runtime, url) {
 				
 				//set the values to the fields if already prefernce record existed
 				getPreferences(params.pfid).each(function(preferanceRecord){
-					if(params.type == 'edit' && params.subid == preferanceRecord.getValue('custrecord_itpm_pref_subsidiary')){
+					if((params.type == 'edit' || params.type == 'view')&& params.subid == preferanceRecord.getValue('custrecord_itpm_pref_subsidiary')){
 						deductionAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount');
 						expenseAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount');
 						accountPayableField.defaultValue =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount');
@@ -289,6 +306,43 @@ function(record, redirect, serverWidget, search, runtime, url) {
 					}
 				});
 				
+				if(params.type == 'view'){
+					radioITPMDiscountDate.updateDisplayType({
+					    displayType : serverWidget.FieldDisplayType.DISABLED
+					});
+					removeCustomerSplitDDNField.updateDisplayType({
+					    displayType : serverWidget.FieldDisplayType.DISABLED
+					});
+					ApplyiTPMNetBillDiscountChk.updateDisplayType({
+					    displayType : serverWidget.FieldDisplayType.DISABLED
+					});
+					deductionAccntField.updateDisplayType({
+					    displayType : serverWidget.FieldDisplayType.INLINE
+					});
+					expenseAccntField.updateDisplayType({
+					    displayType : serverWidget.FieldDisplayType.INLINE
+					});
+					accountPayableField.updateDisplayType({
+					    displayType : serverWidget.FieldDisplayType.INLINE
+					});
+					discountItemField.updateDisplayType({
+					    displayType : serverWidget.FieldDisplayType.INLINE
+					});
+					subsidiaryField.updateDisplayType({
+					    displayType : serverWidget.FieldDisplayType.INLINE
+					});
+					defaultPriceLevel.updateDisplayType({
+					    displayType : serverWidget.FieldDisplayType.INLINE
+					});
+					defaultAllType.updateDisplayType({
+					    displayType : serverWidget.FieldDisplayType.INLINE
+					});
+				}else{
+					form.addSubmitButton({
+						label: 'Submit'
+					});
+				}
+				
 			}else{
 				var scriptObj = runtime.getCurrentScript();
 				
@@ -299,9 +353,9 @@ function(record, redirect, serverWidget, search, runtime, url) {
 				});
 				
 				prefSublist.addField({
-					id : 'custpage_itpm_edit',
+					id : 'custpage_itpm_editview',
 					type : serverWidget.FieldType.TEXT,
-					label : 'Edit'
+					label : 'Edit | View'
 				}).updateDisplayType({
 				    displayType : serverWidget.FieldDisplayType.INLINE
 				});
@@ -354,13 +408,18 @@ function(record, redirect, serverWidget, search, runtime, url) {
 				var i = 0;
 				getPreferences().each(function(e){
 					prefSublist.setSublistValue({
-						id:'custpage_itpm_edit',
+						id:'custpage_itpm_editview',
 						value:"<a href="+url.resolveScript({
 						    scriptId: scriptObj.id,
 						    deploymentId: scriptObj.deploymentId,
 						    returnExternalUrl: false,
 						    params:{whence:'=',type:'edit',pfid:e.getValue('internalid'),subid:e.getValue('custrecord_itpm_pref_subsidiary')}
-						})+">Edit</a>",
+						})+">Edit</a> | <a href="+url.resolveScript({
+						    scriptId: scriptObj.id,
+						    deploymentId: scriptObj.deploymentId,
+						    returnExternalUrl: false,
+						    params:{whence:'=',type:'view',pfid:e.getValue('internalid'),subid:e.getValue('custrecord_itpm_pref_subsidiary')}
+						})+">View</a>",
 						line:i
 					});
 					
@@ -422,7 +481,7 @@ function(record, redirect, serverWidget, search, runtime, url) {
 	 * @param {Object} preferenceRecord
 	 * @param {Object} request
 	 */
-	function savePreferenceRecord(preferanceRecord, request){
+	function savePreferenceRecord(request){
 
 		var deductionAccount = request.parameters.custpage_itpm_pref_ddnaccount,
 		expenseAccount = request.parameters.custpage_itpm_pref_expenseaccount,
@@ -430,9 +489,25 @@ function(record, redirect, serverWidget, search, runtime, url) {
 		applyiTPMNetBillDiscount = request.parameters.custpage_itpm_pref_nblistprice,
 		discountItemId = request.parameters.custpage_itpm_pref_discountitem,
 		removeCustomer = request.parameters.custpage_itpm_pref_remvcust_frmsplitddn,
-		discountDates = request.parameters.custpage_itpm_disdate;
+		discountDates = request.parameters.custpage_itpm_disdate,
+		subsidiary = request.parameters.custpage_itpm_pref_subsidiary;
 		var defaultalltype = request.parameters.custpage_itpm_pref_defaultalltype;
 		var defaultPriceLevel = request.parameters.custpage_itpm_pref_defaultpricelevel;
+		var eventType = request.parameters.custpage_itpm_eventtype;
+		var pfid = request.parameters.custpage_itpm_pfid;
+		var preferanceRecord;
+		if(eventType == 'create'){
+			preferanceRecord = record.create({
+				type: 'customrecord_itpm_preferences',
+				isDynamic: true
+			});
+		}else{
+			preferanceRecord = record.load({
+			    type: 'customrecord_itpm_preferences', 
+			    id: getPreferences(pfid).getRange(0,1)[0].getValue('internalid'),
+			    isDynamic: true,
+			});
+		}
 		
 		preferanceRecord.setValue({
 			fieldId: 'custrecord_itpm_pref_ddnaccount',
@@ -465,6 +540,10 @@ function(record, redirect, serverWidget, search, runtime, url) {
 		}).setValue({
 			fieldId:'custrecord_itpm_pref_remvcust_frmsplit',
 			value:(removeCustomer == 'T'),
+			ignoreFieldChange:true
+		}).setValue({
+			fieldId:'custrecord_itpm_pref_subsidiary',
+			value:subsidiary,
 			ignoreFieldChange:true
 		});
 
@@ -545,29 +624,29 @@ function(record, redirect, serverWidget, search, runtime, url) {
 		}
 		if(request.method == 'POST'){
 			try{
-				var scriptObj = runtime.getCurrentScript(), 
-				prefSearchRes = search.create({
-					type:'customrecord_itpm_preferences',
-					columns:['internalid']
-				}).run().getRange(0,1);
-				if(prefSearchRes.length == 0){
-					var preferanceRecord = record.create({
-						 type: 'customrecord_itpm_preferences',
-						 isDynamic: true
-					});
-					savePreferenceRecord(preferanceRecord,request);
-				}
-				//if preferences record is available then updates the preferences record 
-				if(prefSearchRes.length > 0){
-					var prefSearchResId = prefSearchRes[0].getValue('internalid');
-					var preferanceRecord = record.load({
-					    type: 'customrecord_itpm_preferences', 
-					    id: prefSearchResId,
-					    isDynamic: true,
-					});
-					savePreferenceRecord(preferanceRecord,request);
-				}
-				
+				var scriptObj = runtime.getCurrentScript();
+//				prefSearchRes = search.create({
+//					type:'customrecord_itpm_preferences',
+//					columns:['internalid']
+//				}).run().getRange(0,1);
+//				if(prefSearchRes.length == 0){
+//					var preferanceRecord = record.create({
+//						 type: 'customrecord_itpm_preferences',
+//						 isDynamic: true
+//					});
+//					savePreferenceRecord(preferanceRecord,request);
+//				}
+//				//if preferences record is available then updates the preferences record 
+//				if(prefSearchRes.length > 0){
+//					var prefSearchResId = prefSearchRes[0].getValue('internalid');
+//					var preferanceRecord = record.load({
+//					    type: 'customrecord_itpm_preferences', 
+//					    id: prefSearchResId,
+//					    isDynamic: true,
+//					});
+//					savePreferenceRecord(preferanceRecord,request);
+//				}
+				savePreferenceRecord(request);
 				redirect.toSuitelet({
 				    scriptId: scriptObj.id,
 				    deploymentId: scriptObj.deploymentId
