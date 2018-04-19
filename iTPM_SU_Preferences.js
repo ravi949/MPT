@@ -560,6 +560,8 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 	 */
 	function savePreferenceRecord(request){
 		
+		log.debug('error usage',runtime.getCurrentScript().getRemainingUsage());
+		
 		//reading the values from request parameters
 		var deductionAccount = request.parameters.custpage_itpm_pref_ddnaccount,
 		expenseAccount = request.parameters.custpage_itpm_pref_expenseaccount,
@@ -578,15 +580,10 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		//searching for the records with same subsidiary before saving the record
 		//these below conditions for one-world and non-oneworld accounts
 		var prefLength = getPreferences(undefined, subsidiary).getRange(0,2).length;
-		if(prefLength > 0){
+		if(eventType == 'create' && prefLength > 0){
 			throw{
 				name:'DUPLICATE_SUBSIDIARY',
-				message:'There are already have the record with same subsidiary'
-			}
-		}else if(!subsidiariesEnabled && prefLength > 0){
-			throw{
-				name:'ATTEMP_ANOTHER_CREATION',
-				message:'You cannot create another -iTPM Preference record.'
+				message:(!subsidiariesEnabled)? 'You cannot create another -iTPM Preference record.':'There are already have the record with same subsidiary'
 			}
 		}
 		
@@ -645,48 +642,62 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			});
 		}
 		
-			switch(discountDates){
-			case 'custpage_sd' : 
-				preferanceRecord.setValue({
-					fieldId:'custrecord_itpm_pref_discountdates',
-					value:1,
-					ignoreFieldChange:true
-				});
-				break;
-			case 'custpage_od' : 
-				preferanceRecord.setValue({
-					fieldId:'custrecord_itpm_pref_discountdates',
-					value:2,
-					ignoreFieldChange:true
-				});
-				break;
-			case 'custpage_both' : 
-				preferanceRecord.setValue({
-					fieldId:'custrecord_itpm_pref_discountdates',
-					value:3,
-					ignoreFieldChange:true
-				});
-				break;
-			case 'custpage_either' : 
-				preferanceRecord.setValue({
-					fieldId:'custrecord_itpm_pref_discountdates',
-					value:4,
-					ignoreFieldChange:true
-				});
-				break;
-			default : 
-				preferanceRecord.setValue({
-					fieldId:'custrecord_itpm_pref_discountdates',
-					value:1,
-					ignoreFieldChange:true
-				});
+		var dateValue;
+		switch(discountDates){
+		case 'custpage_sd' : 
+			dateValue = 1;
 			break;
-			}
+		case 'custpage_od' : 
+			dateValue = 2;
+			break;
+		case 'custpage_both' : 
+			dateValue = 3;
+			break;
+		case 'custpage_either' : 
+			dateValue = 4;
+			break;
+		default : 
+			dateValue = 1;
+		break;
+		}
+			
+		preferanceRecord.setValue({
+			fieldId:'custrecord_itpm_pref_discountdates',
+			value:dateValue,
+			ignoreFieldChange:true
+		});
 
-		preferanceRecord.save({
+		var preferenceRecID = preferanceRecord.save({
 			enableSourcing: true,
 			ignoreMandatoryFields: true
 		});
+		
+		//updating the other record non-based subsidiary field values with new changes
+		if(subsidiariesEnabled && preferenceRecID){
+			getPreferences().each(function(e){
+				if(e.getValue('internalid') != preferenceRecID){
+					record.submitFields({
+						type:'customrecord_itpm_preferences',
+						id:e.getValue('internalid'),
+						values:{
+							'custrecord_itpm_pref_nblistprice':(applyiTPMNetBillDiscount == 'T'),
+							'custrecord_itpm_pref_defaultalltype':defaultalltype,
+							'custrecord_itpm_pref_defaultpricelevel':defaultPriceLevel,
+							'custrecord_itpm_pref_remvcust_frmsplit':(removeCustomer == 'T'),
+							'custrecord_itpm_pref_discountdates':dateValue
+						},
+						options:{
+							enableSourcing:false,
+							ignoreMandatoryFields:true
+						}
+					});
+				}
+				return true;
+			});
+		}
+		
+		log.error('end usage',runtime.getCurrentScript().getRemainingUsage());
+		
 	}
 	
 
