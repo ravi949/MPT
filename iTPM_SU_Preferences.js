@@ -9,16 +9,18 @@ define(['N/record',
         'N/ui/serverWidget',
         'N/search',
         'N/runtime',
-        'N/url'
+        'N/url',
+        './iTPM_Module.js'
         ],
 /**
 * @param {record} record
 * @param {redirect} redirect
 * @param {serverWidget} serverWidget
 */
-function(record, redirect, serverWidget, search, runtime, url) {
+function(record, redirect, serverWidget, search, runtime, url, itpm) {
 
 	var scriptObj = runtime.getCurrentScript();
+	var subsidiariesEnabled = itpm.subsidiariesEnabled();
 	
 	/**
 	 * @param { string } type Discount 
@@ -26,12 +28,15 @@ function(record, redirect, serverWidget, search, runtime, url) {
 	 */
 	function getItems(type, subid){
 		if(type == 'Discount'){
+			var searchFilters = [['type','is','Discount'],'and',
+						         ['isinactive','is',false]];
+			if(subsidiariesEnabled){
+				searchFilters.push('and',['subsidiary','anyof',subid]);
+			}
 			return search.create({
 				type:search.Type.ITEM,
 				columns:['internalid','itemid'],
-				filters:[['type','is','Discount'],'and',
-				         ['subsidiary','anyof',subid],'and',
-				         ['isinactive','is',false]]
+				filters:searchFilters
 			}).run();
 		}
 	}
@@ -41,10 +46,14 @@ function(record, redirect, serverWidget, search, runtime, url) {
 	 * @description filter the accounts with subsidiary and return the result set
 	 */
 	function getAccounts(subid){
+		var searchFilters = [];
+		if(subsidiariesEnabled){
+			searchFilters.push(['subsidiary','anyof',subid]);
+		}
 		return search.create({
 			type:search.Type.ACCOUNT,
 			columns:['internalid','name'],
-			filters:[['subsidiary','anyof',subid]]
+			filters:searchFilters
 		}).run();
 	}
 	
@@ -69,7 +78,7 @@ function(record, redirect, serverWidget, search, runtime, url) {
 		if(id){
 			searchOptions['filters'] = ['internalid','anyof',id];
 		}
-		if(subid){
+		if(subsidiariesEnabled && subid){
 			searchOptions['filters'] = ['custrecord_itpm_pref_subsidiary','anyof',subid];
 		}
 		return search.create(searchOptions).run();
@@ -84,6 +93,7 @@ function(record, redirect, serverWidget, search, runtime, url) {
 	function createPreferenceForm(request){
 		try{
 			var params = request.parameters;
+			params.subid = (subsidiariesEnabled)? params.subid : 1;
 			var prefSublist;
 			var form = serverWidget.createForm({
 				title: '- iTPM Preferences'
@@ -93,402 +103,13 @@ function(record, redirect, serverWidget, search, runtime, url) {
 				label : 'Setup'
 			});
 			
+			//showing the form based on user event types
 			if(params.type == 'create' || params.type == 'edit' || params.type == 'view'){
-				
-				//if event type is create and subsidiary defined than we are searching and show warning
-				if(params.type == 'create' &&  params.subid){
-					var prefLength = getPreferences(undefined, params.subid).getRange(0,2).length;
-					if(prefLength > 0){
-						//showing the warning message about the subsidiary
-						form.addField({
-							id : 'custpage_itpm_warningmsg',
-							type : serverWidget.FieldType.INLINEHTML,
-							label : 'Warning Message'
-						}).defaultValue = '<script>require(["N/ui/message"],function(message){'+
-										  'var myMsg2 = message.create({title: "Duplicate Subsidiary",'+
-										  'message: "You cannot create a another record for same subsidiary",'+
-										  'type: message.Type.WARNING});'+
-										  'myMsg2.show();})</script>';
-					}
-				}
-				
-				//setting the event type
-				form.addField({
-					id : 'custpage_itpm_eventtype',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Event Type'
-				}).updateDisplayType({
-				    displayType : serverWidget.FieldDisplayType.HIDDEN
-				}).defaultValue = params.type;
-				
-				//preference record id
-				//setting the event type
-				form.addField({
-					id : 'custpage_itpm_pfid',
-					type : serverWidget.FieldType.SELECT,
-					label : 'Preference Record',
-					source:'customrecord_itpm_preferences'
-				}).updateDisplayType({
-				    displayType : serverWidget.FieldDisplayType.HIDDEN
-				}).defaultValue = params.pfid;
-				
-				//Subsidiary Field
-				var subsidiaryField = form.addField({
-					id: 'custpage_itpm_pref_subsidiary',
-					label: 'Subsidiary',
-					type: serverWidget.FieldType.SELECT,
-					source:'subsidiary',
-					container:'custpage_setup_preference'
-				});
-				subsidiaryField.isMandatory = true;
-				
-				//Default Allowance Type Field
-				var defaultAllType = form.addField({
-					id: 'custpage_itpm_pref_defaultalltype',
-					label: 'Default Allowance Type',
-					type: serverWidget.FieldType.SELECT,
-					source:'customlist_itpm_allowancetype',
-					container:'custpage_setup_preference'
-				});
-
-				//Default Price Level Field
-				var defaultPriceLevel = form.addField({
-					id: 'custpage_itpm_pref_defaultpricelevel',
-					label: 'Default Price Level',
-					type: serverWidget.FieldType.SELECT,
-					source:'pricelevel',
-					container:'custpage_setup_preference'
-				});
-				
-				//Apply iTPM Discount Item
-				var discountItemField = form.addField({
-					id: 'custpage_itpm_pref_discountitem',
-					type: serverWidget.FieldType.SELECT,
-					label: 'iTPM Discount Item',
-					container:'custpage_setup_preference'
-				}); 
-				discountItemField.isMandatory = true;
-
-				//Expense account
-				var expenseAccntField = form.addField({
-					id: 'custpage_itpm_pref_expenseaccount',
-					type: serverWidget.FieldType.SELECT,
-					label: 'Expense Account',
-					container:'custpage_setup_preference'
-				}).updateBreakType({
-					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
-				expenseAccntField.isMandatory = true;
-
-	           //Deduction account
-				var deductionAccntField = form.addField({
-					id: 'custpage_itpm_pref_ddnaccount',
-					type: serverWidget.FieldType.SELECT,
-					label: 'Deduction Account',
-					container:'custpage_setup_preference'
-				});
-				deductionAccntField.isMandatory = true;
-
-				//Accounts Payable account field
-				var accountPayableField = form.addField({
-					id: 'custpage_itpm_pref_accountpayable',
-					type: serverWidget.FieldType.SELECT,
-					label: 'Accounts Payable',
-					container:'custpage_setup_preference'
-				});
-				accountPayableField.isMandatory = true;
-				
-				//Checkbox for Remove customer from split deduction transactions
-				var removeCustomerSplitDDNField = form.addField({
-					id: 'custpage_itpm_pref_remvcust_frmsplitddn',
-					type: serverWidget.FieldType.CHECKBOX,
-					label: 'Remove customer from split deduction transactions?',
-					container:'custpage_setup_preference'
-				}).updateBreakType({
-					breakType : serverWidget.FieldBreakType.STARTCOL
-				});
-				removeCustomerSplitDDNField.setHelpText({
-					help:'Remove the customers from split deduction transaction lines.'
-				});
-
-				//Apply iTPM Net Bill Discount only on List Price? Field
-				var ApplyiTPMNetBillDiscountChk = form.addField({
-					id: 'custpage_itpm_pref_nblistprice',
-					type: serverWidget.FieldType.CHECKBOX,
-					label: 'Apply iTPM Net Bill Discount only on List Price?',
-					container:'custpage_setup_preference'
-				});
-				ApplyiTPMNetBillDiscountChk.setHelpText({
-					help : 'Check this box if the system should apply Net Bill discounts on Sales Transaction lines only if the line\'s Price Level is \"List / Base\" price. This is usually the default price level of an item in NetSuite.'
-				});
-
-				//iTPM Discount Dates Radio Button (it is a List type on Preference record
-				var discountDatesField = form.addField({
-					id: 'custpage_itpm_ddlabel',
-					type: serverWidget.FieldType.LABEL,
-					label: 'iTPM Discount Dates',
-					container:'custpage_setup_preference'
-				});
-				discountDatesField.setHelpText({
-					help : 'Select the dates that should be used while searching for promotional off invoice and net bill discounts to apply to a transaction.'
-				});
-
-				discountDatesField.isMandatory = true;
-
-				var radioITPMDiscountDate = form.addField({
-					id: 'custpage_itpm_disdate',
-					type: serverWidget.FieldType.RADIO,
-					label: 'Ship Date',
-					source:'custpage_sd',
-					container:'custpage_setup_preference'
-				});
-				form.addField({
-					id: 'custpage_itpm_disdate',
-					type: serverWidget.FieldType.RADIO,
-					label: 'Order Date',
-					source:'custpage_od',
-					container:'custpage_setup_preference'
-				});
-
-				form.addField({
-					id: 'custpage_itpm_disdate',
-					type: serverWidget.FieldType.RADIO,
-					label: 'Both',
-					source:'custpage_both',
-					container:'custpage_setup_preference'
-				});
-				form.addField({
-					id: 'custpage_itpm_disdate',
-					type: serverWidget.FieldType.RADIO,
-					label: 'Either',
-					source:'custpage_either',
-					container:'custpage_setup_preference'
-				});
-				
-				//if subsidiary value defined than we are filtering the values
-				if(params.subid){
-					//setting the subsidiary field value
-					subsidiaryField.defaultValue = params.subid;
-					
-					//setting the discount item values to the field
-					getItems('Discount', params.subid).each(function(e){
-						discountItemField.addSelectOption({
-							value:e.getValue('internalid'),
-							text:e.getValue('itemid')
-						});
-						return true;
-					});
-
-					//get the account the with selected subsidiary
-					getAccounts(params.subid).each(function(e){
-						expenseAccntField.addSelectOption({
-						    value : e.getValue('internalid'),
-						    text : e.getValue('name'),
-						    isSelected:false
-						});
-						deductionAccntField.addSelectOption({
-						    value : e.getValue('internalid'),
-						    text : e.getValue('name'),
-						    isSelected:false
-						});
-						accountPayableField.addSelectOption({
-						    value : e.getValue('internalid'),
-						    text : e.getValue('name'),
-						    isSelected:false
-						});
-						return true;
-					});
-				}
-				
-				//set the values to the fields if already prefernce record existed
-				getPreferences(params.pfid).each(function(preferanceRecord){
-					if((params.type == 'edit' || params.type == 'view')&& params.subid == preferanceRecord.getValue('custrecord_itpm_pref_subsidiary')){
-						deductionAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount');
-						expenseAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount');
-						accountPayableField.defaultValue =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount');
-						discountItemField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
-						subsidiaryField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_subsidiary');
-					}
-					
-					ApplyiTPMNetBillDiscountChk.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_nblistprice')?'T':'F';
-					discountItemId = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
-					defaultAllType.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultalltype');
-					defaultPriceLevel.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultpricelevel');
-					removeCustomerSplitDDNField.defaultValue = (preferanceRecord.getValue('custrecord_itpm_pref_remvcust_frmsplit'))?'T':'F';
-					switch(preferanceRecord.getValue('custrecord_itpm_pref_discountdates')){
-					case '1' : 
-						radioITPMDiscountDate.defaultValue = 'custpage_sd';
-						break;
-					case '2' : 
-						radioITPMDiscountDate.defaultValue = 'custpage_od';
-						break;
-					case '3' : 
-						radioITPMDiscountDate.defaultValue = 'custpage_both';
-						break;
-					case '4' : 
-						radioITPMDiscountDate.defaultValue = 'custpage_either';
-						break;
-					default : 
-						radioITPMDiscountDate.defaultValue = 'custpage_sd';
-					break;
-					}
-				});
-				
-				if(params.type == 'view'){
-					radioITPMDiscountDate.updateDisplayType({
-					    displayType : serverWidget.FieldDisplayType.DISABLED
-					});
-					removeCustomerSplitDDNField.updateDisplayType({
-					    displayType : serverWidget.FieldDisplayType.DISABLED
-					});
-					ApplyiTPMNetBillDiscountChk.updateDisplayType({
-					    displayType : serverWidget.FieldDisplayType.DISABLED
-					});
-					deductionAccntField.updateDisplayType({
-					    displayType : serverWidget.FieldDisplayType.INLINE
-					});
-					expenseAccntField.updateDisplayType({
-					    displayType : serverWidget.FieldDisplayType.INLINE
-					});
-					accountPayableField.updateDisplayType({
-					    displayType : serverWidget.FieldDisplayType.INLINE
-					});
-					discountItemField.updateDisplayType({
-					    displayType : serverWidget.FieldDisplayType.INLINE
-					});
-					subsidiaryField.updateDisplayType({
-					    displayType : serverWidget.FieldDisplayType.INLINE
-					});
-					defaultPriceLevel.updateDisplayType({
-					    displayType : serverWidget.FieldDisplayType.INLINE
-					});
-					defaultAllType.updateDisplayType({
-					    displayType : serverWidget.FieldDisplayType.INLINE
-					});
-				}else{
-					form.addSubmitButton({
-						label: 'Submit'
-					});
-				}
-				
+				createPreferenceUIRecord(form, params);
 			}else{
-				
-				prefSublist = form.addSublist({
-				    id : 'custpage_itpm_prefrecords',
-				    type : serverWidget.SublistType.LIST,
-				    label : 'Preference Records'
-				});
-				
-				prefSublist.addField({
-					id : 'custpage_itpm_editview',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Edit | View'
-				}).updateDisplayType({
-				    displayType : serverWidget.FieldDisplayType.INLINE
-				});
-				
-				prefSublist.addField({
-					id : 'custpage_itpm_subsidiary',
-					type : serverWidget.FieldType.SELECT,
-					label : 'Subsidiary',
-					source:'subsidiary'
-				}).updateDisplayType({
-				    displayType : serverWidget.FieldDisplayType.INLINE
-				});
-				
-				prefSublist.addField({
-					id : 'custpage_itpm_expaccount',
-					type : serverWidget.FieldType.SELECT,
-					label : 'Expense Account',
-					source:'account'
-				}).updateDisplayType({
-				    displayType : serverWidget.FieldDisplayType.INLINE
-				});
-				
-				prefSublist.addField({
-					id : 'custpage_itpm_ddnaccount',
-					type : serverWidget.FieldType.SELECT,
-					label : 'Deduction Account',
-					source:'account'
-				}).updateDisplayType({
-				    displayType : serverWidget.FieldDisplayType.INLINE
-				});
-				
-				prefSublist.addField({
-					id : 'custpage_itpm_accntpayable',
-					type : serverWidget.FieldType.SELECT,
-					label : 'Accounts Payable',
-					source:'account'
-				}).updateDisplayType({
-				    displayType : serverWidget.FieldDisplayType.INLINE
-				});
-				
-				prefSublist.addField({
-					id : 'custpage_itpm_discountitem',
-					type : serverWidget.FieldType.SELECT,
-					label : 'iTPM Discount Item',
-					source:'item'
-				}).updateDisplayType({
-				    displayType : serverWidget.FieldDisplayType.INLINE
-				});
-				
-				var i = 0;
-				getPreferences().each(function(e){
-					prefSublist.setSublistValue({
-						id:'custpage_itpm_editview',
-						value:"<a href="+url.resolveScript({
-						    scriptId: scriptObj.id,
-						    deploymentId: scriptObj.deploymentId,
-						    returnExternalUrl: false,
-						    params:{whence:'=',type:'edit',pfid:e.getValue('internalid'),subid:e.getValue('custrecord_itpm_pref_subsidiary')}
-						})+">Edit</a> | <a href="+url.resolveScript({
-						    scriptId: scriptObj.id,
-						    deploymentId: scriptObj.deploymentId,
-						    returnExternalUrl: false,
-						    params:{whence:'=',type:'view',pfid:e.getValue('internalid'),subid:e.getValue('custrecord_itpm_pref_subsidiary')}
-						})+">View</a>",
-						line:i
-					});
-					
-					prefSublist.setSublistValue({
-						id:'custpage_itpm_subsidiary',
-						value:e.getValue('custrecord_itpm_pref_subsidiary'),
-						line:i
-					});
-					
-					prefSublist.setSublistValue({
-						id:'custpage_itpm_ddnaccount',
-						value:e.getValue('custrecord_itpm_pref_ddnaccount'),
-						line:i
-					});
-					prefSublist.setSublistValue({
-						id:'custpage_itpm_expaccount',
-						value:e.getValue('custrecord_itpm_pref_expenseaccount'),
-						line:i
-					});
-					prefSublist.setSublistValue({
-						id:'custpage_itpm_accntpayable',
-						value:e.getValue('custrecord_itpm_pref_settlementsaccount'),
-						line:i
-					});
-					prefSublist.setSublistValue({
-						id:'custpage_itpm_discountitem',
-						value:e.getValue('custrecord_itpm_pref_discountitem'),
-						line:i
-					});
-					i++;
-					return true;
-				});
-				
-				form.addButton({
-					label:'New Preference',
-					id : 'custpage_itpm_newpreference',
-					functionName:"newPreference()"
-				});
+				createPreferenceList(form, params);
 			}
 
-			
-			
 			//adding a button to redirecting to the previous form
 			form.addButton({
 				label:'Cancel',
@@ -501,6 +122,435 @@ function(record, redirect, serverWidget, search, runtime, url) {
 			return {error: false, form: form}
 		} catch(ex) {
 			return {error: true, errorObject: ex }
+		}
+	}
+	
+	/**
+	 * @param {Object} form
+	 * @param {Object} params
+	 * @description create the create,edit form view for the user
+	 */
+	function createPreferenceUIRecord(form, params){
+
+		//if event type is create and subsidiary defined than we are searching and show warning
+		if(params.type == 'create' && subsidiariesEnabled && params.subid){
+			var prefLength = getPreferences(undefined, params.subid).getRange(0,2).length;
+			if(prefLength > 0){
+				//showing the warning message about the subsidiary
+				form.addField({
+					id : 'custpage_itpm_warningmsg',
+					type : serverWidget.FieldType.INLINEHTML,
+					label : 'Warning Message'
+				}).defaultValue = '<script>require(["N/ui/message"],function(message){'+
+								  'var myMsg2 = message.create({title: "Duplicate Subsidiary",'+
+								  'message: "You cannot create a another record for same subsidiary",'+
+								  'type: message.Type.WARNING});'+
+								  'myMsg2.show();})</script>';
+			}
+		}
+		
+		//setting the event type
+		form.addField({
+			id : 'custpage_itpm_eventtype',
+			type : serverWidget.FieldType.TEXT,
+			label : 'Event Type'
+		}).updateDisplayType({
+		    displayType : serverWidget.FieldDisplayType.HIDDEN
+		}).defaultValue = params.type;
+		
+		//preference record id
+		//setting the event type
+		form.addField({
+			id : 'custpage_itpm_pfid',
+			type : serverWidget.FieldType.SELECT,
+			label : 'Preference Record',
+			source:'customrecord_itpm_preferences'
+		}).updateDisplayType({
+		    displayType : serverWidget.FieldDisplayType.HIDDEN
+		}).defaultValue = params.pfid;
+		
+		if(subsidiariesEnabled){
+			//Subsidiary Field
+			var subsidiaryField = form.addField({
+				id: 'custpage_itpm_pref_subsidiary',
+				label: 'Subsidiary',
+				type: serverWidget.FieldType.SELECT,
+				source:'subsidiary',
+				container:'custpage_setup_preference'
+			});
+			subsidiaryField.isMandatory = true;
+		}
+		
+		//Default Allowance Type Field
+		var defaultAllType = form.addField({
+			id: 'custpage_itpm_pref_defaultalltype',
+			label: 'Default Allowance Type',
+			type: serverWidget.FieldType.SELECT,
+			source:'customlist_itpm_allowancetype',
+			container:'custpage_setup_preference'
+		});
+
+		//Default Price Level Field
+		var defaultPriceLevel = form.addField({
+			id: 'custpage_itpm_pref_defaultpricelevel',
+			label: 'Default Price Level',
+			type: serverWidget.FieldType.SELECT,
+			source:'pricelevel',
+			container:'custpage_setup_preference'
+		});
+		
+		//Apply iTPM Discount Item
+		var discountItemField = form.addField({
+			id: 'custpage_itpm_pref_discountitem',
+			type: serverWidget.FieldType.SELECT,
+			label: 'iTPM Discount Item',
+			container:'custpage_setup_preference'
+		}); 
+		discountItemField.isMandatory = true;
+
+		//Expense account
+		var expenseAccntField = form.addField({
+			id: 'custpage_itpm_pref_expenseaccount',
+			type: serverWidget.FieldType.SELECT,
+			label: 'Expense Account',
+			container:'custpage_setup_preference'
+		}).updateBreakType({
+			breakType : serverWidget.FieldBreakType.STARTCOL
+		});
+		expenseAccntField.isMandatory = true;
+
+       //Deduction account
+		var deductionAccntField = form.addField({
+			id: 'custpage_itpm_pref_ddnaccount',
+			type: serverWidget.FieldType.SELECT,
+			label: 'Deduction Account',
+			container:'custpage_setup_preference'
+		});
+		deductionAccntField.isMandatory = true;
+
+		//Accounts Payable account field
+		var accountPayableField = form.addField({
+			id: 'custpage_itpm_pref_accountpayable',
+			type: serverWidget.FieldType.SELECT,
+			label: 'Accounts Payable',
+			container:'custpage_setup_preference'
+		});
+		accountPayableField.isMandatory = true;
+		
+		//Checkbox for Remove customer from split deduction transactions
+		var removeCustomerSplitDDNField = form.addField({
+			id: 'custpage_itpm_pref_remvcust_frmsplitddn',
+			type: serverWidget.FieldType.CHECKBOX,
+			label: 'Remove customer from split deduction transactions?',
+			container:'custpage_setup_preference'
+		}).updateBreakType({
+			breakType : serverWidget.FieldBreakType.STARTCOL
+		});
+		removeCustomerSplitDDNField.setHelpText({
+			help:'Remove the customers from split deduction transaction lines.'
+		});
+
+		//Apply iTPM Net Bill Discount only on List Price? Field
+		var ApplyiTPMNetBillDiscountChk = form.addField({
+			id: 'custpage_itpm_pref_nblistprice',
+			type: serverWidget.FieldType.CHECKBOX,
+			label: 'Apply iTPM Net Bill Discount only on List Price?',
+			container:'custpage_setup_preference'
+		});
+		ApplyiTPMNetBillDiscountChk.setHelpText({
+			help : 'Check this box if the system should apply Net Bill discounts on Sales Transaction lines only if the line\'s Price Level is \"List / Base\" price. This is usually the default price level of an item in NetSuite.'
+		});
+
+		//iTPM Discount Dates Radio Button (it is a List type on Preference record
+		var discountDatesField = form.addField({
+			id: 'custpage_itpm_ddlabel',
+			type: serverWidget.FieldType.LABEL,
+			label: 'iTPM Discount Dates',
+			container:'custpage_setup_preference'
+		});
+		discountDatesField.setHelpText({
+			help : 'Select the dates that should be used while searching for promotional off invoice and net bill discounts to apply to a transaction.'
+		});
+
+		discountDatesField.isMandatory = true;
+
+		var radioITPMDiscountDate = form.addField({
+			id: 'custpage_itpm_disdate',
+			type: serverWidget.FieldType.RADIO,
+			label: 'Ship Date',
+			source:'custpage_sd',
+			container:'custpage_setup_preference'
+		});
+		form.addField({
+			id: 'custpage_itpm_disdate',
+			type: serverWidget.FieldType.RADIO,
+			label: 'Order Date',
+			source:'custpage_od',
+			container:'custpage_setup_preference'
+		});
+
+		form.addField({
+			id: 'custpage_itpm_disdate',
+			type: serverWidget.FieldType.RADIO,
+			label: 'Both',
+			source:'custpage_both',
+			container:'custpage_setup_preference'
+		});
+		form.addField({
+			id: 'custpage_itpm_disdate',
+			type: serverWidget.FieldType.RADIO,
+			label: 'Either',
+			source:'custpage_either',
+			container:'custpage_setup_preference'
+		});
+		
+		//if subsidiary value defined than we are filtering the values
+		if(params.subid){
+			
+			if(subsidiariesEnabled){
+				subsidiaryField.defaultValue = params.subid;
+			}
+			
+			//setting the discount item values to the field
+			getItems('Discount', params.subid).each(function(e){
+				discountItemField.addSelectOption({
+					value:e.getValue('internalid'),
+					text:e.getValue('itemid')
+				});
+				return true;
+			});
+
+			//get the account the with selected subsidiary
+			getAccounts(params.subid).each(function(e){
+				expenseAccntField.addSelectOption({
+				    value : e.getValue('internalid'),
+				    text : e.getValue('name'),
+				    isSelected:false
+				});
+				deductionAccntField.addSelectOption({
+				    value : e.getValue('internalid'),
+				    text : e.getValue('name'),
+				    isSelected:false
+				});
+				accountPayableField.addSelectOption({
+				    value : e.getValue('internalid'),
+				    text : e.getValue('name'),
+				    isSelected:false
+				});
+				return true;
+			});
+		}
+		
+		//set the values to the fields if already prefernce record existed
+		getPreferences(params.pfid).each(function(preferanceRecord){
+			if((params.type == 'edit' || params.type == 'view')&& params.subid == preferanceRecord.getValue('custrecord_itpm_pref_subsidiary')){
+				deductionAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount');
+				expenseAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount');
+				accountPayableField.defaultValue =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount');
+				discountItemField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
+				
+				if(subsidiariesEnabled){
+					subsidiaryField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_subsidiary');
+				}
+			}
+			
+			ApplyiTPMNetBillDiscountChk.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_nblistprice')?'T':'F';
+			discountItemId = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
+			defaultAllType.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultalltype');
+			defaultPriceLevel.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultpricelevel');
+			removeCustomerSplitDDNField.defaultValue = (preferanceRecord.getValue('custrecord_itpm_pref_remvcust_frmsplit'))?'T':'F';
+			switch(preferanceRecord.getValue('custrecord_itpm_pref_discountdates')){
+			case '1' : 
+				radioITPMDiscountDate.defaultValue = 'custpage_sd';
+				break;
+			case '2' : 
+				radioITPMDiscountDate.defaultValue = 'custpage_od';
+				break;
+			case '3' : 
+				radioITPMDiscountDate.defaultValue = 'custpage_both';
+				break;
+			case '4' : 
+				radioITPMDiscountDate.defaultValue = 'custpage_either';
+				break;
+			default : 
+				radioITPMDiscountDate.defaultValue = 'custpage_sd';
+			break;
+			}
+		});
+		
+		//on view mode changing the field display types
+		if(params.type == 'view'){
+			radioITPMDiscountDate.updateDisplayType({
+			    displayType : serverWidget.FieldDisplayType.DISABLED
+			});
+			removeCustomerSplitDDNField.updateDisplayType({
+			    displayType : serverWidget.FieldDisplayType.DISABLED
+			});
+			ApplyiTPMNetBillDiscountChk.updateDisplayType({
+			    displayType : serverWidget.FieldDisplayType.DISABLED
+			});
+			deductionAccntField.updateDisplayType({
+			    displayType : serverWidget.FieldDisplayType.INLINE
+			});
+			expenseAccntField.updateDisplayType({
+			    displayType : serverWidget.FieldDisplayType.INLINE
+			});
+			accountPayableField.updateDisplayType({
+			    displayType : serverWidget.FieldDisplayType.INLINE
+			});
+			discountItemField.updateDisplayType({
+			    displayType : serverWidget.FieldDisplayType.INLINE
+			});
+			if(subsidiariesEnabled){
+				subsidiaryField.updateDisplayType({
+				    displayType : serverWidget.FieldDisplayType.INLINE
+				});
+			}
+			defaultPriceLevel.updateDisplayType({
+			    displayType : serverWidget.FieldDisplayType.INLINE
+			});
+			defaultAllType.updateDisplayType({
+			    displayType : serverWidget.FieldDisplayType.INLINE
+			});
+		}else{
+			form.addSubmitButton({
+				label: 'Submit'
+			});
+		}
+	}
+	
+	/**
+	 * @param {Object} form
+	 * @param {Object} param
+	 * @description create the preference record list view
+	 */
+	function createPreferenceList(form, params){
+
+		prefSublist = form.addSublist({
+		    id : 'custpage_itpm_prefrecords',
+		    type : serverWidget.SublistType.LIST,
+		    label : 'Preference Records'
+		});
+		
+		prefSublist.addField({
+			id : 'custpage_itpm_editview',
+			type : serverWidget.FieldType.TEXT,
+			label : 'Edit | View'
+		}).updateDisplayType({
+		    displayType : serverWidget.FieldDisplayType.INLINE
+		});
+		
+		if(subsidiariesEnabled){
+			prefSublist.addField({
+				id : 'custpage_itpm_subsidiary',
+				type : serverWidget.FieldType.SELECT,
+				label : 'Subsidiary',
+				source:'subsidiary'
+			}).updateDisplayType({
+			    displayType : serverWidget.FieldDisplayType.INLINE
+			});
+		}
+
+		prefSublist.addField({
+			id : 'custpage_itpm_expaccount',
+			type : serverWidget.FieldType.SELECT,
+			label : 'Expense Account',
+			source:'account'
+		}).updateDisplayType({
+		    displayType : serverWidget.FieldDisplayType.INLINE
+		});
+		
+		prefSublist.addField({
+			id : 'custpage_itpm_ddnaccount',
+			type : serverWidget.FieldType.SELECT,
+			label : 'Deduction Account',
+			source:'account'
+		}).updateDisplayType({
+		    displayType : serverWidget.FieldDisplayType.INLINE
+		});
+		
+		prefSublist.addField({
+			id : 'custpage_itpm_accntpayable',
+			type : serverWidget.FieldType.SELECT,
+			label : 'Accounts Payable',
+			source:'account'
+		}).updateDisplayType({
+		    displayType : serverWidget.FieldDisplayType.INLINE
+		});
+		
+		prefSublist.addField({
+			id : 'custpage_itpm_discountitem',
+			type : serverWidget.FieldType.SELECT,
+			label : 'iTPM Discount Item',
+			source:'item'
+		}).updateDisplayType({
+		    displayType : serverWidget.FieldDisplayType.INLINE
+		});
+		
+		var i = 0;
+		var prefereceResult = getPreferences();
+		prefereceResult.each(function(e){
+			prefSublist.setSublistValue({
+				id:'custpage_itpm_editview',
+				value:"<a href="+url.resolveScript({
+				    scriptId: scriptObj.id,
+				    deploymentId: scriptObj.deploymentId,
+				    returnExternalUrl: false,
+				    params:{whence:'=',type:'edit',pfid:e.getValue('internalid'),subid:e.getValue('custrecord_itpm_pref_subsidiary')}
+				})+">Edit</a> | <a href="+url.resolveScript({
+				    scriptId: scriptObj.id,
+				    deploymentId: scriptObj.deploymentId,
+				    returnExternalUrl: false,
+				    params:{whence:'=',type:'view',pfid:e.getValue('internalid'),subid:e.getValue('custrecord_itpm_pref_subsidiary')}
+				})+">View</a>",
+				line:i
+			});
+			
+			if(subsidiariesEnabled){
+				prefSublist.setSublistValue({
+					id:'custpage_itpm_subsidiary',
+					value:e.getValue('custrecord_itpm_pref_subsidiary'),
+					line:i
+				});
+			}
+			
+			prefSublist.setSublistValue({
+				id:'custpage_itpm_ddnaccount',
+				value:e.getValue('custrecord_itpm_pref_ddnaccount'),
+				line:i
+			});
+			prefSublist.setSublistValue({
+				id:'custpage_itpm_expaccount',
+				value:e.getValue('custrecord_itpm_pref_expenseaccount'),
+				line:i
+			});
+			prefSublist.setSublistValue({
+				id:'custpage_itpm_accntpayable',
+				value:e.getValue('custrecord_itpm_pref_settlementsaccount'),
+				line:i
+			});
+			prefSublist.setSublistValue({
+				id:'custpage_itpm_discountitem',
+				value:e.getValue('custrecord_itpm_pref_discountitem'),
+				line:i
+			});
+			i++;
+			return true;
+		});
+		
+		//If account non one world and preference not exist than we allowing user to create the record
+		if(!subsidiariesEnabled && prefereceResult.getRange(0,1).length == 0){
+			form.addButton({
+				label:'New Preference',
+				id : 'custpage_itpm_newpreference',
+				functionName:"newPreference()"
+			});
+		}else if(subsidiariesEnabled){
+			form.addButton({
+				label:'New Preference',
+				id : 'custpage_itpm_newpreference',
+				functionName:"newPreference()"
+			});
 		}
 	}
 	
@@ -518,7 +568,7 @@ function(record, redirect, serverWidget, search, runtime, url) {
 		discountItemId = request.parameters.custpage_itpm_pref_discountitem,
 		removeCustomer = request.parameters.custpage_itpm_pref_remvcust_frmsplitddn,
 		discountDates = request.parameters.custpage_itpm_disdate,
-		subsidiary = request.parameters.custpage_itpm_pref_subsidiary;
+		subsidiary = (subsidiariesEnabled)? request.parameters.custpage_itpm_pref_subsidiary : 1;
 		var defaultalltype = request.parameters.custpage_itpm_pref_defaultalltype;
 		var defaultPriceLevel = request.parameters.custpage_itpm_pref_defaultpricelevel;
 		var eventType = request.parameters.custpage_itpm_eventtype;
@@ -526,11 +576,17 @@ function(record, redirect, serverWidget, search, runtime, url) {
 		var preferanceRecord;
 		
 		//searching for the records with same subsidiary before saving the record
+		//these below conditions for one-world and non-oneworld accounts
 		var prefLength = getPreferences(undefined, subsidiary).getRange(0,2).length;
 		if(prefLength > 0){
 			throw{
 				name:'DUPLICATE_SUBSIDIARY',
 				message:'There are already have the record with same subsidiary'
+			}
+		}else if(!subsidiariesEnabled && prefLength > 0){
+			throw{
+				name:'ATTEMP_ANOTHER_CREATION',
+				message:'You cannot create another -iTPM Preference record.'
 			}
 		}
 		
@@ -579,49 +635,53 @@ function(record, redirect, serverWidget, search, runtime, url) {
 			fieldId:'custrecord_itpm_pref_remvcust_frmsplit',
 			value:(removeCustomer == 'T'),
 			ignoreFieldChange:true
-		}).setValue({
-			fieldId:'custrecord_itpm_pref_subsidiary',
-			value:subsidiary,
-			ignoreFieldChange:true
 		});
-
-		switch(discountDates){
-		case 'custpage_sd' : 
+		
+		if(subsidiariesEnabled){
 			preferanceRecord.setValue({
-				fieldId:'custrecord_itpm_pref_discountdates',
-				value:1,
+				fieldId:'custrecord_itpm_pref_subsidiary',
+				value:subsidiary,
 				ignoreFieldChange:true
 			});
-			break;
-		case 'custpage_od' : 
-			preferanceRecord.setValue({
-				fieldId:'custrecord_itpm_pref_discountdates',
-				value:2,
-				ignoreFieldChange:true
-			});
-			break;
-		case 'custpage_both' : 
-			preferanceRecord.setValue({
-				fieldId:'custrecord_itpm_pref_discountdates',
-				value:3,
-				ignoreFieldChange:true
-			});
-			break;
-		case 'custpage_either' : 
-			preferanceRecord.setValue({
-				fieldId:'custrecord_itpm_pref_discountdates',
-				value:4,
-				ignoreFieldChange:true
-			});
-			break;
-		default : 
-			preferanceRecord.setValue({
-				fieldId:'custrecord_itpm_pref_discountdates',
-				value:1,
-				ignoreFieldChange:true
-			});
-		break;
 		}
+		
+			switch(discountDates){
+			case 'custpage_sd' : 
+				preferanceRecord.setValue({
+					fieldId:'custrecord_itpm_pref_discountdates',
+					value:1,
+					ignoreFieldChange:true
+				});
+				break;
+			case 'custpage_od' : 
+				preferanceRecord.setValue({
+					fieldId:'custrecord_itpm_pref_discountdates',
+					value:2,
+					ignoreFieldChange:true
+				});
+				break;
+			case 'custpage_both' : 
+				preferanceRecord.setValue({
+					fieldId:'custrecord_itpm_pref_discountdates',
+					value:3,
+					ignoreFieldChange:true
+				});
+				break;
+			case 'custpage_either' : 
+				preferanceRecord.setValue({
+					fieldId:'custrecord_itpm_pref_discountdates',
+					value:4,
+					ignoreFieldChange:true
+				});
+				break;
+			default : 
+				preferanceRecord.setValue({
+					fieldId:'custrecord_itpm_pref_discountdates',
+					value:1,
+					ignoreFieldChange:true
+				});
+			break;
+			}
 
 		preferanceRecord.save({
 			enableSourcing: true,
@@ -671,7 +731,7 @@ function(record, redirect, serverWidget, search, runtime, url) {
 				});
 				
 			}catch(ex){
-				if(ex.name == 'DUPLICATE_SUBSIDIARY'){
+				if(ex.name == 'DUPLICATE_SUBSIDIARY' || ex.name == 'ATTEMP_ANOTHER_CREATION'){
 					throw new Error(ex.message);
 				}
 				log.error(ex.name, ex.message + '; Method: ' + request.method);
