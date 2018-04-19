@@ -76,7 +76,7 @@ function(config, task, search, record) {
     	//script to modify status filter on all iTPM saved searches
     	updateSearchFilters();
     	//create preference records
-    	createPreferenceRecords('AFTER_INSTALL');
+    	createPreferenceRecords();
     }
     
     /**
@@ -120,7 +120,7 @@ function(config, task, search, record) {
     	updateSearchFilters();
     	
     	//create and update the preference records
-    	createPreferenceRecords('AFTER_UPDATE');
+    	createPreferenceRecords();
     }
     
     
@@ -513,10 +513,9 @@ function(config, task, search, record) {
     }
     
     /**
-     * @param {String} bundleEvent
      * @description creating the subsidiary based on preference records
      */
-    function createPreferenceRecords(bundleEvent){
+    function createPreferenceRecords(){
     	var featureEnabled = runtime.isFeatureInEffect({feature:'SUBSIDIARIES'});
     	if(featureEnabled){
     		var subsidiaryResult = search.create({
@@ -531,7 +530,7 @@ function(config, task, search, record) {
 			}).run().getRange(0,10);
 			var prefResultLength = preferenceResult.length;
     		
-    		if(bundleEvent == 'AFTER_UPDATE' && prefResultLength == 1){
+    		if(prefResultLength == 1){
     			subsidiaryResult.each(function(e){
     				if(!e.getValue('parent')){
     					createOrEditPreferenceRecord(preferenceResult[0].getValue('internalid'),'edit',e.getValue('internalid'));
@@ -540,7 +539,7 @@ function(config, task, search, record) {
     				}
     				return true;
     			});
-    		}else if(bundleEvent == 'AFTER_INSTALL' || prefResultLength == 0){
+    		}else if(prefResultLength == 0){
     			subsidiaryResult.each(function(e){
             		createOrEditPreferenceRecord(undefined,'create',e.getValue('internalid'));
             		return true;
