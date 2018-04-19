@@ -514,26 +514,38 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 				});
 			}
 			
-			prefSublist.setSublistValue({
-				id:'custpage_itpm_ddnaccount',
-				value:e.getValue('custrecord_itpm_pref_ddnaccount'),
-				line:i
-			});
-			prefSublist.setSublistValue({
-				id:'custpage_itpm_expaccount',
-				value:e.getValue('custrecord_itpm_pref_expenseaccount'),
-				line:i
-			});
-			prefSublist.setSublistValue({
-				id:'custpage_itpm_accntpayable',
-				value:e.getValue('custrecord_itpm_pref_settlementsaccount'),
-				line:i
-			});
-			prefSublist.setSublistValue({
-				id:'custpage_itpm_discountitem',
-				value:e.getValue('custrecord_itpm_pref_discountitem'),
-				line:i
-			});
+			if(e.getValue('custrecord_itpm_pref_ddnaccount')){
+				prefSublist.setSublistValue({
+					id:'custpage_itpm_ddnaccount',
+					value:e.getValue('custrecord_itpm_pref_ddnaccount'),
+					line:i
+				});
+			}
+			
+			if(e.getValue('custrecord_itpm_pref_expenseaccount')){
+				prefSublist.setSublistValue({
+					id:'custpage_itpm_expaccount',
+					value:e.getValue('custrecord_itpm_pref_expenseaccount'),
+					line:i
+				});
+			}
+			
+			if(e.getValue('custrecord_itpm_pref_settlementsaccount')){
+				prefSublist.setSublistValue({
+					id:'custpage_itpm_accntpayable',
+					value:e.getValue('custrecord_itpm_pref_settlementsaccount'),
+					line:i
+				});
+			}
+			
+			if(e.getValue('custrecord_itpm_pref_discountitem')){
+				prefSublist.setSublistValue({
+					id:'custpage_itpm_discountitem',
+					value:e.getValue('custrecord_itpm_pref_discountitem'),
+					line:i
+				});
+			}
+
 			i++;
 			return true;
 		});
