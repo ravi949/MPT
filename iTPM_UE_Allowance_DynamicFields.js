@@ -79,7 +79,7 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
     		    id:selectedItem,
     		    columns:['recordtype']
     		}).recordtype;
-        	
+        	log.debug('selectedItem',selectedItem);
         	if(recordType == search.Type.ITEM_GROUP){
         		var itemGroupRec = record.load({
             		type:record.Type.ITEM_GROUP,
@@ -95,6 +95,13 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         				throw{
         					name:"INVALID_UNITS",
         					message:"SaleUnit and UnitType must be same for all items."
+        				};
+        			}
+        			log.debug('items[i-1].baseprice',items[i-1].baseprice);
+        			if(items[i-1].baseprice <= 0){
+        				throw{
+        					name:"INVALID_PRICE",
+        					message:"This iTPM Allowance cannot be submitted because the selected item does not have any sale price."
         				};
         			}
         		});
@@ -135,9 +142,24 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         			}),
         			ttl: 300
         		});
+        	}else{
+        		var itemLookup = search.lookupFields({
+        			type:search.Type.ITEM,
+        			id:selectedItem,
+        			columns:['baseprice']
+        		});
+        		log.debug('baseprice',itemLookup['baseprice']);
+        		if(itemLookup['baseprice'] <= 0){
+        			throw{
+        				name:"INVALID_PRICE",
+        				message:"This iTPM Allowance cannot be submitted because the selected item does not have any sale price."
+        			};
+        		}
         	}
     	}catch(ex){
     		if(ex.name == "INVALID_UNITS")
+    			throw new Error(ex.message);
+    		if(ex.name == "INVALID_PRICE")
     			throw new Error(ex.message);
     		log.error(ex.name,ex.message);
     	}
