@@ -86,19 +86,21 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
             		id:sc.newRecord.getValue('custrecord_itpm_all_item')
             	});
         		var items = itpm.getItemGroupItems(itemGroupRec,false,false); //get the list of item members array
+        		log.debug('items out',items);
         		var unitsArray = itpm.getItemUnits(items[0].memberid)['unitArray']; //get the list of unists array
         		var allwUnit = sc.newRecord.getValue('custrecord_itpm_all_uom'); //allowance record selected unit
         		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate); //member item sale unit rate conversion rate
         		var rate = parseFloat(unitsArray.filter(function(e){return e.id == allwUnit})[0].conversionRate); //member item base unit conversion rate
         		items.forEach(function(item,i){
+        			log.debug('items in',item);
         			if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
         				throw{
         					name:"INVALID_UNITS",
         					message:"SaleUnit and UnitType must be same for all items."
         				};
         			}
-        			log.debug('items[i-1].baseprice',items[i-1].baseprice);
-        			if(items[i-1].baseprice <= 0){
+        			log.debug('item.baseprice',item.baseprice);
+        			if(item.baseprice <= 0){
         				throw{
         					name:"INVALID_PRICE",
         					message:"This iTPM Allowance cannot be submitted because the selected item does not have any sale price."
