@@ -518,6 +518,14 @@ function(config, task, search, record, runtime) {
      */
     function createPreferenceRecords(){
     	var featureEnabled = runtime.isFeatureInEffect({feature:'SUBSIDIARIES'});
+		var eventType = 'create';
+		
+    	var preferenceResult = search.create({
+			type:'customrecord_itpm_preferences',
+			columns:['internalid']
+		}).run().getRange(0,10);
+		var prefResultLength = preferenceResult.length;
+
     	if(featureEnabled){
     		var subsidiaryResult = search.create({
         		type:search.Type.SUBSIDIARY,
@@ -525,29 +533,19 @@ function(config, task, search, record, runtime) {
         		filters:[]
         	}).run();
     		
-    		var preferenceResult = search.create({
-				type:'customrecord_itpm_preferences',
-				columns:['internalid']
-			}).run().getRange(0,10);
-			var prefResultLength = preferenceResult.length;
+    		subsidiaryResult.each(function(e){
+    			if(prefResultLength == 1){
+    				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
+    				preferenceResult = preferenceResult[0].getValue('internalid');
+    			}else if(prefResultLength == 0){
+    				preferenceResult = undefined;
+    			}
+				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'));
+				return true;
+			});
     		
-    		if(prefResultLength == 1){
-    			subsidiaryResult.each(function(e){
-    				if(!e.getValue('parent')){
-    					createOrEditPreferenceRecord(preferenceResult[0].getValue('internalid'),'edit',e.getValue('internalid'));
-    				}else{
-    					createOrEditPreferenceRecord(preferenceResult[0].getValue('internalid'),'copy',e.getValue('internalid'));
-    				}
-    				return true;
-    			});
-    		}else if(prefResultLength == 0){
-    			subsidiaryResult.each(function(e){
-            		createOrEditPreferenceRecord(undefined,'create',e.getValue('internalid'));
-            		return true;
-            	});
-    		}
     	}else{
-    		createOrEditPreferenceRecord(undefined,'create',undefined);
+    		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined) : '';
     	}
     }
     
