@@ -14,10 +14,11 @@
 define(['N/config',
 		'N/task',
 		'N/search',
-		'N/record'
+		'N/record',
+		'N/runtime'
 		],
 
-function(config, task, search, record) {
+function(config, task, search, record, runtime) {
 	
 	function checkRequirements() {
 		try{
