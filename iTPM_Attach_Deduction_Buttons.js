@@ -81,12 +81,22 @@ function(url, https, message, dialog) {
 	 */
 	function iTPMexpense(id) {
 		try{
-			var msg = displayMessage('info','Expensing Deduction','Please wait while Redirecting to Journal Entry Form....');
-			msg.show();
-			
-			//redirecting to journal entry
-			Url = url.resolveTaskLink('EDIT_TRAN_JOURNAL',{'did':id});			
-			window.open(Url,'_self');
+			dialog.create({
+				title: "Are you sure?",
+	            message: "Click on Continue to redirect to Journal Entry form",
+	            buttons:[{label:'Continue',value:true},{label:'Cancel',value:false}]
+			}).then(function(result){
+				if(result){
+					var msg = displayMessage('info','Expensing Deduction','Please wait while Redirecting to Journal Entry Form....');
+					msg.show();
+					
+					//redirecting to journal entry
+					Url = url.resolveTaskLink('EDIT_TRAN_JOURNAL',{'did':id});			
+					window.open(Url,'_self');
+				}
+			}).catch(function(reason){
+				console.log(reason);
+			});
 		} catch(ex) {
 			console.log(ex.name,'function name = iTPMexpense, message'+ex.message);
 		}
