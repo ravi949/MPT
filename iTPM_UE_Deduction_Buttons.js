@@ -120,7 +120,7 @@ define(['N/runtime',
 						var btn_expense = sc.form.addButton({
 							id: 'custpage_itpm_expense',
 							label: 'Expense',
-							functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
+							functionName: 'iTPMexpense(' + sc.newRecord.id + ',' + openBalance + ')'
 						});
 					}
 				}
@@ -134,8 +134,8 @@ define(['N/runtime',
 					});
 				}				
 				
-				log.error('JE_Permssion, ddnPermission', JE_Permssion+' & '+ddnPermission);  
-	    		log.error('Openbal, itpmAmount and parentDeduction', openBalance+' & '+itpmAmount+' & '+parentDeduction);
+				log.audit('JE_Permssion, ddnPermission', JE_Permssion+' & '+ddnPermission);  
+	    		log.audit('Openbal, itpmAmount and parentDeduction', openBalance+' & '+itpmAmount+' & '+parentDeduction);
 				if(JE_Permssion == 4 && ddnPermission == 4 && openBalance == itpmAmount && !parentDeduction){
 					var btn_delete = sc.form.addButton({
 						id: 'custpage_itpm_delete',

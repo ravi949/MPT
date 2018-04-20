@@ -79,11 +79,13 @@ function(url, https, message, dialog) {
 	 * @param id
 	 * @description call the expense suitelet
 	 */
-	function iTPMexpense(id) {
+	function iTPMexpense(id, openbal) {
 		try{
+			var popMessage = "Click CONTINUE to expense <b>$"+openbal+'</b><br><br>To expense less, CANCEL and SPLIT this deduction.'
+			                  +'<br><br>Change the expense chart-of-account before saving the Journal Entry.'
 			dialog.create({
 				title: "Are you sure?",
-	            message: "Click on Continue to redirect to Journal Entry form",
+	            message: popMessage,
 	            buttons:[{label:'Continue',value:true},{label:'Cancel',value:false}]
 			}).then(function(result){
 				if(result){
