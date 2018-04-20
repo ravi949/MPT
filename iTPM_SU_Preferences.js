@@ -308,6 +308,9 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		if(params.subid){
 			
 			if(subsidiariesEnabled){
+				subsidiaryField.updateDisplayType({
+				    displayType :serverWidget.FieldDisplayType.DISABLED
+				});
 				subsidiaryField.defaultValue = params.subid;
 			}
 			
@@ -350,7 +353,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 				discountItemField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
 				
 				if(subsidiariesEnabled){
-					subsidiaryField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_subsidiary');
+					subsidiaryField.defaultValue = (params.type == 'create')? params.subid : preferanceRecord.getValue('custrecord_itpm_pref_subsidiary');
 				}
 			}
 			
@@ -401,11 +404,6 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			discountItemField.updateDisplayType({
 			    displayType : serverWidget.FieldDisplayType.INLINE
 			});
-			if(subsidiariesEnabled){
-				subsidiaryField.updateDisplayType({
-				    displayType : serverWidget.FieldDisplayType.INLINE
-				});
-			}
 			defaultPriceLevel.updateDisplayType({
 			    displayType : serverWidget.FieldDisplayType.INLINE
 			});
@@ -425,7 +423,18 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 	 * @description create the preference record list view
 	 */
 	function createPreferenceList(form, params){
-
+		
+		if(subsidiariesEnabled){
+			//Subsidiary Field
+			var subsidiaryField = form.addField({
+				id: 'custpage_itpm_pref_listsubsidiary',
+				label: 'Subsidiary',
+				type: serverWidget.FieldType.SELECT,
+				source:'subsidiary'
+			});
+			subsidiaryField.isMandatory = true;
+		}
+		
 		prefSublist = form.addSublist({
 		    id : 'custpage_itpm_prefrecords',
 		    type : serverWidget.SublistType.LIST,
@@ -436,6 +445,14 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			id : 'custpage_itpm_editview',
 			type : serverWidget.FieldType.TEXT,
 			label : 'Edit | View'
+		}).updateDisplayType({
+		    displayType : serverWidget.FieldDisplayType.INLINE
+		});
+		
+		prefSublist.addField({
+			id : 'custpage_itpm_internalid',
+			type : serverWidget.FieldType.TEXT,
+			label : 'Internalid'
 		}).updateDisplayType({
 		    displayType : serverWidget.FieldDisplayType.INLINE
 		});
@@ -506,6 +523,12 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 				line:i
 			});
 			
+			prefSublist.setSublistValue({
+				id:'custpage_itpm_internalid',
+				value:e.getValue('internalid'),
+				line:i
+			});
+			
 			if(subsidiariesEnabled){
 				prefSublist.setSublistValue({
 					id:'custpage_itpm_subsidiary',
@@ -550,18 +573,11 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			return true;
 		});
 		
-		//If account non one world and preference not exist than we allowing user to create the record
-		if(!subsidiariesEnabled && prefereceResult.getRange(0,1).length == 0){
+		if(subsidiariesEnabled){
 			form.addButton({
 				label:'New Preference',
 				id : 'custpage_itpm_newpreference',
-				functionName:"newPreference()"
-			});
-		}else if(subsidiariesEnabled){
-			form.addButton({
-				label:'New Preference',
-				id : 'custpage_itpm_newpreference',
-				functionName:"newPreference()"
+				functionName:"newPreference('T')"
 			});
 		}
 	}

@@ -546,6 +546,8 @@ function(config, task, search, record, runtime) {
             		return true;
             	});
     		}
+    	}else{
+    		createOrEditPreferenceRecord(undefined,'create',undefined);
     	}
     }
     
@@ -577,10 +579,15 @@ function(config, task, search, record, runtime) {
     		break;
     	}
     	
-    	preferenceRec.setValue({
-    		fieldId:'custrecord_itpm_pref_subsidiary',
-    		value:subid
-    	}).save({
+    	//if subsidiary is enabled
+    	if(subid){
+    		preferenceRec.setValue({
+        		fieldId:'custrecord_itpm_pref_subsidiary',
+        		value:subid
+        	})
+    	}
+    	
+    	preferenceRec.save({
     		enableSourcing:false,
     		ignoreMandatoryFields:true
     	});

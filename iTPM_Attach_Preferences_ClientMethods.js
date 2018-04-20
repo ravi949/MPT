@@ -7,7 +7,6 @@
 define([],
 
 function() {
-	
     /**
 	 * Function to be executed when field is changed.
 	 *
@@ -20,6 +19,7 @@ function() {
 	 *
 	 * @since 2015.2
 	 */
+	var subsidiaryFieldValue;
 	function fieldChanged(scriptContext){
 		if(scriptContext.fieldId == 'custpage_itpm_pref_subsidiary'){
 			var params = (new URL(document.location)).searchParams;
@@ -30,7 +30,10 @@ function() {
 			}else{
 				window.location.href = window.location.href.split('&whence=')[0]+'&whence=&type='+type+'&subid='+scriptContext.currentRecord.getValue('custpage_itpm_pref_subsidiary');
 			}
-			
+		}
+		
+		if(scriptContext.fieldId == 'custpage_itpm_pref_listsubsidiary'){
+			subsidiaryFieldValue = scriptContext.currentRecord.getValue('custpage_itpm_pref_listsubsidiary');
 		}
 	}
 	
@@ -42,9 +45,16 @@ function() {
     /**
      * @description redirect to the same page with new param value
      */
-    function newPreference(){
-    	window.location.href = window.location.search+'&type=create';
+    function newPreference(sub_feature){
+    	if(sub_feature == 'T'){
+    		if(!subsidiaryFieldValue){
+    			alert('Please select the subsidiary.');
+    			return;
+    		}
+    	}
+    	window.location.href = window.location.search+'&type=create&subid='+subsidiaryFieldValue;
     }
+    
     
     return {
     	fieldChanged:fieldChanged,
