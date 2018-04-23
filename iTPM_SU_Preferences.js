@@ -29,12 +29,15 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 	function getItems(type, subid){
 		try{
 			if(type == 'Discount'){
+				var searchFilters = [['type','is','Discount'],'and',
+							         ['isinactive','is',false]];
+				if(subsidiariesEnabled){
+					searchFilters.push('and',['subsidiary','anyof',subid]);
+				}
 				return search.create({
 					type:search.Type.ITEM,
 					columns:['internalid','itemid'],
-					filters:[['type','is','Discount'],'and',
-					         ['isinactive','is',false],'and',
-					         ['subsidiary','anyof',subid]]
+					filters:searchFilters
 				}).run();
 			}
 		}catch(ex){
@@ -238,7 +241,12 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		});
 		
 		//Apply iTPM Discount Item
-		var discountItemField = form.addField(getFieldOptions('custpage_itpm_pref_discountitem', 'iTPM Discount Item', 'item')); 
+		var discountItemField = form.addField({
+			id: 'custpage_itpm_pref_discountitem',
+			type: serverWidget.FieldType.SELECT,
+			label: 'iTPM Discount Item',
+			container:'custpage_setup_preference'
+		}); 
 		discountItemField.isMandatory = true;
 
 		//Expense account
@@ -325,21 +333,21 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		//if subsidiary value defined than we are filtering the values
 		if(params.subid){
 			
+			//setting the discount item values to the field
+			getItems('Discount', params.subid).each(function(e){
+				discountItemField.addSelectOption({
+					value:e.getValue('internalid'),
+					text:e.getValue('itemid')
+				});
+				return true;
+			});
+			
 			if(subsidiariesEnabled){
 				subsidiaryField.updateDisplayType({
 				    displayType :(params.type == 'view')? serverWidget.FieldDisplayType.INLINE : serverWidget.FieldDisplayType.DISABLED
 				});
 				subsidiaryField.defaultValue = params.subid;
 				
-				//setting the discount item values to the field
-				getItems('Discount', params.subid).each(function(e){
-					discountItemField.addSelectOption({
-						value:e.getValue('internalid'),
-						text:e.getValue('itemid')
-					});
-					return true;
-				});
-
 				//get the account the with selected subsidiary
 				getAccounts(params.subid).each(function(e){
 					expenseAccntField.addSelectOption({
