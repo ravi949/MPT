@@ -525,7 +525,9 @@ function(config, task, search, record, runtime) {
 			columns:['internalid']
 		}).run().getRange(0,10);
 		var prefResultLength = preferenceResult.length;
-
+		preferenceResult = (prefResultLength == 0)? undefined : preferenceResult[0].getValue('internalid');
+		
+		
     	if(featureEnabled){
     		var subsidiaryResult = search.create({
         		type:search.Type.SUBSIDIARY,
@@ -536,9 +538,6 @@ function(config, task, search, record, runtime) {
     		subsidiaryResult.each(function(e){
     			if(prefResultLength == 1){
     				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
-    				preferenceResult = preferenceResult[0].getValue('internalid');
-    			}else if(prefResultLength == 0){
-    				preferenceResult = undefined;
     			}
 				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'));
 				return true;

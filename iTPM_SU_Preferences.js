@@ -529,7 +529,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 				line:i
 			});
 			
-			if(subsidiariesEnabled){
+			if(subsidiariesEnabled && e.getValue('custrecord_itpm_pref_subsidiary')){
 				prefSublist.setSublistValue({
 					id:'custpage_itpm_subsidiary',
 					value:e.getValue('custrecord_itpm_pref_subsidiary'),
