@@ -111,11 +111,11 @@ function(config, task, search, record, runtime) {
     	}).submit();
     	
     	//task for set the externalid on deduction split record
-//    	task.create({
-//    		taskType: task.TaskType.MAP_REDUCE,
-//    		scriptId: 'customscript_itpm_ddn_spilt_externalid',
-//    		deploymentId: 'customdeploy_itpm_ddn_spilt_externalid'
-//    	}).submit();
+    	task.create({
+    		taskType: task.TaskType.MAP_REDUCE,
+    		scriptId: 'customscript_itpm_ddn_spilt_externalid',
+    		deploymentId: 'customdeploy_itpm_ddn_spilt_externalid'
+    	}).submit();
     	
     	//script to modify status filter on all iTPM saved searches
     	updateSearchFilters();
