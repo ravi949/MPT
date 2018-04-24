@@ -522,7 +522,8 @@ function(record, search, runtime, itpm) {
 	 * @param {String} end - end date
 	 * @returns {Object} search
 	 */
-	function promoHasShipments(items,custIds,st,end){
+	function promoHasShipments(items,custId,st,end){
+		var custIds = itpm.getSubCustomers(custId);
 		return search.create({
 			type:search.Type.ITEM_FULFILLMENT,
 			columns:['internalid','tranid','item'],
