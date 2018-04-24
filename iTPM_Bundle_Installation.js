@@ -14,10 +14,11 @@
 define(['N/config',
 		'N/task',
 		'N/search',
-		'N/record'
+		'N/record',
+		'N/runtime'
 		],
 
-function(config, task, search, record) {
+function(config, task, search, record, runtime) {
 	
 	function checkRequirements() {
 		try{
@@ -75,6 +76,8 @@ function(config, task, search, record) {
     function afterInstall(params) {
     	//script to modify status filter on all iTPM saved searches
     	updateSearchFilters();
+    	//create preference records
+    	createPreferenceRecords();
     }
     
     /**
@@ -116,6 +119,9 @@ function(config, task, search, record) {
     	
     	//script to modify status filter on all iTPM saved searches
     	updateSearchFilters();
+    	
+    	//create and update the preference records
+    	createPreferenceRecords();
     }
     
     
@@ -505,6 +511,83 @@ function(config, task, search, record) {
     	}catch(ex){
     		log.error(e.name, e.message);
     	}
+    }
+    
+    /**
+     * @description creating the subsidiary based on preference records
+     */
+    function createPreferenceRecords(){
+    	var featureEnabled = runtime.isFeatureInEffect({feature:'SUBSIDIARIES'});
+		var eventType = 'create';
+		
+    	var preferenceResult = search.create({
+			type:'customrecord_itpm_preferences',
+			columns:['internalid']
+		}).run().getRange(0,10);
+		var prefResultLength = preferenceResult.length;
+		preferenceResult = (prefResultLength == 0)? undefined : preferenceResult[0].getValue('internalid');
+		
+		
+    	if(featureEnabled){
+    		var subsidiaryResult = search.create({
+        		type:search.Type.SUBSIDIARY,
+        		columns:['internalid','parent'],
+        		filters:[]
+        	}).run();
+    		
+    		subsidiaryResult.each(function(e){
+    			if(prefResultLength == 1){
+    				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
+    			}
+				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'));
+				return true;
+			});
+    		
+    	}else{
+    		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined) : '';
+    	}
+    }
+    
+    /**
+     * @param {Number} id
+     * @param {String} event
+     * @param {Object} subid
+     * @description create the prefernce record for specific subsidiary
+     */
+    function createOrEditPreferenceRecord(id, event, subid){
+    	var preferenceRec;
+    	switch(event){
+    	case 'create':
+    		preferenceRec = record.create({
+    			type:'customrecord_itpm_preferences'
+    		});
+    		break;
+    	case 'edit':
+    		preferenceRec = record.load({
+    			type:'customrecord_itpm_preferences',
+    			id:id
+    		});
+    		break;
+    	case 'copy':
+    		preferenceRec = record.copy({
+    			type:'customrecord_itpm_preferences',
+    			id:id
+    		});
+    		break;
+    	}
+    	
+    	//if subsidiary is enabled
+    	if(subid){
+    		preferenceRec.setValue({
+        		fieldId:'custrecord_itpm_pref_subsidiary',
+        		value:subid
+        	})
+    	}
+    	
+    	preferenceRec.save({
+    		enableSourcing:false,
+    		ignoreMandatoryFields:true
+    	});
     }
     
     return {
