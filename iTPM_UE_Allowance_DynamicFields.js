@@ -79,22 +79,31 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
     		    id:selectedItem,
     		    columns:['recordtype']
     		}).recordtype;
-        	
+        	log.debug('selectedItem',selectedItem);
         	if(recordType == search.Type.ITEM_GROUP){
         		var itemGroupRec = record.load({
             		type:record.Type.ITEM_GROUP,
             		id:sc.newRecord.getValue('custrecord_itpm_all_item')
             	});
         		var items = itpm.getItemGroupItems(itemGroupRec,false,false); //get the list of item members array
+        		log.debug('items out',items);
         		var unitsArray = itpm.getItemUnits(items[0].memberid)['unitArray']; //get the list of unists array
         		var allwUnit = sc.newRecord.getValue('custrecord_itpm_all_uom'); //allowance record selected unit
         		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate); //member item sale unit rate conversion rate
         		var rate = parseFloat(unitsArray.filter(function(e){return e.id == allwUnit})[0].conversionRate); //member item base unit conversion rate
         		items.forEach(function(item,i){
+        			log.debug('items in',item);
         			if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
         				throw{
         					name:"INVALID_UNITS",
         					message:"SaleUnit and UnitType must be same for all items."
+        				};
+        			}
+        			log.debug('item.baseprice',item.baseprice);
+        			if(item.baseprice <= 0){
+        				throw{
+        					name:"INVALID_PRICE",
+        					message:"This iTPM Allowance cannot be submitted because the selected item does not have any sale price."
         				};
         			}
         		});
@@ -135,9 +144,24 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         			}),
         			ttl: 300
         		});
+        	}else{
+        		var itemLookup = search.lookupFields({
+        			type:search.Type.ITEM,
+        			id:selectedItem,
+        			columns:['baseprice']
+        		});
+        		log.debug('baseprice',itemLookup['baseprice']);
+        		if(itemLookup['baseprice'] <= 0){
+        			throw{
+        				name:"INVALID_PRICE",
+        				message:"This iTPM Allowance cannot be submitted because the selected item does not have any sale price."
+        			};
+        		}
         	}
     	}catch(ex){
     		if(ex.name == "INVALID_UNITS")
+    			throw new Error(ex.message);
+    		if(ex.name == "INVALID_PRICE")
     			throw new Error(ex.message);
     		log.error(ex.name,ex.message);
     	}
