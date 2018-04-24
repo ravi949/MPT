@@ -32,7 +32,6 @@ function(search, record, redirect, runtime, itpm) {
     				log.debug('params: deduction ID',scriptContext.request.parameters.did);
     				var subsidiaryExists = itpm.subsidiariesEnabled();
     				var currencyExists = itpm.currenciesEnabled();
-    				var itpmPreferences = itpm.getPrefrenceValues();
     				var prefJE = itpm.getJEPreferences();
     				    				
     				var deductionRecordObj = record.load({
@@ -40,6 +39,9 @@ function(search, record, redirect, runtime, itpm) {
     					id: scriptContext.request.parameters.did,
     					isDynamic: true
     				});
+    				
+    				var subsidiaryID = (subsidiaryExists)? deductionRecordObj.getValue('subsidiary') : undefined;
+    	    		var itpmPreferences = itpm.getPrefrenceValues(subsidiaryID);
     				
     				var ddnAccount = search.create({
     					type: search.Type.TRANSACTION,

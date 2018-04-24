@@ -877,9 +877,12 @@ function(serverWidget, record, search, runtime, redirect, config, format, itpm) 
 		//creating the array of lines for deduction record
 		if(userEventType == 'create'){
 			//getting the line value for the deduction
-			var expenseId = (createdFrom != 'ddn')?itpm.getPrefrenceValues().dednExpAccnt:'';
+			var subsidiaryID = (subsidiariesEnabled)? params['custom_subsidiary'] : undefined;
+			var prefObj = itpm.getPrefrenceValues(subsidiaryID);
+			
+			var expenseId = (createdFrom != 'ddn')?prefObj.dednExpAccnt:'';
 			var lineMemo,receivbaleAccntsList = [];
-			var removeCustFromSplit = (createdFrom == 'ddn' && itpm.getPrefrenceValues().removeCustomer);
+			var removeCustFromSplit = (createdFrom == 'ddn' && prefObj.removeCustomer);
 			
 			log.debug('expenseId',expenseId);
 			

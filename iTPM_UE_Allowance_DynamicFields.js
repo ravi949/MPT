@@ -213,9 +213,9 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
      *  @param {Object} sc
      */
     function defaultValForAllType(sc){
-		sc.newRecord.setValue({
+    	sc.newRecord.setValue({
 			fieldId: 'custrecord_itpm_all_type',
-			value: itpm.getPrefrenceValues().defaultAllwType
+			value: itpm.getPrefrenceValues(undefined).defaultAllwType
 		});
 	}		
       

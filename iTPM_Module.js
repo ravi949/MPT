@@ -442,9 +442,9 @@ define(['N/search',
 	 * function getPrefrenceValues()
 	 * @returns {object}
 	 */
-	function getPrefrenceValues(){
+	function getPrefrenceValues(subid){
 		try{
-			var prefObj = {}
+			var prefObj = {};
 			search.create({
 				type:'customrecord_itpm_preferences',
 				columns:['custrecord_itpm_pref_ddnaccount',
@@ -455,7 +455,7 @@ define(['N/search',
 					'custrecord_itpm_pref_defaultpricelevel',
 					'custrecord_itpm_pref_remvcust_frmsplit'
 					],
-					filters:[]
+					filters:(subid)? ['custrecord_itpm_pref_subsidiary','anyof',subid] : [] 
 			}).run().each(function(e){
 				prefObj = {
 						dednExpAccnt : e.getValue('custrecord_itpm_pref_ddnaccount'),

@@ -40,7 +40,6 @@ define(['N/record',
 				var subsidiaryExists = itpm.subsidiariesEnabled();
 				var currencyExists = itpm.currenciesEnabled();
 				var lineCount = SetRec.getLineCount('line');
-				var prefObj = itpm.getPrefrenceValues();
 
 				if(lineCount > 0){
 					var JERec = record.create({
