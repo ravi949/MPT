@@ -108,7 +108,7 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
     			if(DuplicateItemFound) {
     				throw{
     					name:"DUPLICATE_ITEM",
-    					message:"One of the Item from selcted item group has already an alllowance without allow additional discounts"
+    					message:"This promotion has an alllowance with one of the item from the Item Group you selected without Allow Additional Discount."
     				};
     			}
         		
