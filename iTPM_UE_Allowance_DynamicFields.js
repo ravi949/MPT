@@ -72,6 +72,8 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
      */
     function beforeSubmit(sc){
     	try{
+    		
+    		if(sc.type == 'delete') return;
     		var selectedItem = sc.newRecord.getValue('custrecord_itpm_all_item');
             var promoId = sc.newRecord.getValue('custrecord_itpm_all_promotiondeal');
         	var recordType = search.lookupFields({
@@ -91,6 +93,26 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         		var allwUnit = sc.newRecord.getValue('custrecord_itpm_all_uom'); //allowance record selected unit
         		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate); //member item sale unit rate conversion rate
         		var rate = parseFloat(unitsArray.filter(function(e){return e.id == allwUnit})[0].conversionRate); //member item base unit conversion rate
+        		
+        		//already allownace created with this item
+        		var listOfItems = items.map(function(e){ return e.memberid })
+        		var DuplicateItemFound = search.create({
+    				type:'customrecord_itpm_promoallowance',
+    				columns:['internalid'],
+    				filters:[['custrecord_itpm_all_item','anyof',listOfItems],'and',
+    						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
+    						 ['custrecord_itpm_all_allowaddnaldiscounts','is',false],'and',
+    						 ['isinactive','is',false]]
+    			}).run().getRange(0,2).length > 0;
+    			
+    			if(DuplicateItemFound) {
+    				throw{
+    					name:"DUPLICATE_ITEM",
+    					message:"One of the Item from selcted item group has already an alllowance without allow additional discounts"
+    				};
+    			}
+        		
+    			//validating the units and base price
         		items.forEach(function(item,i){
         			log.debug('items in',item);
         			if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
@@ -145,6 +167,7 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         			ttl: 300
         		});
         	}else{
+        		if(recordType == search.Type.ITEM_GROUP) return;
         		var itemLookup = search.lookupFields({
         			type:search.Type.ITEM,
         			id:selectedItem,
@@ -159,11 +182,9 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         		}
         	}
     	}catch(ex){
-    		if(ex.name == "INVALID_UNITS")
-    			throw new Error(ex.message);
-    		if(ex.name == "INVALID_PRICE")
-    			throw new Error(ex.message);
     		log.error(ex.name,ex.message);
+    		if(ex.name == "INVALID_UNITS" || ex.name == "INVALID_PRICE" ||ex.name == 'DUPLICATE_ITEM')
+    			throw new Error(ex.message);
     	}
     	
     }
