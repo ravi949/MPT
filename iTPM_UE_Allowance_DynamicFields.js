@@ -152,7 +152,7 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
         						 ['custrecord_itpm_all_allowaddnaldiscounts','is',true],'and',
         						 ['isinactive','is',false]]
-        			}).run().getRange(0,2).length > 0
+        			}).run().getRange(0,2).length > 0 || sc.newRecord.getValue('custrecord_itpm_all_allowaddnaldiscounts')
         		});
         		cache.getCache({
         			name: 'itemGroupCache',
@@ -219,7 +219,8 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
             		    	'itemid':keyObj.neglectItem,
             		    	'allid':sc.newRecord.id,
             		    	'pi':sc.newRecord.getValue('custrecord_itpm_all_promotiondeal'),
-            		    	'pl':sc.newRecord.getValue('custrecord_itpm_all_pricelevel')
+            		    	'pl':sc.newRecord.getValue('custrecord_itpm_all_pricelevel'),
+            		    	'allow':sc.newRecord.getValue('custrecord_itpm_all_allowaddnaldiscounts')
             		    }
             		});
             	}

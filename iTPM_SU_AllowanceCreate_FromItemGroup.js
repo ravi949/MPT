@@ -72,7 +72,7 @@ function(record, http, redirect, search, itpm) {
                 						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
                 						 ['custrecord_itpm_all_allowaddnaldiscounts','is',true],'and',
                 						 ['isinactive','is',false]]
-                			}).run().getRange(0,2).length > 0
+                			}).run().getRange(0,2).length > 0 || request.parameters.allow
                 		}).save({
                 			enableSourcing:false,
                 			ignoreMandatoryFields:true
