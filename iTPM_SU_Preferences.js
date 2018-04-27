@@ -450,6 +450,9 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 	 */
 	function createPreferenceList(form, params){
 		
+		var iTPMPrefTypeID = scriptObj.getParameter({name:'custscript_itpm_pref_rectypeid'})
+		var iTPMPrefPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+iTPMPrefTypeID);
+
 		prefSublist = form.addSublist({
 		    id : 'custpage_itpm_prefrecords',
 		    type : serverWidget.SublistType.LIST,
@@ -472,7 +475,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		    displayType : serverWidget.FieldDisplayType.INLINE
 		});
 		
-		if(subsidiariesEnabled){
+		if(subsidiariesEnabled && iTPMPrefPermission >= 3){
 			//body Subsidiary Field
 			var subsidiaryField = form.addField({
 				id: 'custpage_itpm_pref_listsubsidiary',
@@ -529,17 +532,20 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		    displayType : serverWidget.FieldDisplayType.INLINE
 		});
 		
-		var i = 0;
+		var i = 0,editURL = '';
 		var prefereceResult = getPreferences();
 		prefereceResult.each(function(e){
-			prefSublist.setSublistValue({
-				id:'custpage_itpm_editview',
-				value:"<a href="+url.resolveScript({
+			if(iTPMPrefPermission >= 3){
+				editURL = "<a href="+url.resolveScript({
 				    scriptId: scriptObj.id,
 				    deploymentId: scriptObj.deploymentId,
 				    returnExternalUrl: false,
 				    params:{whence:'=',type:'edit',pfid:e.getValue('internalid'),subid:e.getValue('custrecord_itpm_pref_subsidiary')}
-				})+">Edit</a> | <a href="+url.resolveScript({
+				})+">Edit</a> |"; 
+			}
+			prefSublist.setSublistValue({
+				id:'custpage_itpm_editview',
+				value:editURL + "<a href="+url.resolveScript({
 				    scriptId: scriptObj.id,
 				    deploymentId: scriptObj.deploymentId,
 				    returnExternalUrl: false,
@@ -598,7 +604,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			return true;
 		});
 		
-		if(subsidiariesEnabled){
+		if(subsidiariesEnabled && iTPMPrefPermission >= 3){
 			form.addButton({
 				label:'New Preference',
 				id : 'custpage_itpm_newpreference',
