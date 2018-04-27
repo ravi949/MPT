@@ -100,11 +100,6 @@ define(['N/runtime',
 						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"RECORD",' + ddnSplitRecTypeId + ')'
 					});
 					
-					var btn_invoice = sc.form.addButton({
-						id: 'custpage_itpm_invoice',
-						label: 'Re-Invoice',
-						functionName: 'iTPMinvoice(' + sc.newRecord.id + ','+openBalance+')'
-					});			
 					
 					var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
 					if(customer){
@@ -117,6 +112,12 @@ define(['N/runtime',
           
 					//show button only when user have permissions greater than or equal to CREATE for Deductions and Journal Entry
 					if(JE_Permssion >= 2){
+						var btn_invoice = sc.form.addButton({
+							id: 'custpage_itpm_invoice',
+							label: 'Re-Invoice',
+							functionName: 'iTPMinvoice(' + sc.newRecord.id + ','+openBalance+')'
+						});			
+						
 						var btn_expense = sc.form.addButton({
 							id: 'custpage_itpm_expense',
 							label: 'Expense',
