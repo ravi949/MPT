@@ -181,6 +181,7 @@ function(record, search) {
 					type: 'customrecord_itpm_promoallowance',
 					id:keyObj.recId
 				});
+				var itemAvailForITPM = IsAvailForITPMChecked(allRec.getValue({fieldId: 'custrecord_itpm_all_item'}));
 				var copyRecord = record.copy({
 					type: 'customrecord_itpm_promoallowance',
 					id:keyObj.recId
@@ -216,6 +217,7 @@ function(record, search) {
 					type: 'customrecord_itpm_estquantity',
 					id:keyObj.recId
 				});
+				var itemAvailForITPM = IsAvailForITPMChecked(copyRecord.getValue({fieldId: 'custrecord_itpm_estqty_item'}));
 				var copiedRecordId = copyRecord.setValue({
 					fieldId: 'custrecord_itpm_estqty_promodeal',
 					value:keyObj.promoID,
@@ -251,7 +253,9 @@ function(record, search) {
 				var copyRecord = record.copy({
 					type: 'customrecord_itpm_promoretailevent',
 					id:keyObj.recId
-				}).setValue({
+				})
+				var itemAvailForITPM = IsAvailForITPMChecked(copyRecord.getValue({fieldId: 'custrecord_itpm_rei_item'}));
+				copyRecord.setValue({
 					fieldId: 'custrecord_itpm_rei_promotiondeal',
 					value:keyObj.promoID,
 					ignoreFieldChange: true
@@ -297,6 +301,17 @@ function(record, search) {
 		log.debug('summary state',summary)
 	}
 
+	/**
+	 * Returns the true/false based on the  AVAILABLE FOR ITPM? check-box on item record
+	 * @param itemId
+	 */
+	function IsAvailForITPMChecked(itemId) {
+		return search.lookupFields({
+			type:search.Type.ITEM,
+			id:itemID,
+			columns:['custitem_itpm_available']
+		}).custitem_itpm_available
+	}
 	return {
 		getInputData: getInputData,
 		map: map,
