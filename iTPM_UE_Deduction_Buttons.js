@@ -100,16 +100,6 @@ define(['N/runtime',
 						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"RECORD",' + ddnSplitRecTypeId + ')'
 					});
 					
-					
-					var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
-					if(customer){
-						var btn_creditmemo = sc.form.addButton({
-							id: 'custpage_itpm_match_creditmemo',
-							label: 'Match To Credit Memo',
-							functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
-						});
-					}
-          
 					//show button only when user have permissions greater than or equal to CREATE for Deductions and Journal Entry
 					if(JE_Permssion >= 2){
 						var btn_invoice = sc.form.addButton({
@@ -117,7 +107,14 @@ define(['N/runtime',
 							label: 'Re-Invoice',
 							functionName: 'iTPMinvoice(' + sc.newRecord.id + ','+openBalance+')'
 						});			
-						
+						var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
+						if(customer){
+							var btn_creditmemo = sc.form.addButton({
+								id: 'custpage_itpm_match_creditmemo',
+								label: 'Match To Credit Memo',
+								functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
+							});
+						}
 						var btn_expense = sc.form.addButton({
 							id: 'custpage_itpm_expense',
 							label: 'Expense',
