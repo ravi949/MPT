@@ -89,7 +89,7 @@ function(record, http, redirect, search, itpm) {
                 			value:search.create({
                 				type:'customrecord_itpm_promoallowance',
                 				columns:['internalid'],
-                				filters:[['custrecord_itpm_all_item','anyof',items[0].memberid],'and',
+                				filters:[['custrecord_itpm_all_item','anyof',item.memberid],'and',
                 						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
                 						 ['custrecord_itpm_all_allowaddnaldiscounts','is',true],'and',
                 						 ['isinactive','is',false]]
