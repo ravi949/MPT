@@ -1150,9 +1150,9 @@ define(['N/search',
 						log.debug('module_getEstAllocationFactorLS', 'estConversion : '+estConversion);
 						log.debug('module_getEstAllocationFactorLS', 'saleConversion : '+saleConversion);
 						if (estQuantities[x].item == obj.itemId){
-							thisEstimatedRevenue = parseFloat(estQuantities[x].qty) * parseFloat(itemPrice.price) * (saleConversion / estConversion); 
+							thisEstimatedRevenue = parseFloat(estQuantities[x].qty) * parseFloat(itemPrice.price) * (estConversion / saleConversion); 
 						}
-						totalEstimatedRevenue += parseFloat(estQuantities[x].qty) * parseFloat(itemPrice.price) * (saleConversion / estConversion);
+						totalEstimatedRevenue += parseFloat(estQuantities[x].qty) * parseFloat(itemPrice.price) * (estConversion / saleConversion);
 					}
 
 					log.debug('module_getEstAllocationFactorLS', 'thisEstimatedRevenue : ' + thisEstimatedRevenue +'; '+JSON.stringify(obj));
