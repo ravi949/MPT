@@ -72,6 +72,8 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
      */
     function beforeSubmit(sc){
     	try{
+    		
+    		if(sc.type == 'delete') return;
     		var selectedItem = sc.newRecord.getValue('custrecord_itpm_all_item');
             var promoId = sc.newRecord.getValue('custrecord_itpm_all_promotiondeal');
         	var recordType = search.lookupFields({
@@ -86,11 +88,28 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
             		id:sc.newRecord.getValue('custrecord_itpm_all_item')
             	});
         		var items = itpm.getItemGroupItems(itemGroupRec,false,false); //get the list of item members array
-        		log.debug('items out',items);
         		var unitsArray = itpm.getItemUnits(items[0].memberid)['unitArray']; //get the list of unists array
         		var allwUnit = sc.newRecord.getValue('custrecord_itpm_all_uom'); //allowance record selected unit
         		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate); //member item sale unit rate conversion rate
         		var rate = parseFloat(unitsArray.filter(function(e){return e.id == allwUnit})[0].conversionRate); //member item base unit conversion rate
+        		
+        		//already allownace created with this item
+        		var listOfItems = [];
+        		search.create({
+    				type:'customrecord_itpm_promoallowance',
+    				columns:['internalid','custrecord_itpm_all_item'],
+    				filters:[['custrecord_itpm_all_item','anyof',items.map(function(e){ return e.memberid })],'and',
+    						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
+    						 ['custrecord_itpm_all_allowaddnaldiscounts','is',false],'and',
+    						 ['isinactive','is',false]]
+    			}).run().each(function(e){
+    				listOfItems.push(e.getValue('custrecord_itpm_all_item'));
+    				return true;
+    			});
+        		items = items.filter(function(e){ return listOfItems.filter(function(k){return k == e.memberid}).length <= 0 });
+        		log.debug('filtered items out',items);
+        		
+    			//validating the units and base price
         		items.forEach(function(item,i){
         			log.debug('items in',item);
         			if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
@@ -130,7 +149,7 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
         						 ['custrecord_itpm_all_allowaddnaldiscounts','is',true],'and',
         						 ['isinactive','is',false]]
-        			}).run().getRange(0,2).length > 0
+        			}).run().getRange(0,2).length > 0 || sc.newRecord.getValue('custrecord_itpm_all_allowaddnaldiscounts')
         		});
         		cache.getCache({
         			name: 'itemGroupCache',
@@ -145,6 +164,7 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         			ttl: 300
         		});
         	}else{
+        		if(recordType == search.Type.ITEM_GROUP) return;
         		var itemLookup = search.lookupFields({
         			type:search.Type.ITEM,
         			id:selectedItem,
@@ -159,11 +179,9 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         		}
         	}
     	}catch(ex){
-    		if(ex.name == "INVALID_UNITS")
-    			throw new Error(ex.message);
-    		if(ex.name == "INVALID_PRICE")
-    			throw new Error(ex.message);
     		log.error(ex.name,ex.message);
+    		if(ex.name == "INVALID_UNITS" || ex.name == "INVALID_PRICE")
+    			throw new Error(ex.message);
     	}
     	
     }
@@ -198,7 +216,8 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
             		    	'itemid':keyObj.neglectItem,
             		    	'allid':sc.newRecord.id,
             		    	'pi':sc.newRecord.getValue('custrecord_itpm_all_promotiondeal'),
-            		    	'pl':sc.newRecord.getValue('custrecord_itpm_all_pricelevel')
+            		    	'pl':sc.newRecord.getValue('custrecord_itpm_all_pricelevel'),
+            		    	'allow':sc.newRecord.getValue('custrecord_itpm_all_allowaddnaldiscounts')
             		    }
             		});
             	}
