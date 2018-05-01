@@ -91,7 +91,7 @@ function(search, record, itpm) {
 				log.debug('itemSaleUnit, unitrate, saleunitrate',itemSaleUnit+' & '+unitrate+' & '+saleunitrate);
 				
 				//Calculating Estimated Revenue: Step 3
-				var estimatedRevenue = parseFloat(totalestqty) * parseFloat(itemImpactPrice.price) * (saleunitrate / unitrate);
+				var estimatedRevenue = parseFloat(totalestqty) * parseFloat(itemImpactPrice.price) * (unitrate / saleunitrate);
 				log.debug('estimatedRevenue',estimatedRevenue);
     			
     			//Updating the related KPI record
