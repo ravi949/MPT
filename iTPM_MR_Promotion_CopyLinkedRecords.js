@@ -181,7 +181,7 @@ function(record, search) {
 					type: 'customrecord_itpm_promoallowance',
 					id:keyObj.recId
 				});
-				var itemAvailForITPM = IsAvailForITPMChecked(allRec.getValue({fieldId: 'custrecord_itpm_all_item'}));
+				var itemAvailForITPM = isAvailForITPMChecked(allRec.getValue({fieldId: 'custrecord_itpm_all_item'}));
 				log.audit('itemAvailForITPM   '+keyObj.recId,itemAvailForITPM);
 				if(itemAvailForITPM){
 					var copyRecord = record.copy({
@@ -220,7 +220,7 @@ function(record, search) {
 					type: 'customrecord_itpm_estquantity',
 					id:keyObj.recId
 				});
-				var itemAvailForITPM = IsAvailForITPMChecked(copyRecord.getValue({fieldId: 'custrecord_itpm_estqty_item'}));
+				var itemAvailForITPM = isAvailForITPMChecked(copyRecord.getValue({fieldId: 'custrecord_itpm_estqty_item'}));
 				log.audit('itemAvailForITPM   '+keyObj.recId,itemAvailForITPM);
 				if(itemAvailForITPM){
 					var copiedRecordId = copyRecord.setValue({
@@ -261,7 +261,7 @@ function(record, search) {
 					type: 'customrecord_itpm_promoretailevent',
 					id:keyObj.recId
 				})
-				var itemAvailForITPM = IsAvailForITPMChecked(copyRecord.getValue({fieldId: 'custrecord_itpm_rei_item'}));
+				var itemAvailForITPM = isAvailForITPMChecked(copyRecord.getValue({fieldId: 'custrecord_itpm_rei_item'}));
 				log.audit('itemAvailForITPM   '+keyObj.recId,itemAvailForITPM);
 				if(itemAvailForITPM){
 					copyRecord.setValue({
@@ -315,7 +315,7 @@ function(record, search) {
 	 * Returns the true/false based on the  AVAILABLE FOR ITPM? check-box on item record
 	 * @param itemId
 	 */
-	function IsAvailForITPMChecked(itemID) {
+	function isAvailForITPMChecked(itemID) {
 		return search.lookupFields({
 			type:search.Type.ITEM,
 			id:itemID,
