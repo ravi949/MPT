@@ -114,6 +114,11 @@ define(['N/search',
 					label:'Deduction',
 					functionName:'iTPMDeduction('+scriptContext.newRecord.id+')'
 				});
+				scriptContext.form.addButton({
+					id:'custpage_itpm_matchtoddn',
+					label:'Match to Deduction',
+					functionName:'iTPMMatchToDdn('+scriptContext.newRecord.id+')'
+				});
 			}
 		}
 	}
