@@ -25,9 +25,11 @@ function(search, runtime, itpm) {
     function getInputData() {
     	try{
     		var scriptObj = runtime.getCurrentScript();
-    		log.debug('start getinput usage',scriptObj.getRemainingUsage());
-    		var arrObjs = [];
-        	[37,36,46].forEach(function(promoid){
+    		//log.debug('start getinput usage',scriptObj.getRemainingUsage());
+    		var arrObjs = [],noEstTotalQty = false;
+    		
+        	[46].forEach(function(promoid){
+        		noEstTotalQty = false;
         		search.create({
         			type:'customrecord_itpm_promotiondeal',
         			columns:['custrecord_itpm_p_status',
@@ -40,6 +42,8 @@ function(search, runtime, itpm) {
         			         'custrecord_itpm_p_allocationtype',
         			         'custrecord_itpm_p_type.custrecord_itpm_pt_dontupdate_lbonactual',
         			         'custrecord_itpm_kpi_promotiondeal.internalid',
+        			         'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_estimatedrevenue',
+        			         'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_esttotalqty',
         			         'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_item',
         			         'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_lespendbb',
         			         'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_lespendoi',
@@ -48,9 +52,14 @@ function(search, runtime, itpm) {
         			filters:[['internalid','anyof',promoid],'and',
         			         ['isinactive','is',false]]
         		}).run().each(function(promo){
+        			if(!noEstTotalQty){
+        				noEstTotalQty = parseFloat(promo.getValue({name:'custrecord_itpm_kpi_esttotalqty',join:'custrecord_itpm_kpi_promotiondeal'})) <= 0
+        			}
+        			
         			arrObjs.push({
         				kpi_id		  	:	promo.getValue({name:'internalid',join:'custrecord_itpm_kpi_promotiondeal'}),
         				kpi_queue_id	: 	1,
+        				noEstTotalQty	: 	noEstTotalQty,
         				promo_details 	: 	{
         						promo_id		: 	promoid,
         						promo_status	:   promo.getValue('custrecord_itpm_p_status'),
@@ -59,28 +68,29 @@ function(search, runtime, itpm) {
         						promo_start		:	promo.getValue('custrecord_itpm_p_shipstart'),
         						promo_end		:	promo.getValue('custrecord_itpm_p_shipend'),
         						promo_customer	:	promo.getValue('custrecord_itpm_p_customer'),
-        						promo_pricelevel:	promo.getValue('custrecord_itpm_p_customer'),
+        						promo_pricelevel:	promo.getValue('custrecord_itpm_p_itempricelevel'),
         						promo_alltype	: 	promo.getValue('custrecord_itpm_p_allocationtype')
         				},
         				kpi_details		:	{
         						kpi_item 	: 	promo.getValue({name:'custrecord_itpm_kpi_item',join:'custrecord_itpm_kpi_promotiondeal'}),
         						kpi_leSpBB	:	promo.getValue({name:'custrecord_itpm_kpi_lespendbb',join:'custrecord_itpm_kpi_promotiondeal'}),
         						kpi_leSpOI	:	promo.getValue({name:'custrecord_itpm_kpi_lespendoi',join:'custrecord_itpm_kpi_promotiondeal'}),
-        						kpi_leSpNB	:	promo.getValue({name:'custrecord_itpm_kpi_lespendnb',join:'custrecord_itpm_kpi_promotiondeal'})
+        						kpi_leSpNB	:	promo.getValue({name:'custrecord_itpm_kpi_lespendnb',join:'custrecord_itpm_kpi_promotiondeal'}),
+        						kpi_estrev	: 	promo.getValue({name:'custrecord_itpm_kpi_estimatedrevenue',join:'custrecord_itpm_kpi_promotiondeal'})
         				},
         				promotype_details:	{
         						donotupdatelib : promo.getValue({name:'custrecord_itpm_pt_dontupdate_lbonactual',join:'custrecord_itpm_p_type'})		
-        				},
-        				
+        				}
         			});
         			return true;
         		});
         	});
-        	log.debug('arrObjs',arrObjs);
-        	log.debug('end getinput usage',scriptObj.getRemainingUsage());
-        	return arrObjs;
     	}catch(ex){
     		log.error('GetInputData Error', ex.name + '; ' + ex.message);
+    	}finally{
+    		//log.debug('arrObjs',arrObjs);
+        	//log.debug('end getinput usage',scriptObj.getRemainingUsage());
+        	return arrObjs;
     	}
     }
 
@@ -96,22 +106,34 @@ function(search, runtime, itpm) {
     		log.debug('start map usage',scriptObj.getRemainingUsage());
     		var resultObj = JSON.parse(context.value);
     		var promoDetails = resultObj['promo_details'];
-    		log.debug('resultObj',resultObj);
+    		var kpiDetails	= resultObj['kpi_details'];
+//    		log.debug('resultObj',resultObj);
     		var estQty = {};
-        	var estQtyResult = search.create({
-        		type:'customrecord_itpm_estquantity',
-        		columns:['custrecord_itpm_estqty_qtyby',
-        		         'custrecord_itpm_estqty_totalqty',
-        		         'custrecord_itpm_estqty_estpromotedqty',
-        		         'custrecord_itpm_estqty_totalrate',
-        		         'custrecord_itpm_estqty_totalpercent',
-        		         'custrecord_itpm_estqty_rateperunitbb',
-        		         'custrecord_itpm_estqty_rateperunitoi',
-        		         'custrecord_itpm_estqty_rateperunitnb',
-        		         'custrecord_itpm_estqty_redemption'],
-        		filters:[['custrecord_itpm_estqty_promodeal','anyof',resultObj['promo_details'].promo_id],'and',
-        		         ['isinactive','is',false]]
-        	}).run().getRange(0,1);
+        	var estQtyResult = getEstQtyResults(promoDetails.promo_id, kpiDetails.kpi_item, false);
+        	
+        	//calculating the kpiFactorEstLS
+        	var kpi_factor_estls = 0;
+        	var estQtyCount = getEstQtyResults(promoDetails.promo_id, kpiDetails.kpi_item, true);
+    		estQtyCount = estQtyCount[0].getValue({name:'internalid',summary:search.Summary.COUNT});
+    		
+        	if(resultObj.noEstTotalQty){
+        		kpi_factor_estls = (1/estQtyCount).toFixed(6);
+        	}else{
+        		var totalEstRev = search.create({
+	        			type:'customrecord_itpm_kpi',
+	        			columns:[
+		        			search.createColumn({
+			        			name:'custrecord_itpm_kpi_estimatedrevenue',
+			        			summary:search.Summary.SUM
+		        			})
+	        			],
+	        			filters:[
+		        			['custrecord_itpm_kpi_promotiondeal','anyof',promoDetails.promo_id],'and',
+		        			['isinactive','is',false]
+	        			]
+        		}).run().getRange(0,1)[0].getValue({name:'custrecord_itpm_kpi_estimatedrevenue',summary:search.Summary.SUM});
+        		kpi_factor_estls = (parseFloat(kpiDetails.kpi_estrev)/totalEstRev).toFixed(6);
+        	}
         	
         	//if estqty search returns zero or more than one result
         	if (estQtyResult.length == 0 || estQtyResult.length > 1){
@@ -120,7 +142,7 @@ function(search, runtime, itpm) {
     				message:'Saved search for EstQty returned zero or more than one results PromotionId: ' + resultObj['promo_details'].promo_id + '; ItemID: ' + resultObj['kpi_details'].kpi_item 
     			};
     		}else{
-    			estQty.estid = estQtyResult[0].getValue({name:'id'});
+    			estQty.estid = estQtyResult[0].getValue({name:'internalid'});
     			estQty.estUnit = estQtyResult[0].getValue({name:'custrecord_itpm_estqty_qtyby'});
     			estQty.estTotal = estQtyResult[0].getValue({name:'custrecord_itpm_estqty_totalqty'});
     			estQty.estPromoted = estQtyResult[0].getValue({name:'custrecord_itpm_estqty_estpromotedqty'});
@@ -131,7 +153,7 @@ function(search, runtime, itpm) {
     			estQty.estRateNB = estQtyResult[0].getValue({name:'custrecord_itpm_estqty_rateperunitnb'});
     			estQty.estRedemption = estQtyResult[0].getValue({name:'custrecord_itpm_estqty_redemption'});
     		}
-
+        	        	
         	var estimatedSpend = itpm.getSpend({
         		returnZero: false, 
         		quantity: estQty.estPromoted, 
@@ -139,19 +161,21 @@ function(search, runtime, itpm) {
         		rateOI: estQty.estRateOI, 
         		rateNB: estQty.estRateNB
         	});
+        	estimatedSpend.ls = (parseFloat(kpi_factor_estls)* parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        	
         	var actualSpend = itpm.getSpend({
 				returnZero: false, 
 				actual: true, 
 				promotionId: promoDetails.promo_id,
-				itemId: resultObj['kpi_details'].kpi_item, 
+				itemId: kpiDetails.kpi_item, 
 				quantity: actQty, 
 				rateBB: estQty.estRateBB, 
 				rateOI: estQty.estRateOI, 
 				rateNB: estQty.estRateNB
 			});
-        	var kpi_actualQty = itpm.getActualQty(resultObj['kpi_details'].kpi_item, promoDetails.promo_customer, promoDetails.promo_start, promoDetails.promo_end);
-        	kpi_actualQty.quantity = (util.isNumber(kpi_actualQty.quantity))? kpi_actualQty.quantity : 0;
-        	var actQty = (kpi_actualQty.error)? 0 : kpi_actualQty.quantity;
+
+        	var kpi_actualQty = itpm.getActualQty(kpiDetails.kpi_item, promoDetails.promo_customer, promoDetails.promo_start, promoDetails.promo_end);
+        	var actQty = (util.isNumber(kpi_actualQty.quantity))? kpi_actualQty.quantity : 0;
         	var expectedLiability, maxLiability, leSpendLS;
         	var leSpend = {
 					error: false,
@@ -165,7 +189,7 @@ function(search, runtime, itpm) {
         	//calculating expected and maximum liabilities
 			expectedLiability = itpm.getLiability({
 				returnZero: false, 
-				quantity: (resultObj['promotype_details'].donotupdatelib)? estQty.estTotal : actQty, 
+				quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty, 
 				rateBB: estQty.estRateBB, 
 				rateOI: estQty.estRateOI, 
 				rateNB: estQty.estRateNB, 
@@ -174,7 +198,7 @@ function(search, runtime, itpm) {
 
 			maxLiability = itpm.getLiability({
 				returnZero: false, 
-				quantity: (resultObj['promotype_details'].donotupdatelib)? estQty.estTotal : actQty, 
+				quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty, 
 				rateBB: estQty.estRateBB, 
 				rateOI: estQty.estRateOI, 
 				rateNB: estQty.estRateNB, 
@@ -183,7 +207,7 @@ function(search, runtime, itpm) {
         	
         	//logic works base on promotion status
         	switch(promoDetails.promo_status){
-        	case '5':
+        	case '5': //VOIDED
         		leSpend = itpm.getSpend({returnZero: true});				//should return object zero
         		actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
         		expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
@@ -191,14 +215,24 @@ function(search, runtime, itpm) {
         		break;
         	case '6':	//CLOSED
         		leSpend = actualSpend;
+        		if(promoDetails.donotupdatelib){
+        			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+        		}else{
+        			//to be calculated actual ls
+        		}
         		break;
         	case '3':	//APPROVED
         		
         		if (promoDetails.promo_condition == '1'){	//condition == Future
+        			
         			leSpend = estimatedSpend;
         			expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
         			maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
+        			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+        			
         		} else if (promoDetails.promo_condition == '2') {	//condition == Active
+        			
+        			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
         			//if functions return values without any errors
         			if (!estimatedSpend.error && !expectedLiability.error && !actualSpend.error){
         				leSpend = {
@@ -209,11 +243,11 @@ function(search, runtime, itpm) {
         						ls: (estimatedSpend.ls > actualSpend.ls) ? estimatedSpend.ls : actualSpend.ls
         				};
         			}
-        			
-        			leSpend = (resultObj['promotype_details'].donotupdatelib)? estimatedSpend : leSpend;
+        			leSpend = (promoDetails.donotupdatelib)? estimatedSpend : leSpend;
         			
         		}else if (promoDetails.promo_condition == '3') {	//condition == Completed
-
+        			
+        			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
         			if (!actualSpend.error){
         				leSpend.oi = actualSpend.oi;
         				leSpend.nb = actualSpend.nb;
@@ -226,6 +260,7 @@ function(search, runtime, itpm) {
         			} else {
         				leSpend.error = true;
         			}
+        			
         		}
         		break;
 			default:
@@ -234,28 +269,33 @@ function(search, runtime, itpm) {
 				maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
 				break;
         	}
-        	log.debug('le spend '+resultObj.kpi_id,leSpend);
+        	
+        	
+//        	log.debug('le spend '+resultObj.kpi_id,leSpend);
     		log.debug('end map usage '+resultObj.kpi_id,scriptObj.getRemainingUsage());
-    		context.write({
-    			key	:	{ 
-    				kpi_id		:	resultObj.kpi_id,
-    				kpi_item	:	resultObj['kpi_details'].kpi_item
-    			},
-    			value:{
-    				promo_details : promoDetails, 
-    				kpi_details	  :	{
-    					'custrecord_itpm_kpi_lespendbb' : leSpend.bb,
-            			'custrecord_itpm_kpi_lespendoi' : leSpend.oi,
-            			'custrecord_itpm_kpi_lespendnb' : leSpend.nb,
-            			'custrecord_itpm_kpi_maximumliabilitybb' : maxLiability.bb,
-            			'custrecord_itpm_kpi_maximumliabilityoi' : maxLiability.oi,
-            			'custrecord_itpm_kpi_maximumliabilitynb' : maxLiability.nb,
-            			'custrecord_itpm_kpi_expectedliabilitybb' : expectedLiability.bb,
-            			'custrecord_itpm_kpi_expectedliabilityoi' : expectedLiability.oi,
-            			'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb
-    				}
-    			}
-    		});
+    		var contextObj = {
+        			key	:	{ 
+        				kpi_id		:	resultObj.kpi_id,
+        				kpi_item	:	kpiDetails.kpi_item
+        			},
+        			value:{
+        				promo_details : promoDetails,
+        				kpi_details	  :	{
+        					'custrecord_itpm_kpi_lespendbb' : leSpend.bb,
+                			'custrecord_itpm_kpi_lespendoi' : leSpend.oi,
+                			'custrecord_itpm_kpi_lespendnb' : leSpend.nb,
+                			'custrecord_itpm_kpi_maximumliabilitybb' : maxLiability.bb,
+                			'custrecord_itpm_kpi_maximumliabilityoi' : maxLiability.oi,
+                			'custrecord_itpm_kpi_maximumliabilitynb' : maxLiability.nb,
+                			'custrecord_itpm_kpi_expectedliabilitybb' : expectedLiability.bb,
+                			'custrecord_itpm_kpi_expectedliabilityoi' : expectedLiability.oi,
+                			'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb,
+                			'custrecord_itpm_kpi_factorestls' : kpi_factor_estls
+        				}
+        			}
+        		};
+    		log.debug('map context Obj', contextObj);
+    		context.write(contextObj);
     	}catch(ex){
     		log.error('MAP_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}
@@ -288,7 +328,41 @@ function(search, runtime, itpm) {
 
     }
     
+    /**
+     * @param {boolean} returnCount 
+     * @description search for the est quantity records on the promotion
+     */
+    function getEstQtyResults(promoId, kpiItem, returnCount){
+    	var searchColumns = [],
+    	searchFilters = [['custrecord_itpm_estqty_promodeal','anyof',promoId],'and',
+    	            	 ['isinactive','is',false]];
+    	if(returnCount){ 
+    		searchColumns.push(search.createColumn({
+    		    name: 'internalid',
+    		    summary: search.Summary.COUNT
+    		}))
+    	}else{
+    		searchFilters.push('and',['custrecord_itpm_estqty_item','anyof',kpiItem]);
+    		searchColumns = ['internalid',
+	         'custrecord_itpm_estqty_qtyby',
+	         'custrecord_itpm_estqty_totalqty',
+	         'custrecord_itpm_estqty_estpromotedqty',
+	         'custrecord_itpm_estqty_totalrate',
+	         'custrecord_itpm_estqty_totalpercent',
+	         'custrecord_itpm_estqty_rateperunitbb',
+	         'custrecord_itpm_estqty_rateperunitoi',
+	         'custrecord_itpm_estqty_rateperunitnb',
+	         'custrecord_itpm_estqty_redemption'];
+    	}
+    	
+    	return search.create({
+    		type:'customrecord_itpm_estquantity',
+    		columns:searchColumns,
+    		filters:searchFilters
+    	}).run().getRange(0,1);
+    }
     
+
     return {
         getInputData: getInputData,
         map: map,
