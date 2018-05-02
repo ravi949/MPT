@@ -84,7 +84,7 @@ function(record, search, itpm) {
         		id:ddnId
         	});
         	var ddnOpenBalance = parseFloat(parentRec.getValue('custbody_itpm_ddn_openbal'));
-        	var removeCustFromSplit = itpm.getPrefrenceValues().removeCustomer;
+        	var removeCustFromSplit = itpm.getPrefrenceValues(undefined).removeCustomer;
         	var ddnExpenseId = parentRec.getSublistValue({sublistId:'line',fieldId:'account',line:parentRec.getLineCount('line') - 1});
         	
         	log.debug('removeCustFromSplit', itpm.getPrefrenceValues());

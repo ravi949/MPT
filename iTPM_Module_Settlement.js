@@ -40,9 +40,11 @@ function(config, record, search, itpm) {
 					id:params.custom_itpm_st_appliedtransction
 				});
 			}
+			
+			var subsidiaryID = (subsidiaryExists)? params['custom_itpm_st_subsidiary'] : undefined;
 
 			//iTPM prefernce record values.
-			var prefObj = itpm.getPrefrenceValues();
+			var prefObj = itpm.getPrefrenceValues(subsidiaryID);
 
 
 			//Since the settlement record will be created with the Lump Sum, Off-Invoice and BIll Back request values set to zero, the system to should check to see whether there already exists a settlement record for the same promotion with ALL these three field values at zero. If yes, then prevent submit and return a user error - "There already seems to be a new (zero) settlement request on this promotion. Please complete that settlement request before attempting to create another Settlement on the same promotion."
@@ -305,7 +307,8 @@ function(config, record, search, itpm) {
 			var DeductionId = deductionRec.getValue('id');
 			var DeductionNum = deductionRec.getValue('tranid');
 
-			var prefObj = itpm.getPrefrenceValues();
+			var subsidiaryID = (itpm.subsidiariesEnabled())? deductionRec.getValue('subsidiary') : undefined;
+			var prefObj = itpm.getPrefrenceValues(subsidiaryID);
 			var dednExpAccnt = prefObj.dednExpAccnt,
 			accountPayable = prefObj.accountPayable;
 
@@ -339,6 +342,7 @@ function(config, record, search, itpm) {
     		}
 			
 			var JEAmount = parseFloat(lumsum)+parseFloat(bB)+parseFloat(oI);
+			JEAmount = JEAmount.toFixed(2);
 
 			var memo = 'Applying Settlement #'+SettlementRec.getValue('tranid')+' to Deduction #'+DeductionNum;
 
@@ -373,7 +377,7 @@ function(config, record, search, itpm) {
 			}
 
 		}catch(e){
-			log.debug('error',e.message);
+			log.error('error',e);
 			throw Error(e.message);
 		}
 		
@@ -421,8 +425,9 @@ function(config, record, search, itpm) {
 	 */
 	function setJELines(JELines){
 		try{
-			var prefObj = itpm.getPrefrenceValues();
 			var subsidiaryExists = itpm.subsidiariesEnabled();
+			var subsidiaryID = (subsidiaryExists)? JELines[0].subid  : undefined;
+			var prefObj = itpm.getPrefrenceValues(subsidiaryID);
 			var journalRecord = record.create({
 				type: record.Type.JOURNAL_ENTRY		
 			});

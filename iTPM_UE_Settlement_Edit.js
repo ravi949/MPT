@@ -124,7 +124,7 @@ function(redirect,runtime,search,ST_Module) {
 						throw {error:'custom',message:'Bill back request value should be zero'};
 					}
 				}
-    			if(settlementReq != (lumsumSetReq+billbackSetReq+offInvSetReq)){
+    			if(settlementReq.toFixed(2) != (lumsumSetReq+billbackSetReq+offInvSetReq).toFixed(2)){
 					throw {error:'custom',message:"settlement request must be equal to the sum of bill back, off-invoice and lump sum"};
 				}
     		}

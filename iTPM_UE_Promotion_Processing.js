@@ -37,7 +37,7 @@ function(serverWidget,record,runtime,url,search,itpm) {
     			if(scriptContext.type == 'create'){
     				promoRec.setValue({
     					fieldId: 'custrecord_itpm_p_itempricelevel',
-    					value: itpm.getPrefrenceValues()['defaultPriceLevel']
+    					value: itpm.getPrefrenceValues(undefined)['defaultPriceLevel']
     				});
     			}
     			//this block for adding the New Settement button to Promotion record.

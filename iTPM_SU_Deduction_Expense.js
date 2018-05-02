@@ -38,7 +38,8 @@ function(record, search, runtime, itpm) {
 				
 				var subsidiaryExists = itpm.subsidiariesEnabled();
 				var currencyExists = itpm.currenciesEnabled();
-				var itpmPreferences = itpm.getPrefrenceValues();
+				var subsidiaryID = (subsidiaryExists)? deductionRec.getValue('subsidiary') : undefined;
+				var itpmPreferences = itpm.getPrefrenceValues(subsidiaryID);
 				var expAccount = itpmPreferences.expenseAccnt;
 				var ddnId = context.request.parameters.ddn; 
 				var ddnAccount = null,				
