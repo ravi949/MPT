@@ -49,9 +49,18 @@ function(url, message) {
 		});
 		window.open(suiteletUrl, '_self');
 	}
+	/**
+	 * @param from
+	 * @param id
+	 * @description redirect to previous page
+	 */
+	function redirectToBack(from,id){
+    	history.go(-1);
+    }
     return {
     	iTPMDeduction:iTPMDeduction,
-    	iTPMMatchToDdn:iTPMMatchToDdn
+    	iTPMMatchToDdn:iTPMMatchToDdn,
+    	redirectToBack:redirectToBack
     };
     
 });
