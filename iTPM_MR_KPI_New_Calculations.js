@@ -25,11 +25,18 @@ function(search, runtime, itpm) {
     function getInputData() {
     	try{
     		var scriptObj = runtime.getCurrentScript();
-    		//log.debug('start getinput usage',scriptObj.getRemainingUsage());
-    		var arrObjs = [],noEstTotalQty = false;
+    		log.debug('start getinput usage',scriptObj.getRemainingUsage());
+    		var arrObjs = [];
+    		var noEstTotalQty = false;
+    		var promo_hasSales = false;
+    		var total_rev = 0;
+    		var estimated_spendbb_summary = 0;
+    		var estimated_spendoi_summary = 0;
     		
-        	[46].forEach(function(promoid){
-        		noEstTotalQty = false;
+        	[46,17].forEach(function(promoid){
+        		noEstTotalQty = promo_hasSales = false;
+        		estimated_spendbb_summary = getEstimtedSpenSummary(promoid, 'custrecord_itpm_kpi_estimatedspendbb');
+        		estimated_spendoi_summary = getEstimtedSpenSummary(promoid, 'custrecord_itpm_kpi_estimatedspendoi');;
         		search.create({
         			type:'customrecord_itpm_promotiondeal',
         			columns:['custrecord_itpm_p_status',
@@ -42,6 +49,8 @@ function(search, runtime, itpm) {
         			         'custrecord_itpm_p_allocationtype',
         			         'custrecord_itpm_p_type.custrecord_itpm_pt_dontupdate_lbonactual',
         			         'custrecord_itpm_kpi_promotiondeal.internalid',
+        			         'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_estimatedspendbb',
+        			         'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_estimatedspendoi',
         			         'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_estimatedrevenue',
         			         'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_esttotalqty',
         			         'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_item',
@@ -54,6 +63,17 @@ function(search, runtime, itpm) {
         		}).run().each(function(promo){
         			if(!noEstTotalQty){
         				noEstTotalQty = parseFloat(promo.getValue({name:'custrecord_itpm_kpi_esttotalqty',join:'custrecord_itpm_kpi_promotiondeal'})) <= 0
+        			}
+        			
+        			if(!promo_hasSales){
+        				promo_hasSales = itpm.hasSales({
+        	        		promotionId: promoid,
+        	        		shipStart: promo.getValue('custrecord_itpm_p_shipstart'),
+        	        		shipEnd: promo.getValue('custrecord_itpm_p_shipend'),
+        	        		customerId: promo.getValue('custrecord_itpm_p_customer')
+        				});
+        				total_rev = promo_hasSales.totalRev;
+        				promo_hasSales = promo_hasSales.hasSales;
         			}
         			
         			arrObjs.push({
@@ -69,17 +89,21 @@ function(search, runtime, itpm) {
         						promo_end		:	promo.getValue('custrecord_itpm_p_shipend'),
         						promo_customer	:	promo.getValue('custrecord_itpm_p_customer'),
         						promo_pricelevel:	promo.getValue('custrecord_itpm_p_itempricelevel'),
-        						promo_alltype	: 	promo.getValue('custrecord_itpm_p_allocationtype')
+        						promo_alltype	: 	promo.getValue('custrecord_itpm_p_allocationtype'),
+        						promo_hasSales	: 	promo_hasSales,
+        						donotupdatelib  : 	promo.getValue({name:'custrecord_itpm_pt_dontupdate_lbonactual',join:'custrecord_itpm_p_type'}),
+        						total_rev	    : 	total_rev,
+        						estimated_spendbb_sum : estimated_spendbb_summary,
+        						estimated_spendoi_sum : estimated_spendoi_summary
         				},
         				kpi_details		:	{
-        						kpi_item 	: 	promo.getValue({name:'custrecord_itpm_kpi_item',join:'custrecord_itpm_kpi_promotiondeal'}),
-        						kpi_leSpBB	:	promo.getValue({name:'custrecord_itpm_kpi_lespendbb',join:'custrecord_itpm_kpi_promotiondeal'}),
-        						kpi_leSpOI	:	promo.getValue({name:'custrecord_itpm_kpi_lespendoi',join:'custrecord_itpm_kpi_promotiondeal'}),
-        						kpi_leSpNB	:	promo.getValue({name:'custrecord_itpm_kpi_lespendnb',join:'custrecord_itpm_kpi_promotiondeal'}),
-        						kpi_estrev	: 	promo.getValue({name:'custrecord_itpm_kpi_estimatedrevenue',join:'custrecord_itpm_kpi_promotiondeal'})
-        				},
-        				promotype_details:	{
-        						donotupdatelib : promo.getValue({name:'custrecord_itpm_pt_dontupdate_lbonactual',join:'custrecord_itpm_p_type'})		
+        						kpi_item 	  :   promo.getValue({name:'custrecord_itpm_kpi_item',join:'custrecord_itpm_kpi_promotiondeal'}),
+        						kpi_leSpBB	  :	  promo.getValue({name:'custrecord_itpm_kpi_lespendbb',join:'custrecord_itpm_kpi_promotiondeal'}),
+        						kpi_leSpOI	  :	  promo.getValue({name:'custrecord_itpm_kpi_lespendoi',join:'custrecord_itpm_kpi_promotiondeal'}),
+        						kpi_leSpNB	  :   promo.getValue({name:'custrecord_itpm_kpi_lespendnb',join:'custrecord_itpm_kpi_promotiondeal'}),
+        						kpi_estrev	  :   promo.getValue({name:'custrecord_itpm_kpi_estimatedrevenue',join:'custrecord_itpm_kpi_promotiondeal'}),
+        						kpi_estspendbb:   promo.getValue({name:'custrecord_itpm_kpi_estimatedspendbb',join:'custrecord_itpm_kpi_promotiondeal'}),
+        						kpi_estspendoi:   promo.getValue({name:'custrecord_itpm_kpi_estimatedspendoi',join:'custrecord_itpm_kpi_promotiondeal'})
         				}
         			});
         			return true;
@@ -88,8 +112,8 @@ function(search, runtime, itpm) {
     	}catch(ex){
     		log.error('GetInputData Error', ex.name + '; ' + ex.message);
     	}finally{
-    		//log.debug('arrObjs',arrObjs);
-        	//log.debug('end getinput usage',scriptObj.getRemainingUsage());
+    		log.debug('arrObjs',arrObjs);
+        	log.debug('end getinput usage',scriptObj.getRemainingUsage());
         	return arrObjs;
     	}
     }
@@ -105,6 +129,7 @@ function(search, runtime, itpm) {
     		var scriptObj = runtime.getCurrentScript();
     		log.debug('start map usage',scriptObj.getRemainingUsage());
     		var resultObj = JSON.parse(context.value);
+    		log.debug('resultObj',resultObj);
     		var promoDetails = resultObj['promo_details'];
     		var kpiDetails	= resultObj['kpi_details'];
 //    		log.debug('resultObj',resultObj);
@@ -112,12 +137,13 @@ function(search, runtime, itpm) {
         	var estQtyResult = getEstQtyResults(promoDetails.promo_id, kpiDetails.kpi_item, false);
         	
         	//calculating the kpiFactorEstLS
-        	var kpi_factor_estls = 0;
+        	var kpi_factor_estls = 0, kpi_factor_actls = 0;
         	var estQtyCount = getEstQtyResults(promoDetails.promo_id, kpiDetails.kpi_item, true);
     		estQtyCount = estQtyCount[0].getValue({name:'internalid',summary:search.Summary.COUNT});
     		
+    		//calculating the LS Estimated Allocation Factor
         	if(resultObj.noEstTotalQty){
-        		kpi_factor_estls = (1/estQtyCount).toFixed(6);
+        		kpi_factor_estls = (1/estQtyCount);
         	}else{
         		var totalEstRev = search.create({
 	        			type:'customrecord_itpm_kpi',
@@ -132,7 +158,21 @@ function(search, runtime, itpm) {
 		        			['isinactive','is',false]
 	        			]
         		}).run().getRange(0,1)[0].getValue({name:'custrecord_itpm_kpi_estimatedrevenue',summary:search.Summary.SUM});
-        		kpi_factor_estls = (parseFloat(kpiDetails.kpi_estrev)/totalEstRev).toFixed(6);
+        		kpi_factor_estls = (parseFloat(kpiDetails.kpi_estrev)/totalEstRev);
+        	}
+        	
+        	//calculating the LS Actual Allocation Factor
+        	if(promoDetails.donotupdatelib || !promoDetails.promo_hasSales){
+        		kpi_factor_actls = kpi_factor_estls;
+        	}else{
+        		var kpi_item_rev = itpm.hasSales({
+        			promotionId: promoDetails.promo_id,
+        			shipStart: promoDetails.promo_start,
+        			shipEnd: promoDetails.promo_end,
+        			customerId: promoDetails.promo_customer,
+        			kpiItem: kpiDetails.kpi_item
+        		}).totalRev;
+        		kpi_factor_actls = (kpi_item_rev/parseFloat(promoDetails.total_rev));
         	}
         	
         	//if estqty search returns zero or more than one result
@@ -163,6 +203,17 @@ function(search, runtime, itpm) {
         	});
         	estimatedSpend.ls = (parseFloat(kpi_factor_estls)* parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
         	
+        	var kpi_actualQty = itpm.getActualQty(kpiDetails.kpi_item, promoDetails.promo_customer, promoDetails.promo_start, promoDetails.promo_end);
+        	var actQty = (util.isNumber(kpi_actualQty.quantity))? kpi_actualQty.quantity : 0;
+        	var leSpend = {
+					error: false,
+					spend: 0,
+					bb: 0,
+					oi: 0,
+					nb: 0,
+					ls: 0
+			};
+        	
         	var actualSpend = itpm.getSpend({
 				returnZero: false, 
 				actual: true, 
@@ -173,21 +224,9 @@ function(search, runtime, itpm) {
 				rateOI: estQty.estRateOI, 
 				rateNB: estQty.estRateNB
 			});
-
-        	var kpi_actualQty = itpm.getActualQty(kpiDetails.kpi_item, promoDetails.promo_customer, promoDetails.promo_start, promoDetails.promo_end);
-        	var actQty = (util.isNumber(kpi_actualQty.quantity))? kpi_actualQty.quantity : 0;
-        	var expectedLiability, maxLiability, leSpendLS;
-        	var leSpend = {
-					error: false,
-					spend: 0,
-					bb: 0,
-					oi: 0,
-					nb: 0,
-					ls: 0
-			};
         	
         	//calculating expected and maximum liabilities
-			expectedLiability = itpm.getLiability({
+			var expectedLiability = itpm.getLiability({
 				returnZero: false, 
 				quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty, 
 				rateBB: estQty.estRateBB, 
@@ -196,7 +235,7 @@ function(search, runtime, itpm) {
 				redemption: estQty.estRedemption
 			});
 
-			maxLiability = itpm.getLiability({
+			var maxLiability = itpm.getLiability({
 				returnZero: false, 
 				quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty, 
 				rateBB: estQty.estRateBB, 
@@ -218,7 +257,7 @@ function(search, runtime, itpm) {
         		if(promoDetails.donotupdatelib){
         			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
         		}else{
-        			//to be calculated actual ls
+        			expectedLiability.ls = maxLiability.ls = (kpi_factor_actls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
         		}
         		break;
         	case '3':	//APPROVED
@@ -226,6 +265,7 @@ function(search, runtime, itpm) {
         		if (promoDetails.promo_condition == '1'){	//condition == Future
         			
         			leSpend = estimatedSpend;
+        			actualSpend = itpm.getSpend({returnZero:true});				//should return object zero
         			expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
         			maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
         			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
@@ -254,48 +294,42 @@ function(search, runtime, itpm) {
         				
         				if (!expectedLiability.error){
         					leSpend.bb = (actualSpend.bb > expectedLiability.bb) ? actualSpend.bb : expectedLiability.bb;
-        				} else {
-        					leSpend.error = true;
         				}
-        			} else {
-        				leSpend.error = true;
         			}
         			
         		}
         		break;
 			default:
 				leSpend = estimatedSpend;
+				actualSpend = itpm.getSpend({returnZero: true});			//should return object zero
 				expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
 				maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
 				break;
         	}
         	
-        	
-//        	log.debug('le spend '+resultObj.kpi_id,leSpend);
     		log.debug('end map usage '+resultObj.kpi_id,scriptObj.getRemainingUsage());
-    		var contextObj = {
-        			key	:	{ 
-        				kpi_id		:	resultObj.kpi_id,
-        				kpi_item	:	kpiDetails.kpi_item
-        			},
-        			value:{
-        				promo_details : promoDetails,
-        				kpi_details	  :	{
-        					'custrecord_itpm_kpi_lespendbb' : leSpend.bb,
-                			'custrecord_itpm_kpi_lespendoi' : leSpend.oi,
-                			'custrecord_itpm_kpi_lespendnb' : leSpend.nb,
-                			'custrecord_itpm_kpi_maximumliabilitybb' : maxLiability.bb,
-                			'custrecord_itpm_kpi_maximumliabilityoi' : maxLiability.oi,
-                			'custrecord_itpm_kpi_maximumliabilitynb' : maxLiability.nb,
-                			'custrecord_itpm_kpi_expectedliabilitybb' : expectedLiability.bb,
-                			'custrecord_itpm_kpi_expectedliabilityoi' : expectedLiability.oi,
-                			'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb,
-                			'custrecord_itpm_kpi_factorestls' : kpi_factor_estls
-        				}
-        			}
-        		};
-    		log.debug('map context Obj', contextObj);
-    		context.write(contextObj);
+    		context.write({
+    			key	:	{ 
+    				kpi_id		:	resultObj.kpi_id,
+    				kpi_item	:	kpiDetails.kpi_item
+    			},
+    			value:{
+    				promo_details : promoDetails,
+    				kpi_details	  :	{
+    					'custrecord_itpm_kpi_lespendbb' : leSpend.bb.toFixed(2),
+            			'custrecord_itpm_kpi_lespendoi' : leSpend.oi.toFixed(2),
+            			'custrecord_itpm_kpi_lespendnb' : leSpend.nb.toFixed(2),
+            			'custrecord_itpm_kpi_maximumliabilitybb' : maxLiability.bb.toFixed(2),
+            			'custrecord_itpm_kpi_maximumliabilityoi' : maxLiability.oi.toFixed(2),
+            			'custrecord_itpm_kpi_maximumliabilitynb' : maxLiability.nb.toFixed(2),
+            			'custrecord_itpm_kpi_expectedliabilitybb' : expectedLiability.bb.toFixed(2),
+            			'custrecord_itpm_kpi_expectedliabilityoi' : expectedLiability.oi.toFixed(2),
+            			'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb.toFixed(2),
+            			'custrecord_itpm_kpi_factorestls' : isNaN(kpi_factor_estls)? 0 : kpi_factor_estls.toFixed(6),
+            			'custrecord_itpm_kpi_factoractualls' : isNaN(kpi_factor_actls)? 0: kpi_factor_actls.toFixed(6)
+    				}
+    			}
+    		});
     	}catch(ex){
     		log.error('MAP_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}
@@ -311,7 +345,66 @@ function(search, runtime, itpm) {
     	try{
     		var detailsObj = JSON.parse(context.values[0]);
         	var keyObj = JSON.parse(context.key);
-        	log.debug('context reduce ' + keyObj.kpi_id,detailsObj);
+        	var promoDetails = detailsObj['promo_details'];
+        	promoDetails.estimated_spednbb_sum = parseFloat(promoDetails.estimated_spednbb_sum);
+        	promoDetails.estimated_spendoi_sum = parseFloat(promoDetails.estimated_spednoi_sum);
+
+        	var kpiDetails = detailsObj['kpi_details'];
+        	kpiDetails.kpi_estspendbb = parseFloat(kpiDetails.kpi_estspendbb);
+        	kpiDetails.kpi_estspendoi = parseFloat(kpiDetails.kpi_estspendoi);
+        	log.audit('reduce detailsObj',detailsObj);
+        	
+        	var allowance_BB = [], allowance_OI = [];
+        	var allowanceResult = search.create({
+	        		type: "customrecord_itpm_promoallowance",
+	        		filters: [
+		        		["custrecord_itpm_all_promotiondeal","anyof",promoDetails.promo_id], 
+		        		"AND", 
+		        		["isinactive","is","F"], 
+		        		"AND", 
+		        		["custrecord_itpm_all_mop","anyof",[1,3]]
+	        		],
+	        		columns: ["custrecord_itpm_all_item", "custrecord_itpm_all_mop"]
+        	}).run().each(function(e){
+        		if(promo.getValue({name:'custrecord_itpm_all_mop'}) == 1){
+        			allowance_BB.push({
+        				item: promo.getValue({name:'custrecord_itpm_all_item'}),	
+            			mop: promo.getValue({name:'custrecord_itpm_all_mop'})
+        			});
+        		}else if(promo.getValue({name:'custrecord_itpm_all_mop'}) == 3){
+        			allowance_OI.push({
+        				item: promo.getValue({name:'custrecord_itpm_all_item'}),	
+            			mop: promo.getValue({name:'custrecord_itpm_all_mop'})
+        			});
+        		}
+        		return true;
+        	});
+        	
+        	
+        	//calculating the BB,OI Estimated Allocation Factor (EST allocation factor)
+        	if(allowance_BB.some(function(e){ return e.item == keyObj.kpi_item})){
+            	if(promoDetails.estimated_spednbb_sum <= 0){
+            		kpiDetails['custrecord_itpm_kpi_factorestbb'] = (1/allowance_BB.length).toFixed(6);
+            	}else{
+            		kpiDetails['custrecord_itpm_kpi_factorestbb'] = (kpiDetails.kpi_estspendbb/promoDetails.estimated_spednbb_sum).toFixed(6);
+            	}
+        	}
+        	
+        	if(allowance_OI.some(function(e){ return e.item == keyObj.kpi_item})){
+            	if(promoDetails.estimated_spednoi_sum <= 0){
+            		kpiDetails['custrecord_itpm_kpi_factorestoi'] = (1/allowance_OI.length).toFixed(6);
+            	}else{
+            		kpiDetails['custrecord_itpm_kpi_factorestoi'] = (kpiDetails.kpi_estspendoi/promoDetails.estimated_spednoi_sum).toFixed(6);
+            	}
+        	}
+        	
+        	//calculating BB,OI Allocation Factor Actual
+        	if(promoDetails.donotupdatelib || !promoDetails.promo_hasSales){
+        		kpiDetails['custrecord_itpm_kpi_factoractualbb'] = kpiDetails['custrecord_itpm_kpi_factorestoi'];
+        		kpiDetails['custrecord_itpm_kpi_factoractualoi'] = kpiDetails['custrecord_itpm_kpi_factorestoi'];
+        	}else{
+        		//maxliablilty sum from promotion - kpi maxlib/summary
+        	}
     	}catch(ex){
     		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}
@@ -362,6 +455,33 @@ function(search, runtime, itpm) {
     	}).run().getRange(0,1);
     }
     
+    /**
+     * @params {Number} promoid
+     * @param  {String} fieldId
+     * @description getting the estimated spend summary on the promotion
+     * @return estimatedSpendSummary
+     */
+    function getEstimtedSpenSummary(promoId, fieldId){
+    	var estimateSpendSummary = search.create({
+    		type: "customrecord_itpm_promotiondeal",
+    		filters: [
+		        ["internalid", "anyof", promoId],
+		        "AND",
+		        ["custrecord_itpm_kpi_promotiondeal.isinactive", "is", "F"]
+    		 ],
+    		 columns: [ 
+	           search.createColumn({
+	        	   name: fieldId,
+	        	   join: "CUSTRECORD_ITPM_KPI_PROMOTIONDEAL",
+	        	   summary: "SUM",
+	        	   sort: search.Sort.ASC
+	           })
+    		 ]
+    	}).run().getRange(0,1)[0].getValue({name:fieldId, join:'CUSTRECORD_ITPM_KPI_PROMOTIONDEAL', summary:search.Summary.SUM});
+    	
+    	estimateSpendSummary = (estimateSpendSummary)? estimateSpendSummary : 0;
+    	
+    }
 
     return {
         getInputData: getInputData,

@@ -26,7 +26,6 @@ define(['N/search',
 		try{
 			if (!obj.promotionId &&
 					!obj.shipStart && !obj.shipEnd &&
-					!obj.orderStart && !obj.orderEnd &&
 					!obj.customerId){
 				throw {
 					name: 'Missing required parameter.',
@@ -57,18 +56,23 @@ define(['N/search',
 //			}
 			log.audit('obj',obj);
 			//get promotion items
-			var itemSearch = search.create({
-				type: 'customrecord_itpm_kpi',
-				filters: [
-					['custrecord_itpm_kpi_promotiondeal', 'anyof', obj.promotionId], 'and',
-					['isinactive', 'is', 'F']
-					],
-					columns: ['custrecord_itpm_kpi_item']
-			});
-			itemSearch.run().each(function(result){
-				items.push(result.getValue('custrecord_itpm_kpi_item'));
-				return true;
-			});
+			if(obj.kpiItem){
+				items.push(obj.kpiItem);
+			}else{
+				var itemSearch = search.create({
+					type: 'customrecord_itpm_kpi',
+					filters: [
+						['custrecord_itpm_kpi_promotiondeal', 'anyof', obj.promotionId], 'and',
+						['isinactive', 'is', 'F']
+						],
+						columns: ['custrecord_itpm_kpi_item']
+				});
+				itemSearch.run().each(function(result){
+					items.push(result.getValue('custrecord_itpm_kpi_item'));
+					return true;
+				});
+			}
+			
 			//getting the sub customers of the customer
 			var subCustIds = getSubCustomers(obj.customerId);
 			log.debug('hasSales:subCustIds',subCustIds);
@@ -76,17 +80,23 @@ define(['N/search',
 			var invoiceSearch = search.create({
 				type: search.Type.INVOICE,
 				filters: [
-					['item', 'anyof', items], 'and',
-					['entity', 'anyof', subCustIds], 'and',
-					['trandate', 'within', start, end]
+						['item', 'anyof', items], 'and',
+						['entity', 'anyof', subCustIds], 'and',
+						['trandate', 'within', start, end]
 					],
-					columns: ['tranid']
+					columns: [
+					    search.createColumn({
+							name:'amount',
+							summary: "SUM"
+						})
+					]
 			});
-			var invoices = invoiceSearch.run().getRange(0,1);
-			if (invoices.length > 0) {
-				return {error: false, hasSales: true}
+			var totalRev = parseFloat(invoiceSearch.run().getRange(0,1)[0].getValue({name:'amount',summary:search.Summary.SUM}));
+			totalRev = (totalRev)? totalRev : 0;
+			if (totalRev > 0) {
+				return {error: false, totalRev: totalRev, hasSales: true}
 			} else {
-				return {error: false, hasSales: false}
+				return {error: false, totalRev: totalRev, hasSales: false}
 			}
 		} catch(ex){
 			log.error ('module_hasSales', ex.name +'; ' + ex.message + '; ' + JSON.stringify(obj));
