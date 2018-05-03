@@ -35,6 +35,7 @@ function(search, runtime, itpm) {
     		
         	[46,17].forEach(function(promoid){
         		noEstTotalQty = promo_hasSales = false;
+        		total_rev = 0;
         		estimated_spendbb_summary = getEstimtedSpenSummary(promoid, 'custrecord_itpm_kpi_estimatedspendbb');
         		estimated_spendoi_summary = getEstimtedSpenSummary(promoid, 'custrecord_itpm_kpi_estimatedspendoi');;
         		search.create({
@@ -143,7 +144,7 @@ function(search, runtime, itpm) {
     		
     		//calculating the LS Estimated Allocation Factor
         	if(resultObj.noEstTotalQty){
-        		kpi_factor_estls = (1/estQtyCount);
+        		kpi_factor_estls = (1/parseFloat(estQtyCount));
         	}else{
         		var totalEstRev = search.create({
 	        			type:'customrecord_itpm_kpi',
@@ -158,9 +159,10 @@ function(search, runtime, itpm) {
 		        			['isinactive','is',false]
 	        			]
         		}).run().getRange(0,1)[0].getValue({name:'custrecord_itpm_kpi_estimatedrevenue',summary:search.Summary.SUM});
-        		kpi_factor_estls = (parseFloat(kpiDetails.kpi_estrev)/totalEstRev);
+        		log.debug('kpi_estrev',kpiDetails.kpi_estrev);
+        		kpi_factor_estls = (parseFloat(kpiDetails.kpi_estrev)/parseFloat(totalEstRev));
         	}
-        	
+        	log.debug('kpi_factor_estls',kpi_factor_estls);
         	//calculating the LS Actual Allocation Factor
         	if(promoDetails.donotupdatelib || !promoDetails.promo_hasSales){
         		kpi_factor_actls = kpi_factor_estls;
@@ -172,7 +174,7 @@ function(search, runtime, itpm) {
         			customerId: promoDetails.promo_customer,
         			kpiItem: kpiDetails.kpi_item
         		}).totalRev;
-        		kpi_factor_actls = (kpi_item_rev/parseFloat(promoDetails.total_rev));
+        		kpi_factor_actls = (parseFloat(kpi_item_rev)/parseFloat(promoDetails.total_rev));
         	}
         	
         	//if estqty search returns zero or more than one result
@@ -306,16 +308,8 @@ function(search, runtime, itpm) {
 				maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
 				break;
         	}
-        	
-    		log.debug('end map usage '+resultObj.kpi_id,scriptObj.getRemainingUsage());
-    		context.write({
-    			key	:	{ 
-    				kpi_id		:	resultObj.kpi_id,
-    				kpi_item	:	kpiDetails.kpi_item
-    			},
-    			value:{
-    				promo_details : promoDetails,
-    				kpi_details	  :	{
+    		
+    		log.debug('update kpi values '+resultObj.kpi_id,{
     					'custrecord_itpm_kpi_lespendbb' : leSpend.bb.toFixed(2),
             			'custrecord_itpm_kpi_lespendoi' : leSpend.oi.toFixed(2),
             			'custrecord_itpm_kpi_lespendnb' : leSpend.nb.toFixed(2),
@@ -326,10 +320,32 @@ function(search, runtime, itpm) {
             			'custrecord_itpm_kpi_expectedliabilityoi' : expectedLiability.oi.toFixed(2),
             			'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb.toFixed(2),
             			'custrecord_itpm_kpi_factorestls' : isNaN(kpi_factor_estls)? 0 : kpi_factor_estls.toFixed(6),
-            			'custrecord_itpm_kpi_factoractualls' : isNaN(kpi_factor_actls)? 0: kpi_factor_actls.toFixed(6)
-    				}
-    			}
+            			'custrecord_itpm_kpi_factoractualls' : isNaN(kpi_factor_actls)? 0 : kpi_factor_actls.toFixed(6)
     		});
+    		log.debug('end map usage '+resultObj.kpi_id,scriptObj.getRemainingUsage());
+    		
+//    		context.write({
+//    			key	:	{ 
+//    				kpi_id		:	resultObj.kpi_id,
+//    				kpi_item	:	kpiDetails.kpi_item
+//    			},
+//    			value:{
+//    				promo_details : promoDetails,
+//    				kpi_details	  :	{
+//    					'custrecord_itpm_kpi_lespendbb' : leSpend.bb.toFixed(2),
+//            			'custrecord_itpm_kpi_lespendoi' : leSpend.oi.toFixed(2),
+//            			'custrecord_itpm_kpi_lespendnb' : leSpend.nb.toFixed(2),
+//            			'custrecord_itpm_kpi_maximumliabilitybb' : maxLiability.bb.toFixed(2),
+//            			'custrecord_itpm_kpi_maximumliabilityoi' : maxLiability.oi.toFixed(2),
+//            			'custrecord_itpm_kpi_maximumliabilitynb' : maxLiability.nb.toFixed(2),
+//            			'custrecord_itpm_kpi_expectedliabilitybb' : expectedLiability.bb.toFixed(2),
+//            			'custrecord_itpm_kpi_expectedliabilityoi' : expectedLiability.oi.toFixed(2),
+//            			'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb.toFixed(2),
+//            			'custrecord_itpm_kpi_factorestls' : isNaN(kpi_factor_estls)? 0 : kpi_factor_estls.toFixed(6),
+//            			'custrecord_itpm_kpi_factoractualls' : isNaN(kpi_factor_actls)? 0: kpi_factor_actls.toFixed(6)
+//    				}
+//    			}
+//    		});
     	}catch(ex){
     		log.error('MAP_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}
@@ -343,68 +359,69 @@ function(search, runtime, itpm) {
      */
     function reduce(context) {
     	try{
-    		var detailsObj = JSON.parse(context.values[0]);
-        	var keyObj = JSON.parse(context.key);
-        	var promoDetails = detailsObj['promo_details'];
-        	promoDetails.estimated_spednbb_sum = parseFloat(promoDetails.estimated_spednbb_sum);
-        	promoDetails.estimated_spendoi_sum = parseFloat(promoDetails.estimated_spednoi_sum);
-
-        	var kpiDetails = detailsObj['kpi_details'];
-        	kpiDetails.kpi_estspendbb = parseFloat(kpiDetails.kpi_estspendbb);
-        	kpiDetails.kpi_estspendoi = parseFloat(kpiDetails.kpi_estspendoi);
-        	log.audit('reduce detailsObj',detailsObj);
-        	
-        	var allowance_BB = [], allowance_OI = [];
-        	var allowanceResult = search.create({
-	        		type: "customrecord_itpm_promoallowance",
-	        		filters: [
-		        		["custrecord_itpm_all_promotiondeal","anyof",promoDetails.promo_id], 
-		        		"AND", 
-		        		["isinactive","is","F"], 
-		        		"AND", 
-		        		["custrecord_itpm_all_mop","anyof",[1,3]]
-	        		],
-	        		columns: ["custrecord_itpm_all_item", "custrecord_itpm_all_mop"]
-        	}).run().each(function(e){
-        		if(promo.getValue({name:'custrecord_itpm_all_mop'}) == 1){
-        			allowance_BB.push({
-        				item: promo.getValue({name:'custrecord_itpm_all_item'}),	
-            			mop: promo.getValue({name:'custrecord_itpm_all_mop'})
-        			});
-        		}else if(promo.getValue({name:'custrecord_itpm_all_mop'}) == 3){
-        			allowance_OI.push({
-        				item: promo.getValue({name:'custrecord_itpm_all_item'}),	
-            			mop: promo.getValue({name:'custrecord_itpm_all_mop'})
-        			});
-        		}
-        		return true;
-        	});
-        	
-        	
-        	//calculating the BB,OI Estimated Allocation Factor (EST allocation factor)
-        	if(allowance_BB.some(function(e){ return e.item == keyObj.kpi_item})){
-            	if(promoDetails.estimated_spednbb_sum <= 0){
-            		kpiDetails['custrecord_itpm_kpi_factorestbb'] = (1/allowance_BB.length).toFixed(6);
-            	}else{
-            		kpiDetails['custrecord_itpm_kpi_factorestbb'] = (kpiDetails.kpi_estspendbb/promoDetails.estimated_spednbb_sum).toFixed(6);
-            	}
-        	}
-        	
-        	if(allowance_OI.some(function(e){ return e.item == keyObj.kpi_item})){
-            	if(promoDetails.estimated_spednoi_sum <= 0){
-            		kpiDetails['custrecord_itpm_kpi_factorestoi'] = (1/allowance_OI.length).toFixed(6);
-            	}else{
-            		kpiDetails['custrecord_itpm_kpi_factorestoi'] = (kpiDetails.kpi_estspendoi/promoDetails.estimated_spednoi_sum).toFixed(6);
-            	}
-        	}
-        	
-        	//calculating BB,OI Allocation Factor Actual
-        	if(promoDetails.donotupdatelib || !promoDetails.promo_hasSales){
-        		kpiDetails['custrecord_itpm_kpi_factoractualbb'] = kpiDetails['custrecord_itpm_kpi_factorestoi'];
-        		kpiDetails['custrecord_itpm_kpi_factoractualoi'] = kpiDetails['custrecord_itpm_kpi_factorestoi'];
-        	}else{
-        		//maxliablilty sum from promotion - kpi maxlib/summary
-        	}
+//    		var detailsObj = JSON.parse(context.values[0]);
+//        	var keyObj = JSON.parse(context.key);
+//        	var promoDetails = detailsObj['promo_details'];
+//        	promoDetails.estimated_spednbb_sum = parseFloat(promoDetails.estimated_spednbb_sum);
+//        	promoDetails.estimated_spendoi_sum = parseFloat(promoDetails.estimated_spednoi_sum);
+//
+//        	var kpiDetails = detailsObj['kpi_details'];
+//        	kpiDetails.kpi_estspendbb = parseFloat(kpiDetails.kpi_estspendbb);
+//        	kpiDetails.kpi_estspendoi = parseFloat(kpiDetails.kpi_estspendoi);
+//        	log.audit('reduce detailsObj',detailsObj);
+//        	
+//        	var allowance_BB = [], allowance_OI = [];
+//        	var allowanceResult = search.create({
+//	        		type: "customrecord_itpm_promoallowance",
+//	        		filters: [
+//		        		["custrecord_itpm_all_promotiondeal","anyof",promoDetails.promo_id], 
+//		        		"AND", 
+//		        		["isinactive","is","F"], 
+//		        		"AND", 
+//		        		["custrecord_itpm_all_mop","anyof",[1,3]]
+//	        		],
+//	        		columns: ["custrecord_itpm_all_item", "custrecord_itpm_all_mop"]
+//        	}).run().each(function(e){
+//        		if(promo.getValue({name:'custrecord_itpm_all_mop'}) == 1){
+//        			allowance_BB.push({
+//        				item: promo.getValue({name:'custrecord_itpm_all_item'}),	
+//            			mop: promo.getValue({name:'custrecord_itpm_all_mop'})
+//        			});
+//        		}else if(promo.getValue({name:'custrecord_itpm_all_mop'}) == 3){
+//        			allowance_OI.push({
+//        				item: promo.getValue({name:'custrecord_itpm_all_item'}),	
+//            			mop: promo.getValue({name:'custrecord_itpm_all_mop'})
+//        			});
+//        		}
+//        		return true;
+//        	});
+//        	
+//        	
+//        	//calculating the BB,OI Estimated Allocation Factor (EST allocation factor)
+//        	if(allowance_BB.some(function(e){ return e.item == keyObj.kpi_item})){
+//            	if(promoDetails.estimated_spednbb_sum <= 0){
+//            		kpiDetails['custrecord_itpm_kpi_factorestbb'] = (1/allowance_BB.length).toFixed(6);
+//            	}else{
+//            		kpiDetails['custrecord_itpm_kpi_factorestbb'] = (kpiDetails.kpi_estspendbb/promoDetails.estimated_spednbb_sum).toFixed(6);
+//            	}
+//        	}
+//        	
+//        	if(allowance_OI.some(function(e){ return e.item == keyObj.kpi_item})){
+//            	if(promoDetails.estimated_spednoi_sum <= 0){
+//            		kpiDetails['custrecord_itpm_kpi_factorestoi'] = (1/allowance_OI.length).toFixed(6);
+//            	}else{
+//            		kpiDetails['custrecord_itpm_kpi_factorestoi'] = (kpiDetails.kpi_estspendoi/promoDetails.estimated_spednoi_sum).toFixed(6);
+//            	}
+//        	}
+//        	
+//        	//calculating BB,OI Allocation Factor Actual
+//        	if(promoDetails.donotupdatelib || !promoDetails.promo_hasSales){
+//        		kpiDetails['custrecord_itpm_kpi_factoractualbb'] = kpiDetails['custrecord_itpm_kpi_factorestoi'];
+//        		kpiDetails['custrecord_itpm_kpi_factoractualoi'] = kpiDetails['custrecord_itpm_kpi_factorestoi'];
+//        	}else{
+//        		//maxliablilty bb sum from promotion - kpi maxlibb/summary
+//        		//maxliablilty sum oi from promotion - kpi maxlibb/summary
+//        	}
     	}catch(ex){
     		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}
@@ -486,7 +503,7 @@ function(search, runtime, itpm) {
     return {
         getInputData: getInputData,
         map: map,
-        reduce: reduce,
+//        reduce: reduce,
         summarize: summarize
     };
     
