@@ -164,13 +164,13 @@ function(record, redirect, runtime, search, serverWidget, url, itpm) {
 			//setting body fields Subsidiary and iTPM Applied To
 			journalEntry.setValue({
 				fieldId : 'custbody_itpm_appliedto',
-				value   : deductionid
+				value   : creditmemoid
 			});
 			
 			//setting body fields Subsidiary and iTPM Created From
 			journalEntry.setValue({
 				fieldId : 'custbody_itpm_createdfrom',
-				value   : creditmemoid
+				value   : deductionid
 			});
 			
 			//setting body fields memo

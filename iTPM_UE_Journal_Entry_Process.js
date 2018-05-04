@@ -213,38 +213,7 @@ function(search, record, redirect, runtime, itpm) {
         						itpm.applyCreditMemo(cmLookup.entity[0].value, dedLookup.custbody_itpm_ddn_openbal, cmLookup.amountremaining, jeNewRecordObj.id, jeAppliedTo, jeCreatedFrom, locationExists, classExists, departmentExists);
         					}
         					else if(searchObj.run().getRange(0,1)[0].recordType == 'customtransaction_itpm_deduction'){
-        						if(jeCreatedFrom){
-        							var searchObj = search.create({
-                					    type: search.Type.TRANSACTION,
-                					    columns : ['internalid'],
-                					    filters: [['internalid','anyof', jeCreatedFrom]]
-                					});
-
-                					log.debug('iTPM Applied To: Record Type', searchObj.run().getRange(0,1)[0].recordType);
-                					if(searchObj.run().getRange(0,1)[0].recordType == 'creditmemo'){
-                						log.debug('Deduction is is Processing on Credit Memo ...');
-                    	            	
-                						//getting open balance from deduction
-                    					var dedLookup = search.lookupFields({
-                    						type    : 'customtransaction_itpm_deduction',
-                    						id      : jeAppliedTo,
-                    						columns : ['custbody_itpm_ddn_openbal']
-                    					});
-                    					log.debug('Deduction Open balance', dedLookup.custbody_itpm_ddn_openbal);
-                    					
-                						//getting remaining amount from credit memo
-                    					var cmLookup = search.lookupFields({
-                    						type    : search.Type.CREDIT_MEMO,
-                    						id      : jeCreatedFrom,
-                    						columns : ['amountremaining', 'entity']
-                    					});
-                    					log.debug('Customer', cmLookup.entity[0].value);
-                    					log.debug('Credit Memo Amount remaining', cmLookup.amountremaining);
-                						itpm.applyCreditMemo(cmLookup.entity[0].value, dedLookup.custbody_itpm_ddn_openbal, cmLookup.amountremaining, jeNewRecordObj.id, jeCreatedFrom, jeAppliedTo, locationExists, classExists, departmentExists);
-                					}
-        						}else{
-        							updateDeduction(jeAppliedTo, jeNewRecordObj);
-        						}        							
+        						updateDeduction(jeAppliedTo, jeNewRecordObj);
         					}
         	            }
                     }
