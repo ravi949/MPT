@@ -114,11 +114,15 @@ define(['N/search',
 					label:'Deduction',
 					functionName:'iTPMDeduction('+scriptContext.newRecord.id+')'
 				});
-				scriptContext.form.addButton({
-					id:'custpage_itpm_matchtoddn',
-					label:'Match to Deduction',
-					functionName:'iTPMMatchToDdn('+scriptContext.newRecord.id+')'
-				});
+				var JE_Permssion = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
+				log.debug('JE_Permssion',JE_Permssion);
+				if(JE_Permssion >= 2){
+					scriptContext.form.addButton({
+						id:'custpage_itpm_matchtoddn',
+						label:'Match to Deduction',
+						functionName:'iTPMMatchToDdn('+scriptContext.newRecord.id+')'
+					});
+				}
 			}
 		}
 	}
