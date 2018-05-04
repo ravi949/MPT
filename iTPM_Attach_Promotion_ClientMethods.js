@@ -3,10 +3,11 @@
  * @NModuleScope TargetAccount
  */
 define(['N/url',
-		'N/ui/message'
+		'N/ui/message',
+		'N/record'
 	   ],
 
-function(url,message) {
+function(url, message, record) {
 	
 	function displayMessage(title,text){
 		try{
@@ -37,8 +38,37 @@ function(url,message) {
 		}
 	}
 	
+	function refreshKPIs(promoID){
+		try{
+			var recObj = record.create({
+				type: 'customrecord_itpm_kpiqueue',
+				isDynamic: true
+			});
+			recObj.setValue({
+	            fieldId: 'custrecord_itpm_kpiq_promotion',
+	            value: promoID
+	        });
+			recObj.setValue({
+	            fieldId: 'custrecord_itpm_kpiq_queuerequest',
+	            value: 4  //Ad-hoc
+	        });
+			
+			var recordId = recObj.save({
+	            enableSourcing: false,
+	            ignoreMandatoryFields: false
+	        });
+			console.log('KPI Queue record ID: '+recordId);
+			
+			//redirect to the same promotion
+			window.location.reload();
+		}catch(e){
+			console.log(e.name,'function name = refreshKPIs, message = '+e.message);
+		}
+	}
+	
     return {
-        newSettlement:newSettlement
+        newSettlement:newSettlement,
+        refreshKPIs : refreshKPIs
     };
     
 });
