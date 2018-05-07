@@ -154,55 +154,33 @@ function(redirect,runtime,search,ST_Module) {
 			var newStatus = settlementNewRec.getValue('transtatus');
 			var promoId = settlementRec.getValue('custbody_itpm_set_promo');
 			
-    		if(eventType == 'create'){
+    		if(eventType == 'edit'){
     			var searchCount = search.create({type : 'customrecord_itpm_kpiqueue',filters : ['custrecord_itpm_kpiq_promotion', 'is', promoRec.id]}).runPaged().count;
     			log.debug('REFRESH KPIs button: searchCount', searchCount);
+    			log.debug('Old Status & New Status', oldStatus+' & '+newStatus);
     			
     			if(searchCount == 0){
-    				//Creating New KPI Queue Record
-        			var recObj = record.create({
-        				type: 'customrecord_itpm_kpiqueue',
-        				isDynamic: true
-        			});
-        			recObj.setValue({
-        	            fieldId: 'custrecord_itpm_kpiq_promotion',
-        	            value: promoId
-        	        });
-        			recObj.setValue({
-        	            fieldId: 'custrecord_itpm_kpiq_queuerequest',
-        	            value: 2  //1.Scheduled, 2.Edited, 3.Status Changed and 4.Ad-hoc
-        	        });
-        			
-        			var recordId = recObj.save({
-        	            enableSourcing: false,
-        	            ignoreMandatoryFields: false
-        	        });
-        			log.debug('KPI Queue record ID: '+recordId);
-    			}
-    		}else if(eventType == 'edit'){
-    			var searchCount = search.create({type : 'customrecord_itpm_kpiqueue',filters : ['custrecord_itpm_kpiq_promotion', 'is', promoRec.id]}).runPaged().count;
-    			log.debug('REFRESH KPIs button: searchCount', searchCount);
-    			
-    			if(oldStatus != newStatus && searchCount == 0){
-    				//Creating New KPI Queue Record
-        			var recObj = record.create({
-        				type: 'customrecord_itpm_kpiqueue',
-        				isDynamic: true
-        			});
-        			recObj.setValue({
-        	            fieldId: 'custrecord_itpm_kpiq_promotion',
-        	            value: promoId
-        	        });
-        			recObj.setValue({
-        	            fieldId: 'custrecord_itpm_kpiq_queuerequest',
-        	            value: 2  //1.Scheduled, 2.Edited, 3.Status Changed and 4.Ad-hoc
-        	        });
-        			
-        			var recordId = recObj.save({
-        	            enableSourcing: false,
-        	            ignoreMandatoryFields: false
-        	        });
-        			log.debug('KPI Queue record ID: '+recordId);
+    				if((oldStatus == 'E' && (newStatus == 'A' || newStatus == 'B')) || (oldStatus == 'A' && newStatus == 'C')){
+    					//Creating New KPI Queue Record
+            			var recObj = record.create({
+            				type: 'customrecord_itpm_kpiqueue',
+            				isDynamic: true
+            			});
+            			recObj.setValue({
+            	            fieldId: 'custrecord_itpm_kpiq_promotion',
+            	            value: promoId
+            	        });
+            			recObj.setValue({
+            	            fieldId: 'custrecord_itpm_kpiq_queuerequest',
+            	            value: 5  //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+            	        });
+            			
+            			var recordId = recObj.save({
+            	            enableSourcing: false,
+            	            ignoreMandatoryFields: false
+            	        });
+            			log.debug('KPI Queue record ID: '+recordId);
+    				}
     			}
     		}
     	}catch(e){
