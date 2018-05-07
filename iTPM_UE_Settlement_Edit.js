@@ -152,7 +152,7 @@ function(redirect,runtime,search,ST_Module) {
 			var settlementNewRec = scriptContext.newRecord;
 			var oldStatus = settlementOldRec.getValue('transtatus');
 			var newStatus = settlementNewRec.getValue('transtatus');
-			var promoId = settlementRec.getValue('custbody_itpm_set_promo');
+			var promoId = settlementNewRec.getValue('custbody_itpm_set_promo');
 			
     		if(eventType == 'edit'){
     			var searchCount = search.create({type : 'customrecord_itpm_kpiqueue',filters : ['custrecord_itpm_kpiq_promotion', 'is', promoRec.id]}).runPaged().count;
