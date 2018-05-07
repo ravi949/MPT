@@ -29,11 +29,16 @@ function(search, runtime, itpm) {
     		var arrObjs = [];
     		var noEstTotalQty = false;
     		var promo_hasSales = false;
-    		var total_rev = 0;
+    		var total_rev = 0, promoid;
     		var estimated_spendbb_summary = 0;
     		var estimated_spendoi_summary = 0;
     		
-        	[47,44].forEach(function(promoid){
+    		search.create({
+    			type:'customrecord_itpm_kpiqueue',
+    			columns:['custrecord_itpm_kpiq_promotion'],
+    			filters:[]
+    		 }).run().each(function(kpiQueue){
+    			promoid = kpiQueue.getValue('custrecord_itpm_kpiq_promotion');
         		noEstTotalQty = promo_hasSales = false;
         		total_rev = 0;
         		estimated_spendbb_summary = getEstimtedSpenSummary(promoid, 'custrecord_itpm_kpi_estimatedspendbb');
@@ -113,6 +118,7 @@ function(search, runtime, itpm) {
         			});
         			return true;
         		});
+        		return true;
         	});
     	}catch(ex){
     		log.error('GetInputData Error', ex.name + '; ' + ex.message);
@@ -383,10 +389,9 @@ function(search, runtime, itpm) {
             		return true;
             	});
             	
-            	
             	//calculating the BB,OI Estimated Allocation Factor (EST allocation factor)
             	if(allowance_BB.some(function(e){ return e.item == kpiDetails.kpi_item})){
-                	if(promoDetails.estimated_spednbb_sum <= 0){
+            		if(promoDetails.estimated_spendbb_sum <= 0){
                 		kpiDetails['custrecord_itpm_kpi_factorestbb'] = (1/allowance_BB.length).toFixed(6);
                 	}else{
                 		kpiDetails['custrecord_itpm_kpi_factorestbb'] = (kpiDetails.kpi_estspendbb/promoDetails.estimated_spendbb_sum).toFixed(6);
@@ -394,7 +399,7 @@ function(search, runtime, itpm) {
             	}
             	
             	if(allowance_OI.some(function(e){ return e.item == kpiDetails.kpi_item})){
-                	if(promoDetails.estimated_spednoi_sum <= 0){
+                	if(promoDetails.estimated_spendoi_sum <= 0){
                 		kpiDetails['custrecord_itpm_kpi_factorestoi'] = (1/allowance_OI.length).toFixed(6);
                 	}else{
                 		kpiDetails['custrecord_itpm_kpi_factorestoi'] = (kpiDetails.kpi_estspendoi/promoDetails.estimated_spendoi_sum).toFixed(6);
@@ -406,7 +411,6 @@ function(search, runtime, itpm) {
             		kpiDetails['custrecord_itpm_kpi_factoractualbb'] = kpiDetails['custrecord_itpm_kpi_factorestbb'];
             		kpiDetails['custrecord_itpm_kpi_factoractualoi'] = kpiDetails['custrecord_itpm_kpi_factorestoi'];
             	}
-            	
             	contextObj['value'].update_fields['custrecord_itpm_kpi_factorestbb'] = isNaN(kpiDetails['custrecord_itpm_kpi_factorestbb'])? 0 : kpiDetails['custrecord_itpm_kpi_factorestbb'];
             	contextObj['value'].update_fields['custrecord_itpm_kpi_factorestoi'] = isNaN(kpiDetails['custrecord_itpm_kpi_factorestoi'])? 0 : kpiDetails['custrecord_itpm_kpi_factorestoi'];
             	contextObj['value'].update_fields['custrecord_itpm_kpi_factoractualbb'] = isNaN(kpiDetails['custrecord_itpm_kpi_factoractualbb'])? 0 : kpiDetails['custrecord_itpm_kpi_factoractualbb'];
