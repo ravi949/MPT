@@ -523,8 +523,8 @@ function(config, task, search, record, runtime) {
     	var preferenceResult = search.create({
 			type:'customrecord_itpm_preferences',
 			columns:['internalid']
-		}).run().getRange(0,10);
-		var prefResultLength = preferenceResult.length;
+		}).run();
+		var prefResultLength = preferenceResult.getRange(0,10).length;
 		preferenceResult = (prefResultLength == 0)? undefined : preferenceResult[0].getValue('internalid');
 		
 		
@@ -535,14 +535,15 @@ function(config, task, search, record, runtime) {
         		filters:[]
         	}).run();
     		
-    		subsidiaryResult.each(function(e){
-    			if(prefResultLength == 1){
-    				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
-    			}
-				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'));
-				return true;
-			});
-    		
+    		if(prefResultLength <= 1){
+        		subsidiaryResult.each(function(e){
+        			if(prefResultLength == 1){
+        				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
+        			}
+    				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'));
+    				return true;
+    			});
+    		}    		
     	}else{
     		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined) : '';
     	}
