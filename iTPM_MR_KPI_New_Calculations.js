@@ -5,12 +5,13 @@
  */
 define(['N/search',
         'N/runtime',
+        'N/record',
         './iTPM_Module.js'
         ],
 /**
  * @param {search} search
  */
-function(search, runtime, itpm) {
+function(search, runtime, record, itpm) {
    
     /**
      * Marks the beginning of the Map/Reduce process and generates input data.
@@ -25,7 +26,7 @@ function(search, runtime, itpm) {
     function getInputData() {
     	try{
     		var scriptObj = runtime.getCurrentScript();
-    		log.debug('start getinput usage',scriptObj.getRemainingUsage());
+    		log.audit('start getinput usage',scriptObj.getRemainingUsage());
     		var arrObjs = [];
     		var noEstTotalQty = false;
     		var promo_hasSales = false;
@@ -35,9 +36,24 @@ function(search, runtime, itpm) {
     		
     		search.create({
     			type:'customrecord_itpm_kpiqueue',
-    			columns:['custrecord_itpm_kpiq_promotion'],
-    			filters:[]
+    			columns:[search.createColumn({name:'internalid',sort:search.Sort.ASC}),
+    			         'custrecord_itpm_kpiq_promotion'],
+    			filters:[['custrecord_itpm_kpiq_start','isempty',null],'and',
+    			         ['custrecord_itpm_kpiq_end','isempty',null]]
     		 }).run().each(function(kpiQueue){
+    			 //update the kpi queue record with start date
+//    			 record.submitFields({
+//    				 type:'customrecord_itpm_kpiqueue',
+//    				 id:kpiQueue.getValue('internalid'),
+//    				 values:{
+//    					 'custrecord_itpm_kpiq_start':new Date()
+//    				 },
+//    				 options:{
+//    					 enableSourcing:false,
+//    					 ignoreMandatoryFields:true
+//    				 }
+//    			 });
+    			 
     			promoid = kpiQueue.getValue('custrecord_itpm_kpiq_promotion');
         		noEstTotalQty = promo_hasSales = false;
         		total_rev = 0;
@@ -124,7 +140,7 @@ function(search, runtime, itpm) {
     		log.error('GetInputData Error', ex.name + '; ' + ex.message);
     	}finally{
     		log.debug('arrObjs',arrObjs);
-        	log.debug('end getinput usage',scriptObj.getRemainingUsage());
+        	log.audit('end getinput usage',scriptObj.getRemainingUsage());
         	return arrObjs;
     	}
     }
@@ -138,12 +154,16 @@ function(search, runtime, itpm) {
     function map(context) {
     	try{
     		var scriptObj = runtime.getCurrentScript();
-    		log.debug('start map usage',scriptObj.getRemainingUsage());
+    		log.audit('start map usage',scriptObj.getRemainingUsage());
     		var resultObj = JSON.parse(context.value);
     		log.debug('resultObj',resultObj);
     		var promoDetails = resultObj['promo_details'];
     		var kpiDetails	= resultObj['kpi_details'];
 //    		log.debug('resultObj',resultObj);
+    		
+        	//creating the kpi queue detail record
+        	createKpiQueueDetailRecord(1, resultObj.kpi_queue_id, context.key ,context.value);
+    		
     		var estQty = {};
         	var estQtyResult = getEstQtyResults(promoDetails.promo_id, kpiDetails.kpi_item, false); //consider the item in search filter
         	
@@ -334,6 +354,7 @@ function(search, runtime, itpm) {
         	var contextObj = {
         			key	:	{
         				promo_id : promoDetails.promo_id,
+        				kpi_queue_id : resultObj.kpi_queue_id,
         				donotupdatelib : promoDetails.donotupdatelib,
         				promo_hasSales : promoDetails.promo_hasSales,
         				promo_status   : promoDetails.promo_status,
@@ -424,8 +445,7 @@ function(search, runtime, itpm) {
             	contextObj['value'].update_fields['custrecord_itpm_kpi_factoractualoi'] = isNaN(kpiDetails['custrecord_itpm_kpi_factoractualoi'])? 0 : kpiDetails['custrecord_itpm_kpi_factoractualoi'];
         	}
         	
-        	
-    		log.debug('end map usage '+resultObj.kpi_id,scriptObj.getRemainingUsage());
+    		log.audit('end map usage '+resultObj.kpi_id,scriptObj.getRemainingUsage());
     		
     		context.write(contextObj);
     	}catch(ex){
@@ -442,11 +462,14 @@ function(search, runtime, itpm) {
     function reduce(context) {
     	try{
     		var scriptObj = runtime.getCurrentScript();
-    		log.debug('start reduce usage',scriptObj.getRemainingUsage());
+    		log.audit('start reduce usage',scriptObj.getRemainingUsage());
     		log.debug('context reduce',context);
         	var keyObj = JSON.parse(context.key);
         	keyObj.est_qty_count = parseFloat(keyObj.est_qty_count);
         	log.debug('keyObj',keyObj);
+        	
+        	//creating the kpi queue detail record
+        	createKpiQueueDetailRecord(2, keyObj.kpi_queue_id, keyObj ,JSON.stringify(context.values));
         	
         	if(keyObj.promo_status == '3' && keyObj.promo_alltype != '4'){
         		//calculating BB,OI Actual Allocation Factor (Actual)
@@ -475,9 +498,34 @@ function(search, runtime, itpm) {
             			}
             		}
         		}
+        		
+        		//update the kpi field values
+//        		record.submitFields({
+//        			type:'customrecord_itpm_kpi',
+//        			id:JSONObj['internalid']['value'],
+//        			values:kpiObj.update_fields,
+//        			options:{
+//        				enableSourcing:false,
+//        				ignoreMandatoryFields:true
+//        			}
+//        		});
+        		
         		log.debug('reduce kpi update fields'+kpiObj.kpi_id,kpiObj.update_fields);
         	});
-    		log.debug('end reduce usage',scriptObj.getRemainingUsage());
+        	
+//        	record.submitFields({
+//        		type:'customrecord_itpm_kpiqueue',
+//        		id: keyObj.kpi_queue_id,
+//        		values:{
+//        			'custrecord_itpm_kpiq_end':new Date()
+//        		},
+//        		options:{
+//        			enableSourcing:false,
+//        			ignoreMandatoryFields:true
+//        		}
+//        	});
+        	
+    		log.audit('end reduce usage',scriptObj.getRemainingUsage());
     	}catch(ex){
     		log.error('REDUCE_ERROR', ex.name + '; ' + ex.message + '; Key: ' + context.key);
     	}
@@ -553,6 +601,34 @@ function(search, runtime, itpm) {
     	}).run().getRange(0,1)[0].getValue({name:fieldId, join:'CUSTRECORD_ITPM_KPI_PROMOTIONDEAL', summary:search.Summary.SUM});
     	
     	return estimateSpendSummary = (estimateSpendSummary)? estimateSpendSummary : 0;
+    }
+    
+    /**
+     * @param {type} status type
+     * @param {kpiQueueID} kpi queue record id
+     * @param {key} key 
+     * @param {value} value
+     */
+    function createKpiQueueDetailRecord(type, kpiQueueID, key, value){
+    	record.create({
+    		type:'customrecord_itpm_kpiqueuedetail',
+    		isDynamic:true
+    	}).setValue({
+    		fieldId:'custrecord_itpm_kpiqmap_parent',
+    		value:kpiQueueID
+    	}).setValue({
+    		fieldId:'custrecord_itpm_kpiqd_type',
+    		value:type
+    	}).setValue({
+    		fieldId:'custrecord_itpm_kpiqd_key',
+    		value:JSON.stringify(key)
+    	}).setValue({
+    		fieldId:'custrecord_itpm_kpiqd_value',
+    		value:value.substring(0,1000000)
+    	}).save({
+    		enableSourcing:false,
+    		ignoreMandatoryFields:true
+    	});
     }
 
     return {
