@@ -34,7 +34,8 @@ function(record, search, runtime, itpm) {
     			         'custrecord_itpm_kpi_promotiondeal',
     			         'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_p_itempricelevel',
     			         'custrecord_itpm_kpi_item'],
-    			filters:[]
+    			filters:[['custrecord_itpm_kpi_estimatedrevenue','lessthanorequalto',0],'or',
+                         ['custrecord_itpm_kpi_estimatedrevenue','isempty',null]]
     		});
     	}catch(ex){
     		log.debug(ex.name, ex.message);
@@ -78,7 +79,19 @@ function(record, search, runtime, itpm) {
 
     		//Calculating Estimated Revenue: Step 3
     		var estimatedRevenue = parseFloat(totalestqty) * parseFloat(itemImpactPrice.price) * (unitrate / saleunitrate);
-    		log.debug('estimatedRevenue '+JSONObj['internalid']['value'],estimatedRevenue);
+    		log.audit('estimatedRevenue '+JSONObj['internalid']['value'],estimatedRevenue);
+
+    		record.submitFields({
+    			type:'customrecord_itpm_kpi',
+    			id:JSONObj['internalid']['value'],
+    			values:{
+    				'custrecord_itpm_kpi_estimatedrevenue':estimatedRevenue
+    			},
+    			options:{
+    				enableSourcing:false,
+    				ignoreMandatoryFields:true
+    			}
+    		});
 
     		log.debug('end map time',scriptObj.getRemainingUsage());
     		
