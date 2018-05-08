@@ -40,6 +40,7 @@ function(url, message, record) {
 	
 	function refreshKPIs(promoID){
 		try{
+			//console.log(promoID);
 			var recObj = record.create({
 				type: 'customrecord_itpm_kpiqueue',
 				isDynamic: true
@@ -57,7 +58,7 @@ function(url, message, record) {
 	            enableSourcing: false,
 	            ignoreMandatoryFields: false
 	        });
-			console.log('KPI Queue record ID: '+recordId);
+			//console.log('KPI Queue record ID: '+recordId);
 			
 			//redirect to the same promotion
 			window.location.reload();

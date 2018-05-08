@@ -83,6 +83,7 @@ function(serverWidget,record,runtime,url,search,itpm) {
         					label:'Refresh KPIs',
         					functionName:'refreshKPIs('+promoRec.id+')'
         				});
+        				promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
         			}
         			
         			
@@ -258,7 +259,7 @@ function(serverWidget,record,runtime,url,search,itpm) {
         			if(searchCount == 0){
         				var queueType = (newStatus == 3 && (condition == 2 || condition == 3)) ? 2 : 3;
         				//Creating New KPI Queue Record
-        				//itpm.createKPIQueue(promoId, queueType); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+        				itpm.createKPIQueue(promoId, queueType); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
             		}
         		}
     		}

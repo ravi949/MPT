@@ -240,7 +240,7 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
     			if(searchCount == 0){
     				if(promStatus == 3 && (promCondition == 2 || promCondition == 3)){
     					//Creating New KPI Queue Record
-    					//itpm.createKPIQueue(promoId, 2); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+    					itpm.createKPIQueue(promoId, 2); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
     				}
     			}
         	}

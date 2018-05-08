@@ -121,7 +121,7 @@ function(search, record, itpm) {
     			
     			if(searchCount == 0){
     				//Creating New KPI Queue Record
-    				//itpm.createKPIQueue(promoId, 2); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+    				itpm.createKPIQueue(promoId, 2); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
     			}
     		}
     	}catch(e){
