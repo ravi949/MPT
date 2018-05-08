@@ -117,6 +117,13 @@ function(config, task, search, record, runtime) {
     		deploymentId: 'customdeploy_itpm_ddn_spilt_externalid'
     	}).submit();
     	
+    	//task for update estimated revenue on kpi record
+    	task.create({
+    		taskType: task.TaskType.MAP_REDUCE,
+    		scriptId: 'customscript_itpm_mr_kpi_updateestreven',
+    		deploymentId: 'customdeploy_itpm_mr_kpi_updateestreven'
+    	}).submit();
+    	
     	//script to modify status filter on all iTPM saved searches
     	updateSearchFilters();
     	
