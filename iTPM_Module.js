@@ -2251,6 +2251,39 @@ define(['N/search',
     		return [custId];
     	}
     }
+    
+    /**
+     * @param {String} promId
+     * @param {Number} requestType
+     * 
+     * @description This function is used to create KPI Queue record based on the trigger conditions
+     * 				Used Scripts: iTPM_UE_Promotion_Processing.js, iTPM_Attach_Promotion_ClientMethods.js, iTPM_UE_Settlement_Edit.js
+     * 							  iTPM_UE_Allowance_Dynamic_Fields.js, iTPM_WFA_KPI_Calculations.js
+     */
+    function createKPIQueue(promId, requestType){
+    	try{
+    		var recObj = record.create({
+				type: 'customrecord_itpm_kpiqueue',
+				isDynamic: true
+			});
+			recObj.setValue({
+	            fieldId: 'custrecord_itpm_kpiq_promotion',
+	            value: promId
+	        });
+			recObj.setValue({
+	            fieldId: 'custrecord_itpm_kpiq_queuerequest',
+	            value: requestType  //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+	        });
+			
+			var recordId = recObj.save({
+	            enableSourcing: false,
+	            ignoreMandatoryFields: false
+	        });
+			log.debug('KPI Queue record ID: '+recordId);
+    	} catch(ex){
+    		log.error ('module_createKPIQueue', ex.name +'; ' + ex.message + '; ');
+    	}
+    }
 
 	return {
 		getItemUnits : getItemUnits,

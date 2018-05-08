@@ -35,15 +35,16 @@ function(search, record, itpm) {
     		var fieldLookUpEQProm = search.lookupFields({
     			type   : 'customrecord_itpm_promotiondeal',
     			id     : promotionIdEQ,
-    			columns: ['custrecord_itpm_p_status', 'custrecord_itpm_p_itempricelevel']
+    			columns: ['custrecord_itpm_p_status', 'custrecord_itpm_p_itempricelevel', 'custrecord_itpm_p_condition']
     		});
     
-    		var eqPromStatus = fieldLookUpEQProm.custrecord_itpm_p_status[0].text;
+    		var eqPromStatus = fieldLookUpEQProm.custrecord_itpm_p_status[0].value;
+    		var eqPromCondition = fieldLookUpEQProm.custrecord_itpm_p_condition[0].value;
     		var eqPromPriceLevel = fieldLookUpEQProm.custrecord_itpm_p_itempricelevel[0].value;
-    		log.debug('eqPromStatus & eqPromPriceLevel', eqPromStatus+'& '+eqPromPriceLevel);
+    		log.debug('eqPromStatus & eqPromCondition & eqPromPriceLevel', eqPromStatus+' & '+eqPromCondition+' & '+eqPromPriceLevel);
     		
     		//Run if Promotion STATUS is Draft
-    		if(eqPromStatus == 'Draft'){
+    		if(eqPromStatus == 1){
     			log.debug("PROMOTION STATUS", "PROMOTIONS is "+eqPromStatus);
     			var kpiInternalID = '';
     			var kpiPromQnty = '';
@@ -111,7 +112,18 @@ function(search, record, itpm) {
             		options: {enablesourcing: true, ignoreMandatoryFields: true}
             	});
     			log.debug('kpiRecUpdate', kpiRecUpdate);
-            }	
+            }
+    		
+    		//Trigger KPI Queue logic when Est. Qty record on edit
+    		if(eqPromStatus == 3 && (eqPromCondition == 2 || eqPromCondition == 3)){
+    			var searchCount = search.create({type : 'customrecord_itpm_kpiqueue',filters : ['custrecord_itpm_kpiq_promotion', 'is', promotionIdEQ]}).runPaged().count;
+    			log.debug('searchCount', searchCount);
+    			
+    			if(searchCount == 0){
+    				//Creating New KPI Queue Record
+    				//itpm.createKPIQueue(promoId, 2); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+    			}
+    		}
     	}catch(e){
     		log.error(e.name,e.message);
     	}

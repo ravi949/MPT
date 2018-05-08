@@ -7,10 +7,11 @@
 define(['N/redirect',
 		'N/runtime',
 		'N/search',
-		'./iTPM_Module_Settlement.js'
+		'./iTPM_Module_Settlement.js',
+		'./iTPM_Module.js'
 		],
 
-function(redirect,runtime,search,ST_Module) {
+function(redirect,runtime,search,ST_Module, itpm) {
    
     /**
      * Function definition to be triggered before record is loaded.
@@ -155,31 +156,14 @@ function(redirect,runtime,search,ST_Module) {
 			var promoId = settlementNewRec.getValue('custbody_itpm_set_promo');
 			
     		if(eventType == 'edit'){
-    			var searchCount = search.create({type : 'customrecord_itpm_kpiqueue',filters : ['custrecord_itpm_kpiq_promotion', 'is', promoRec.id]}).runPaged().count;
-    			log.debug('REFRESH KPIs button: searchCount', searchCount);
+    			var searchCount = search.create({type : 'customrecord_itpm_kpiqueue',filters : ['custrecord_itpm_kpiq_promotion', 'is', promoId]}).runPaged().count;
+    			log.debug('searchCount', searchCount);
     			log.debug('Old Status & New Status', oldStatus+' & '+newStatus);
     			
     			if(searchCount == 0){
     				if((oldStatus == 'E' && (newStatus == 'A' || newStatus == 'B')) || (oldStatus == 'A' && newStatus == 'C')){
     					//Creating New KPI Queue Record
-            			var recObj = record.create({
-            				type: 'customrecord_itpm_kpiqueue',
-            				isDynamic: true
-            			});
-            			recObj.setValue({
-            	            fieldId: 'custrecord_itpm_kpiq_promotion',
-            	            value: promoId
-            	        });
-            			recObj.setValue({
-            	            fieldId: 'custrecord_itpm_kpiq_queuerequest',
-            	            value: 5  //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
-            	        });
-            			
-            			var recordId = recObj.save({
-            	            enableSourcing: false,
-            	            ignoreMandatoryFields: false
-            	        });
-            			log.debug('KPI Queue record ID: '+recordId);
+    					//itpm.createKPIQueue(promoId, 5); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
     				}
     			}
     		}

@@ -222,7 +222,51 @@ function(serverWidget,record,runtime,url,search,itpm) {
     		log.error(e.name, e.message +'; beforeLoad; trigger type: ' + scriptContext.type + '; recordID: ' + scriptContext.newRecord.id + '; recordType: ' + scriptContext.newRecord.type);
     	}
     }
-
+    
+    /**
+     * Function definition to be triggered before record is loaded.
+     *
+     * @param {Object} scriptContext
+     * @param {Record} scriptContext.newRecord - New record
+     * @param {Record} scriptContext.oldRecord - Old record
+     * @param {string} scriptContext.type - Trigger type
+     * @Since 2015.2
+     */
+    function afterSubmit(scriptContext) {
+    	try{
+    		var eventType = scriptContext.type;
+    		var promoOldRec = scriptContext.oldRecord;
+			var promoNewRec = scriptContext.newRecord;
+			var oldStatus = promoOldRec.getValue('custrecord_itpm_p_status');
+			var newStatus = promoNewRec.getValue('custrecord_itpm_p_status');
+			var condition = promoNewRec.getValue('custrecord_itpm_p_condition');
+			var promoId = promoNewRec.id;
+			
+    		if(eventType == 'edit'){
+    			log.error('oldStatus', oldStatus);
+    			log.error('newStatus', newStatus);
+    			log.error('condition', condition);
+    			if(
+    				(newStatus == 3 && (condition == 2 || condition == 3)) || 
+    				(oldStatus == 2 && newStatus == 3 && (condition == 2 || condition == 3)) || 
+    				(oldStatus == 3 && (newStatus == 7 || newStatus == 5) && (condition == 2 || condition == 3))
+    			){
+    				log.error('promoId', promoId);
+    				var searchCount = search.create({type : 'customrecord_itpm_kpiqueue',filters : ['custrecord_itpm_kpiq_promotion', 'is', promoRec.id]}).runPaged().count;
+        			log.debug('searchCount', searchCount);
+        			
+        			if(searchCount == 0){
+        				var queueType = (newStatus == 3 && (condition == 2 || condition == 3)) ? 2 : 3;
+        				//Creating New KPI Queue Record
+        				//itpm.createKPIQueue(promoId, queueType); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+            		}
+        		}
+    		}
+    	}catch(e){
+    		log.error(e.name, e.message);
+    	}
+    }
+    
     /**
      * @param {Object} promoForm
      * @param {Object} params customerid,promotionid,startdate,enddate
@@ -517,7 +561,8 @@ function(serverWidget,record,runtime,url,search,itpm) {
 	}	
 
     return {
-        beforeLoad: beforeLoad
+        beforeLoad: beforeLoad,
+        afterSubmit: afterSubmit
     };
     
 });
