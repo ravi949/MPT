@@ -36,7 +36,7 @@ function(search, runtime, itpm) {
     		search.create({
     			type:'customrecord_itpm_kpiqueue',
     			columns:['custrecord_itpm_kpiq_promotion'],
-    			filters:[['custrecord_itpm_kpiq_promotion','anyof',46]]
+    			filters:[]
     		 }).run().each(function(kpiQueue){
     			promoid = kpiQueue.getValue('custrecord_itpm_kpiq_promotion');
         		noEstTotalQty = promo_hasSales = false;
