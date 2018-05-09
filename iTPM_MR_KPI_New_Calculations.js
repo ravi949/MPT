@@ -382,6 +382,7 @@ function(search, runtime, record, formatModule, itpm) {
         					'custrecord_itpm_kpi_expectedliabilityoi' : expectedLiability.oi.toFixed(2),
         					'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb.toFixed(2),
         					'custrecord_itpm_kpi_expectedliabilityls' : expectedLiability.ls,
+        					'custrecord_itpm_kpi_estimatedspendls' : estimatedSpend.ls,
         					'custrecord_itpm_kpi_factorestls' : kpi_factor_estls.toFixed(6),
         					'custrecord_itpm_kpi_factoractualls' : kpi_factor_actls.toFixed(6),
         					'custrecord_itpm_kpi_allocfactcalculated' : true
