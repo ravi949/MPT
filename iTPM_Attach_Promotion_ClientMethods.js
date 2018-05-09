@@ -56,7 +56,7 @@ function(url, message, record) {
 			
 			var recordId = recObj.save({
 	            enableSourcing: false,
-	            ignoreMandatoryFields: false
+	            ignoreMandatoryFields: true
 	        });
 			//console.log('KPI Queue record ID: '+recordId);
 			

@@ -75,7 +75,14 @@ function(serverWidget,record,runtime,url,search,itpm) {
         			}
         			
         			//Showing Refresh KPIs button only for APPROVED and CLOSED statuses (Don't show if this Promotion was already exist in KPI Queue)
-        			var searchCount = search.create({type : 'customrecord_itpm_kpiqueue',filters : ['custrecord_itpm_kpiq_promotion', 'is', promoRec.id]}).runPaged().count;
+        			var searchCount = search.create({
+        				type : 'customrecord_itpm_kpiqueue',
+        				filters : [
+        				           ['custrecord_itpm_kpiq_promotion', 'is', promoRec.id],'and',
+                                   ['custrecord_itpm_kpiq_start','isempty',null],'and',
+                                   ['custrecord_itpm_kpiq_end','isempty',null]
+        				]
+        			}).runPaged().count;
         			log.debug('REFRESH KPIs button: searchCount', searchCount);
         			if((status == 3 || status == 7) && searchCount == 0){
         				promoForm.addButton({

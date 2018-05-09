@@ -234,8 +234,15 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         		var promStatus = promDetails.custrecord_itpm_p_status[0].value;
         		var promCondition = promDetails.custrecord_itpm_p_condition[0].value;
         		log.debug('promStatus & promCondition', promStatus+' & '+promCondition);
-        		var searchCount = search.create({type : 'customrecord_itpm_kpiqueue',filters : ['custrecord_itpm_kpiq_promotion', 'is', promoId]}).runPaged().count;
-    			log.debug('searchCount', searchCount);
+        		var searchCount = search.create({
+    				type : 'customrecord_itpm_kpiqueue',
+    				filters : [
+    				           ['custrecord_itpm_kpiq_promotion', 'is', promoId],'and',
+                               ['custrecord_itpm_kpiq_start','isempty',null],'and',
+                               ['custrecord_itpm_kpiq_end','isempty',null]
+    				]
+    			}).runPaged().count;
+        		log.debug('searchCount', searchCount);
     			
     			if(searchCount == 0){
     				if(promStatus == 3 && (promCondition == 2 || promCondition == 3)){
