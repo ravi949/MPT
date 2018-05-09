@@ -33,16 +33,11 @@ function(search, runtime, record, formatModule, itpm) {
     		var promo_hasSales = false;
     		var sales_exist = false;
     		var total_rev = 0, promoid;
+    		var kpiProcessType = scriptObj.getParameter({name:'custscript_itpm_kpi_process_type'});
+    		log.audit('kpi process type = '+kpiProcessType,'deploymentid = '+scriptObj.deploymentId);
     		
     		//kpi queue record search
-    		search.create({
-    			type:'customrecord_itpm_kpiqueue',
-    			columns:[search.createColumn({name:'internalid',sort:search.Sort.ASC}),
-    			         'custrecord_itpm_kpiq_promotion'],
-    			filters:[['custrecord_itpm_kpiq_start','isempty',null],'and',
-    			         ['custrecord_itpm_kpiq_end','isempty',null],'and',
-    			         ['custrecord_itpm_kpiq_queuerequest','noneof',1]]
-    		}).run().each(function(kpiQueue){
+    		getKpiQueueSearch(kpiProcessType).forEach(function(kpiQueue){
     			 //update the kpi queue record with start date
     			 record.submitFields({
     				 type:'customrecord_itpm_kpiqueue',
@@ -645,6 +640,25 @@ function(search, runtime, record, formatModule, itpm) {
     		enableSourcing:false,
     		ignoreMandatoryFields:true
     	});
+    }
+    
+    /**
+     * @description return the kpi queue record result set
+     */
+    function getKpiQueueSearch(kpiProcessType){
+    	var searchFilters = [['custrecord_itpm_kpiq_start','isempty',null],'and',
+    				         ['custrecord_itpm_kpiq_end','isempty',null]];
+    	if(kpiProcessType == 1){
+    		searchFilters.push('and',['custrecord_itpm_kpiq_queuerequest','anyof',1]);
+    	}else{
+    		searchFilters.push('and',['custrecord_itpm_kpiq_queuerequest','noneof',1]);
+    	}
+    	return search.create({
+			type:'customrecord_itpm_kpiqueue',
+			columns:[search.createColumn({name:'internalid',sort:search.Sort.ASC}),
+			         'custrecord_itpm_kpiq_promotion'],
+			filters:searchFilters
+		}).run().getRange(0,50);
     }
 
     return {
