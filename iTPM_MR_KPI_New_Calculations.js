@@ -511,15 +511,15 @@ function(search, runtime, record, formatModule, itpm) {
         		}
         		
         		//update the kpi field values
-//        		record.submitFields({
-//        			type:'customrecord_itpm_kpi',
-//        			id:kpiObj.kpi_id,
-//        			values:kpiObj.update_fields,
-//        			options:{
-//        				enableSourcing:false,
-//        				ignoreMandatoryFields:true
-//        			}
-//        		});
+        		record.submitFields({
+        			type:'customrecord_itpm_kpi',
+        			id:kpiObj.kpi_id,
+        			values:kpiObj.update_fields,
+        			options:{
+        				enableSourcing:false,
+        				ignoreMandatoryFields:true
+        			}
+        		});
         		
         		log.debug('reduce kpi update fields'+kpiObj.kpi_id,kpiObj.update_fields);
         	});
@@ -551,7 +551,9 @@ function(search, runtime, record, formatModule, itpm) {
      * @since 2015.1
      */
     function summarize(summary) {
-
+    	var scriptObj = runtime.getCurrentScript();
+    	log.debug('scriptid',scriptObj.id);
+    	log.debug('deploymentid',scriptObj.deploymentId);
     }
     
     /**
