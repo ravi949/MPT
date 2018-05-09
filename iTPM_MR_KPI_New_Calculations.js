@@ -374,6 +374,7 @@ function(search, runtime, record, formatModule, itpm) {
         				kpi_expect_bb : expectedLiability.bb.toFixed(2),
         				kpi_expect_oi : expectedLiability.oi.toFixed(2),
         				update_fields:{
+        					'custrecord_itpm_kpi_actualtotalqty' : actQty,
         					'custrecord_itpm_kpi_lespendbb' : leSpend.bb.toFixed(2),
         					'custrecord_itpm_kpi_lespendoi' : leSpend.oi.toFixed(2),
         					'custrecord_itpm_kpi_lespendnb' : leSpend.nb.toFixed(2),
