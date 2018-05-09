@@ -34,6 +34,7 @@ function(search, runtime, record, formatModule, itpm) {
     		var sales_exist = false;
     		var total_rev = 0, promoid;
     		
+    		//kpi queue record search
     		search.create({
     			type:'customrecord_itpm_kpiqueue',
     			columns:[search.createColumn({name:'internalid',sort:search.Sort.ASC}),
@@ -41,7 +42,7 @@ function(search, runtime, record, formatModule, itpm) {
     			filters:[['custrecord_itpm_kpiq_start','isempty',null],'and',
     			         ['custrecord_itpm_kpiq_end','isempty',null],'and',
     			         ['custrecord_itpm_kpiq_queuerequest','noneof',1]]
-    		 }).run().each(function(kpiQueue){
+    		}).run().each(function(kpiQueue){
     			 //update the kpi queue record with start date
     			 record.submitFields({
     				 type:'customrecord_itpm_kpiqueue',
@@ -60,6 +61,8 @@ function(search, runtime, record, formatModule, itpm) {
     			promoid = kpiQueue.getValue('custrecord_itpm_kpiq_promotion');
         		noEstTotalQty = sales_exist = false;
         		total_rev = 0;
+        		
+        		//search for promotion and kpi records
         		search.create({
         			type:'customrecord_itpm_promotiondeal',
         			columns:['custrecord_itpm_p_status',
