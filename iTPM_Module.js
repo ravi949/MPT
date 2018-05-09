@@ -2287,7 +2287,7 @@ define(['N/search',
 
     		var recordId = recObj.save({
     			enableSourcing: false,
-    			ignoreMandatoryFields: false
+    			ignoreMandatoryFields: true
     		});
     		log.debug('KPI Queue record ID: '+recordId);
     	} catch(ex){
