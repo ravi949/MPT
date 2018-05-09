@@ -255,16 +255,23 @@ function(serverWidget,record,runtime,url,search,itpm) {
     			log.error('newStatus', newStatus);
     			log.error('condition', condition);
     			if(
-    				(newStatus == 3 && (condition == 2 || condition == 3)) || 
+    				(oldStatus == 3 && newStatus == 3 && (condition == 2 || condition == 3)) || 
     				(oldStatus == 2 && newStatus == 3 && (condition == 2 || condition == 3)) || 
     				(oldStatus == 3 && (newStatus == 7 || newStatus == 5) && (condition == 2 || condition == 3))
     			){
     				log.error('promoId', promoId);
-    				var searchCount = search.create({type : 'customrecord_itpm_kpiqueue',filters : ['custrecord_itpm_kpiq_promotion', 'is', promoRec.id]}).runPaged().count;
-        			log.debug('searchCount', searchCount);
+    				var searchCount = search.create({
+        				type : 'customrecord_itpm_kpiqueue',
+        				filters : [
+        				           ['custrecord_itpm_kpiq_promotion', 'is', promoNewRec.id],'and',
+                                   ['custrecord_itpm_kpiq_start','isempty',null],'and',
+                                   ['custrecord_itpm_kpiq_end','isempty',null]
+        				]
+        			}).runPaged().count;
+    				log.debug('searchCount', searchCount);
         			
         			if(searchCount == 0){
-        				var queueType = (newStatus == 3 && (condition == 2 || condition == 3)) ? 2 : 3;
+        				var queueType = (oldStatus == 3 && newStatus == 3 && (condition == 2 || condition == 3)) ? 2 : 3;
         				//Creating New KPI Queue Record
         				itpm.createKPIQueue(promoId, queueType); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
             		}
