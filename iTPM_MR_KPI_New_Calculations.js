@@ -38,7 +38,9 @@ function(search, runtime, record, formatModule, itpm) {
     			type:'customrecord_itpm_kpiqueue',
     			columns:[search.createColumn({name:'internalid',sort:search.Sort.ASC}),
     			         'custrecord_itpm_kpiq_promotion'],
-    			filters:[['internalid','anyof',2]]
+    			filters:[['custrecord_itpm_kpiq_start','isempty',null],'and',
+    			         ['custrecord_itpm_kpiq_end','isempty',null],'and',
+    			         ['custrecord_itpm_kpiq_queuerequest','noneof',1]]
     		 }).run().each(function(kpiQueue){
     			 //update the kpi queue record with start date
     			 record.submitFields({
@@ -53,7 +55,7 @@ function(search, runtime, record, formatModule, itpm) {
     				 }
     			 });
     			
-//    			log.audit('getinput create promo search usage '+kpiQueue.getValue('internalid'),scriptObj.getRemainingUsage());
+    			log.audit('getinput create promo search usage '+kpiQueue.getValue('internalid'),scriptObj.getRemainingUsage());
     			
     			promoid = kpiQueue.getValue('custrecord_itpm_kpiq_promotion');
         		noEstTotalQty = sales_exist = false;
@@ -98,7 +100,7 @@ function(search, runtime, record, formatModule, itpm) {
         				total_rev = promo_hasSales.totalRev;
         				promo_hasSales = promo_hasSales.hasSales;
         				sales_exist = true;
-//        				log.audit('getinput hassales usage',scriptObj.getRemainingUsage());
+        				log.audit('getinput hassales usage',scriptObj.getRemainingUsage());
         			}
         			
         			arrObjs.push({
@@ -133,11 +135,12 @@ function(search, runtime, record, formatModule, itpm) {
         						kpi_factor_actls : 	 promo.getValue({name:'custrecord_itpm_kpi_factoractualls',join:'custrecord_itpm_kpi_promotiondeal'})
         				}
         			});
+        			log.audit('per kpi getinput usage',scriptObj.getRemainingUsage());
         			return true;
         		});
         		return true;
         	});
-//    		log.audit('before catch getinput usage',scriptObj.getRemainingUsage());
+    		log.audit('before catch getinput usage',scriptObj.getRemainingUsage());
     	}catch(ex){
     		log.error('GetInputData Error', ex.name + '; ' + ex.message);
     	}finally{
