@@ -6,12 +6,13 @@
 define(['N/search',
         'N/runtime',
         'N/record',
+        'N/format',
         './iTPM_Module.js'
         ],
 /**
  * @param {search} search
  */
-function(search, runtime, record, itpm) {
+function(search, runtime, record, formatModule, itpm) {
    
     /**
      * Marks the beginning of the Map/Reduce process and generates input data.
@@ -30,35 +31,33 @@ function(search, runtime, record, itpm) {
     		var arrObjs = [];
     		var noEstTotalQty = false;
     		var promo_hasSales = false;
+    		var sales_exist = false;
     		var total_rev = 0, promoid;
-    		var estimated_spendbb_summary = 0;
-    		var estimated_spendoi_summary = 0;
     		
     		search.create({
     			type:'customrecord_itpm_kpiqueue',
     			columns:[search.createColumn({name:'internalid',sort:search.Sort.ASC}),
     			         'custrecord_itpm_kpiq_promotion'],
-    			filters:[['custrecord_itpm_kpiq_start','isempty',null],'and',
-    			         ['custrecord_itpm_kpiq_end','isempty',null]]
+    			filters:[['internalid','anyof',2]]
     		 }).run().each(function(kpiQueue){
     			 //update the kpi queue record with start date
-//    			 record.submitFields({
-//    				 type:'customrecord_itpm_kpiqueue',
-//    				 id:kpiQueue.getValue('internalid'),
-//    				 values:{
-//    					 'custrecord_itpm_kpiq_start':new Date()
-//    				 },
-//    				 options:{
-//    					 enableSourcing:false,
-//    					 ignoreMandatoryFields:true
-//    				 }
-//    			 });
-    			 
+    			 record.submitFields({
+    				 type:'customrecord_itpm_kpiqueue',
+    				 id:kpiQueue.getValue('internalid'),
+    				 values:{
+    					 'custrecord_itpm_kpiq_start':formatModule.format({value:new Date(),type:formatModule.Type.DATETIME})
+    				 },
+    				 options:{
+    					 enableSourcing:false,
+    					 ignoreMandatoryFields:true
+    				 }
+    			 });
+    			
+//    			log.audit('getinput create promo search usage '+kpiQueue.getValue('internalid'),scriptObj.getRemainingUsage());
+    			
     			promoid = kpiQueue.getValue('custrecord_itpm_kpiq_promotion');
-        		noEstTotalQty = promo_hasSales = false;
+        		noEstTotalQty = sales_exist = false;
         		total_rev = 0;
-        		estimated_spendbb_summary = getEstimtedSpenSummary(promoid, 'custrecord_itpm_kpi_estimatedspendbb');
-        		estimated_spendoi_summary = getEstimtedSpenSummary(promoid, 'custrecord_itpm_kpi_estimatedspendoi');;
         		search.create({
         			type:'customrecord_itpm_promotiondeal',
         			columns:['custrecord_itpm_p_status',
@@ -89,7 +88,7 @@ function(search, runtime, record, itpm) {
         				noEstTotalQty = parseFloat(promo.getValue({name:'custrecord_itpm_kpi_esttotalqty',join:'custrecord_itpm_kpi_promotiondeal'})) <= 0
         			}
         			
-        			if(!promo_hasSales){
+        			if(!sales_exist){
         				promo_hasSales = itpm.hasSales({
         	        		promotionId: promoid,
         	        		shipStart: promo.getValue('custrecord_itpm_p_shipstart'),
@@ -98,11 +97,13 @@ function(search, runtime, record, itpm) {
         				});
         				total_rev = promo_hasSales.totalRev;
         				promo_hasSales = promo_hasSales.hasSales;
+        				sales_exist = true;
+//        				log.audit('getinput hassales usage',scriptObj.getRemainingUsage());
         			}
         			
         			arrObjs.push({
         				kpi_id		  	:	promo.getValue({name:'internalid',join:'custrecord_itpm_kpi_promotiondeal'}),
-        				kpi_queue_id	: 	1,
+        				kpi_queue_id	: 	kpiQueue.getValue('internalid'),
         				noEstTotalQty	: 	noEstTotalQty,
         				promo_details 	: 	{
         						promo_id		: 	promoid,
@@ -117,8 +118,8 @@ function(search, runtime, record, itpm) {
         						promo_hasSales	: 	promo_hasSales,
         						donotupdatelib  : 	promo.getValue({name:'custrecord_itpm_pt_dontupdate_lbonactual',join:'custrecord_itpm_p_type'}),
         						total_rev	    : 	total_rev,
-        						estimated_spendbb_sum : estimated_spendbb_summary,
-        						estimated_spendoi_sum : estimated_spendoi_summary
+        						estimated_spendbb_sum : 0,
+        						estimated_spendoi_sum : 0
         				},
         				kpi_details		:	{
         						kpi_item 	  :   promo.getValue({name:'custrecord_itpm_kpi_item',join:'custrecord_itpm_kpi_promotiondeal'}),
@@ -136,6 +137,7 @@ function(search, runtime, record, itpm) {
         		});
         		return true;
         	});
+//    		log.audit('before catch getinput usage',scriptObj.getRemainingUsage());
     	}catch(ex){
     		log.error('GetInputData Error', ex.name + '; ' + ex.message);
     	}finally{
@@ -419,6 +421,9 @@ function(search, runtime, record, itpm) {
             	
             	//calculating the BB,OI Estimated Allocation Factor (EST allocation factor)
             	if(contextObj['value']['item_mop_bb']){
+            		
+            		promoDetails.estimated_spendbb_sum = getEstimtedSpendSummary(promoDetails.promo_id, 'custrecord_itpm_kpi_estimatedspendbb');
+            		
             		if(promoDetails.estimated_spendbb_sum <= 0){
                 		kpiDetails['custrecord_itpm_kpi_factorestbb'] = parseFloat((1/allowance_BB.length).toFixed(6));
                 	}else{
@@ -427,7 +432,10 @@ function(search, runtime, record, itpm) {
             	}
             	
             	if(contextObj['value']['item_mop_oi']){
-                	if(promoDetails.estimated_spendoi_sum <= 0){
+            		
+            		promoDetails.estimated_spendoi_sum = getEstimtedSpendSummary(promoDetails.promo_id, 'custrecord_itpm_kpi_estimatedspendoi');
+                	
+            		if(promoDetails.estimated_spendoi_sum <= 0){
                 		kpiDetails['custrecord_itpm_kpi_factorestoi'] = parseFloat((1/allowance_OI.length).toFixed(6));
                 	}else{
                 		kpiDetails['custrecord_itpm_kpi_factorestoi'] = parseFloat((kpiDetails.kpi_estspendoi/promoDetails.estimated_spendoi_sum).toFixed(6));
@@ -500,30 +508,31 @@ function(search, runtime, record, itpm) {
         		}
         		
         		//update the kpi field values
-//        		record.submitFields({
-//        			type:'customrecord_itpm_kpi',
-//        			id:JSONObj['internalid']['value'],
-//        			values:kpiObj.update_fields,
-//        			options:{
-//        				enableSourcing:false,
-//        				ignoreMandatoryFields:true
-//        			}
-//        		});
+        		record.submitFields({
+        			type:'customrecord_itpm_kpi',
+        			id:kpiObj.kpi_id,
+        			values:kpiObj.update_fields,
+        			options:{
+        				enableSourcing:false,
+        				ignoreMandatoryFields:true
+        			}
+        		});
         		
         		log.debug('reduce kpi update fields'+kpiObj.kpi_id,kpiObj.update_fields);
         	});
         	
-//        	record.submitFields({
-//        		type:'customrecord_itpm_kpiqueue',
-//        		id: keyObj.kpi_queue_id,
-//        		values:{
-//        			'custrecord_itpm_kpiq_end':new Date()
-//        		},
-//        		options:{
-//        			enableSourcing:false,
-//        			ignoreMandatoryFields:true
-//        		}
-//        	});
+        	//update the kpi queue record with end date
+        	record.submitFields({
+        		type:'customrecord_itpm_kpiqueue',
+        		id: keyObj.kpi_queue_id,
+        		values:{
+        			'custrecord_itpm_kpiq_end':formatModule.format({value:new Date(),type:formatModule.Type.DATETIME})
+        		},
+        		options:{
+        			enableSourcing:false,
+        			ignoreMandatoryFields:true
+        		}
+        	});
         	
     		log.audit('end reduce usage',scriptObj.getRemainingUsage());
     	}catch(ex){
@@ -582,7 +591,7 @@ function(search, runtime, record, itpm) {
      * @description getting the estimated spend summary on the promotion
      * @return estimatedSpendSummary
      */
-    function getEstimtedSpenSummary(promoId, fieldId){
+    function getEstimtedSpendSummary(promoId, fieldId){
     	var estimateSpendSummary = search.create({
     		type: "customrecord_itpm_promotiondeal",
     		filters: [
