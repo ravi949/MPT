@@ -168,7 +168,7 @@ function(redirect,runtime,search,ST_Module, itpm) {
     			log.debug('Old Status & New Status', oldStatus+' & '+newStatus);
     			
     			if(searchCount == 0){
-    				if((oldStatus == 'E' && (newStatus == 'A' || newStatus == 'B')) || (oldStatus == 'A' && newStatus == 'C')){
+    				if((oldStatus == 'E' && (newStatus == 'A' || newStatus == 'B')) || ((oldStatus == 'A' || oldStatus == 'B') && newStatus == 'C')){
     					//Creating New KPI Queue Record
     					itpm.createKPIQueue(promoId, 5); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
     				}
