@@ -516,6 +516,15 @@ function(search, runtime, record, formatModule, task, itpm) {
             		}
         		}
         		
+        		//updating the field on kpi record
+        		kpiObj.update_fields['custrecord_itpm_kpi_lastupdatemessage'] = "Last calculated on "+formatModule.format({
+        			value: new Date(),
+        			type: formatModule.Type.DATE
+        	    })+" at time "+formatModule.format({
+        	    	value: new Date(),
+        	    	type: formatModule.Type.TIMEOFDAY
+        	    })+".";
+        		
         		//update the kpi field values
         		record.submitFields({
         			type:'customrecord_itpm_kpi',
