@@ -1,11 +1,14 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType MapReduceScript
- * @NModuleScope SameAccount
+ * @NModuleScope TargetAccount
  */
-define(['N/search'],
+define(['N/search',
+        'N/task',
+        './iTPM_Module.js'
+       ],
 
-function(search) {
+function(search, task, itpm) {
    
     /**
      * Marks the beginning of the Map/Reduce process and generates input data.
@@ -42,8 +45,23 @@ function(search) {
     	var data = JSON.parse(context.value).values;
     	log.debug('map_data', context.value);
     	var promotionID = data['internalid'].value
+    	//log.debug('promotionID', promotionID);
     	
-    	//itpm.createKPIQueue(promotionID, 1); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+    	//Looking for Duplicates in KPI Queue Record with the same promotion
+    	var searchCount = search.create({
+			type : 'customrecord_itpm_kpiqueue',
+			filters : [
+			           ['custrecord_itpm_kpiq_promotion', 'is', promotionID],'and',
+                       ['custrecord_itpm_kpiq_start','isempty',null],'and',
+                       ['custrecord_itpm_kpiq_end','isempty',null]
+			]
+		}).runPaged().count;
+		log.debug('searchCount', searchCount);
+    	
+		//Creating KPI Queue record if no duplicates
+		if(searchCount == 0){
+			itpm.createKPIQueue(promotionID, 1); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+		}
     }
 
     /**
@@ -64,7 +82,14 @@ function(search) {
      * @since 2015.1
      */
     function summarize(summary) {
-
+    	log.debug('summary', summary);
+    	
+    	//Triggering MR KPI Calculations for Scheduled KPI Queue
+    	task.create({
+        	   taskType: task.TaskType.MAP_REDUCE,
+        	   scriptId: 'customscript_itpm_mr_kpi_newcalculations',
+        	   deploymentId: 'customdeploy_itpm_mr_kpi_newcalschedule1'
+        	}).submit();
     }
 
     return {
