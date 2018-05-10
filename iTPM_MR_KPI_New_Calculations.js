@@ -7,12 +7,18 @@ define(['N/search',
         'N/runtime',
         'N/record',
         'N/format',
+        'N/task',
         './iTPM_Module.js'
         ],
 /**
  * @param {search} search
+ * @param {runtime} runtime
+ * @param {record} record
+ * @param {format} format
+ * @param {task} task
+ * @param {itpm} itpm
  */
-function(search, runtime, record, formatModule, itpm) {
+function(search, runtime, record, formatModule, task, itpm) {
    
     /**
      * Marks the beginning of the Map/Reduce process and generates input data.
@@ -552,8 +558,24 @@ function(search, runtime, record, formatModule, itpm) {
      */
     function summarize(summary) {
     	var scriptObj = runtime.getCurrentScript();
+    	var kpiProcessType = scriptObj.getParameter({name:'custscript_itpm_kpi_process_type'});
     	log.debug('scriptid',scriptObj.id);
     	log.debug('deploymentid',scriptObj.deploymentId);
+    	if(getKpiQueueSearch(kpiProcessType).length > 0){
+        	if(scriptObj.deploymentId == 'customdeploy_itpm_mr_kpi_newcalschedule1'){
+        		task.create({
+        		    taskType: task.TaskType.MAP_REDUCE,
+        		    scriptId: scriptObj.id,
+        		    deploymentId: 'customdeploy_itpm_mr_kpi_newcalschedule2'
+        		}).submit();
+        	}else if(scriptObj.deploymentId == 'customdeploy_itpm_mr_kpi_newcalschedule2'){
+        		task.create({
+        		    taskType: task.TaskType.MAP_REDUCE,
+        		    scriptId: scriptObj.id,
+        		    deploymentId: 'customdeploy_itpm_mr_kpi_newcalschedule1'
+        		}).submit();
+        	}
+    	}
     }
     
     /**
@@ -656,6 +678,7 @@ function(search, runtime, record, formatModule, itpm) {
     	}else{
     		searchFilters.push('and',['custrecord_itpm_kpiq_queuerequest','noneof',1]);
     	}
+    
     	return search.create({
 			type:'customrecord_itpm_kpiqueue',
 			columns:[search.createColumn({name:'internalid',sort:search.Sort.ASC}),
