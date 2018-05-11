@@ -44,7 +44,7 @@ function(search, record, itpm) {
     		log.debug('eqPromStatus & eqPromCondition & eqPromPriceLevel', eqPromStatus+' & '+eqPromCondition+' & '+eqPromPriceLevel);
     		
     		//Run if Promotion STATUS is Draft
-    		if(eqPromStatus == 1){
+    		if(eqPromStatus == 1 || eqPromStatus == 3){
     			log.debug("PROMOTION STATUS", "PROMOTIONS is "+eqPromStatus);
     			var kpiInternalID = '';
     			var kpiPromQnty = '';
@@ -107,7 +107,8 @@ function(search, record, itpm) {
             			'custrecord_itpm_kpi_lespendbb' : parseFloat(eqPromQty)*parseFloat(ratePerUnitBB),
             			'custrecord_itpm_kpi_lespendoi' : parseFloat(eqPromQty)*parseFloat(ratePerUnitOI),
             			'custrecord_itpm_kpi_lespendnb' : parseFloat(eqPromQty)*parseFloat(ratePerUnitNB),
-            			'custrecord_itpm_kpi_estimatedrevenue' : parseFloat(estimatedRevenue)
+            			'custrecord_itpm_kpi_estimatedrevenue' : parseFloat(estimatedRevenue),
+            			'custrecord_itpm_kpi_uom' : unit
             		},
             		options: {enablesourcing: true, ignoreMandatoryFields: true}
             	});
