@@ -495,6 +495,7 @@ function(record, search, runtime, itpm) {
     }
 
     function getSumOfLSBBOIsettlementLines(mop,promoId,kpiItem){
+    	var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_setlment_rec_type');
     	var serResult = search.create({
 			   type: "customtransaction_itpm_settlement",
 			   filters: [
@@ -502,7 +503,9 @@ function(record, search, runtime, itpm) {
 				  "AND", 
 				  ["custbody_itpm_set_promo","anyof",promoId], 
 				  "AND", 
-				  ["custcol_itpm_set_item","anyof",kpiItem]
+				  ["custcol_itpm_set_item","anyof",kpiItem],
+				  "AND",
+				  ["status","noneof","Custom"+settlementRectypeId+":C"]
 			   ],
 			   columns: [
 			      search.createColumn({

@@ -277,8 +277,8 @@ define(['N/search',
 			if(objParameter.returnZero) return {error: false, spend: 0, bb: 0, oi: 0, nb: 0, ls: 0};
 			var qty = parseFloat(objParameter.quantity),
 			rateBB = (objParameter.rateBB == '' || objParameter.rateBB == null || !objParameter.rateBB)? 0 : parseFloat(objParameter.rateBB),
-					rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
-							rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB);
+			rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
+			rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB);
 
 			if(objParameter.actual){//actual spend also includes lines from settlements
 				if (objParameter.promotionId && objParameter.itemId){

@@ -389,6 +389,10 @@ function(search, runtime, record, formatModule, task, itpm) {
         					'custrecord_itpm_kpi_expectedliabilitynb' : expectedLiability.nb.toFixed(2),
         					'custrecord_itpm_kpi_expectedliabilityls' : expectedLiability.ls,
         					'custrecord_itpm_kpi_estimatedspendls' : estimatedSpend.ls,
+        					'custrecord_itpm_kpi_actualspendls' : actualSpend.ls,
+                			'custrecord_itpm_kpi_actualspendbb' : actualSpend.bb,
+                			'custrecord_itpm_kpi_actualspendoi' : actualSpend.oi,
+                			'custrecord_itpm_kpi_actualspendnb' : actualSpend.nb,
         					'custrecord_itpm_kpi_factorestls' : kpi_factor_estls.toFixed(6),
         					'custrecord_itpm_kpi_factoractualls' : kpi_factor_actls.toFixed(6),
         					'custrecord_itpm_kpi_allocfactcalculated' : true
