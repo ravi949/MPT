@@ -222,6 +222,35 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
             		});
             	}
         	}
+        	
+        	if(sc.type == 'edit'){
+        		var promoId = sc.newRecord.getValue('custrecord_itpm_all_promotiondeal');
+        		log.debug('Promotion ID', promoId);
+        		var promDetails = search.lookupFields({
+    				type:'customrecord_itpm_promotiondeal',
+    				id:promoId,
+    				columns:['custrecord_itpm_p_status', 'custrecord_itpm_p_condition']
+    			});
+        		var promStatus = promDetails.custrecord_itpm_p_status[0].value;
+        		var promCondition = promDetails.custrecord_itpm_p_condition[0].value;
+        		log.debug('promStatus & promCondition', promStatus+' & '+promCondition);
+        		var searchCount = search.create({
+    				type : 'customrecord_itpm_kpiqueue',
+    				filters : [
+    				           ['custrecord_itpm_kpiq_promotion', 'is', promoId],'and',
+                               ['custrecord_itpm_kpiq_start','isempty',null],'and',
+                               ['custrecord_itpm_kpiq_end','isempty',null]
+    				]
+    			}).runPaged().count;
+        		log.debug('searchCount', searchCount);
+    			
+    			if(searchCount == 0){
+    				if(promStatus == 3 && (promCondition == 2 || promCondition == 3)){
+    					//Creating New KPI Queue Record
+    					itpm.createKPIQueue(promoId, 2); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+    				}
+    			}
+        	}
     	}catch(ex){
     		log.error(ex.name,ex.message);
     	}
