@@ -71,7 +71,7 @@ function(search, runtime, record, formatModule, task, itpm) {
 						summary:search.Summary.SUM
 					})],
 					filters:[['custrecord_itpm_estqty_promodeal','anyof',promoid]]
-				}).run().getRange(0,1)[0].getValue({name:'custrecord_itpm_estqty_estpromotedqty',summary:search.Summary.SUM});
+				}).run().getRange(0,1)[0].getValue({name:'custrecord_itpm_estqty_estpromotedqty',summary:search.Summary.SUM}) <= 0;
         		
         		//search for promotion and kpi records
         		search.create({
