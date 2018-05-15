@@ -60,8 +60,18 @@ function(search, runtime, record, formatModule, task, itpm) {
     			log.audit('getinput create promo search usage '+kpiQueue.getValue('internalid'),scriptObj.getRemainingUsage());
     			
     			promoid = kpiQueue.getValue('custrecord_itpm_kpiq_promotion');
-        		noEstTotalQty = sales_exist = false;
+        		sales_exist = false;
         		total_rev = 0;
+        		
+        		//getting the sum of promoted qty from est qty record.
+        		noEstTotalQty  = search.create({ 
+					type:'customrecord_itpm_estquantity',
+					columns:[search.createColumn({
+						name:'custrecord_itpm_estqty_estpromotedqty',
+						summary:search.Summary.SUM
+					})],
+					filters:[['custrecord_itpm_estqty_promodeal','anyof',promoid]]
+				}).run().getRange(0,1)[0].getValue({name:'custrecord_itpm_estqty_estpromotedqty',summary:search.Summary.SUM});
         		
         		//search for promotion and kpi records
         		search.create({
@@ -90,9 +100,6 @@ function(search, runtime, record, formatModule, task, itpm) {
         			filters:[['internalid','anyof',promoid],'and',
         			         ['isinactive','is',false]]
         		}).run().each(function(promo){
-        			if(!noEstTotalQty){
-        				noEstTotalQty = parseFloat(promo.getValue({name:'custrecord_itpm_kpi_esttotalqty',join:'custrecord_itpm_kpi_promotiondeal'})) <= 0
-        			}
         			
         			if(!sales_exist){
         				promo_hasSales = itpm.hasSales({
