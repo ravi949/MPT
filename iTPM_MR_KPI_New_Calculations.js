@@ -282,7 +282,8 @@ function(search, runtime, record, formatModule, task, itpm) {
         	//calculating expected and maximum liabilities
 			var expectedLiability = itpm.getLiability({
 				returnZero: false, 
-				quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty, 
+//				quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty,
+				quantity: actQty,
 				rateBB: estQty.estRateBB, 
 				rateOI: estQty.estRateOI, 
 				rateNB: estQty.estRateNB, 
@@ -292,7 +293,8 @@ function(search, runtime, record, formatModule, task, itpm) {
 			
 			var maxLiability = itpm.getLiability({
 				returnZero: false, 
-				quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty, 
+//				quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty, 
+				quantity: actQty,
 				rateBB: estQty.estRateBB, 
 				rateOI: estQty.estRateOI, 
 				rateNB: estQty.estRateNB, 
