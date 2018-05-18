@@ -137,13 +137,13 @@ function(config, task, search, record, runtime) {
     		//Getting Record Type Id's for both "- iTPM Settlement Record" and "- iTPM Deduction Record"
     		var deductionRecID = record.create({
     			type:'customtransaction_itpm_deduction'
-    		}).getValue('type').split('custom')[1];
+    		}).getValue('customtype');
 
     		log.error('deduction type',deductionRecID);
 
     		var settlemntRecID = record.create({
     			type:'customtransaction_itpm_settlement'
-    		}).getValue('type').split('custom')[1];
+    		}).getValue('customtype');
    
     		log.error('settlement type',settlemntRecID);
     		
@@ -515,6 +515,238 @@ function(config, task, search, record, runtime) {
     		}));
     			
     		myDeductionSearch.save();
+
+    		//Adding Port-let Filters
+    		//# Promotions waiting for Approval (All Users)
+    		var promoWaitingAprovalSearchAll = search.load({
+    			id: 'customsearch_itpm_promo_pendingapproval'
+    		});    	
+    		promoWaitingAprovalSearchAll.filterExpression =[
+    			["isinactive","is","F"], 
+    			"AND", 
+    			["custrecord_itpm_p_status","anyof","2"]
+    			];
+    		promoWaitingAprovalSearchAll.save();
+
+    		//# Promotions waiting for Approval (Mine)   
+    		var promoWaitingAprovalSearchMine = search.load({
+    			id: 'customsearch_itpm_promo_pendinapprov_own'
+    		});    	
+    		promoWaitingAprovalSearchMine.filterExpression =[
+    			["isinactive","is","F"], 
+    			"AND", 
+    			["custrecord_itpm_p_status","anyof","2"], 
+    			"AND", 
+    			["owner","anyof","@CURRENT@"]
+    			];
+    		promoWaitingAprovalSearchMine.save();
+
+    		//# Settlements waiting to be Applied (All users)   
+    		var setWaitingToBeAppliedSearchAll = search.load({
+    			id: 'customsearch_itpm_set_tobeapplied'
+    		});    	
+    		setWaitingToBeAppliedSearchAll.filterExpression =[
+    			["type","anyof","Custom"+settlemntRecID], 
+    			"AND", 
+    			["status","anyof","Custom"+settlemntRecID+":A"], 
+    			"AND", 
+    			["count(internalid)","isnotempty",""]
+    			];
+    		setWaitingToBeAppliedSearchAll.save();
+
+    		//# Settlements waiting to be Applied (Mine)  
+    		var setWaitingToBeAppliedSearchMine = search.load({
+    			id: 'customsearch_itpm_set_tobeapplied_owner'
+    		});    	
+    		setWaitingToBeAppliedSearchMine.filterExpression =[
+    			["type","anyof","Custom120"], 
+    			"AND", 
+    			["status","anyof","Custom120:A"], 
+    			"AND", 
+    			["createdby","anyof","@CURRENT@"]
+    			];
+    		setWaitingToBeAppliedSearchMine.save();
+
+    		//- iTPM Promotions Active Today - Owner  
+    		var iTPMPromoActiveTodaySearchOwner = search.load({
+    			id: 'customsearch_itpm_promo_activeowner'
+    		});    	
+    		iTPMPromoActiveTodaySearchOwner.filterExpression =[
+    			["isinactive","is","F"], 
+    			"AND", 
+    			["custrecord_itpm_p_condition","anyof","2"], 
+    			"AND", 
+    			["owner","anyof","@CURRENT@"]
+    			];
+    		iTPMPromoActiveTodaySearchOwner.save();
+
+    		//- iTPM Promotions Active Today 
+    		var iTPMPromoActiveTodaySearch= search.load({
+    			id: 'customsearch_itpm_promo_active'
+    		});    	
+    		iTPMPromoActiveTodaySearch.filterExpression =[
+    			["isinactive","is","F"], 
+    			"AND", 
+    			["custrecord_itpm_p_condition","anyof","2"]
+    			];
+    		iTPMPromoActiveTodaySearch.save();
+
+    		//- iTPM Promotions Active in Next 30 days 
+    		var iTPMPromoActiveInNext30DaysSearch= search.load({
+    			id: 'customsearch_itpm_promo_active_in_30'
+    		});    	
+    		iTPMPromoActiveInNext30DaysSearch.filterExpression =[
+    			["custrecord_itpm_p_condition","anyof","1"], 
+    			"AND", 
+    			["custrecord_itpm_p_status","anyof","3","2","1"], 
+    			"AND", 
+    			[["formuladate: {custrecord_itpm_p_shipstart}","after","thirtydaysfromnow"],"OR",["formuladate: {custrecord_itpm_p_shipend}","after","thirtydaysfromnow"]]
+    			];
+    		iTPMPromoActiveInNext30DaysSearch.save();
+
+    		//- iTPM Open Deductions assigned to Me
+    		var iTPMOpenDdnsAssignedToMeSearch = search.load({
+    			id: 'customsearch_itpm_ddn_open_assigntome'
+    		});    	
+    		iTPMOpenDdnsAssignedToMeSearch.filterExpression =[
+    			["type","anyof","Custom"+deductionRecID], 
+    			"AND", 
+    			["custbody_itpm_ddn_assignedto","anyof","@CURRENT@"], 
+    			"AND", 
+    			["status","anyof","Custom"+deductionRecID+":A"]
+    			];
+    		iTPMOpenDdnsAssignedToMeSearch.save();
+
+    		//- iTPM Open Deductions over 90 days Old
+    		var iTPMOpenDeductionsOver90DaysOldSearch= search.load({
+    			id: 'customsearch_itpm_ddn_open_over90daysold'
+    		});    	
+    		iTPMOpenDeductionsOver90DaysOldSearch.filterExpression =[
+    			["type","anyof","Custom"+deductionRecID], 
+    			"AND", 
+    			["status","anyof","Custom"+deductionRecID+":A"], 
+    			"AND", 
+    			["custbody_itpm_ddn_daysaged","greaterthan","90"]
+    			];
+    		iTPMOpenDeductionsOver90DaysOldSearch.save();
+
+    		//- iTPM Open Deductions between 60 to 90 days old
+    		var iTPMOpenDdnBetween60To90DaysOldSearch = search.load({
+    			id: 'customsearch_itpm_ddn_open_btween60to90'
+    		});    	
+    		iTPMOpenDdnBetween60To90DaysOldSearch.filterExpression =[
+    			["type","anyof","Custom"+deductionRecID], 
+    			"AND", 
+    			["status","anyof","Custom"+deductionRecID+":A"], 
+    			"AND", 
+    			["custbody_itpm_ddn_daysaged","between","60","90"]
+    			];
+    		iTPMOpenDdnBetween60To90DaysOldSearch.save();
+
+    		//- iTPM Open Deductions between 30 to 60 days old
+    		var iTPMOpenDdnBetween30To60DaysOldSearch = search.load({
+    			id: 'customsearch_itpm_ddn_open_btween30to60'
+    		});    	
+    		iTPMOpenDdnBetween30To60DaysOldSearch.filterExpression =[
+    			["type","anyof","Custom"+deductionRecID], 
+    			"AND", 
+    			["status","anyof","Custom"+deductionRecID+":A"], 
+    			"AND", 
+    			["custbody_itpm_ddn_daysaged","between","30","60"]
+    			];
+    		iTPMOpenDdnBetween30To60DaysOldSearch.save();
+
+    		//- iTPM Open Deductions less than 30 days
+    		var myPortletSearch12= search.load({
+    			id: 'customsearch_itpm_ddn_open_lessthan30'
+    		});    	
+    		myPortletSearch12.filterExpression =[
+    			["type","anyof","Custom"+deductionRecID], 
+    			"AND", 
+    			["status","anyof","Custom"+deductionRecID+":A"], 
+    			"AND", 
+    			["custbody_itpm_ddn_daysaged","lessthan","30","60"]
+    			];
+    		myPortletSearch12.save();
+
+    		//- iTPM Promotion Pending Approval but Active or Completed  
+    		var myPortletSearch13= search.load({
+    			id: 'customsearch_itpm_promo_pending_acticomp'
+    		});    	
+    		myPortletSearch13.filterExpression =[
+    			["isinactive","is","F"], 
+    			"AND", 
+    			["custrecord_itpm_p_status","anyof","2"], 
+    			"AND", 
+    			["custrecord_itpm_p_condition","anyof","2","3"]
+    			];
+    		myPortletSearch13.save();
+
+    		//- iTPM Settlements in Processing
+    		var myPortletSearch14= search.load({
+    			id: 'customsearch_itpm_set_inprocessing'
+    		});    	
+    		myPortletSearch14.filterExpression =[
+    			["type","anyof","Custom"+settlemntRecID], 
+    			"AND", 
+    			["status","anyof","Custom"+settlemntRecID+":E"], 
+    			"AND", 
+    			["mainline","is","T"]
+    			];
+    		myPortletSearch14.save();
+
+    		//- iTPM Deductions in Processing 
+    		var myPortletSearch15= search.load({
+    			id: 'customsearch_itpm_ddn_inprocessing'
+    		});    	
+    		myPortletSearch15.filterExpression =[
+    			["type","anyof","Custom"+deductionRecID], 
+    			"AND", 
+    			["status","anyof","Custom"+deductionRecID+":E"], 
+    			"AND", 
+    			["mainline","is","T"]
+    			];
+    		myPortletSearch15.save();
+
+    		//- iTPM Promotions being Copied  
+    		var myPortletSearch16= search.load({
+    			id: 'customsearch_itpm_promo_copyinprogress'
+    		});    	
+    		myPortletSearch16.filterExpression =[
+    			["isinactive","is","F"], 
+    			"AND", 
+    			["custrecord_itpm_p_copyinprogress","is","T"]
+    			];
+    		myPortletSearch16.save();
+
+    		//- iTPM Approved Promotions 90 days or Older - Owner  
+    		var myPortletSearch17= search.load({
+    			id: 'customsearch_itpm_promo_apprvd_90daysown'
+    		});    	
+    		myPortletSearch17.filterExpression =[
+    			["isinactive","is","F"], 
+    			"AND", 
+    			["custrecord_itpm_p_status","anyof","3"], 
+    			"AND", 
+    			["owner","anyof","@CURRENT@"], 
+    			"AND", 
+    			[["custrecord_itpm_p_shipstart","onorbefore","ninetydaysago"],"OR",["custrecord_itpm_p_shipend","onorbefore","ninetydaysago"]]
+    			];
+    		myPortletSearch17.save();
+
+    		//- iTPM Approved Promotions 90 days or Older  
+    		var myPortletSearch18= search.load({
+    			id: 'customsearch_itpm_promo_apprvd_90daysold'
+    		});    	
+    		myPortletSearch18.filterExpression =[
+    			["isinactive","is","F"], 
+    			"AND", 
+    			["custrecord_itpm_p_status","anyof","3"], 
+    			"AND", 
+    			[["custrecord_itpm_p_shipstart","onorbefore","ninetydaysago"],"OR",["custrecord_itpm_p_shipend","onorbefore","ninetydaysago"]]
+    			];
+    		myPortletSearch18.save();
+
     	}catch(ex){
     		log.error(e.name, e.message);
     	}
