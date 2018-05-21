@@ -657,73 +657,73 @@ function(config, task, search, record, runtime) {
     		iTPMOpenDdnBetween30To60DaysOldSearch.save();
 
     		//- iTPM Open Deductions less than 30 days
-    		var myPortletSearch12= search.load({
+    		var iTPMOpenDdnLessThan30DaysSearch= search.load({
     			id: 'customsearch_itpm_ddn_open_lessthan30'
     		});    	
-    		myPortletSearch12.filterExpression =[
+    		iTPMOpenDdnLessThan30DaysSearch.filterExpression =[
     			["type","anyof","Custom"+deductionRecID], 
     			"AND", 
     			["status","anyof","Custom"+deductionRecID+":A"], 
     			"AND", 
     			["custbody_itpm_ddn_daysaged","lessthan","30","60"]
     			];
-    		myPortletSearch12.save();
+    		iTPMOpenDdnLessThan30DaysSearch.save();
 
     		//- iTPM Promotion Pending Approval but Active or Completed  
-    		var myPortletSearch13= search.load({
+    		var iTPMPromoPendingApprovalButActiveOrCompletedSearch= search.load({
     			id: 'customsearch_itpm_promo_pending_acticomp'
     		});    	
-    		myPortletSearch13.filterExpression =[
+    		iTPMPromoPendingApprovalButActiveOrCompletedSearch.filterExpression =[
     			["isinactive","is","F"], 
     			"AND", 
     			["custrecord_itpm_p_status","anyof","2"], 
     			"AND", 
     			["custrecord_itpm_p_condition","anyof","2","3"]
     			];
-    		myPortletSearch13.save();
+    		iTPMPromoPendingApprovalButActiveOrCompletedSearch.save();
 
     		//- iTPM Settlements in Processing
-    		var myPortletSearch14= search.load({
+    		var iTPMSetInProcessingSearch= search.load({
     			id: 'customsearch_itpm_set_inprocessing'
     		});    	
-    		myPortletSearch14.filterExpression =[
+    		iTPMSetInProcessingSearch.filterExpression =[
     			["type","anyof","Custom"+settlemntRecID], 
     			"AND", 
     			["status","anyof","Custom"+settlemntRecID+":E"], 
     			"AND", 
     			["mainline","is","T"]
     			];
-    		myPortletSearch14.save();
+    		iTPMSetInProcessingSearch.save();
 
     		//- iTPM Deductions in Processing 
-    		var myPortletSearch15= search.load({
+    		var iTPMDdnInProcessingSearch = search.load({
     			id: 'customsearch_itpm_ddn_inprocessing'
     		});    	
-    		myPortletSearch15.filterExpression =[
+    		iTPMDdnInProcessingSearch.filterExpression =[
     			["type","anyof","Custom"+deductionRecID], 
     			"AND", 
     			["status","anyof","Custom"+deductionRecID+":E"], 
     			"AND", 
     			["mainline","is","T"]
     			];
-    		myPortletSearch15.save();
+    		iTPMDdnInProcessingSearch.save();
 
     		//- iTPM Promotions being Copied  
-    		var myPortletSearch16= search.load({
+    		var iTPMPromoBeingCopiedSearch = search.load({
     			id: 'customsearch_itpm_promo_copyinprogress'
     		});    	
-    		myPortletSearch16.filterExpression =[
+    		iTPMPromoBeingCopiedSearch.filterExpression =[
     			["isinactive","is","F"], 
     			"AND", 
     			["custrecord_itpm_p_copyinprogress","is","T"]
     			];
-    		myPortletSearch16.save();
+    		iTPMPromoBeingCopiedSearch.save();
 
     		//- iTPM Approved Promotions 90 days or Older - Owner  
-    		var myPortletSearch17= search.load({
+    		var iTPMOwnApprovedPromo90DaysOrOlderSearch= search.load({
     			id: 'customsearch_itpm_promo_apprvd_90daysown'
     		});    	
-    		myPortletSearch17.filterExpression =[
+    		iTPMOwnApprovedPromo90DaysOrOlderSearch.filterExpression =[
     			["isinactive","is","F"], 
     			"AND", 
     			["custrecord_itpm_p_status","anyof","3"], 
@@ -732,20 +732,20 @@ function(config, task, search, record, runtime) {
     			"AND", 
     			[["custrecord_itpm_p_shipstart","onorbefore","ninetydaysago"],"OR",["custrecord_itpm_p_shipend","onorbefore","ninetydaysago"]]
     			];
-    		myPortletSearch17.save();
+    		iTPMOwnApprovedPromo90DaysOrOlderSearch.save();
 
     		//- iTPM Approved Promotions 90 days or Older  
-    		var myPortletSearch18= search.load({
+    		var iTPMApprovedPromo90DaysOrOlderSearch= search.load({
     			id: 'customsearch_itpm_promo_apprvd_90daysold'
     		});    	
-    		myPortletSearch18.filterExpression =[
+    		iTPMApprovedPromo90DaysOrOlderSearch.filterExpression =[
     			["isinactive","is","F"], 
     			"AND", 
     			["custrecord_itpm_p_status","anyof","3"], 
     			"AND", 
     			[["custrecord_itpm_p_shipstart","onorbefore","ninetydaysago"],"OR",["custrecord_itpm_p_shipend","onorbefore","ninetydaysago"]]
     			];
-    		myPortletSearch18.save();
+    		iTPMApprovedPromo90DaysOrOlderSearch.save();
 
     	}catch(ex){
     		log.error(e.name, e.message);
