@@ -144,7 +144,7 @@ function(config, task, search, record, runtime) {
     		var settlemntRecID = record.create({
     			type:'customtransaction_itpm_settlement'
     		}).getValue('customtype');
-   
+
     		log.error('settlement type',settlemntRecID);
     		
     		//1. Adding Filters to Saved Search: - iTPM Bill Back Actual Spend
@@ -581,7 +581,7 @@ function(config, task, search, record, runtime) {
     		iTPMPromoActiveTodaySearchOwner.save();
 
     		//- iTPM Promotions Active Today 
-    		var iTPMPromoActiveTodaySearch= search.load({
+    		var iTPMPromoActiveTodaySearch = search.load({
     			id: 'customsearch_itpm_promo_active'
     		});    	
     		iTPMPromoActiveTodaySearch.filterExpression =[
@@ -592,7 +592,7 @@ function(config, task, search, record, runtime) {
     		iTPMPromoActiveTodaySearch.save();
 
     		//- iTPM Promotions Active in Next 30 days 
-    		var iTPMPromoActiveInNext30DaysSearch= search.load({
+    		var iTPMPromoActiveInNext30DaysSearch = search.load({
     			id: 'customsearch_itpm_promo_active_in_30'
     		});    	
     		iTPMPromoActiveInNext30DaysSearch.filterExpression =[
@@ -608,7 +608,7 @@ function(config, task, search, record, runtime) {
     		var iTPMOpenDdnsAssignedToMeSearch = search.load({
     			id: 'customsearch_itpm_ddn_open_assigntome'
     		});    	
-    		iTPMOpenDdnsAssignedToMeSearch.filterExpression =[
+    		iTPMOpenDdnsAssignedToMeSearch.filterExpression = [
     			["type","anyof","Custom"+deductionRecID], 
     			"AND", 
     			["custbody_itpm_ddn_assignedto","anyof","@CURRENT@"], 
@@ -618,10 +618,10 @@ function(config, task, search, record, runtime) {
     		iTPMOpenDdnsAssignedToMeSearch.save();
 
     		//- iTPM Open Deductions over 90 days Old
-    		var iTPMOpenDeductionsOver90DaysOldSearch= search.load({
+    		var iTPMOpenDeductionsOver90DaysOldSearch = search.load({
     			id: 'customsearch_itpm_ddn_open_over90daysold'
     		});    	
-    		iTPMOpenDeductionsOver90DaysOldSearch.filterExpression =[
+    		iTPMOpenDeductionsOver90DaysOldSearch.filterExpression = [
     			["type","anyof","Custom"+deductionRecID], 
     			"AND", 
     			["status","anyof","Custom"+deductionRecID+":A"], 
@@ -634,7 +634,7 @@ function(config, task, search, record, runtime) {
     		var iTPMOpenDdnBetween60To90DaysOldSearch = search.load({
     			id: 'customsearch_itpm_ddn_open_btween60to90'
     		});    	
-    		iTPMOpenDdnBetween60To90DaysOldSearch.filterExpression =[
+    		iTPMOpenDdnBetween60To90DaysOldSearch.filterExpression = [
     			["type","anyof","Custom"+deductionRecID], 
     			"AND", 
     			["status","anyof","Custom"+deductionRecID+":A"], 
@@ -647,7 +647,7 @@ function(config, task, search, record, runtime) {
     		var iTPMOpenDdnBetween30To60DaysOldSearch = search.load({
     			id: 'customsearch_itpm_ddn_open_btween30to60'
     		});    	
-    		iTPMOpenDdnBetween30To60DaysOldSearch.filterExpression =[
+    		iTPMOpenDdnBetween30To60DaysOldSearch.filterExpression = [
     			["type","anyof","Custom"+deductionRecID], 
     			"AND", 
     			["status","anyof","Custom"+deductionRecID+":A"], 
@@ -660,7 +660,7 @@ function(config, task, search, record, runtime) {
     		var iTPMOpenDdnLessThan30DaysSearch= search.load({
     			id: 'customsearch_itpm_ddn_open_lessthan30'
     		});    	
-    		iTPMOpenDdnLessThan30DaysSearch.filterExpression =[
+    		iTPMOpenDdnLessThan30DaysSearch.filterExpression = [
     			["type","anyof","Custom"+deductionRecID], 
     			"AND", 
     			["status","anyof","Custom"+deductionRecID+":A"], 
@@ -670,10 +670,10 @@ function(config, task, search, record, runtime) {
     		iTPMOpenDdnLessThan30DaysSearch.save();
 
     		//- iTPM Promotion Pending Approval but Active or Completed  
-    		var iTPMPromoPendingApprovalButActiveOrCompletedSearch= search.load({
+    		var iTPMPromoPendingApprovalButActiveOrCompletedSearch = search.load({
     			id: 'customsearch_itpm_promo_pending_acticomp'
     		});    	
-    		iTPMPromoPendingApprovalButActiveOrCompletedSearch.filterExpression =[
+    		iTPMPromoPendingApprovalButActiveOrCompletedSearch.filterExpression = [
     			["isinactive","is","F"], 
     			"AND", 
     			["custrecord_itpm_p_status","anyof","2"], 
@@ -686,7 +686,7 @@ function(config, task, search, record, runtime) {
     		var iTPMSetInProcessingSearch= search.load({
     			id: 'customsearch_itpm_set_inprocessing'
     		});    	
-    		iTPMSetInProcessingSearch.filterExpression =[
+    		iTPMSetInProcessingSearch.filterExpression = [
     			["type","anyof","Custom"+settlemntRecID], 
     			"AND", 
     			["status","anyof","Custom"+settlemntRecID+":E"], 
@@ -699,7 +699,7 @@ function(config, task, search, record, runtime) {
     		var iTPMDdnInProcessingSearch = search.load({
     			id: 'customsearch_itpm_ddn_inprocessing'
     		});    	
-    		iTPMDdnInProcessingSearch.filterExpression =[
+    		iTPMDdnInProcessingSearch.filterExpression = [
     			["type","anyof","Custom"+deductionRecID], 
     			"AND", 
     			["status","anyof","Custom"+deductionRecID+":E"], 
@@ -712,7 +712,7 @@ function(config, task, search, record, runtime) {
     		var iTPMPromoBeingCopiedSearch = search.load({
     			id: 'customsearch_itpm_promo_copyinprogress'
     		});    	
-    		iTPMPromoBeingCopiedSearch.filterExpression =[
+    		iTPMPromoBeingCopiedSearch.filterExpression = [
     			["isinactive","is","F"], 
     			"AND", 
     			["custrecord_itpm_p_copyinprogress","is","T"]
@@ -720,10 +720,10 @@ function(config, task, search, record, runtime) {
     		iTPMPromoBeingCopiedSearch.save();
 
     		//- iTPM Approved Promotions 90 days or Older - Owner  
-    		var iTPMOwnApprovedPromo90DaysOrOlderSearch= search.load({
+    		var iTPMOwnApprovedPromo90DaysOrOlderSearch = search.load({
     			id: 'customsearch_itpm_promo_apprvd_90daysown'
     		});    	
-    		iTPMOwnApprovedPromo90DaysOrOlderSearch.filterExpression =[
+    		iTPMOwnApprovedPromo90DaysOrOlderSearch.filterExpression = [
     			["isinactive","is","F"], 
     			"AND", 
     			["custrecord_itpm_p_status","anyof","3"], 
@@ -735,10 +735,10 @@ function(config, task, search, record, runtime) {
     		iTPMOwnApprovedPromo90DaysOrOlderSearch.save();
 
     		//- iTPM Approved Promotions 90 days or Older  
-    		var iTPMApprovedPromo90DaysOrOlderSearch= search.load({
+    		var iTPMApprovedPromo90DaysOrOlderSearch = search.load({
     			id: 'customsearch_itpm_promo_apprvd_90daysold'
     		});    	
-    		iTPMApprovedPromo90DaysOrOlderSearch.filterExpression =[
+    		iTPMApprovedPromo90DaysOrOlderSearch.filterExpression = [
     			["isinactive","is","F"], 
     			"AND", 
     			["custrecord_itpm_p_status","anyof","3"], 
@@ -748,7 +748,7 @@ function(config, task, search, record, runtime) {
     		iTPMApprovedPromo90DaysOrOlderSearch.save();
 
     	}catch(ex){
-    		log.error(e.name, e.message);
+    		log.error(ex.name, ex.message);
     	}
     }
     
@@ -762,8 +762,8 @@ function(config, task, search, record, runtime) {
     	var preferenceResult = search.create({
 			type:'customrecord_itpm_preferences',
 			columns:['internalid']
-		}).run();
-		var prefResultLength = preferenceResult.getRange(0,10).length;
+		}).run().getRange(0,10);
+		var prefResultLength = preferenceResult.length;
 		preferenceResult = (prefResultLength == 0)? undefined : preferenceResult[0].getValue('internalid');
 		
 		
