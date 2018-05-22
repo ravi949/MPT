@@ -257,6 +257,7 @@ function(serverWidget,record,runtime,url,search,itpm) {
     			if(
     				(oldStatus == 3 && newStatus == 3 && (condition == 2 || condition == 3)) || 
     				(oldStatus == 2 && newStatus == 3 && (condition == 2 || condition == 3)) || 
+    				(oldStatus == 7 && newStatus == 3 && (condition == 2 || condition == 3)) ||
     				(oldStatus == 3 && (newStatus == 7 || newStatus == 5) && (condition == 2 || condition == 3))
     			){
     				log.error('promoId', promoId);
