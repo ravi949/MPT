@@ -559,9 +559,9 @@ function(config, task, search, record, runtime) {
     			id: 'customsearch_itpm_set_tobeapplied_owner'
     		});    	
     		setWaitingToBeAppliedSearchMine.filterExpression =[
-    			["type","anyof","Custom120"], 
+    			["type","anyof","Custom"+settlemntRecID], 
     			"AND", 
-    			["status","anyof","Custom120:A"], 
+    			["status","anyof","Custom"+settlemntRecID+":A"], 
     			"AND", 
     			["createdby","anyof","@CURRENT@"]
     			];
