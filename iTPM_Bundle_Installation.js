@@ -765,8 +765,7 @@ function(config, task, search, record, runtime) {
 		}).run().getRange(0,10);
 		var prefResultLength = preferenceResult.length;
 		preferenceResult = (prefResultLength == 0)? undefined : preferenceResult[0].getValue('internalid');
-		
-		
+				
     	if(featureEnabled){
     		var subsidiaryResult = search.create({
         		type:search.Type.SUBSIDIARY,
