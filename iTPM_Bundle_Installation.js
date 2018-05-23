@@ -771,7 +771,7 @@ function(config, task, search, record, runtime) {
     		var subsidiaryResult = search.create({
         		type:search.Type.SUBSIDIARY,
         		columns:['internalid','parent'],
-        		filters:[]
+        		filters:[['isinactive','is',false]]
         	}).run();
     		
     		if(prefResultLength <= 1){
