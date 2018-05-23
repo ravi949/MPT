@@ -554,19 +554,6 @@ function(config, task, search, record, runtime) {
     			];
     		setWaitingToBeAppliedSearchAll.save();
 
-    		//# Settlements waiting to be Applied (Mine)  
-    		var setWaitingToBeAppliedSearchMine = search.load({
-    			id: 'customsearch_itpm_set_tobeapplied_owner'
-    		});    	
-    		setWaitingToBeAppliedSearchMine.filterExpression =[
-    			["type","anyof","Custom"+settlemntRecID], 
-    			"AND", 
-    			["status","anyof","Custom"+settlemntRecID+":A"], 
-    			"AND", 
-    			["createdby","anyof","@CURRENT@"]
-    			];
-    		setWaitingToBeAppliedSearchMine.save();
-
     		//- iTPM Promotions Active Today - Owner  
     		var iTPMPromoActiveTodaySearchOwner = search.load({
     			id: 'customsearch_itpm_promo_activeowner'
@@ -747,6 +734,19 @@ function(config, task, search, record, runtime) {
     			];
     		iTPMApprovedPromo90DaysOrOlderSearch.save();
 
+    		//# Settlements waiting to be Applied (Mine)  
+    		var setWaitingToBeAppliedSearchMine = search.load({
+    			id: 'customsearch_itpm_set_tobeapplied_owner'
+    		});    	
+    		setWaitingToBeAppliedSearchMine.filterExpression =[
+    			["type","anyof","Custom"+settlemntRecID], 
+    			"AND", 
+    			["status","anyof","Custom"+settlemntRecID+":A"], 
+    			"AND", 
+    			["createdby","anyof","@CURRENT@"]
+    			];
+    		setWaitingToBeAppliedSearchMine.save();
+    		
     	}catch(ex){
     		log.error(ex.name, ex.message);
     	}
