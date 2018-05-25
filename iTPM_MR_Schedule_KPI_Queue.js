@@ -23,15 +23,18 @@ function(search, task, itpm) {
     function getInputData() {
     	return search.create({
     		type	: 'customrecord_itpm_promotiondeal',
-    		columns	: ['internalid'],
-    		filters	: [['custrecord_itpm_p_status', 'is', 3], //Status: Approved
+    		columns	: ['internalid',
+    		       	   'custrecord_itpm_p_customer',
+    		       	   'custrecord_itpm_p_shipstart',
+    		       	   'custrecord_itpm_p_shipend'
+    		       	  ],
+    		filters	: [
+    		       	   ['custrecord_itpm_p_status', 'is', 3], //Status: Approved
     		       	   'AND',
     		       	   [['custrecord_itpm_p_condition', 'anyof', [2,3]]], //Condition: Active OR Completed
     		       	   'AND',
-    		       	   [['custrecord_itpm_p_shipend', 'on', 'today'], 'OR', ['custrecord_itpm_p_shipend', 'on', 'yesterday']],
-    		       	   'AND',
     		       	   ['custrecord_itpm_p_type.custrecord_itpm_pt_dontupdate_lbonactual', 'is', 'F']
-    		]
+    		       	  ]
     	});
     }
 
@@ -47,8 +50,13 @@ function(search, task, itpm) {
     	var promotionID = data['internalid'].value
     	//log.debug('promotionID', promotionID);
     	
+    	var salesOrShipmentsCount = getSalesOrShipmentCount(promotionID, 
+    			data['custrecord_itpm_p_customer'].value,
+    			data['custrecord_itpm_p_shipstart'],
+    			data['custrecord_itpm_p_shipend']);
+    	
     	//Looking for Duplicates in KPI Queue Record with the same promotion
-    	var searchCount = search.create({
+    	var kpiQueueCount = search.create({
 			type : 'customrecord_itpm_kpiqueue',
 			filters : [
 			           ['custrecord_itpm_kpiq_promotion', 'is', promotionID],'and',
@@ -56,10 +64,10 @@ function(search, task, itpm) {
                        ['custrecord_itpm_kpiq_end','isempty',null]
 			]
 		}).runPaged().count;
-		log.debug('searchCount', searchCount);
+		log.debug('kpiQueueCount', kpiQueueCount);
     	
 		//Creating KPI Queue record if no duplicates
-		if(searchCount == 0){
+		if(salesOrShipmentsCount > 0 && kpiQueueCount == 0){
 			itpm.createKPIQueue(promotionID, 1); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
 		}
     }
@@ -90,6 +98,52 @@ function(search, task, itpm) {
         	   scriptId: 'customscript_itpm_mr_kpi_newcalculations',
         	   deploymentId: 'customdeploy_itpm_mr_kpi_newcalschedule1'
         	}).submit();
+    }
+    
+    /**
+     * @param {number} promotionID
+     * @param {number} customerID
+     * @param {}
+     * @return search count
+     */
+    function getSalesOrShipmentCount(promotionID, customerID, start, end){
+    	var subCustIds = itpm.getSubCustomers(customerID);
+    	var items = [customerID];
+    	var kpiItemSearch = search.create({
+			type: 'customrecord_itpm_kpi',
+			filters: [
+				['custrecord_itpm_kpi_promotiondeal', 'anyof', promotionID], 'and',
+				['isinactive', 'is', 'F']
+				],
+				columns: ['custrecord_itpm_kpi_item']
+		});
+    	kpiItemSearch.run().each(function(result){
+			items.push(result.getValue('custrecord_itpm_kpi_item'));
+			return true;
+		});
+    	
+    	var searchFilters = [['item', 'anyof', items], 'and',
+							['entity', 'anyof', subCustIds], 'and',
+							['trandate', 'within', start, end],'and',
+		 		       	   	[['trandate', 'on', 'today'], 'or', 
+		 		       	   	  ['trandate', 'on', 'yesterday']]
+    	 		       	   	];
+    	
+    	//Item fulfillment on search today or yesterday
+    	var fulFillmentCount = search.create({
+			type: search.Type.ITEM_FULFILLMENT,
+			filters: searchFilters,
+			columns: ['internalid']
+		}).run().getRange(0,10).length;
+    	
+    	//Invoice search on search today or yesterday
+    	var invoiceCount = search.create({
+			type: search.Type.INVOICE,
+			filters: searchFilters,
+			columns: ['internalid']
+		}).run().getRange(0,10).length;
+    	
+    	return fulFillmentCount || invoiceCount;
     }
 
     return {
