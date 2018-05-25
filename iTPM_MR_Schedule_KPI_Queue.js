@@ -33,6 +33,7 @@ function(search, task, itpm) {
     		       	   'AND',
     		       	   [['custrecord_itpm_p_condition', 'anyof', [2,3]]], //Condition: Active OR Completed
     		       	   'AND',
+    		       	   ['custrecord_itpm_p_shipend','onorafter','yesterday'],'AND',
     		       	   ['custrecord_itpm_p_type.custrecord_itpm_pt_dontupdate_lbonactual', 'is', 'F']
     		       	  ]
     	});
