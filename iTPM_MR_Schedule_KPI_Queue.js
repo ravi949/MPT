@@ -64,8 +64,9 @@ function(search, task, itpm) {
                        ['custrecord_itpm_kpiq_end','isempty',null]
 			]
 		}).runPaged().count;
-		log.debug('kpiQueueCount', kpiQueueCount);
-    	
+		log.debug('kpiQueueCount '+promotionID, kpiQueueCount);
+		log.debug('salesOrShipmentsCount '+promotionID, salesOrShipmentsCount);
+		
 		//Creating KPI Queue record if no duplicates
 		if(salesOrShipmentsCount > 0 && kpiQueueCount == 0){
 			itpm.createKPIQueue(promotionID, 1); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
