@@ -181,34 +181,38 @@ function(record, search) {
 					type: 'customrecord_itpm_promoallowance',
 					id:keyObj.recId
 				});
-				var copyRecord = record.copy({
-					type: 'customrecord_itpm_promoallowance',
-					id:keyObj.recId
-				}).setValue({
-					fieldId: 'custrecord_itpm_all_account',
-					value:allRec.getValue({fieldId: 'custrecord_itpm_all_account'}),
-					ignoreFieldChange: true
-				}).setValue({
-					fieldId: 'custrecord_itpm_all_mop',
-					value:allRec.getValue({fieldId: 'custrecord_itpm_all_mop'}),
-					ignoreFieldChange: true
-				}).setValue({
-					fieldId: 'custrecord_itpm_all_promotiondeal',
-					value: keyObj.promoID,
-					ignoreFieldChange: true
-				}).setValue({
-					fieldId:'custrecord_itpm_all_estqty',
-					value:''
-				}).setValue({
-					fieldId:'custrecord_itpm_all_contribution',
-					value:0
-				}).setValue({
-					fieldId:'custrecord_itpm_all_contributionadjusted',
-					value:false
-				}).save({
-					enableSourcing: false,
-					ignoreMandatoryFields: true
-				});
+				var itemAvailForITPM = isAvailForITPMChecked(allRec.getValue({fieldId: 'custrecord_itpm_all_item'}));
+				log.audit('itemAvailForITPM   '+keyObj.recId,itemAvailForITPM);
+				if(itemAvailForITPM){
+					var copyRecord = record.copy({
+						type: 'customrecord_itpm_promoallowance',
+						id:keyObj.recId
+					}).setValue({
+						fieldId: 'custrecord_itpm_all_account',
+						value:allRec.getValue({fieldId: 'custrecord_itpm_all_account'}),
+						ignoreFieldChange: true
+					}).setValue({
+						fieldId: 'custrecord_itpm_all_mop',
+						value:allRec.getValue({fieldId: 'custrecord_itpm_all_mop'}),
+						ignoreFieldChange: true
+					}).setValue({
+						fieldId: 'custrecord_itpm_all_promotiondeal',
+						value: keyObj.promoID,
+						ignoreFieldChange: true
+					}).setValue({
+						fieldId:'custrecord_itpm_all_estqty',
+						value:''
+					}).setValue({
+						fieldId:'custrecord_itpm_all_contribution',
+						value:0
+					}).setValue({
+						fieldId:'custrecord_itpm_all_contributionadjusted',
+						value:false
+					}).save({
+						enableSourcing: false,
+						ignoreMandatoryFields: true
+					});
+				}			
 				break;
 			/********* Copying Promotion/Deal Estimate Quantities and Saving them into Copied Promotion/Deal Estimate Quantities **********/
 			case 'estqty':
@@ -216,49 +220,59 @@ function(record, search) {
 					type: 'customrecord_itpm_estquantity',
 					id:keyObj.recId
 				});
-				var copiedRecordId = copyRecord.setValue({
-					fieldId: 'custrecord_itpm_estqty_promodeal',
-					value:keyObj.promoID,
-					ignoreFieldChange: true
-				}).save({
-					enableSourcing: false,
-					ignoreMandatoryFields: true
-				});
-				/************Set EstQty ID in allowance record***********/
-				search.create({
-					type:'customrecord_itpm_promoallowance',
-					columns:['internalid'],
-					filters:[['isinactive','is',false],'and',
-							 ['custrecord_itpm_all_promotiondeal','anyof',keyObj.promoID],'and',
-							 ['custrecord_itpm_all_item','anyof',copyRecord.getValue('custrecord_itpm_estqty_item')]]
-				}).run().each(function(result){
-					record.submitFields({
-					    type: 'customrecord_itpm_promoallowance',
-					    id: result.getValue('internalid'),
-					    values: {
-					    	custrecord_itpm_all_estqty: copiedRecordId
-					    },
-					    options: {
-					        enableSourcing: false,
-					        ignoreMandatoryFields : true
-					    }
+				var itemAvailForITPM = isAvailForITPMChecked(copyRecord.getValue({fieldId: 'custrecord_itpm_estqty_item'}));
+				log.audit('itemAvailForITPM   '+keyObj.recId,itemAvailForITPM);
+				if(itemAvailForITPM){
+					var copiedRecordId = copyRecord.setValue({
+						fieldId: 'custrecord_itpm_estqty_promodeal',
+						value:keyObj.promoID,
+						ignoreFieldChange: true
+					}).save({
+						enableSourcing: false,
+						ignoreMandatoryFields: true
 					});
-					return true;
-				});
+
+					/************Set EstQty ID in allowance record***********/
+					search.create({
+						type:'customrecord_itpm_promoallowance',
+						columns:['internalid'],
+						filters:[['isinactive','is',false],'and',
+							['custrecord_itpm_all_promotiondeal','anyof',keyObj.promoID],'and',
+							['custrecord_itpm_all_item','anyof',copyRecord.getValue('custrecord_itpm_estqty_item')]]
+					}).run().each(function(result){
+						record.submitFields({
+							type: 'customrecord_itpm_promoallowance',
+							id: result.getValue('internalid'),
+							values: {
+								custrecord_itpm_all_estqty: copiedRecordId
+							},
+							options: {
+								enableSourcing: false,
+								ignoreMandatoryFields : true
+							}
+						});
+						return true;
+					});
+				}
 				break;
 			/********* Copying Promotion/Deal Retail Info and Saving them into Copied Promotion/Deal Retail Info **********/
 			case 'retail':
 				var copyRecord = record.copy({
 					type: 'customrecord_itpm_promoretailevent',
 					id:keyObj.recId
-				}).setValue({
-					fieldId: 'custrecord_itpm_rei_promotiondeal',
-					value:keyObj.promoID,
-					ignoreFieldChange: true
-				}).save({
-					enableSourcing: false,
-					ignoreMandatoryFields: true
-				}); 
+				})
+				var itemAvailForITPM = isAvailForITPMChecked(copyRecord.getValue({fieldId: 'custrecord_itpm_rei_item'}));
+				log.audit('itemAvailForITPM   '+keyObj.recId,itemAvailForITPM);
+				if(itemAvailForITPM){
+					copyRecord.setValue({
+						fieldId: 'custrecord_itpm_rei_promotiondeal',
+						value:keyObj.promoID,
+						ignoreFieldChange: true
+					}).save({
+						enableSourcing: false,
+						ignoreMandatoryFields: true
+					});
+				}				 
 				break;
 			}
 			
@@ -297,6 +311,17 @@ function(record, search) {
 		log.debug('summary state',summary)
 	}
 
+	/**
+	 * Returns the true/false based on the  AVAILABLE FOR ITPM? check-box on item record
+	 * @param itemId
+	 */
+	function isAvailForITPMChecked(itemID) {
+		return search.lookupFields({
+			type:search.Type.ITEM,
+			id:itemID,
+			columns:['custitem_itpm_available']
+		}).custitem_itpm_available
+	}
 	return {
 		getInputData: getInputData,
 		map: map,

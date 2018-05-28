@@ -79,34 +79,25 @@ function(url, https, message, dialog) {
 	 * @param id
 	 * @description call the expense suitelet
 	 */
-	function iTPMexpense(id) {
+	function iTPMexpense(id, openbal) {
 		try{
-			var msg = displayMessage('info','Expensing Deduction','Please wait while the expense is created and applied.');
-			msg.show();
-			var suiteletUrl = url.resolveScript({
-				scriptId:'customscript_itpm_ddn_expense',
-				deploymentId:'customdeploy_itpm_ddn_expense',
-				params:{ddn:id}
-			});
-			console.log(suiteletUrl);
-			https.get.promise({
-				url: suiteletUrl
-			}).then(function(response){
-				msg.hide();
-				var bodyObj = JSON.parse(response.body);
-				if(!bodyObj.success){
-					var errMsg = displayMessage('error','Error',bodyObj.message);
-					errMsg.show({duration: 5000});
-				}else{
-					var recUrl = url.resolveRecord({
-						recordType: 'customtransaction_itpm_deduction',
-						recordId: id,
-						params:{itpm:'expense'}
-					});
-					window.open(recUrl, '_self');
+			var popMessage = "Click CONTINUE to expense <b>$"+openbal+'</b><br><br>To expense less, CANCEL and SPLIT this deduction.'
+			                  +'<br><br>Change the expense chart-of-account before saving the Journal Entry.'
+			dialog.create({
+				title: "Are you sure?",
+	            message: popMessage,
+	            buttons:[{label:'Continue',value:true},{label:'Cancel',value:false}]
+			}).then(function(result){
+				if(result){
+					var msg = displayMessage('info','Expensing Deduction','Please wait while Redirecting to Journal Entry Form....');
+					msg.show();
+					
+					//redirecting to journal entry
+					Url = url.resolveTaskLink('EDIT_TRAN_JOURNAL',{'did':id});			
+					window.open(Url,'_self');
 				}
-			}).catch(function(ex){
-				console.log(ex);
+			}).catch(function(reason){
+				console.log(reason);
 			});
 		} catch(ex) {
 			console.log(ex.name,'function name = iTPMexpense, message'+ex.message);

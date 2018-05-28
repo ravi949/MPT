@@ -7,7 +7,8 @@ define(['N/record',
 		'N/runtime',
 		'N/search',
 		'N/ui/serverWidget',
-		'./iTPM_Module.js'],
+		'./iTPM_Module.js'
+		],
 
 function(record, runtime, search, serverWidget, itpm) {
    
@@ -154,6 +155,26 @@ function(record, runtime, search, serverWidget, itpm) {
         				ignoreMandatoryFields:true
         			}
         		});
+    		}
+    		
+    		//setting the externalid after record submit
+    		if(scriptContext.type == 'create' && !ddnSplitRec.getValue('externalid')){
+    			var tranId = search.lookupFields({
+    	    		type:'customtransaction_itpm_deduction',
+    	    		id:ddnSplitRec.getValue('custrecord_itpm_split_deduction'),
+    	    		columns:['tranid','custbody_itpm_ddn_openbal']
+    	    	})['tranid'];
+    			
+    			record.load({
+    				type:'customrecord_itpm_deductionsplit',
+    				id:ddnSplitRec.id
+    			}).setValue({
+    				fieldId:'externalid',
+    				value:'- iTPM Deduction #'+tranId
+    			}).save({
+    				enableSourcing:false,
+    				ignoreMandatoryFields:true
+    			});
     		}
     	}catch(ex){
     		log.error(ex.name,ex.message);

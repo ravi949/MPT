@@ -137,8 +137,7 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 					         ,'statusRef'
 					         ],
 					filters:[
-						 ['custbody_itpm_ddn_openbal','GREATERTHAN', 0],'and'
-						,['mainline','is','T'],'and'
+						 ['mainline','is','T'],'and'
 						,['custbody_itpm_ddn_openbal','greaterthanorequalto',settlementRec.getValue('custbody_itpm_amount')],'and'
 						,['custbody_itpm_customer','anyof',settlementRec.getValue('custbody_itpm_customer')]
 						]		    		

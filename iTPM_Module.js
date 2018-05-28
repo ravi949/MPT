@@ -26,7 +26,6 @@ define(['N/search',
 		try{
 			if (!obj.promotionId &&
 					!obj.shipStart && !obj.shipEnd &&
-					!obj.orderStart && !obj.orderEnd &&
 					!obj.customerId){
 				throw {
 					name: 'Missing required parameter.',
@@ -57,18 +56,23 @@ define(['N/search',
 //			}
 			log.audit('obj',obj);
 			//get promotion items
-			var itemSearch = search.create({
-				type: 'customrecord_itpm_kpi',
-				filters: [
-					['custrecord_itpm_kpi_promotiondeal', 'anyof', obj.promotionId], 'and',
-					['isinactive', 'is', 'F']
-					],
-					columns: ['custrecord_itpm_kpi_item']
-			});
-			itemSearch.run().each(function(result){
-				items.push(result.getValue('custrecord_itpm_kpi_item'));
-				return true;
-			});
+			if(obj.kpiItem){
+				items.push(obj.kpiItem);
+			}else{
+				var itemSearch = search.create({
+					type: 'customrecord_itpm_kpi',
+					filters: [
+						['custrecord_itpm_kpi_promotiondeal', 'anyof', obj.promotionId], 'and',
+						['isinactive', 'is', 'F']
+						],
+						columns: ['custrecord_itpm_kpi_item']
+				});
+				itemSearch.run().each(function(result){
+					items.push(result.getValue('custrecord_itpm_kpi_item'));
+					return true;
+				});
+			}
+			
 			//getting the sub customers of the customer
 			var subCustIds = getSubCustomers(obj.customerId);
 			log.debug('hasSales:subCustIds',subCustIds);
@@ -76,17 +80,23 @@ define(['N/search',
 			var invoiceSearch = search.create({
 				type: search.Type.INVOICE,
 				filters: [
-					['item', 'anyof', items], 'and',
-					['entity', 'anyof', subCustIds], 'and',
-					['trandate', 'within', start, end]
+						['item', 'anyof', items], 'and',
+						['entity', 'anyof', subCustIds], 'and',
+						['trandate', 'within', start, end]
 					],
-					columns: ['tranid']
+					columns: [
+					    search.createColumn({
+							name:'amount',
+							summary: "SUM"
+						})
+					]
 			});
-			var invoices = invoiceSearch.run().getRange(0,1);
-			if (invoices.length > 0) {
-				return {error: false, hasSales: true}
+			var totalRev = parseFloat(invoiceSearch.run().getRange(0,1)[0].getValue({name:'amount',summary:search.Summary.SUM}));
+			totalRev = (totalRev)? totalRev : 0;
+			if (totalRev > 0) {
+				return {error: false, totalRev: totalRev, hasSales: true}
 			} else {
-				return {error: false, hasSales: false}
+				return {error: false, totalRev: totalRev, hasSales: false}
 			}
 		} catch(ex){
 			log.error ('module_hasSales', ex.name +'; ' + ex.message + '; ' + JSON.stringify(obj));
@@ -267,8 +277,8 @@ define(['N/search',
 			if(objParameter.returnZero) return {error: false, spend: 0, bb: 0, oi: 0, nb: 0, ls: 0};
 			var qty = parseFloat(objParameter.quantity),
 			rateBB = (objParameter.rateBB == '' || objParameter.rateBB == null || !objParameter.rateBB)? 0 : parseFloat(objParameter.rateBB),
-					rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
-							rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB);
+			rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
+			rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB);
 
 			if(objParameter.actual){//actual spend also includes lines from settlements
 				if (objParameter.promotionId && objParameter.itemId){
@@ -339,9 +349,9 @@ define(['N/search',
 			if(objParameter.returnZero) return {error: false, liability: 0, bb: 0, oi: 0, nb: 0};
 			var qty = parseFloat(objParameter.quantity),
 			rateBB = (objParameter.rateBB == '' || objParameter.rateBB == null || !objParameter.rateBB)? 0 : parseFloat(objParameter.rateBB),
-					rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
-							rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB),
-									rFactor = (objParameter.redemption == '' || objParameter.redemption == null || !objParameter.redemption)? 0 : parseFloat(objParameter.redemption);
+			rateOI = (objParameter.rateOI == '' || objParameter.rateOI == null || !objParameter.rateOI)? 0 : parseFloat(objParameter.rateOI),
+			rateNB = (objParameter.rateNB == '' || objParameter.rateNB == null || !objParameter.rateNB)? 0 : parseFloat(objParameter.rateNB),
+			rFactor = (objParameter.redemption == '' || objParameter.redemption == null || !objParameter.redemption)? 0 : parseFloat(objParameter.redemption);
 			rFactor /= 100;
 			return {error: false, liability: qty*((rateBB*rFactor)+rateOI+rateNB), bb: qty*rateBB*rFactor, oi: qty*rateOI, nb: qty*rateNB, ls: 0};
 		} catch(ex) {
@@ -442,9 +452,9 @@ define(['N/search',
 	 * function getPrefrenceValues()
 	 * @returns {object}
 	 */
-	function getPrefrenceValues(){
+	function getPrefrenceValues(subid){
 		try{
-			var prefObj = {}
+			var prefObj = {};
 			search.create({
 				type:'customrecord_itpm_preferences',
 				columns:['custrecord_itpm_pref_ddnaccount',
@@ -455,7 +465,7 @@ define(['N/search',
 					'custrecord_itpm_pref_defaultpricelevel',
 					'custrecord_itpm_pref_remvcust_frmsplit'
 					],
-					filters:[]
+					filters:(subid)? ['custrecord_itpm_pref_subsidiary','anyof',subid] : [] 
 			}).run().each(function(e){
 				prefObj = {
 						dednExpAccnt : e.getValue('custrecord_itpm_pref_ddnaccount'),
@@ -542,7 +552,7 @@ define(['N/search',
 			var itemResult = search.create({
 				type:search.Type.ITEM,
 				columns:[
-					'pricing.pricelevel',
+					//'pricing.pricelevel',
 					'pricing.unitprice',
 					'baseprice',
 					'saleunit'
@@ -569,14 +579,34 @@ define(['N/search',
 				}));
 			}
 			itemResult = itemResult.run().getRange(0,1);
-			price = itemResult[0].getValue({name:'unitprice',join:'pricing'});
-			log.debug('price',price);
-			price = (isNaN(price))?params.baseprice:price;
-			return {
-				price:price,
-				baseprice:itemResult[0].getValue({name:'baseprice'}),
-				saleunit:itemResult[0].getValue({name:'saleunit'})
-			};
+			if(itemResult.length > 0){
+				log.audit('itemResult in if',itemResult);
+				price = itemResult[0].getValue({name:'unitprice',join:'pricing'});
+				log.debug('price',price);
+				price = (isNaN(price))?params.baseprice:price;
+				return {
+					price:price,
+					baseprice:itemResult[0].getValue({name:'baseprice'}),
+					saleunit:itemResult[0].getValue({name:'saleunit'})
+				};
+			}else{
+				itemResult = search.create({
+					type:search.Type.ITEM,
+					columns:[
+						'saleunit'
+						],
+						filters:[['internalid','anyof',params.itemid],'and',
+							['isinactive','is',false]
+						]
+				});
+				itemResult = itemResult.run().getRange(0,1);
+				log.audit('itemResult in else',itemResult);
+				return {
+					price:0,
+					baseprice:0,
+					saleunit:itemResult[0].getValue({name:'saleunit'})
+				};
+			}
 		}catch(e){
 			log.error(e.name,e.message + '; params: ' + JSON.stringify(params));
 			return {
@@ -1130,9 +1160,9 @@ define(['N/search',
 						log.debug('module_getEstAllocationFactorLS', 'estConversion : '+estConversion);
 						log.debug('module_getEstAllocationFactorLS', 'saleConversion : '+saleConversion);
 						if (estQuantities[x].item == obj.itemId){
-							thisEstimatedRevenue = parseFloat(estQuantities[x].qty) * parseFloat(itemPrice.price) * (saleConversion / estConversion); 
+							thisEstimatedRevenue = parseFloat(estQuantities[x].qty) * parseFloat(itemPrice.price) * (estConversion / saleConversion); 
 						}
-						totalEstimatedRevenue += parseFloat(estQuantities[x].qty) * parseFloat(itemPrice.price) * (saleConversion / estConversion);
+						totalEstimatedRevenue += parseFloat(estQuantities[x].qty) * parseFloat(itemPrice.price) * (estConversion / saleConversion);
 					}
 
 					log.debug('module_getEstAllocationFactorLS', 'thisEstimatedRevenue : ' + thisEstimatedRevenue +'; '+JSON.stringify(obj));
@@ -2231,6 +2261,40 @@ define(['N/search',
     		return [custId];
     	}
     }
+    
+    /**
+     * @param {String} promId
+     * @param {Number} requestType
+     * 
+     * @description This function is used to create KPI Queue record based on the trigger conditions
+     * Used Scripts: iTPM_UE_Promotion_Processing.js, iTPM_Attach_Promotion_ClientMethods.js, iTPM_UE_Settlement_Edit.js
+     *  iTPM_UE_Allowance_Dynamic_Fields.js, iTPM_WFA_KPI_Calculations.js
+     */
+    function createKPIQueue(promId, requestType){
+    	try{
+    		var recObj = record.create({
+    			type: 'customrecord_itpm_kpiqueue',
+    			isDynamic: true
+    		});
+    		recObj.setValue({
+    			fieldId: 'custrecord_itpm_kpiq_promotion',
+    			value: promId
+    		});
+    		recObj.setValue({
+    			fieldId: 'custrecord_itpm_kpiq_queuerequest',
+    			value: requestType  //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+    		});
+
+    		var recordId = recObj.save({
+    			enableSourcing: false,
+    			ignoreMandatoryFields: true
+    		});
+    		log.debug('KPI Queue record ID: '+recordId);
+    	} catch(ex){
+    		log.error ('module_createKPIQueue', ex.name +'; ' + ex.message + '; ');
+    	}
+    }
+    
 
 	return {
 		getItemUnits : getItemUnits,
@@ -2271,6 +2335,7 @@ define(['N/search',
 		validateDeductionOpenBal:validateDeductionOpenBal,
 		applyCreditMemo : applyCreditMemo,
 		createCustomerPayment : createCustomerPayment,
-		getSubCustomers : getSubCustomers
+		getSubCustomers : getSubCustomers,
+		createKPIQueue : createKPIQueue
 	};
 });

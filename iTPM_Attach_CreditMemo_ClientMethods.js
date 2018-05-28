@@ -34,9 +34,33 @@ function(url, message) {
 		});
 		window.open(ddnSuiteletURL,'_self');	
 	}
-	
+	/**
+	 * @param 
+	 * function creditmemoId
+	 */
+	function iTPMMatchToDdn(creditmemoId){
+		console.log(" client script attachment "+creditmemoId);
+		var msg = displayMessage('Deduction List','Please wait while you are redirected to the Deduction list screen.');
+		msg.show();
+		var suiteletUrl = url.resolveScript({
+			scriptId:'customscript_itpm_creditmemo_matchtoddn',
+			deploymentId:'customdeploy_itpm_creditmemo_matchtoddn',
+			params:{cmid:creditmemoId,submit:'false'}
+		});
+		window.open(suiteletUrl, '_self');
+	}
+	/**
+	 * @param from
+	 * @param id
+	 * @description redirect to previous page
+	 */
+	function redirectToBack(from,id){
+    	history.go(-1);
+    }
     return {
-    	iTPMDeduction:iTPMDeduction
+    	iTPMDeduction:iTPMDeduction,
+    	iTPMMatchToDdn:iTPMMatchToDdn,
+    	redirectToBack:redirectToBack
     };
     
 });

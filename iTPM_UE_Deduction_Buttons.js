@@ -100,27 +100,25 @@ define(['N/runtime',
 						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"RECORD",' + ddnSplitRecTypeId + ')'
 					});
 					
-					var btn_invoice = sc.form.addButton({
-						id: 'custpage_itpm_invoice',
-						label: 'Re-Invoice',
-						functionName: 'iTPMinvoice(' + sc.newRecord.id + ','+openBalance+')'
-					});			
-					
-					var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
-					if(customer){
-						var btn_creditmemo = sc.form.addButton({
-							id: 'custpage_itpm_match_creditmemo',
-							label: 'Match To Credit Memo',
-							functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
-						});
-					}
-          
 					//show button only when user have permissions greater than or equal to CREATE for Deductions and Journal Entry
 					if(JE_Permssion >= 2){
+						var btn_invoice = sc.form.addButton({
+							id: 'custpage_itpm_invoice',
+							label: 'Re-Invoice',
+							functionName: 'iTPMinvoice(' + sc.newRecord.id + ','+openBalance+')'
+						});			
+						var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
+						if(customer){
+							var btn_creditmemo = sc.form.addButton({
+								id: 'custpage_itpm_match_creditmemo',
+								label: 'Match To Credit Memo',
+								functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
+							});
+						}
 						var btn_expense = sc.form.addButton({
 							id: 'custpage_itpm_expense',
 							label: 'Expense',
-							functionName: 'iTPMexpense(' + sc.newRecord.id + ')'
+							functionName: 'iTPMexpense(' + sc.newRecord.id + ',' + openBalance + ')'
 						});
 					}
 				}
@@ -134,8 +132,8 @@ define(['N/runtime',
 					});
 				}				
 				
-				log.error('JE_Permssion, ddnPermission', JE_Permssion+' & '+ddnPermission);  
-	    		log.error('Openbal, itpmAmount and parentDeduction', openBalance+' & '+itpmAmount+' & '+parentDeduction);
+				log.audit('JE_Permssion, ddnPermission', JE_Permssion+' & '+ddnPermission);  
+	    		log.audit('Openbal, itpmAmount and parentDeduction', openBalance+' & '+itpmAmount+' & '+parentDeduction);
 				if(JE_Permssion == 4 && ddnPermission == 4 && openBalance == itpmAmount && !parentDeduction){
 					var btn_delete = sc.form.addButton({
 						id: 'custpage_itpm_delete',

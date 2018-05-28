@@ -102,19 +102,19 @@ function(search, serverWidget, runtime, url, http, itpm) {
 							values:existingEstItems
 						}));
 					}
-
 				}
 				//end
 				
-				do{
-					var items = itemSearch.run().getRange(rangeStart, rangeStart + rangeStep);
-					for (var x = 0; x < items.length; x++){
-						itemField.addSelectOption({
-							value: items[x].getValue({name:'internalid', join:'custrecord_itpm_all_item'}),
-							text: items[x].getValue({name: 'itemid', join:'custrecord_itpm_all_item'})
-						});
-					}
-				} while(items.length >= rangeStep);
+				//searching for the items
+				itemSearch.run().each(function(e){
+					itemField.addSelectOption({
+						value: e.getValue({name:'internalid', join:'custrecord_itpm_all_item'}),
+						text: e.getValue({name: 'itemid', join:'custrecord_itpm_all_item'}),
+						isSelected:e.getValue({name:'internalid', join:'custrecord_itpm_all_item'}) == estQty.getValue({fieldId: 'custrecord_itpm_estqty_item'})
+					});
+					return true;
+				});
+				
 				if(sc.type == 'edit' || sc.type == 'copy'){
 					estQty.setValue({
 						fieldId: itemField.id,

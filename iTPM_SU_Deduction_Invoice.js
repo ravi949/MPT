@@ -38,7 +38,6 @@ function(record, search, runtime, itpm) {
 					return;
 				}
     			
-				var prefObj = itpm.getPrefrenceValues();
 				var subsidiaryExists = itpm.subsidiariesEnabled();
 				var currencyExists = itpm.currenciesEnabled();
     			var ddnAccount = null,

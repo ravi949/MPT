@@ -31,7 +31,7 @@ function(runtime, serverWidget, search, record, itpm) {
         	//log.debug('iTPMSublists', 'Mode: '+sc.UserEventType.VIEW+' & Execution Context: '+runtime.ContextType.USER_INTERFACE);
         	
         	
-        	var prefDatesType = itpm.getPrefrenceValues().prefDiscountDate;
+        	var prefDatesType = itpm.getPrefrenceValues(undefined).prefDiscountDate;
         	var customerId = sc.newRecord.getValue('entity');
         	var trandate = sc.newRecord.getText('trandate');
         	var transhipdate = sc.newRecord.getText('shipdate');

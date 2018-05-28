@@ -26,6 +26,7 @@ function(record, http, redirect, search, itpm) {
     	try{
     		var request = context.request;
         	if(request.method == http.Method.GET){
+        		log.error('parameters',request.parameters);
         		var itemGroupRec = record.load({
             		type:record.Type.ITEM_GROUP,
             		id:request.parameters.itemgpid
@@ -33,7 +34,10 @@ function(record, http, redirect, search, itpm) {
         		var allwLookup = search.lookupFields({
         			type:'customrecord_itpm_promoallowance',
         			id:request.parameters.allid,
-        			columns:['custrecord_itpm_all_mop','custrecord_itpm_all_uom','custrecord_itpm_all_promotiondeal']
+        			columns:['custrecord_itpm_all_mop',
+        			         'custrecord_itpm_all_uom',
+        			         'custrecord_itpm_all_promotiondeal'
+        			         ]
         		});
         		var items = itpm.getItemGroupItems(itemGroupRec,false,false); //get the list of item members array
         		var itemUnits = itpm.getItemUnits(items[0].memberid); //get the list of unists array
@@ -42,6 +46,23 @@ function(record, http, redirect, search, itpm) {
                 var promoId = allwLookup['custrecord_itpm_all_promotiondeal'][0].value; //get the promotion id
         		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate); //member item sale unit rate conversion rate
         		var rate = parseFloat(unitsArray.filter(function(e){return e.id == allwUnit})[0].conversionRate); //member item base unit conversion rate
+        		
+        		//already allownace created with this item
+        		var listOfItems = [];
+        		search.create({
+    				type:'customrecord_itpm_promoallowance',
+    				columns:['internalid','custrecord_itpm_all_item'],
+    				filters:[['custrecord_itpm_all_item','anyof',items.map(function(e){ return e.memberid })],'and',
+    						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
+    						 ['custrecord_itpm_all_allowaddnaldiscounts','is',false],'and',
+    						 ['isinactive','is',false]]
+    			}).run().each(function(e){
+    				listOfItems.push(e.getValue('custrecord_itpm_all_item'));
+    				return true;
+    			});
+        		items = items.filter(function(e){ return listOfItems.filter(function(k){return k == e.memberid}).length <= 0 });
+        		log.debug('filtered items out',items);
+        		
         		items.forEach(function(item,i){
         			if(item.memberid != request.parameters.itemid){
         				var priceObj = itpm.getImpactPrice({pid:promoId,itemid:item.memberid,pricelevel:request.parameters.pl});
@@ -68,11 +89,11 @@ function(record, http, redirect, search, itpm) {
                 			value:search.create({
                 				type:'customrecord_itpm_promoallowance',
                 				columns:['internalid'],
-                				filters:[['custrecord_itpm_all_item','anyof',items[0].memberid],'and',
+                				filters:[['custrecord_itpm_all_item','anyof',item.memberid],'and',
                 						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
                 						 ['custrecord_itpm_all_allowaddnaldiscounts','is',true],'and',
                 						 ['isinactive','is',false]]
-                			}).run().getRange(0,2).length > 0
+                			}).run().getRange(0,2).length > 0 || (request.parameters.allow == "true")
                 		}).save({
                 			enableSourcing:false,
                 			ignoreMandatoryFields:true

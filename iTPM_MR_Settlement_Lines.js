@@ -141,13 +141,15 @@ function(record, search, runtime, itpm) {
     		
     		var linecount = settlementRec.getLineCount({sublistId:'line'});
     		var setCreditMemo = settlementRec.getSublistValue({ sublistId: 'line',fieldId: 'memo',line: linecount-1});
-    		var accountPayable = itpm.getPrefrenceValues().accountPayable;
     		var lumsumSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqls'));
     		var billbackSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqbb'));
     		var offinvoiceSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqoi'));
     		var setCust = settlementRec.getValue('custbody_itpm_customer');
     		var setIsApplied = settlementRec.getValue('custbody_itpm_appliedto');
 //    		log.debug('setIsApplied in Reduce',setCreditMemo); 
+    		
+    		var subsidiaryID = (itpm.subsidiariesEnabled())? settlementRec.getValue('subsidiary') : undefined;
+    		var accountPayable = itpm.getPrefrenceValues(subsidiaryID).accountPayable;
     		
     		var promoLineSearchForKPI = search.create({
     			type:'customrecord_itpm_promotiondeal',
@@ -188,7 +190,7 @@ function(record, search, runtime, itpm) {
 				estVolumeItems.push(e.getValue('custrecord_itpm_estqty_item'));
 				return true;
 			});
-    		var promoHasShippments = promoHasInvoice(estVolumeItems
+    		var promoHasShippments = promoHasShipments(estVolumeItems
     												 ,promoDealRecord['custrecord_itpm_p_customer'][0].value
     												 ,promoDealRecord['custrecord_itpm_p_shipstart']
     												 ,promoDealRecord['custrecord_itpm_p_shipend']
@@ -495,6 +497,7 @@ function(record, search, runtime, itpm) {
     }
 
     function getSumOfLSBBOIsettlementLines(mop,promoId,kpiItem){
+    	var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_setlment_rec_type');
     	var serResult = search.create({
 			   type: "customtransaction_itpm_settlement",
 			   filters: [
@@ -502,7 +505,9 @@ function(record, search, runtime, itpm) {
 				  "AND", 
 				  ["custbody_itpm_set_promo","anyof",promoId], 
 				  "AND", 
-				  ["custcol_itpm_set_item","anyof",kpiItem]
+				  ["custcol_itpm_set_item","anyof",kpiItem],
+				  "AND",
+				  ["status","noneof","Custom"+settlementRectypeId+":C"]
 			   ],
 			   columns: [
 			      search.createColumn({
@@ -522,7 +527,8 @@ function(record, search, runtime, itpm) {
 	 * @param {String} end - end date
 	 * @returns {Object} search
 	 */
-	function promoHasInvoice(items,custIds,st,end){
+	function promoHasShipments(items,custId,st,end){
+		var custIds = itpm.getSubCustomers(custId);
 		return search.create({
 			type:search.Type.ITEM_FULFILLMENT,
 			columns:['internalid','tranid','item'],

@@ -72,6 +72,8 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
      */
     function beforeSubmit(sc){
     	try{
+    		
+    		if(sc.type == 'delete') return;
     		var selectedItem = sc.newRecord.getValue('custrecord_itpm_all_item');
             var promoId = sc.newRecord.getValue('custrecord_itpm_all_promotiondeal');
         	var recordType = search.lookupFields({
@@ -79,7 +81,7 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
     		    id:selectedItem,
     		    columns:['recordtype']
     		}).recordtype;
-        	
+        	log.debug('selectedItem',selectedItem);
         	if(recordType == search.Type.ITEM_GROUP){
         		var itemGroupRec = record.load({
             		type:record.Type.ITEM_GROUP,
@@ -90,11 +92,37 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         		var allwUnit = sc.newRecord.getValue('custrecord_itpm_all_uom'); //allowance record selected unit
         		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == items[0].saleunit})[0].conversionRate); //member item sale unit rate conversion rate
         		var rate = parseFloat(unitsArray.filter(function(e){return e.id == allwUnit})[0].conversionRate); //member item base unit conversion rate
+        		
+        		//already allownace created with this item
+        		var listOfItems = [];
+        		search.create({
+    				type:'customrecord_itpm_promoallowance',
+    				columns:['internalid','custrecord_itpm_all_item'],
+    				filters:[['custrecord_itpm_all_item','anyof',items.map(function(e){ return e.memberid })],'and',
+    						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
+    						 ['custrecord_itpm_all_allowaddnaldiscounts','is',false],'and',
+    						 ['isinactive','is',false]]
+    			}).run().each(function(e){
+    				listOfItems.push(e.getValue('custrecord_itpm_all_item'));
+    				return true;
+    			});
+        		items = items.filter(function(e){ return listOfItems.filter(function(k){return k == e.memberid}).length <= 0 });
+        		log.debug('filtered items out',items);
+        		
+    			//validating the units and base price
         		items.forEach(function(item,i){
+        			log.debug('items in',item);
         			if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
         				throw{
         					name:"INVALID_UNITS",
         					message:"SaleUnit and UnitType must be same for all items."
+        				};
+        			}
+        			log.debug('item.baseprice',item.baseprice);
+        			if(item.baseprice <= 0){
+        				throw{
+        					name:"INVALID_PRICE",
+        					message:"This iTPM Allowance cannot be submitted because the selected item does not have any sale price."
         				};
         			}
         		});
@@ -121,7 +149,7 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
         						 ['custrecord_itpm_all_allowaddnaldiscounts','is',true],'and',
         						 ['isinactive','is',false]]
-        			}).run().getRange(0,2).length > 0
+        			}).run().getRange(0,2).length > 0 || sc.newRecord.getValue('custrecord_itpm_all_allowaddnaldiscounts')
         		});
         		cache.getCache({
         			name: 'itemGroupCache',
@@ -135,11 +163,25 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         			}),
         			ttl: 300
         		});
+        	}else{
+        		if(recordType == search.Type.ITEM_GROUP) return;
+        		var itemLookup = search.lookupFields({
+        			type:search.Type.ITEM,
+        			id:selectedItem,
+        			columns:['baseprice']
+        		});
+        		log.debug('baseprice',itemLookup['baseprice']);
+        		if(itemLookup['baseprice'] <= 0){
+        			throw{
+        				name:"INVALID_PRICE",
+        				message:"This iTPM Allowance cannot be submitted because the selected item does not have any sale price."
+        			};
+        		}
         	}
     	}catch(ex){
-    		if(ex.name == "INVALID_UNITS")
-    			throw new Error(ex.message);
     		log.error(ex.name,ex.message);
+    		if(ex.name == "INVALID_UNITS" || ex.name == "INVALID_PRICE")
+    			throw new Error(ex.message);
     	}
     	
     }
@@ -174,10 +216,40 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
             		    	'itemid':keyObj.neglectItem,
             		    	'allid':sc.newRecord.id,
             		    	'pi':sc.newRecord.getValue('custrecord_itpm_all_promotiondeal'),
-            		    	'pl':sc.newRecord.getValue('custrecord_itpm_all_pricelevel')
+            		    	'pl':sc.newRecord.getValue('custrecord_itpm_all_pricelevel'),
+            		    	'allow':sc.newRecord.getValue('custrecord_itpm_all_allowaddnaldiscounts')
             		    }
             		});
             	}
+        	}
+        	
+        	if(sc.type == 'edit'){
+        		var promoId = sc.newRecord.getValue('custrecord_itpm_all_promotiondeal');
+        		log.debug('Promotion ID', promoId);
+        		var promDetails = search.lookupFields({
+    				type:'customrecord_itpm_promotiondeal',
+    				id:promoId,
+    				columns:['custrecord_itpm_p_status', 'custrecord_itpm_p_condition']
+    			});
+        		var promStatus = promDetails.custrecord_itpm_p_status[0].value;
+        		var promCondition = promDetails.custrecord_itpm_p_condition[0].value;
+        		log.debug('promStatus & promCondition', promStatus+' & '+promCondition);
+        		var searchCount = search.create({
+    				type : 'customrecord_itpm_kpiqueue',
+    				filters : [
+    				           ['custrecord_itpm_kpiq_promotion', 'is', promoId],'and',
+                               ['custrecord_itpm_kpiq_start','isempty',null],'and',
+                               ['custrecord_itpm_kpiq_end','isempty',null]
+    				]
+    			}).runPaged().count;
+        		log.debug('searchCount', searchCount);
+    			
+    			if(searchCount == 0){
+    				if(promStatus == 3 && (promCondition == 2 || promCondition == 3)){
+    					//Creating New KPI Queue Record
+    					itpm.createKPIQueue(promoId, 2); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+    				}
+    			}
         	}
     	}catch(ex){
     		log.error(ex.name,ex.message);
@@ -189,9 +261,9 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
      *  @param {Object} sc
      */
     function defaultValForAllType(sc){
-		sc.newRecord.setValue({
+    	sc.newRecord.setValue({
 			fieldId: 'custrecord_itpm_all_type',
-			value: itpm.getPrefrenceValues().defaultAllwType
+			value: itpm.getPrefrenceValues(undefined).defaultAllwType
 		});
 	}		
       
