@@ -44,9 +44,10 @@ function(record, search) {
         	var splitAmountTotal = splitLineSearch[0].getValue({name:'custrecord_split_amount',summary: search.Summary.SUM});
         	
         	log.debug('splitAmountTotal',splitAmountTotal);
+        	log.debug('open bal amount',ddnParentSplitRec.getValue('custrecord_itpm_split_ddnopenbal'));
         	
         	//Comparing the Deduction split parent amount with split line total amount
-        	if(ddnParentSplitRec.getValue('custrecord_itpm_split_ddnamount') == splitAmountTotal){
+        	if(ddnParentSplitRec.getValue('custrecord_itpm_split_ddnopenbal') == splitAmountTotal){
         		ddnParentSplitRec.setValue({
         			fieldId:'custrecord_itpm_import_completed',
         			value:true
