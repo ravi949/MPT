@@ -37,7 +37,8 @@ function(record, message) {
 		//getting open balance from deduction record
 		var openBalance = scriptContext.currentRecord.getValue('custrecord_itpm_split_ddnopenbal');
 		var msg = 'Total Line amount = '+totalAmount;
-		if(totalAmount != openBalance){
+		showMsg.inValid = (totalAmount != openBalance);
+		if(showMsg.inValid){
 			msg += (totalAmount > openBalance)? 
 					'\nyou have entered '+(totalAmount -openBalance)+' greater than open Balance':
 					'\nyou have Reamining '+(openBalance - totalAmount)+' amount to split';
@@ -46,7 +47,6 @@ function(record, message) {
 				message: msg, 
 				type: (totalAmount > openBalance)? message.Type.WARNING : message.Type.INFORMATION
 			}).show({ duration : 2500 });
-			showMsg.inValid = true;
 			showMsg.msg = msg;
 			return false;
 		}				
