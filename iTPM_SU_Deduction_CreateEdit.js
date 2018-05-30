@@ -1019,6 +1019,9 @@ function(serverWidget, record, search, runtime, redirect, config, format, itpm) 
 				parentRec.setValue({
 					fieldId:'custbody_itpm_ddn_openbal',
 					value:0 
+				}).setValue({ // Setting open balance value to split off while creating deduction
+					fieldId:'custbody_itpm_ddn_splitoff',
+					value: parentDdnAmount
 				}).save({
 					enableSourcing: false,
 					ignoreMandatoryFields : true
@@ -1037,6 +1040,9 @@ function(serverWidget, record, search, runtime, redirect, config, format, itpm) 
 				deductionId = deductionCreatedRec.setValue({
 					fieldId:'custbody_itpm_ddn_originalddn',
 					value:deductionId
+				}).setValue({ // Setting default Split off value to 0 while creating deduction from invoice
+					fieldId:'custbody_itpm_ddn_splitoff',
+					value: 0
 				}).save({enableSourcing:false,ignoreMandatoryFields:true});
 
 				if(multiInv){ //create customer payment for all invoices
