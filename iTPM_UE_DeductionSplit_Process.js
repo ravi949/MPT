@@ -146,9 +146,10 @@ function(record, runtime, search, serverWidget, itpm) {
     			//changing the split record status
         		record.submitFields({
         			type:'customtransaction_itpm_deduction',
-        			id:scriptContext.newRecord.getValue('custrecord_itpm_split_deduction'),
+        			id:ddnSplitRec.getValue('custrecord_itpm_split_deduction'),
         			values:{
-        				'transtatus':'E'
+        				'transtatus':'E',
+        				'custbody_itpm_ddn_splitoff': ddnSplitRec.getValue('custrecord_itpm_split_ddnopenbal')
         			},
         			options:{
         				enableSourcing:false,
