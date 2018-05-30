@@ -3,10 +3,9 @@
  * @NScriptType ClientScript
  * @NModuleScope TargetAccount
  */
-define(['N/record',
-	'N/ui/message'],
+define(['N/ui/message'],
 
-function(record, message) {
+function(message) {
 
 	/**
 	 * Validation function to be executed when sublist line is committed.
@@ -21,36 +20,37 @@ function(record, message) {
 	 */
 	var showMsg = {};
 	function lineInit(scriptContext) {
-		var ddnSplitRec = scriptContext.currentRecord;
-		var totalAmount = 0;
-		var lineCount = ddnSplitRec.getLineCount('recmachcustrecord_itpm_split');
+		try{
+			var ddnSplitRec = scriptContext.currentRecord;
+			var totalAmount = 0;
+			var lineCount = ddnSplitRec.getLineCount('recmachcustrecord_itpm_split');
 
-		//Getting all lines amount
-		for(var i = 0;i < lineCount;i++){
-			lineAmount = ddnSplitRec.getSublistValue({
-				sublistId:'recmachcustrecord_itpm_split',
-				fieldId:'custrecord_split_amount',
-				line:i
-			});
-			totalAmount += parseFloat(lineAmount);			
-		}	
-		//getting open balance from deduction record
-		var openBalance = scriptContext.currentRecord.getValue('custrecord_itpm_split_ddnopenbal');
-		var msg = 'Total Line amount = '+totalAmount;
-		showMsg.inValid = (totalAmount != openBalance);
-		if(showMsg.inValid){
-			msg += (totalAmount > openBalance)? 
-					'\nyou have entered '+(totalAmount -openBalance)+' greater than open Balance':
-					'\nyou have Reamining '+(openBalance - totalAmount)+' amount to split';
-			message.create({
-				title: "Alert", 
-				message: msg, 
-				type: (totalAmount > openBalance)? message.Type.WARNING : message.Type.INFORMATION
-			}).show({ duration : 2500 });
-			showMsg.msg = msg;
+			//Getting all lines amount
+			for(var i = 0;i < lineCount;i++){
+				lineAmount = ddnSplitRec.getSublistValue({
+					sublistId:'recmachcustrecord_itpm_split',
+					fieldId:'custrecord_split_amount',
+					line:i
+				});
+				totalAmount += parseFloat(lineAmount);			
+			}	
+			//getting open balance from deduction record
+			var openBalance = scriptContext.currentRecord.getValue('custrecord_itpm_split_ddnopenbal');
+			scriptContext.currentRecord.setValue('custpage_itpm_ddsplit_totallineamount',totalAmount);
+			var msg = 'Total Line amount: $'+totalAmount;
+			showMsg.inValid = (totalAmount != openBalance);
+			if(showMsg.inValid){
+				msg += (totalAmount > openBalance)? 
+						'\nYou have entered more than the Open Balance i.e. $'+(totalAmount -openBalance):
+						'\nYou have Reamining $'+(openBalance - totalAmount)+' of Open Balance to Split';
+				showMsg.msg = msg;
+				return false;
+			}				
+			return true;
+		}catch(ex){
+			console.log(ex);
 			return false;
-		}				
-		return true;
+		}
 	}
 
 
@@ -64,11 +64,16 @@ function(record, message) {
 	 * @since 2015.2
 	 */
 	function saveRecord(scriptContext) {
-		if(showMsg.inValid){
-			alert(showMsg.msg);
+		try{
+			if(showMsg.inValid){
+				alert(showMsg.msg);
+				return false;
+			}
+			return true;
+		}catch(ex){
+			console.log(ex);
 			return false;
 		}
-		return true;
 	}
 
 	return {
