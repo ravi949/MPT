@@ -1019,6 +1019,9 @@ function(serverWidget, record, search, runtime, redirect, config, format, itpm) 
 				parentRec.setValue({
 					fieldId:'custbody_itpm_ddn_openbal',
 					value:0 
+				}).setValue({
+					fieldId:'custbody_itpm_ddn_splitoff',
+					value: parentDdnAmount
 				}).save({
 					enableSourcing: false,
 					ignoreMandatoryFields : true
