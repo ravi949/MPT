@@ -323,12 +323,10 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
     	//Date
 	    settlementForm.addField({
     		id:'custom_itpm_st_date',
-    		type:serverWidget.FieldType.TEXT,
+    		type:serverWidget.FieldType.DATE,
     		label:'Date',
     		container:'custom_primaryinfo_group'
-    	}).updateDisplayType({
-			displayType : displayTypeSetup
-		}).updateBreakType({
+    	}).updateBreakType({
 			breakType : serverWidget.FieldBreakType.STARTCOL
 		}).defaultValue = format.format({
 		    value:defaultDate,

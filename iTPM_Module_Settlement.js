@@ -7,6 +7,7 @@
 define(['N/config',
 		'N/record',
 		'N/search',
+		'N/format',
 		'./iTPM_Module.js'
 		],
 /**
@@ -15,7 +16,7 @@ define(['N/config',
  * @param {search} search
  * @param {runtime} runtime
  */
-function(config, record, search, itpm) {
+function(config, record, search, format, itpm) {
    
 	/**
 	 * function createSettlement(params)
@@ -525,6 +526,7 @@ function(config, record, search, itpm) {
 			log.debug('params.custom_itpm_st_reql',params.custpage_lumsum_setreq);
 			log.debug('params.custom_itpm_st_reql',params.custpage_offinvoice_setreq == '');
 			log.debug('params.custom_itpm_st_reql',parseFloat(params.custpage_billback_setreq.replace(/,/g,'')));
+			log.debug('params.custom_itpm_st_date',params.custom_itpm_st_date);
 			
 			loadedSettlementRec.setValue({
 				fieldId:'custbody_itpm_otherrefcode',
@@ -544,6 +546,9 @@ function(config, record, search, itpm) {
 			}).setValue({
 				fieldId:'memo',
 				value:params.custpage_memo
+			}).setValue({
+				fieldId:'trandate',
+				value:format.parse({value: params.custom_itpm_st_date, type: format.Type.DATE})
 			});
 			
 			if(locationsExists){
