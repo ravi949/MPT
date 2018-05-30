@@ -1040,6 +1040,9 @@ function(serverWidget, record, search, runtime, redirect, config, format, itpm) 
 				deductionId = deductionCreatedRec.setValue({
 					fieldId:'custbody_itpm_ddn_originalddn',
 					value:deductionId
+				}).setValue({
+					fieldId:'custbody_itpm_ddn_splitoff',
+					value: 0
 				}).save({enableSourcing:false,ignoreMandatoryFields:true});
 
 				if(multiInv){ //create customer payment for all invoices
