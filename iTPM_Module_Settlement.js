@@ -718,11 +718,11 @@ function(config, record, search, format, itpm) {
 	}
 	
     return {
-        createSettlement:createSettlement,
-        editSettlement:editSettlement,
-        applyToDeduction:applyToDeduction,
-        createReverseJE:createReverseJE,
-        getAllowanceMOP:getAllowanceMOP
+        createSettlement	:	createSettlement,
+        editSettlement		:	editSettlement,
+        applyToDeduction	:	applyToDeduction,
+        createReverseJE		:	createReverseJE,
+        getAllowanceMOP		:	getAllowanceMOP
     };
     
 });

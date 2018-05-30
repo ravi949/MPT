@@ -382,7 +382,7 @@ function(serverWidget, search, record, format, url, itpm) {
 				    join:'item',
 				    summary:search.Summary.GROUP
 				}),search.createColumn({
-				    name: 'quantity',
+				    name: 'quantityuom',
 				    summary:search.Summary.SUM
 				})];
 				
@@ -405,13 +405,13 @@ function(serverWidget, search, record, format, url, itpm) {
 							itemSummarySublist.setSublistValue({
 								id:'custpage_itemsummary_average',
 								line:i,
-								value:(parseFloat(e.getValue({name:'quantity',summary:search.Summary.SUM}))/52).toFixed(2)
+								value:(parseFloat(e.getValue({name:'quantityuom',summary:search.Summary.SUM}))/52).toFixed(2)
 							});
 						}
 						itemSummarySublist.setSublistValue({
 							id:'custpage_itemsummary_quantity',
 							line:i,
-							value: e.getValue({name:'quantity',summary:search.Summary.SUM})
+							value: e.getValue({name:'quantityuom',summary:search.Summary.SUM})
 						});
 						i++;
 						return true;

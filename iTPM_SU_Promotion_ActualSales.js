@@ -387,6 +387,11 @@ define(['N/ui/serverWidget',
 					type:serverWidget.FieldType.TEXT,
 					label:'Item Description'
 				});
+				itemSummarySublist.addField({
+					id:'custpage_itemsummary_uom',
+					type:serverWidget.FieldType.TEXT,
+					label:'UOM'
+				});
 				
 				if(yearResult == 'last52'){
 					itemSummarySublist.addField({
@@ -413,6 +418,9 @@ define(['N/ui/serverWidget',
 				}),search.createColumn({
 				    name: 'quantity',
 				    summary:search.Summary.SUM
+				}),search.createColumn({
+				    name: 'unit',
+				    summary:search.Summary.GROUP
 				})];
 				
 				if(estVolumeItems.length > 0){
@@ -430,6 +438,12 @@ define(['N/ui/serverWidget',
 							line:i,
 							value:e.getValue({name:'description',join:'item',summary:search.Summary.GROUP})
 						});
+						itemSummarySublist.setSublistValue({
+							id:'custpage_itemsummary_uom',
+							line:i,
+							value:e.getText({name:'unit',summary:search.Summary.GROUP})
+						});
+						
 						if(yearResult == 'last52'){
 							itemSummarySublist.setSublistValue({
 								id:'custpage_itemsummary_average',
