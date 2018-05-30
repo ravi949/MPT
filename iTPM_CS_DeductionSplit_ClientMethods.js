@@ -4,9 +4,9 @@
  * @NModuleScope TargetAccount
  */
 define(['N/record',
-		'N/ui/message'],
-		
-function(record, message) {
+	'N/ui/message'],
+
+	function(record, message) {
 
 	/**
 	 * Function to be executed after page is initialized.
@@ -19,8 +19,8 @@ function(record, message) {
 	 */
 	function pageInit(scriptContext) {
 	}
-	
-	
+
+
 	/**
 	 * Validation function to be executed when sublist line is committed.
 	 *
@@ -36,7 +36,7 @@ function(record, message) {
 		var ddnSplitRec = scriptContext.currentRecord;
 		var totalAmount = 0;
 		var lineCount = ddnSplitRec.getLineCount('recmachcustrecord_itpm_split');
-		
+
 		//Getting all lines amount
 		for(var i = 0;i < lineCount;i++){
 			lineAmount = ddnSplitRec.getSublistValue({
@@ -48,24 +48,16 @@ function(record, message) {
 		}	
 		//getting open balance from deduction record
 		var openBalance = scriptContext.currentRecord.getValue('custrecord_itpm_split_ddnopenbal');
-		
-		if(totalAmount > openBalance){
-			 var maxMsg = message.create({
-		            title: "Warning!", 
-		            message:'Total Line amount ='+totalAmount+'\nyou have entered '+(totalAmount -openBalance)+' greater than open Balance', 
-		            type: message.Type.WARNING
-		        });
-			    maxMsg.show();
-		        setTimeout(maxMsg.hide, 4000);			
-			return false;
-		}else if(totalAmount < openBalance){
-			var minMsg = message.create({
-	            title: "Split Amount Info", 
-	            message:'Total Line amount ='+totalAmount+'\nyou have Reamining '+(openBalance - totalAmount)+' amount to split',
-	            type: message.Type.INFORMATION
-	        });
-			minMsg.show();
-	        setTimeout(minMsg.hide, 3000);			
+		var msg = 'Total Line amount = <b>'+totalAmount+'</b>';
+		if(totalAmount != openBalance){
+			msg += (totalAmount > openBalance)? 
+				'\nyou have entered <b>'+(totalAmount -openBalance)+'</b> greater than open Balance':
+				'\nyou have Reamining <b>'+(openBalance - totalAmount)+'</b> amount to split';
+			message.create({
+				title: "Warning!", 
+				message: msg, 
+				type: (totalAmount > openBalance)? message.Type.WARNING : message.Type.INFORMATION
+			}).show({ duration : 3000 });		
 			return false;
 		}				
 		return true;
