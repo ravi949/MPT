@@ -3,9 +3,9 @@
  * @NScriptType ClientScript
  * @NModuleScope TargetAccount
  */
-define(['N/ui/message'],
+define(['N/ui/message','N/format'],
 
-function(message) {
+function(message,format) {
 
 	/**
 	 * Validation function to be executed when sublist line is committed.
@@ -39,11 +39,15 @@ function(message) {
 			scriptContext.currentRecord.setValue('custpage_itpm_ddsplit_totallineamount',totalAmount);
 			var msg = 'Total Line amount: $'+totalAmount;
 			showMsg.inValid = (totalAmount != openBalance);
+			var remainingAmount = format.parse({value:(totalAmount -openBalance), type: format.Type.CURRENCY}).toFixed(2);
+			var maxAmount = format.parse({value:(openBalance - totalAmount), type: format.Type.CURRENCY}).toFixed(2);
 			if(showMsg.inValid){
 				msg += (totalAmount > openBalance)? 
-						'\nYou have entered more than the Open Balance i.e. $'+parseFloat(totalAmount -openBalance):
-						'\nYou have Reamining $'+parseFloat(openBalance - totalAmount)+' of Open Balance to Split';
+						'\nYou have entered more than the Open Balance i.e. $'+remainingAmount:
+						'\nYou have Reamining $'+maxAmount+' of Open Balance to Split';
 				showMsg.msg = msg;
+				console.log(parseFloat(openBalance - totalAmount));
+				console.log(format.parse({value:(totalAmount -openBalance), type: format.Type.CURRENCY}).toFixed(2));
 				return false;
 			}				
 			return true;
