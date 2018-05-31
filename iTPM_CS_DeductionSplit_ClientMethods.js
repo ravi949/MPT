@@ -3,7 +3,8 @@
  * @NScriptType ClientScript
  * @NModuleScope TargetAccount
  */
-define(['N/ui/message','N/format'],
+define(['N/ui/message',
+	    'N/format'],
 
 function(message,format) {
 
@@ -45,9 +46,7 @@ function(message,format) {
 				msg += (totalAmount > openBalance)? 
 						'\nYou have entered more than the Open Balance i.e. $'+remainingAmount:
 						'\nYou have Reamining $'+maxAmount+' of Open Balance to Split';
-				showMsg.msg = msg;
-				console.log(parseFloat(openBalance - totalAmount));
-				console.log(format.parse({value:(totalAmount -openBalance), type: format.Type.CURRENCY}).toFixed(2));
+				showMsg.msg = msg;				
 				return false;
 			}				
 			return true;
