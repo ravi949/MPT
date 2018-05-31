@@ -2168,7 +2168,11 @@ define(['N/search',
 		}).setValue({
 			fieldId:'memo',
 			value:(obj.memo)?obj.memo : 'Deduction split from Deduction #'+parentDdnRec.getText('tranid')
+		}).setValue({ 
+			fieldId:'custbody_itpm_ddn_splitoff',
+			value: 0
 		});
+		
 		log.debug('obj',obj);
 		//setting the line values to copied deduction record
 		for(var i = 0;i < 2;i++){
