@@ -246,7 +246,7 @@ define(['N/ui/serverWidget',
 					});
 					
 					//search for invoice filters are ship start,end date and est volume items and with status Open and Paid in full
-					var searchColumn = ['internalid','tranid','item','item.description','amount','rate','quantity','unit',sortOnName,sortOnDate];
+					var searchColumn = ['internalid','tranid','item','item.description','amount','rate','quantityuom','unit',sortOnName,sortOnDate];
 					var searchColumnObj = {
 							type : yearResult,
 							columns : searchColumn,
@@ -297,7 +297,7 @@ define(['N/ui/serverWidget',
 					for(var i = 0;dataCount != null,i < dataCount;i++){
 						
 						if(page.data[i].getValue('item') != ''){
-							var quantity = page.data[i].getValue('quantity');
+							var quantity = page.data[i].getValue('quantityuom');
 							var rate = page.data[i].getValue('rate');
 							var unit = page.data[i].getValue('unit');
 							actualSalesSublist.setSublistValue({
@@ -416,7 +416,7 @@ define(['N/ui/serverWidget',
 				    join:'item',
 				    summary:search.Summary.GROUP
 				}),search.createColumn({
-				    name: 'quantity',
+				    name: 'quantityuom',
 				    summary:search.Summary.SUM
 				}),search.createColumn({
 				    name: 'unit',
@@ -448,13 +448,13 @@ define(['N/ui/serverWidget',
 							itemSummarySublist.setSublistValue({
 								id:'custpage_itemsummary_average',
 								line:i,
-								value:(parseFloat(e.getValue({name:'quantity',summary:search.Summary.SUM}))/52).toFixed(2) 
+								value:(parseFloat(e.getValue({name:'quantityuom',summary:search.Summary.SUM}))/52).toFixed(2) 
 							});
 						}
 						itemSummarySublist.setSublistValue({
 							id:'custpage_itemsummary_quantity',
 							line:i,
-							value:e.getValue({name:'quantity',summary:search.Summary.SUM}) 
+							value:e.getValue({name:'quantityuom',summary:search.Summary.SUM}) 
 						});
 						i++;
 						return true;
