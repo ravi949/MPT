@@ -7,10 +7,12 @@
 define(['N/ui/serverWidget',
 		'N/redirect',
 		'N/search',
-		'N/record'
-		],
+		'N/record',
+		'N/url',
+		'N/ui/message'
+	],
 
-function(serverWidget,redirect,search,record) {
+	function(serverWidget,redirect,search,record,url,message) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -20,83 +22,89 @@ function(serverWidget,redirect,search,record) {
 	 * @param {ServerResponse} context.response - Encapsulation of the Suitelet response
 	 * @Since 2015.2
 	 */
-	function onRequest(context) 
-	{
+	function onRequest(context){
 		try{
 			var request = context.request,response = context.response,params = request.parameters;
 
-			if(request.method == 'GET')
-			{
-				var form = serverWidget.createForm({
-					title : 'New Settlement'
-				});
-
-				var promotionField = form.addField({
-					id : 'custpage_promotion',
-					type : serverWidget.FieldType.SELECT,
-					label : 'Promotions'
-				});
-				promotionField.isMandatory = true;
-				promotionField.addSelectOption({
-					value:' ',
-					text:' '
-				});
+			if(request.method == 'GET'){
 				
-				form.addField({
-					id : 'custpage_promotion_liability',
-					type : serverWidget.FieldType.CURRENCY,
-					label : 'Net Promotional Liability'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				}).updateBreakType({
-				    breakType : serverWidget.FieldBreakType.STARTCOL
+				//adding list to form
+				var list = serverWidget.createList({
+					title : 'Promotions List'
 				});
-				
-				form.addField({
-					id : 'custpage_promotion_customer',
+				var listcolumn =  list.addColumn({
+					id : 'custpage_itpm_id',
+					type : serverWidget.FieldType.URL,
+					label : 'Apply To'
+				});
+				list.addColumn({
+					id : 'custpage_itpm_prmtitle',
 					type : serverWidget.FieldType.TEXT,
-					label : 'Customer'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
+					label : 'Promotion Title'
 				});
-
-				form.addField({
-					id : 'custpage_promotion_ship_startdate',
+				list.addColumn({
+					id : 'custpage_itpm_otherrefcode',
 					type : serverWidget.FieldType.TEXT,
-					label : 'Ship start date'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
-				}).updateBreakType({
-				    breakType : serverWidget.FieldBreakType.STARTCOL
+					label : 'Other Ref Code'
 				});
-				
-				form.addField({
-					id : 'custpage_promotion_ship_enddate',
+				list.addColumn({
+					id : 'custpage_itpm_prmtype',
 					type : serverWidget.FieldType.TEXT,
-					label : 'Ship end date'
-				}).updateDisplayType({
-					displayType : serverWidget.FieldDisplayType.INLINE
+					label : ' Promotion Type'
 				});
-				
-				
-				form.addField({
-					id : 'custpage_ddn_id',
-					type : serverWidget.FieldType.INTEGER,
-					label : 'Deduction Id'
-				}).updateDisplayType({
-        			displayType : serverWidget.FieldDisplayType.HIDDEN
-        		}).defaultValue =  params.ddn;
+				list.addColumn({
+					id : 'custpage_itpm_prmcondn',
+					type : serverWidget.FieldType.TEXT,
+					label : 'Condition'
+				});
+				list.addColumn({
+					id : 'custpage_itpm_prmshipstdt',
+					type : serverWidget.FieldType.TEXT,
+					label : 'Ship Start Date'
+				});
+				list.addColumn({
+					id : 'custpage_itpm_prmshipenddt',
+					type : serverWidget.FieldType.TEXT,
+					label : 'Ship End Date'
+				});
+				list.addColumn({
+					id : 'custpage_itpm_netlaiblity',
+					type : serverWidget.FieldType.TEXT,
+					label : 'Net Liability'
+				});
+				list.addColumn({
+					id : 'custpage_itpm_overpay',
+					type : serverWidget.FieldType.TEXT,
+					label : 'Overpay'
+				});
+				list.addColumn({
+					id : 'custpage_itpm_promoestspnd',
+					type : serverWidget.FieldType.TEXT,
+					label : 'Est.Spend'
+				});
+				list.addColumn({
+					id : 'custpage_itpm_lespend',
+					type : serverWidget.FieldType.TEXT,
+					label : 'LE Spend'
+				});
+				list.addColumn({
+					id : 'custpage_itpm_maxliablity',
+					type : serverWidget.FieldType.TEXT,
+					label : 'Max Liability'
+				});
+				list.addColumn({
+					id : 'custpage_itpm_expliablity',
+					type : serverWidget.FieldType.TEXT,
+					label : 'Expected Liability'
+				});
+				list.addColumn({
+					id : 'custpage_itpm_actspend',
+					type : serverWidget.FieldType.TEXT,
+					label : 'Actual Spend'
+				});
 
-				//adding the submit and cancel button to the form
-				form.addSubmitButton({
-					label: 'Next'
-				});
-
-				form.addButton({
-					label: 'Cancel',
-					id:'custpage_cancelbtn',
-					functionName:'redirectToBack'
-				});
+				list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'});
+				list.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
 
 				//search on deduction customer and another search on promotion/deal based on customer and other conditions
 				var deductionRec = search.lookupFields({
@@ -126,44 +134,92 @@ function(serverWidget,redirect,search,record) {
 					}
 					custRange--;
 				}while(iteratorVal && custRange > 0);
-				var promoDealRecord = search.create({
+				var promoDealRecordSearch = search.create({
 					type:'customrecord_itpm_promotiondeal',
-					columns:['internalid','name','custrecord_itpm_p_status','custrecord_itpm_p_condition','custrecord_itpm_p_customer','custrecord_itpm_p_netpromotionalle','custrecord_itpm_p_type.custrecord_itpm_pt_validmop'],
-					filters:[
-					    ['custrecord_itpm_p_status','anyof', 3],'and', //approved
-					    ['custrecord_itpm_promo_allocationcontrbtn','is',false],'and',
-					    [
-					    	[['custrecord_itpm_p_type.custrecord_itpm_pt_settlewhenpromoactive','is','T'],'and',
-					    	['custrecord_itpm_p_condition','anyof',2]],'or', //active if promotion type allow for settlemen in active
-					    	['custrecord_itpm_p_condition','anyof', 3]  //completed
-					    ],'and',
-						['custrecord_itpm_p_customer','anyof', custrecIds],'and',
-						['custrecord_itpm_p_type.custrecord_itpm_pt_validmop','is',1],'and',  //mop is bill-back
-						['isinactive','is',false]]	    		
-				}).run().each(function(k){ 
-					promotionField.addSelectOption({
-						value:k.getValue('internalid'),
-						text:k.getValue('name')		
-					});
-					return true;
-				});	
-
-				form.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
-				response.writePage(form);
-				
-			}else if(request.method == 'POST'){
-				log.debug('request',params)
-				redirect.toSuitelet({
-					scriptId:'customscript_itpm_set_createeditsuitelet',
-					deploymentId:'customdeploy_itpm_set_createeditsuitelet',
-					returnExternalUrl: false,
-					parameters:{pid:params.custpage_promotion,ddn:params.custpage_ddn_id,from:'ddn',type:'create'}
+					columns:['internalid',
+						'name',
+						'custrecord_itpm_p_status',
+						'custrecord_itpm_p_condition',
+						'custrecord_itpm_p_customer',
+						'custrecord_itpm_p_netpromotionalle',
+						'custrecord_itpm_p_type.custrecord_itpm_pt_validmop',
+						'custrecord_itpm_p_otherrefcode'
+						],
+						filters:[
+							['custrecord_itpm_p_status','anyof', 3],'and', //approved
+							['custrecord_itpm_promo_allocationcontrbtn','is',false],'and',
+							[
+								[['custrecord_itpm_p_type.custrecord_itpm_pt_settlewhenpromoactive','is','T'],'and',
+									['custrecord_itpm_p_condition','anyof',2]],'or', //active if promotion type allow for settlemen in active
+									['custrecord_itpm_p_condition','anyof', 3]  //completed
+								],'and',
+								['custrecord_itpm_p_customer','anyof', custrecIds],'and',
+								['custrecord_itpm_p_type.custrecord_itpm_pt_validmop','is',1],'and',  //mop is bill-back
+								['isinactive','is',false]]	    		
 				});
-			}
+				var promoDealRecordSearchLength = promoDealRecordSearch.runPaged().count;
+				var promos = [];
+				var suiteltUrl = url.resolveScript({
+					scriptId: 'customscript_itpm_set_createeditsuitelet',
+					deploymentId: 'customdeploy_itpm_set_createeditsuitelet',
+					returnExternalUrl: false
+				});
+				if(promoDealRecordSearchLength > 0){
+					listcolumn.setURL({
+						url : suiteltUrl
+					});
+					listcolumn.addParamToURL({
+						param : 'pid',
+						value : 'custpage_itpm_id',
+						dynamic:true
+					});
+					listcolumn.addParamToURL({
+						param : 'type',
+						value : 'create'
+					});
+					listcolumn.addParamToURL({
+						param : 'ddn',
+						value : params.ddn
+					});
+					listcolumn.addParamToURL({
+						param : 'from',
+						value : 'ddn'
+					});
+					promoDealRecordSearch.run().each(function(e){
+						var promoRecId = e.getValue('internalid');
+						var promoRecord = record.load({
+							type:'customrecord_itpm_promotiondeal',
+							id:promoRecId
+						});	
+						promoObj = {	
+								'custpage_itpm_id':promoRecId,
+								'custpage_itpm_prmtitle':e.getValue('name'),
+								'custpage_itpm_otherrefcode':e.getValue('custrecord_itpm_p_otherrefcode'),
+								'custpage_itpm_prmtype':e.getValue('custrecord_itpm_p_otherrefcode'),
+								'custpage_itpm_prmcondn':promoRecord.getText('custrecord_itpm_p_type'),
+								'custpage_itpm_prmshipstdt':promoRecord.getText('custrecord_itpm_p_shipstart'),
+								'custpage_itpm_prmshipenddt':promoRecord.getText('custrecord_itpm_p_shipend'),
+								'custpage_itpm_netlaiblity':promoRecord.getText('custrecord_itpm_p_netpromotionalle'),
+								'custpage_itpm_overpay':promoRecord.getText('custrecord_itpm_p_promotionaloverpayamt'),
+								'custpage_itpm_promoestspnd':promoRecord.getText('custrecord_itpm_estimatedspend'),
+								'custpage_itpm_lespend':promoRecord.getText('custrecord_itpm_lespend'),
+								'custpage_itpm_maxliablity':promoRecord.getText('custrecord_itepm_p_incurredpromotionalle'),
+								'custpage_itpm_expliablity':promoRecord.getText('custrecord_itpm_p_expliabilitypromo'),
+								'custpage_itpm_actspend':promoRecord.getText('custrecord_itpm_p_promotionalactualspend')
+						};
+						list.addRow({
+							row :promoObj
+						});
+						return true;
+					});
+				}
+				response.writePage(list); 
+			}			
 		}catch (e) {
-    		log.error(e.name,'record type = iTPM Deduction, record id='+params.ddn+', message = '+e.message);
-    	}
+			log.error(e.name,'record type = iTPM Deduction, record id='+params.ddn+', message = '+e.message);
+		}
 	}
+
 	return {
 		onRequest: onRequest
 	};
