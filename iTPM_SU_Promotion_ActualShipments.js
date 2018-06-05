@@ -368,6 +368,11 @@ function(serverWidget, search, record, format, url, itpm) {
 					});
 				}
 				itemSummarySublist.addField({
+					id:'custpage_itemsummary_uom',
+					type:serverWidget.FieldType.TEXT,
+					label:'UOM'
+				});
+				itemSummarySublist.addField({
 					id:'custpage_itemsummary_quantity',
 					type:serverWidget.FieldType.TEXT,
 					label:'Quantity'
@@ -380,6 +385,9 @@ function(serverWidget, search, record, format, url, itpm) {
 				}),search.createColumn({
 				    name: 'description',
 				    join:'item',
+				    summary:search.Summary.GROUP
+				}),search.createColumn({
+				    name: 'unit',
 				    summary:search.Summary.GROUP
 				}),search.createColumn({
 				    name: 'quantityuom',
@@ -408,6 +416,11 @@ function(serverWidget, search, record, format, url, itpm) {
 								value:(parseFloat(e.getValue({name:'quantityuom',summary:search.Summary.SUM}))/52).toFixed(2)
 							});
 						}
+						itemSummarySublist.setSublistValue({
+							id:'custpage_itemsummary_uom',
+							line:i,
+							value: e.getText({name:'unit',summary:search.Summary.GROUP})
+						});
 						itemSummarySublist.setSublistValue({
 							id:'custpage_itemsummary_quantity',
 							line:i,
