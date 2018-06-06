@@ -111,7 +111,9 @@ function(message, url, https, search, dialog, message, record) {
      * @since 2015.2
      */
     function saveRecord(scriptContext) {
-    	showPopUpBanner(scriptContext.currentRecord.getValue({fieldId:'custrecord_itpm_all_item'}));
+    	if(mode == 'create'){
+    		showPopUpBanner(scriptContext.currentRecord.getValue({fieldId:'custrecord_itpm_all_item'}));
+    	}	
     	return true;
     }
 	
