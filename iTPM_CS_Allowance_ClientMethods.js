@@ -8,10 +8,12 @@ define(['N/ui/message',
 		'N/url',
 		'N/https',
 		'N/search',
-		'N/ui/dialog'
+		'N/ui/dialog',
+		'N/ui/message',
+		'N/record'
 		],
 
-function(message, url, https, search, dialog) {
+function(message, url, https, search, dialog, message, record) {
 
 	/**
 	 * Function to be executed after page is initialized.
@@ -64,6 +66,7 @@ function(message, url, https, search, dialog) {
 	 */	
 	function fieldChanged(sc) {
 		try{
+			var iTemId;
 			var fieldId = sc.fieldId, rec = sc.currentRecord;
 			var unitField = rec.getField({fieldId: 'custpage_itpm_all_unit'});
 			if (fieldId == 'custpage_itpm_all_unit'){
@@ -91,13 +94,26 @@ function(message, url, https, search, dialog) {
 						ignoreFieldChange: true
 					});
 				}
-
 			}
 		} catch(ex) {
 			log.error(ex.name,'record type = iTPM Allowance, function name = fieldchange, message = '+ex.message);
 			console.log(ex.name,'record type = iTPM Allowance, function name = fieldchange, message = '+ex.message);
 		}
 	}
+	
+	/**
+     * Validation function to be executed when record is saved.
+     *
+     * @param {Object} scriptContext
+     * @param {Record} scriptContext.currentRecord - Current form record
+     * @returns {boolean} Return true if record is valid
+     *
+     * @since 2015.2
+     */
+    function saveRecord(scriptContext) {
+    	showPopUpBanner(scriptContext.currentRecord.getValue({fieldId:'custrecord_itpm_all_item'}));
+    	return true;
+    }
 	
 	/**
 	 * @param rec
@@ -318,10 +334,38 @@ function(message, url, https, search, dialog) {
 		}
 	}
 
+	/**
+	 * Function to Show Pop Up banner when item count exceeds 25
+	 * @param {number} itemId
+	 */
+	function showPopUpBanner(itemId){
+		try{
+			var recObj = record.load({
+				type:record.Type.ITEM_GROUP,
+				id: itemId
+			});
+			var lineItemCount = recObj.getLineCount('member');
+			log.debug('lineItemCount ',lineItemCount);
+			
+			if(lineItemCount >= 2){
+				var myMsg = message.create({
+			        title: "Information", 
+			        message: "Please do not click Back or Refresh while Allowances are Created", 
+			        type: message.Type.CONFIRMATION
+			    }).show({duration: 60000});
+			}
+		}
+		catch(ex){
+			console.log(ex.name,ex.message);
+			console.log(ex.name,ex.message);
+		}
+	}
+
 
 	return {
 		pageInit:pageInit,
-		fieldChanged: fieldChanged
+		fieldChanged: fieldChanged,
+		saveRecord: saveRecord
 	};
 
 });
