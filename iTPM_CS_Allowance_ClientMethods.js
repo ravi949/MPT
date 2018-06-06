@@ -350,7 +350,7 @@ function(message, url, https, search, dialog, message, record) {
 			if(lineItemCount >= 2){
 				var myMsg = message.create({
 			        title: "Information", 
-			        message: "Please do not click Back or Refresh while Allowances are Created", 
+			        message: "Please Wait", 
 			        type: message.Type.CONFIRMATION
 			    }).show({duration: 100000});
 			}
