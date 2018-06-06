@@ -235,7 +235,7 @@ function(search, record, redirect, runtime, itpm) {
      */
     function afterSubmit(scriptContext) {
     	try{
-    		if(scriptContext.type === scriptContext.UserEventType.CREATE && runtime.executionContext === runtime.ContextType.USER_INTERFACE){
+    		if(scriptContext.type === scriptContext.UserEventType.CREATE && (runtime.executionContext === runtime.ContextType.USER_INTERFACE || runtime.executionContext === runtime.ContextType.MAP_REDUCE)){
     			log.debug('After Submit: scriptContext.type', scriptContext.type);
         		var jeNewRecordObj = scriptContext.newRecord;
     			var jeAppliedTo = jeNewRecordObj.getValue({fieldId : 'custbody_itpm_appliedto'});
