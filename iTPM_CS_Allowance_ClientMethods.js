@@ -352,7 +352,7 @@ function(message, url, https, search, dialog, message, record) {
 			        title: "Information", 
 			        message: "Please do not click Back or Refresh while Allowances are Created", 
 			        type: message.Type.CONFIRMATION
-			    }).show({duration: 60000});
+			    }).show({duration: 100000});
 			}
 		}
 		catch(ex){
