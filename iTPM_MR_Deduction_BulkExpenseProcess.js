@@ -29,7 +29,7 @@ function(search, record, itpm) {
         		         'custrecord_itpm_eq_account',
         		         'custrecord_itpm_eq_openbalance',
         		         'custrecord_itpm_eq_deduction'],
-        		filters:[['custrecord_itpm_eq_journalentry','isempty',null],'and',
+        		filters:[['custrecord_itpm_eq_journalentry','anyof','@NONE@'],'and',
         		         ['custrecord_itpm_eq_processingnotes','isempty',null]]
         	});
     	}catch(ex){
