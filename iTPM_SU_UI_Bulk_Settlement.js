@@ -21,9 +21,9 @@ function(ui) {
     		var response = context.response;
     		
     		if(request.method == 'GET'){
-    			csvFieUploadForm(request, response);
+    			bulkSettlementUIForm(request, response);
     		}else{
-    			validateCSVFile(request, response);
+    			//validateCSVFile(request, response);
     		}
     	}catch(e){
     		log.error(e.name, e.message);
@@ -34,23 +34,34 @@ function(ui) {
      * @param {Object} request
      * @param {Object} response
      */
-    function csvFieUploadForm(request, response){
+    function bulkSettlementUIForm(request, response){
     	var form = ui.createForm({
-			title: 'CSV Settlement'
+			title: 'Bulk Resolve Deductions Form'
 		});
 		
+    	
+    	
+    	form.addField({
+    	    id : 'custpage_itpm_promo_id',
+    	    type : ui.FieldType.TEXT,
+    	    label : 'Promotion'
+    	}).updateDisplayType({
+			displayType : ui.FieldDisplayType.INLINE
+		});//.defaultValue = params.promoid;
 		form.addField({
-    	    id : 'custom_itpm_csvfile',
-    	    type : ui.FieldType.FILE,
-    	    label : 'Upload CSV File'
-    	}).isMandatory = true;
+    	    id : 'custpage_itpm_customer_id',
+    	    type : ui.FieldType.TEXT,
+    	    label : 'Customer'
+    	}).updateDisplayType({
+			displayType : ui.FieldDisplayType.INLINE
+		})//.defaultValue = params.customer;
 		
 		form.addSubmitButton({
 			label: 'Submit'
 		});
 		
 		form.addButton({
-    		id : 'custom_itpm_tcacel',
+    		id : 'custom_itpm_cacel',
     	    label : 'Cancel',
     	    functionName:"redirectToBack"
     	});
