@@ -352,7 +352,7 @@ function(message, url, https, search, dialog, message, record) {
 			if(lineItemCount >= 2){
 				var myMsg = message.create({
 			        title: "Information", 
-			        message: "Creating allowances for multiple items in a NetSuite Item Group. Please wait.", 
+			        message: "Creating allowances for multiple items in a NetSuite Item Group. Please wait. ", 
 			        type: message.Type.CONFIRMATION
 			    }).show({duration: 100000});
 			}
