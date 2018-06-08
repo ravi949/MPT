@@ -467,10 +467,10 @@ define(['N/ui/serverWidget',
 			}
 
 		}catch(ex){
+			log.error(ex.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+ex.message);
 			if(ex.name == "INVALID_YEAR_PARAMETER"){
 				throw new Error(ex.message);
 			}
-			log.error(ex.name,'record type = iTPM promotion, record id = '+context.request.parameters.pid+', message = '+ex.message);
 		}
 
 	}
