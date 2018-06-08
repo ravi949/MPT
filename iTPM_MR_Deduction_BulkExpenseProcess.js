@@ -24,7 +24,10 @@ function(search, record, itpm) {
     	try{
         	return search.create({
         		type:'customrecord_itpm_expensequeue',
-        		columns:['internalid',
+        		columns:[search.createColumn({
+		        		    name: 'internalid',
+		        		    sort: search.Sort.ASC
+				 		 }),
         		         'custrecord_itpm_eq_amount',
         		         'custrecord_itpm_eq_account',
         		         'custrecord_itpm_eq_openbalance',
