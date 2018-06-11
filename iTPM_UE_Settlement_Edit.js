@@ -175,7 +175,7 @@ function(redirect,runtime,search,ST_Module, itpm) {
     			}
     		}
     	}catch(e){
-    		log.error(e.name, e.message);
+    		log.error(e.name,'function name = aftersubmit, message = '+e.message);
     	}
     }
 
