@@ -5,10 +5,12 @@
  */
 define(['N/search',
         'N/record',
-        './iTPM_Module.js'
+        'N/format',
+        './iTPM_Module.js',
+        './iTPM_Module_Settlement.js',
         ],
 
-function(search, record, itpm) {
+function(search, record, formatModule, itpm, ST_Module) {
    
     /**
      * Marks the beginning of the Map/Reduce process and generates input data.
@@ -25,7 +27,7 @@ function(search, record, itpm) {
     		return search.create({
         		type 	: 'customrecord_itpm_resolutionqueue',
         		columns : [
-        		           {name: 'internalid'},
+        		           {name: 'internalid', sort: search.Sort.ASC},
         		           {name: 'custrecord_itpm_rq_promotion'},
         		           {name: 'custrecord_itpm_rq_deduction'},
         		           {name: 'custrecord_itpm_rq_mop'},
@@ -35,7 +37,6 @@ function(search, record, itpm) {
         		           {name: 'custrecord_itpm_rq_settlement', operator: 'anyof', values: '@NONE@'},
         		           {name: 'custrecord_itpm_rq_processingnotes', operator: 'isempty', values: ''}
         		          ]
-        		
         	});
     	}catch(e){
     		log.error(e.name, e.message);
@@ -53,24 +54,43 @@ function(search, record, itpm) {
     		var data = JSON.parse(context.value).values;
     		log.debug('map_data', context.value);
     		
-    		var queue_id = data['internalid'];
+    		var queue_id = data['internalid'].value;
     		var promotion_id = data['custrecord_itpm_rq_promotion'].value;
     		var deduction_id = data['custrecord_itpm_rq_deduction'].value;
     		var resolution_amount = data['custrecord_itpm_rq_amount'];
-    		var mop = data['custrecord_itpm_rq_mop'].text;
+    		var mop = data['custrecord_itpm_rq_mop'].value;
     		log.debug('Queue ID, Promotion, Deduction, Amount & MOP', queue_id+', '+promotion_id+', '+deduction_id+', '+resolution_amount+'& '+mop);
     		
     		//Fetching Promotion Data
-    		var promotion_data = search.lookupFields({
-    			type 	: 'customrecord_itpm_promotiondeal',
-    			id		: promotion_id,
-    			columns	: ['custrecord_itpm_p_status','custrecord_itpm_p_condition','custrecord_itpm_p_customer','custrecord_itpm_promo_allocationcontrbtn']
+    		var promorecObj = record.load({
+    			type : 'customrecord_itpm_promotiondeal',
+    			id		: promotion_id
     		});
-    		var promotion_status =  promotion_data.custrecord_itpm_p_status[0].value;
-    		var promotion_condition =  promotion_data.custrecord_itpm_p_condition[0].value;
-    		var promotion_customer =  promotion_data.custrecord_itpm_p_customer[0].value;
-    		var allocationContribution_done = promotion_data.custrecord_itpm_promo_allocationcontrbtn;
-    		log.debug('promotion_status, promotion_condition, promotion_customer & allocationContribution_done',promotion_status+', '+promotion_condition+', '+promotion_customer+', '+!allocationContribution_done);
+    		
+    		var promotion_status =  promorecObj.getValue('custrecord_itpm_p_status');
+    		var promotion_condition =  promorecObj.getValue('custrecord_itpm_p_condition');
+    		var promotion_customer =  promorecObj.getValue('custrecord_itpm_p_customer');
+    		var allocationContribution_done = promorecObj.getValue('custrecord_itpm_promo_allocationcontrbtn');
+    		var promoType = promorecObj.getValue('custrecord_itpm_p_type');
+    		var promoNum = promorecObj.getValue('recordid');
+    		var promoDescription = promorecObj.getValue('custrecord_itpm_p_description');
+    		var promoNetLia = promorecObj.getValue('custrecord_itpm_p_netpromotionalle');
+    		var promoMaxLia = promorecObj.getValue('custrecord_itepm_p_incurredpromotionalle');
+    		var promoShipStartDate = promorecObj.getText('custrecord_itpm_p_shipstart');
+    		var promoShipEndDate = promorecObj.getText('custrecord_itpm_p_shipend');
+    		var promoSubsidiary = promorecObj.getValue('custrecord_itpm_p_subsidiary');
+    		var promoCurrency = promorecObj.getValue('custrecord_itpm_p_currency');
+    		
+    		//Checking whether the customer is ACTIVE or NOT
+    		var isCustomerActive = search.lookupFields({
+        		type: 'customer',
+                id	: promotion_customer,
+        		columns : ['isinactive', 'parent']
+        	});
+    		log.debug('isCustomerActive & parent',!(isCustomerActive.isinactive)+' & '+isCustomerActive.parent[0].value);
+    		log.debug('promotion_status, promotion_condition, promotion_customer, allocationContribution_done & promoType',promotion_status+', '+promotion_condition+', '+promotion_customer+', '+!allocationContribution_done+', '+promoType);
+    		log.debug('promoNum, promoDescription, promoNetLia, promoMaxLia',promoNum+', '+promoDescription+', '+promoNetLia+', '+promoMaxLia);
+    		log.debug('promoShipStartDate, promoShipEndDate, promotion_customer, promoSubsidiary, promoCurrency',promoShipStartDate+', '+promoShipEndDate+', '+promotion_customer+', '+promoSubsidiary+', '+promoCurrency);
     		
     		var allocationFactorCalculated_done = search.create({
 				type: "customrecord_itpm_kpi",
@@ -81,6 +101,14 @@ function(search, record, itpm) {
 					columns: [ 'custrecord_itpm_kpi_promotiondeal']
 			}).run().getRange(0,10).length > 0;
 			log.debug('allocationFactorCalculated_done',!allocationFactorCalculated_done);
+			
+			//ALLOW SETTLEMENTS WHEN PROMOTION IS ACTIVE?
+			var allowForSettlement = search.lookupFields({
+				type	: 'customrecord_itpm_promotiontype',
+				id		: promoType, 
+				columns	: ['custrecord_itpm_pt_settlewhenpromoactive']
+			}).custrecord_itpm_pt_settlewhenpromoactive;
+			log.debug('allowForSettlement',allowForSettlement);
 			
 			//Fetching all sub customers	
     		var subcustomers = itpm.getSubCustomers(promotion_customer);
@@ -96,42 +124,75 @@ function(search, record, itpm) {
     		var deduction_customer =  deduction_data.custbody_itpm_customer[0].value;
     		log.debug('deduction_open_balance',deduction_openBal);
     		log.debug('deduction_customer',deduction_customer);
-    		
-    		//Checking whether customer is ACTIVE or NOT
-    		var isCustomerActive = search.lookupFields({
-        		type 	: 'customer',
-                        id: deduction_customer,
-        		columns : ['isinactive']
-        	});
-    		log.debug('isCustomerActive',!(isCustomerActive.isinactive));
-    		
+    		log.debug('Are both Customers are same?', subcustomers.indexOf(deduction_customer) > -1);
     		//Is Deduction Open balance id greater than ZERO?
     		if(deduction_openBal > 0){
     			//Is Resolution Amount is EQUAL TO Deduction Open Balance?
     			if(resolution_amount == deduction_openBal){ 
     				//Is the Customer is under Promotion's customer hierarchy? AND Is customer is active?
-    				if(subcustomers.includes(deduction_customer) && !(isCustomerActive.isinactive)){ 
+    				if(subcustomers.indexOf(deduction_customer) > -1 && !(isCustomerActive.isinactive)){ 
     					//Is Promotion status is APPROVED? AND Is condition is ACTIVE/COMPLETED? && Is Allocation Contribution compete? AND Is Allocation factors calculated?
-    					if(promotion_status == 3 && (promotion_condition == 2 || promotion_condition == 3) && !allocationFactorCalculated_done && !allocationContribution_done){ 
+    					if(promotion_status == 3 && (promotion_condition == 2 || promotion_condition == 3) && !allocationFactorCalculated_done && !allocationContribution_done && allowForSettlement){ 
+    						var params = {
+    							custom_itpm_st_created_frm	: 'promo',
+    							custom_itpm_st_promotion_no : promoNum,
+    							custom_itpm_st_promotiondeal : promotion_id,
+    							custom_itpm_st_promotion_desc : promoDescription,
+    							custom_itpm_st_net_promolbty : promoNetLia,
+    							custom_itpm_st_incrd_promolbty : promoMaxLia,
+    							custom_itpm_st_shp_stdate : promoShipStartDate,
+    							custom_itpm_st_shp_endate : promoShipEndDate,
+    							custpage_memo : '',
+    							custpage_lumsum_setreq : (mop == 1)?resolution_amount:0,
+    							custpage_billback_setreq : (mop == 2)?resolution_amount:0,
+    							custpage_offinvoice_setreq : (mop == 3)?resolution_amount:0,
+    							custom_itpm_st_reql : resolution_amount,
+    							custom_itpm_st_otherref_code : '',
+    							custom_itpm_st_cust: promotion_customer,
+    							custom_itpm_st_cust_parent : isCustomerActive.parent[0].value,
+    							custom_itpm_st_subsidiary : promoSubsidiary,
+    							custom_itpm_st_currency : promoCurrency,
+    							custom_itpm_st_class : '',
+    							custom_itpm_st_department : '',
+    							custom_itpm_st_location : '',
+    							custom_itpm_st_date : formatModule.format({value: new Date(),type: formatModule.Type.DATE})
+    						}
+    						log.audit('params', params);
     						
+    						var settlementId = ST_Module.createSettlement(params);
+    						log.audit('settlementId', settlementId);
+    						
+    						if(settlementId){
+    							var applyParams = {
+    									ddn : deduction_id,
+    									sid : settlementId
+    							}
+    							var appliedSettlementId = ST_Module.applyToDeduction(applyParams, 'P'); //P means from Promotion
+        						log.audit('appliedSettlementId', appliedSettlementId);
+        						
+        						if(appliedSettlementId){
+        							var updatedQueueId = updateResolutionQueue(queue_id, feedback, 'pass', appliedSettlementId);
+        							log.audit('updatedQueueId', updatedQueueId);
+        						}
+    						}
     					}else{
     						var feedback = 'Promotions status is NOT APPROVED (or) condition is NOT ACTIVE/COMPLETED (or) Settlements are NOT Allowed, hence not processed';
-                			//updateResolutionQueue(queue_id, feedback);
+                			updateResolutionQueue(queue_id, feedback, 'fail');
                 			log.debug('feedback', feedback);
     					}
     				}else{
     					var feedback = 'Customer on the Promotion is not matching with the customer on the Deduction linked to this Queue record (or) customer is NOT ACTIVE, hence not processed';
-            			//updateResolutionQueue(queue_id, feedback);
+            			updateResolutionQueue(queue_id, feedback, 'fail');
             			log.debug('feedback', feedback);
     				}
     			}else{
     				var feedback = 'Resolution Amount('+resolution_amount+') is not equal to the Open balance of the Deduction('+deduction_openBal+') in this Queue Record, hence not processed';
-        			//updateResolutionQueue(queue_id, feedback);
+        			updateResolutionQueue(queue_id, feedback, 'fail');
         			log.debug('feedback', feedback);
     			}
     		}else{
     			var feedback = 'The Open balance of the Deduction in this queue record is '+deduction_openBal+', hence not processed.';
-    			//updateResolutionQueue(queue_id, feedback);
+    			updateResolutionQueue(queue_id, feedback, 'fail');
     			log.debug('feedback', feedback);
     		}
     	}catch(e){
@@ -163,14 +224,12 @@ function(search, record, itpm) {
     /**
      * @param {String} feedback
      */
-    function updateResolutionQueue(queueid, feedback){
+    function updateResolutionQueue(queueid, feedback, reason, setId){
     	try{
     		var recid = record.submitFields({
     			type	: 'customrecord_itpm_resolutionqueue',
     			id		: queueid,
-    			values	: {
-    				custrecord_itpm_rq_processingnotes : feedback
-    			},
+    			values	: (reason == 'fail')?{custrecord_itpm_rq_processingnotes : feedback}:{custrecord_itpm_rq_settlement : setId},
     			options	: {
     				enableSourcing: false,
     				ignoreMandatoryFields : true
@@ -185,7 +244,7 @@ function(search, record, itpm) {
     return {
         getInputData: getInputData,
         map: map,
-        reduce: reduce,
+        //reduce: reduce,
         summarize: summarize
     };
     

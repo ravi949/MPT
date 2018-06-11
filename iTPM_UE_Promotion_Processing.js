@@ -44,6 +44,7 @@ define(['N/ui/serverWidget',
 				if(scriptContext.type == 'view'){
 					var status = promoRec.getValue('custrecord_itpm_p_status');
 					var condition = promoRec.getValue('custrecord_itpm_p_condition');
+					var customer = promoRec.getValue('custrecord_itpm_p_customer');
 
 					//ALLOW SETTLEMENTS WHEN PROMOTION IS ACTIVE?
 					var allowForSettlement = record.load({
@@ -71,6 +72,13 @@ define(['N/ui/serverWidget',
 							label:'New Settlement',
 							functionName:'newSettlement('+promoRec.id+')'
 						});
+						
+						promoForm.addButton({
+							id:'custpage_bulksettlementbtn',
+							label:'Resolve Deductions',
+							functionName:'bulkSettlements('+promoRec.id+','+customer+')'
+						});
+						
 						promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
 					}
 

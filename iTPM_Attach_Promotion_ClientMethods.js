@@ -67,9 +67,31 @@ function(url, message, record) {
 		}
 	}
 	
-    return {
+	function bulkSettlements(promoid,promocustomer){
+		try{
+			var msgObj = displayMessage('Bulk Resolve Deductions','Please wait while you are redirected to the Resolved Deductions page.');
+			msgObj.show();
+			var outputURL = url.resolveScript({
+				scriptId:'customscript_itpm_bulk_settlements',
+				deploymentId:'customdeploy_itpm_bulk_settlements',
+				returnExternalUrl: false,
+				params:{pid:promoid,pcustomer:promocustomer}
+			});
+			window.open(outputURL,'_self');
+		}catch(e){
+			console.log(e.name,'function name = bulkSettlement, message = '+e.message);
+		}
+	}
+	
+	function redirectToBack(){
+		history.go(-1);
+	}
+	
+	return {
         newSettlement:newSettlement,
-        refreshKPIs : refreshKPIs
+        refreshKPIs : refreshKPIs,
+        bulkSettlements : bulkSettlements,
+        redirectToBack : redirectToBack
     };
     
 });

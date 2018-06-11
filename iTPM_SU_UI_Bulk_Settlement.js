@@ -3,9 +3,15 @@
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
  */
-define(['N/ui/serverWidget'],
+define([
+        'N/ui/serverWidget',
+        'N/search',
+        'N/redirect',
+        'N/record',
+        './iTPM_Module.js'
+        ],
 
-function(ui) {
+function(ui, search, redirect, record, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -19,11 +25,12 @@ function(ui) {
     	try{
     		var request = context.request;
     		var response = context.response;
+    		var params = request.parameters;
     		
     		if(request.method == 'GET'){
-    			bulkSettlementUIForm(request, response);
+    			bulkSettlementUIForm(request, response, params);
     		}else{
-    			//validateCSVFile(request, response);
+    			resolvedeductions(request, response);
     		}
     	}catch(e){
     		log.error(e.name, e.message);
@@ -34,27 +41,131 @@ function(ui) {
      * @param {Object} request
      * @param {Object} response
      */
-    function bulkSettlementUIForm(request, response){
+    function bulkSettlementUIForm(request, response, params){
     	var form = ui.createForm({
-			title: 'Bulk Resolve Deductions Form'
+			title: 'Resolve Deductions'
 		});
 		
-    	
+    	form.addFieldGroup({
+			id:'custpage_fieldgroup_message',
+			label:' '
+		}).isBorderHidden = true;
     	
     	form.addField({
+		    id : 'custpage_itpm_message',
+		    type : ui.FieldType.INLINEHTML,
+		    label : ' ',
+		    container:'custpage_fieldgroup_message'
+		}).defaultValue ="<html><font size='2'>Use this tool to request settlements for more than one deduction. Please note-</font> <br>"
+            +"<font size='1'>&nbsp&nbsp* The deductions selected below will be <b>QUEUED</b> for resolution. For IMMEDIATE resolution of deductions, do not use this tool. Resolve them individually.<br>"
+            +"&nbsp&nbsp* The entire deduction open balance will be resolved by the settlement.<br>"
+            +"&nbsp&nbsp* The entire settlement amount will be entered against the MOP selected below, for ALL settlements created in this process.<br>"
+    		+"&nbsp&nbsp* If the deduction open balance changes between now and the time os settlement creation, the settlement will not be created.</font></html>";
+    	
+    	form.addFieldGroup({
+			id:'custpage_fieldgroup_details',
+			label:' '
+		}).isBorderHidden = true;
+    	
+		form.addField({
     	    id : 'custpage_itpm_promo_id',
-    	    type : ui.FieldType.TEXT,
-    	    label : 'Promotion'
+    	    type : ui.FieldType.SELECT,
+    	    label : 'Promotion',
+    	    source : 'customrecord_itpm_promotiondeal',
+		    container:'custpage_fieldgroup_details'
     	}).updateDisplayType({
 			displayType : ui.FieldDisplayType.INLINE
-		});//.defaultValue = params.promoid;
+		}).defaultValue = params.pid;
+		
 		form.addField({
     	    id : 'custpage_itpm_customer_id',
-    	    type : ui.FieldType.TEXT,
-    	    label : 'Customer'
+    	    type : ui.FieldType.SELECT,
+    	    label : 'Customer',
+    	    source : 'customer',
+		    container:'custpage_fieldgroup_details'
     	}).updateDisplayType({
 			displayType : ui.FieldDisplayType.INLINE
-		})//.defaultValue = params.customer;
+		}).defaultValue = params.pcustomer;
+		
+		var mopField = form.addField({
+			id : 'custpage_itpm_mop',
+			type : ui.FieldType.SELECT,
+			label : 'MOP',
+			//source : 'customlist_itpm_lsbboi',
+		    container:'custpage_fieldgroup_details'
+		});
+		mopField.isMandatory = true;
+
+		mopField.addSelectOption({
+			value : '',
+			text : ''
+		});
+		mopField.addSelectOption({
+			value : '1',
+			text : 'Lump Sum'
+		});
+		mopField.addSelectOption({
+			value : '2',
+			text : 'Bill-Back'
+		});
+		mopField.addSelectOption({
+			value : '3',
+			text : 'Off-Invoice'
+		});
+
+		var deductionList = form.addSublist({
+    	    id : 'custpage_deduction_list',
+    	    type : ui.SublistType.LIST,
+    	    label: 'Deductions'
+    	});
+		//deductionList.addMarkAllButtons(); //future requirements
+		deductionList.addField({
+    	    id : 'custpage_resolve_checkbox',
+    	    type : ui.FieldType.CHECKBOX,
+    	    label : 'Resolve'
+    	});
+		deductionList.addField({
+    	    id : 'custpage_ddn_internalid',
+    	    type : ui.FieldType.TEXT,
+    	    label : ' '
+    	}).updateDisplayType({
+    		displayType : ui.FieldDisplayType.HIDDEN
+    	});
+		deductionList.addField({
+    	    id : 'custpage_ddn_number',
+    	    type : ui.FieldType.TEXT,
+    	    label : 'Deduction NUmber'
+    	});
+		deductionList.addField({
+    	    id : 'custpage_date_created',
+    	    type : ui.FieldType.DATE,
+    	    label : 'Date Created'
+    	});
+		deductionList.addField({
+    	    id : 'custpage_ddn_customer',
+    	    type : ui.FieldType.TEXT,
+    	    label : 'Customer'
+    	});
+		deductionList.addField({
+    	    id : 'custpage_original_amount',
+    	    type : ui.FieldType.CURRENCY,
+    	    label : 'Original Amount'
+    	});
+		deductionList.addField({
+    	    id : 'custpage_parent_ddn',
+    	    type : ui.FieldType.TEXT,
+    	    label : 'Parent Deduction'
+    	});
+		deductionList.addField({
+    	    id : 'custpage_original_ddn',
+    	    type : ui.FieldType.TEXT,
+    	    label : 'Original Deduction'
+    	});
+		deductionList.addField({
+    	    id : 'custpage_ddn_open_balance',
+    	    type : ui.FieldType.CURRENCY,
+    	    label : 'Open balance'
+    	});
 		
 		form.addSubmitButton({
 			label: 'Submit'
@@ -66,7 +177,80 @@ function(ui) {
     	    functionName:"redirectToBack"
     	});
     	
-    	//form.clientScriptModulePath =  './iTPM_Bulk_Settlements_ClientMethods.js';
+    	form.clientScriptModulePath =  './iTPM_Attach_Promotion_ClientMethods.js';
+		
+		//Fetching all sub-customers of customer on the Promotion
+		var subcustomers = itpm.getSubCustomers(params.pcustomer);
+		log.debug('subcustomers',subcustomers);
+		
+		//Adding Deduction data to the deduction list
+		var deductionSearch = search.create({
+			type:'customtransaction_itpm_deduction',
+			columns:[
+			         'internalid',
+			         'statusRef',
+			         'tranid',
+			         'trandate',
+			         'custbody_itpm_customer',
+			         'custbody_itpm_amount',
+			         'custbody_itpm_ddn_parentddn',
+			         'custbody_itpm_ddn_originalddn',
+			         'custbody_itpm_ddn_openbal'
+			         ],
+			filters:[
+			         ['mainline','is','T'],'and',
+			         ['custbody_itpm_customer','anyof', subcustomers]
+			        ]		    		
+		});
+		
+		var i=0;
+		deductionSearch.run().each(function(result){
+			if(result.getValue('statusRef') == 'statusA'){
+				deductionList.setSublistValue({
+	    			id : 'custpage_ddn_internalid',
+	        	    line : i,
+	        	    value : result.getValue('internalid')
+	        	});
+				deductionList.setSublistValue({
+	    			id : 'custpage_ddn_number',
+	        	    line : i,
+	        	    value : result.getValue('tranid')
+	        	});
+				deductionList.setSublistValue({
+	    			id : 'custpage_date_created',
+	        	    line : i,
+	        	    value : result.getValue('trandate')
+	        	});
+				deductionList.setSublistValue({
+	    			id : 'custpage_ddn_customer',
+	        	    line : i,
+	        	    value : result.getText('custbody_itpm_customer')
+	        	});
+				deductionList.setSublistValue({
+	    			id : 'custpage_original_amount',
+	        	    line : i,
+	        	    value : result.getValue('custbody_itpm_amount')
+	        	});
+				deductionList.setSublistValue({
+	    			id : 'custpage_parent_ddn',
+	        	    line : i,
+	        	    value : result.getText('custbody_itpm_ddn_parentddn')
+	        	});
+				deductionList.setSublistValue({
+	    			id : 'custpage_original_ddn',
+	        	    line : i,
+	        	    value : result.getText('custbody_itpm_ddn_originalddn')
+	        	});
+				deductionList.setSublistValue({
+	    			id : 'custpage_ddn_open_balance',
+	        	    line : i,
+	        	    value : result.getValue('custbody_itpm_ddn_openbal')
+	        	});
+				
+				i++;
+			}
+			return true;
+		})
 		
 		response.writePage(form);
     }
@@ -75,18 +259,67 @@ function(ui) {
      * @param {Object} request
      * @param {Object} response
      */
-    function validateCSVFile(request, response){
-    	var file = request.files.custom_itpm_csvfile;
-    	
-    	//throw user error for invalid file error other than .csv
-    	if(file.name.split('.')[1] == 'csv'){
-    		log.debug('file', file.name.split('.')[1]);
-    	}else{
-    		throw{
-    			name:'INVALID_FILE',
-    			message:'Please upload valid CSV file.'
-    		}
-    	}
+    function resolvedeductions(request, response){
+    	var promoid = request.parameters.custpage_itpm_promo_id;
+    	log.debug('promoid',promoid);
+    	var mop = request.parameters.custpage_itpm_mop;
+    	log.debug('mop',mop);
+    	var lines = request.getLineCount({
+		    group: 'custpage_deduction_list'
+		});
+    	log.debug('lines',lines);
+		for(var iTemp =0; iTemp<lines; iTemp++){
+			var resolve = request.getSublistValue({
+			    group: 'custpage_deduction_list',
+			    name: 'custpage_resolve_checkbox',
+			    line: iTemp
+			});
+			
+			if(resolve == 'T'){
+				var ddn_internalid = request.getSublistValue({
+				    group: 'custpage_deduction_list',
+				    name: 'custpage_ddn_internalid',
+				    line: iTemp
+				});
+				var openBal = request.getSublistValue({
+				    group: 'custpage_deduction_list',
+				    name: 'custpage_ddn_open_balance',
+				    line: iTemp
+				});
+				log.debug('ddn_internalid',ddn_internalid);
+				log.debug('openBal',openBal);
+				
+				var queue_recObj = record.create({
+					type	: 'customrecord_itpm_resolutionqueue',
+					isDynamic: true
+				});
+				
+				queue_recObj.setValue({
+					fieldId : 'custrecord_itpm_rq_promotion',
+					value 	: promoid
+				}).setValue({
+					fieldId : 'custrecord_itpm_rq_deduction',
+					value 	: ddn_internalid
+				}).setValue({
+					fieldId : 'custrecord_itpm_rq_mop',
+					value 	: mop
+				}).setValue({
+					fieldId : 'custrecord_itpm_rq_amount',
+					value 	: openBal
+				})
+				
+				var recid = queue_recObj.save({
+				    enableSourcing: true,
+				    ignoreMandatoryFields: true
+				});
+				log.debug('Resolution Queue ID', recid);
+			}
+		}
+		
+		redirect.toRecord({
+		    type : 'customrecord_itpm_promotiondeal', 
+		    id : promoid
+		});
     }
     
     return {
