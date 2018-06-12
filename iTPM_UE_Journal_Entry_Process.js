@@ -235,10 +235,15 @@ function(search, record, redirect, runtime, itpm) {
      */
     function afterSubmit(scriptContext) {
     	try{
+    		log.debug('After Submit: scriptContext.type', scriptContext.type);
+    		var jeNewRecordObj = scriptContext.newRecord;
+			var jeAppliedTo = jeNewRecordObj.getValue({fieldId : 'custbody_itpm_appliedto'});
+			var searchObj = search.create({
+			    type: search.Type.TRANSACTION,
+			    columns : ['internalid'],
+			    filters: [['internalid','anyof', jeAppliedTo]]
+			});
     		if(scriptContext.type === scriptContext.UserEventType.CREATE && (runtime.executionContext === runtime.ContextType.USER_INTERFACE || runtime.executionContext === runtime.ContextType.MAP_REDUCE)){
-    			log.debug('After Submit: scriptContext.type', scriptContext.type);
-        		var jeNewRecordObj = scriptContext.newRecord;
-    			var jeAppliedTo = jeNewRecordObj.getValue({fieldId : 'custbody_itpm_appliedto'});
     			if(jeAppliedTo){
     				var prefJE = itpm.getJEPreferences();
     				if(prefJE.featureEnabled && (prefJE.featureName == 'General' || prefJE.featureName == 'Approval Routing')){
@@ -246,13 +251,9 @@ function(search, record, redirect, runtime, itpm) {
                     	log.debug("Entered into New Logic: prefJE.featureEnabled", prefJE.featureEnabled);
                     	log.debug("NL: Ded Id", jeAppliedTo);
                     	
-                    	var searchObj = search.create({
-    					    type: search.Type.TRANSACTION,
-    					    columns : ['internalid'],
-    					    filters: [['internalid','anyof', jeAppliedTo]]
-    					});
-
     					log.debug('NL: iTPM Applied To: Record Type', searchObj.run().getRange(0,1)[0].recordType);
+    					log.error('NL: iTPM Applied To: Record Type', searchObj.run().getRange(0,1)[0].recordType);
+    					
     					
                     	//Updating the related Deduction record to change status to Pending(B)
             			if(searchObj.run().getRange(0,1)[0].recordType == 'customtransaction_itpm_deduction'){
@@ -268,7 +269,7 @@ function(search, record, redirect, runtime, itpm) {
             				log.debug("NL: Deduction Status Updated");
             			}
             			//********* ----- *******
-        			}else{
+        			}else if(searchObj.run().getRange(0,1)[0].recordType == 'customtransaction_itpm_deduction'){
         				log.debug("Entered into New Logic: prefJE.featureEnabled", prefJE.featureEnabled);
                     	log.debug("NL: Ded Id", jeAppliedTo);
                     	
@@ -297,8 +298,7 @@ function(search, record, redirect, runtime, itpm) {
 						log.debug('Decreasing the open balance from deduction after expensing',DedRecId);
         			}
     			}
-    		}
-    		else if(scriptContext.type === scriptContext.UserEventType.EDIT){
+    		}else if(scriptContext.type === scriptContext.UserEventType.EDIT){
     			log.debug('JE Record was edited');
     			var jeNewRecordObj = scriptContext.newRecord;
     			var jeAppliedTo = jeNewRecordObj.getValue({fieldId : 'custbody_itpm_appliedto'});
@@ -323,12 +323,6 @@ function(search, record, redirect, runtime, itpm) {
         				log.debug('JE New Status', newstatus);
 
                         if(oldstatus == '1' && newstatus == '2'){
-                        	var searchObj = search.create({
-        					    type: search.Type.TRANSACTION,
-        					    columns : ['internalid'],
-        					    filters: [['internalid','anyof', jeAppliedTo]]
-        					});
-
         					log.debug('iTPM Applied To: Record Type', searchObj.run().getRange(0,1)[0].recordType);
         					
         					if(searchObj.run().getRange(0,1)[0].recordType == 'creditmemo'){
