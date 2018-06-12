@@ -42,6 +42,24 @@ function(ui, search, redirect, record, itpm) {
      * @param {Object} response
      */
     function bulkSettlementUIForm(request, response, params){
+    	var promoallowanceSearchObj = promAllowanceSearch(params.pid);
+    	var mops = [];
+    	promoallowanceSearchObj.run().each(function(result){
+    		mops.push(result.getValue('custrecord_itpm_all_mop'));
+    		return true;
+    	});
+    	log.debug('MOP on the Allowance Items', mops);
+    	
+    	//Searching Reolution Queue Record for already inserted Deductions
+    	var queueSearchObj = queueSearch(params.pid);
+    	var deductions = [];
+    	
+    	queueSearchObj.run().each(function(result){
+    		deductions.push(result.getValue('custrecord_itpm_rq_deduction'));
+    		return true;
+    	});
+    	log.debug('deductions already in Queue', deductions);
+    	
     	var form = ui.createForm({
 			title: 'Resolve Deductions'
 		});
@@ -104,15 +122,19 @@ function(ui, search, redirect, record, itpm) {
 			value : '1',
 			text : 'Lump Sum'
 		});
-		mopField.addSelectOption({
-			value : '2',
-			text : 'Bill-Back'
-		});
-		mopField.addSelectOption({
-			value : '3',
-			text : 'Off-Invoice'
-		});
-
+		if(mops.indexOf("1") > -1){
+			mopField.addSelectOption({
+				value : '2',
+				text : 'Bill-Back'
+			});
+		}
+		if(mops.indexOf("3") > -1){
+			mopField.addSelectOption({
+				value : '3',
+				text : 'Off-Invoice'
+			});
+		}
+		
 		var deductionList = form.addSublist({
     	    id : 'custpage_deduction_list',
     	    type : ui.SublistType.LIST,
@@ -199,7 +221,8 @@ function(ui, search, redirect, record, itpm) {
 			         ],
 			filters:[
 			         ['mainline','is','T'],'and',
-			         ['custbody_itpm_customer','anyof', subcustomers]
+			         ['custbody_itpm_customer','anyof', subcustomers],'and',
+			         ['internalid','noneof', deductions]
 			        ]		    		
 		});
 		
@@ -320,6 +343,50 @@ function(ui, search, redirect, record, itpm) {
 		    type : 'customrecord_itpm_promotiondeal', 
 		    id : promoid
 		});
+    }
+    
+    /**
+     * @param {String} promID
+     */
+    function promAllowanceSearch(promID){
+    	try{
+    		return search.create({
+    			type: "customrecord_itpm_promoallowance",
+    			filters: [
+    			          ["custrecord_itpm_all_promotiondeal","anyof",promID], 
+    			          "AND", 
+    			          ["isinactive","is","F"]
+    			          ],
+    			columns: [
+    			          "custrecord_itpm_all_mop"
+    			          ]
+    		});
+    	}catch(e){
+    		log.error(e.name, 'promAllowanceSearch'+e.message);
+    	}
+    }
+    
+    /**
+     * @param {String} promID
+     */
+    function queueSearch(promID){
+    	try{
+    		return search.create({
+    			type: "customrecord_itpm_resolutionqueue",
+    			filters: [
+    			          ["custrecord_itpm_rq_promotion","anyof",promID],
+    			          "AND",
+    			          ["custrecord_itpm_rq_processingnotes","isempty",''],
+    			          "AND",
+    			          ["custrecord_itpm_rq_settlement","anyof",'@NONE@']
+    			          ],
+    			columns: [
+    			          "custrecord_itpm_rq_deduction"
+    			          ]
+    		});
+    	}catch(e){
+    		log.error(e.name, 'queueSearch'+e.message);
+    	}
     }
     
     return {

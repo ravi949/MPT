@@ -31,6 +31,7 @@ function(search, record, formatModule, itpm, ST_Module) {
         		           {name: 'custrecord_itpm_rq_promotion'},
         		           {name: 'custrecord_itpm_rq_deduction'},
         		           {name: 'custrecord_itpm_rq_mop'},
+        		           {name: 'custrecord_itpm_rq_memo'},
         		           {name: 'custrecord_itpm_rq_amount'}
             		      ],
         		filters : [
@@ -58,6 +59,7 @@ function(search, record, formatModule, itpm, ST_Module) {
     		var promotion_id = data['custrecord_itpm_rq_promotion'].value;
     		var deduction_id = data['custrecord_itpm_rq_deduction'].value;
     		var resolution_amount = data['custrecord_itpm_rq_amount'];
+    		var resolution_memo = data['custrecord_itpm_rq_memo'];
     		var mop = data['custrecord_itpm_rq_mop'].value;
     		log.debug('Queue ID, Promotion, Deduction, Amount & MOP', queue_id+', '+promotion_id+', '+deduction_id+', '+resolution_amount+'& '+mop);
     		
@@ -132,9 +134,11 @@ function(search, record, formatModule, itpm, ST_Module) {
     				//Is the Customer is under Promotion's customer hierarchy? AND Is customer is active?
     				if(subcustomers.indexOf(deduction_customer) > -1 && !(isCustomerActive.isinactive)){ 
     					//Is Promotion status is APPROVED? AND Is condition is ACTIVE/COMPLETED? && Is Allocation Contribution compete? AND Is Allocation factors calculated?
-    					if(promotion_status == 3 && (promotion_condition == 2 || promotion_condition == 3) && !allocationFactorCalculated_done && !allocationContribution_done && allowForSettlement){ 
+    					if(promotion_status == 3 && ((promotion_condition == 2 && allowForSettlement) || promotion_condition == 3) && !allocationFactorCalculated_done && !allocationContribution_done){ 
     						var params = {
-    							custom_itpm_st_created_frm	: 'promo',
+    							custom_itpm_st_created_frm	: 'ddn',
+    							custom_itpm_st_appliedtransction : deduction_id,
+    							custom_itpm_ddn_openbal : deduction_openBal,
     							custom_itpm_st_promotion_no : promoNum,
     							custom_itpm_st_promotiondeal : promotion_id,
     							custom_itpm_st_promotion_desc : promoDescription,
@@ -142,7 +146,7 @@ function(search, record, formatModule, itpm, ST_Module) {
     							custom_itpm_st_incrd_promolbty : promoMaxLia,
     							custom_itpm_st_shp_stdate : promoShipStartDate,
     							custom_itpm_st_shp_endate : promoShipEndDate,
-    							custpage_memo : '',
+    							custpage_memo : resolution_memo,
     							custpage_lumsum_setreq : (mop == 1)?resolution_amount:0,
     							custpage_billback_setreq : (mop == 2)?resolution_amount:0,
     							custpage_offinvoice_setreq : (mop == 3)?resolution_amount:0,
@@ -167,7 +171,7 @@ function(search, record, formatModule, itpm, ST_Module) {
     									ddn : deduction_id,
     									sid : settlementId
     							}
-    							var appliedSettlementId = ST_Module.applyToDeduction(applyParams, 'P'); //P means from Promotion
+    							var appliedSettlementId = ST_Module.applyToDeduction(applyParams, 'Bulk Settlements'); //P means from Promotion
         						log.audit('appliedSettlementId', appliedSettlementId);
         						
         						if(appliedSettlementId){
@@ -207,7 +211,7 @@ function(search, record, formatModule, itpm, ST_Module) {
      * @since 2015.1
      */
     function reduce(context) {
-
+    	
     }
 
 
