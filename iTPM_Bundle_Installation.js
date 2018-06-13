@@ -77,7 +77,7 @@ function(config, task, search, record, runtime) {
     	//script to modify status filter on all iTPM saved searches
     	updateSearchFilters();
     	//create preference records
-    	createPreferenceRecords();
+    	createPreferenceRecords(params.version);
     }
     
     /**
@@ -128,7 +128,7 @@ function(config, task, search, record, runtime) {
     	updateSearchFilters();
     	
     	//create and update the preference records
-    	createPreferenceRecords();
+    	createPreferenceRecords(params.toVersion);
     }
     
     
@@ -755,7 +755,7 @@ function(config, task, search, record, runtime) {
     /**
      * @description creating the subsidiary based on preference records
      */
-    function createPreferenceRecords(){
+    function createPreferenceRecords(iTPM_Version){
     	var featureEnabled = runtime.isFeatureInEffect({feature:'SUBSIDIARIES'});
 		var eventType = 'create';
 		
@@ -778,12 +778,15 @@ function(config, task, search, record, runtime) {
         			if(prefResultLength == 1){
         				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
         			}
-    				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'));
+    				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'),iTPM_Version);
     				return true;
     			});
+    		}else{
+    			//set iTPM version on iTPM Preference record
+    			setItpmVersion(iTPM_Version);
     		}    		
     	}else{
-    		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined) : '';
+    		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined,iTPM_Version) : '';
     	}
     }
     
@@ -793,7 +796,7 @@ function(config, task, search, record, runtime) {
      * @param {Object} subid
      * @description create the prefernce record for specific subsidiary
      */
-    function createOrEditPreferenceRecord(id, event, subid){
+    function createOrEditPreferenceRecord(id, event, subid, iTPM_Version){
     	var preferenceRec;
     	switch(event){
     	case 'create':
@@ -820,15 +823,33 @@ function(config, task, search, record, runtime) {
     		preferenceRec.setValue({
         		fieldId:'custrecord_itpm_pref_subsidiary',
         		value:subid
-        	})
+        	});
     	}
     	
-    	preferenceRec.save({
+    	preferenceRec.setValue({
+    		fieldId:'custrecord_itpm_pref_version',
+    		value:iTPM_Version
+    	}).save({
     		enableSourcing:false,
     		ignoreMandatoryFields:true
     	});
     }
     
+    function setItpmVersion(iTPM_Version){
+    	search.create({
+    		type:'customrecord_itpm_preferences',
+    	}).run().each(function(e){
+    		record.submitFields({
+    			type: 'customrecord_itpm_preferences',
+    			id: e.id,
+    			values: {
+    				'custrecord_itpm_pref_version': iTPM_Version
+    			}
+    		});
+    		return true;
+    	});
+    }
+        
     return {
         beforeInstall: beforeInstall,
         afterInstall: afterInstall,
