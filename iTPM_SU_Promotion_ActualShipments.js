@@ -378,23 +378,24 @@ function(serverWidget, search, record, format, url, itpm) {
 					label:'Quantity'
 				});
 				
-				//search columns GROUP the elements
-				searchColumnObj['columns'] = [search.createColumn({
-				    name: 'item',
-				    summary:search.Summary.GROUP
-				}),search.createColumn({
-				    name: 'description',
-				    join:'item',
-				    summary:search.Summary.GROUP
-				}),search.createColumn({
-				    name: 'unit',
-				    summary:search.Summary.GROUP
-				}),search.createColumn({
-				    name: 'quantityuom',
-				    summary:search.Summary.SUM
-				})];
-				
 				if(estVolumeItems.length > 0){
+					
+					//search columns GROUP the elements
+					searchColumnObj['columns'] = [search.createColumn({
+					    name: 'item',
+					    summary:search.Summary.GROUP
+					}),search.createColumn({
+					    name: 'description',
+					    join:'item',
+					    summary:search.Summary.GROUP
+					}),search.createColumn({
+					    name: 'unit',
+					    summary:search.Summary.GROUP
+					}),search.createColumn({
+					    name: 'quantityuom',
+					    summary:search.Summary.SUM
+					})];
+					
 					//searching for the items which present in the promotion est qty.
 					itemFulResult = getItemFulfillmentSearch(searchColumnObj);
 					var i = 0;

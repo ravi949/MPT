@@ -407,23 +407,24 @@ define(['N/ui/serverWidget',
 					label:'Quantity'
 				});
 				
-				//search columns GROUP the elements
-				searchColumnObj['columns'] = [search.createColumn({
-				    name: 'item',
-				    summary:search.Summary.GROUP
-				}),search.createColumn({
-				    name: 'description',
-				    join:'item',
-				    summary:search.Summary.GROUP
-				}),search.createColumn({
-				    name: 'quantityuom',
-				    summary:search.Summary.SUM
-				}),search.createColumn({
-				    name: 'unit',
-				    summary:search.Summary.GROUP
-				})];
-				
 				if(estVolumeItems.length > 0){
+					
+					//search columns GROUP the elements
+					searchColumnObj['columns'] = [search.createColumn({
+					    name: 'item',
+					    summary:search.Summary.GROUP
+					}),search.createColumn({
+					    name: 'description',
+					    join:'item',
+					    summary:search.Summary.GROUP
+					}),search.createColumn({
+					    name: 'quantityuom',
+					    summary:search.Summary.SUM
+					}),search.createColumn({
+					    name: 'unit',
+					    summary:search.Summary.GROUP
+					})];
+					
 					//searching for the items which present in the promotion est qty.
 					invSearchResult = getInvoiceSearch(searchColumnObj);
 					var i = 0;
