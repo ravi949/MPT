@@ -836,18 +836,24 @@ function(config, task, search, record, runtime) {
     }
     
     function setItpmVersion(iTPM_Version){
-    	search.create({
-    		type:'customrecord_itpm_preferences',
-    	}).run().each(function(e){
-    		record.submitFields({
-    			type: 'customrecord_itpm_preferences',
-    			id: e.id,
-    			values: {
-    				'custrecord_itpm_pref_version': iTPM_Version
-    			}
+    	try{
+    		search.create({
+    			type:'customrecord_itpm_preferences',
+    		}).run().each(function(e){
+    			record.submitFields({
+    				type: 'customrecord_itpm_preferences',
+    				id: e.id,
+    				values: {
+    					'custrecord_itpm_pref_version': iTPM_Version
+    				}
+    			});
+    			return true;
     		});
-    		return true;
-    	});
+    	}
+    	catch(ex){
+    		log.debug(ex.name,ex.message);
+    		log.error(ex.name,ex.message);
+    	}
     }
         
     return {
