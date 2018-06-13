@@ -180,7 +180,7 @@ function(search, record, formatModule, itpm, ST_Module) {
         						}
     						}
     					}else{
-    						var feedback = 'Promotions status is NOT APPROVED (or) condition is NOT ACTIVE/COMPLETED (or) Settlements are NOT Allowed, hence not processed';
+    						var feedback = 'Promotions status is NOT APPROVED (or) condition is NOT ACTIVE/COMPLETED (or) Settlements are NOT Allowed (or) Allocation Factors and Allocation Contribution calculations are not calculated, hence not processed';
                 			updateResolutionQueue(queue_id, feedback, 'fail');
                 			log.debug('feedback', feedback);
     					}
@@ -200,7 +200,8 @@ function(search, record, formatModule, itpm, ST_Module) {
     			log.debug('feedback', feedback);
     		}
     	}catch(e){
-    		log.error(e.name, e.message);
+    		updateResolutionQueue(queue_id, e.message+', hence not processed', 'fail');
+			log.error(e.name, e.message);
     	}
     }
 

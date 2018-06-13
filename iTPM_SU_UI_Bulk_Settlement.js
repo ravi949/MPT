@@ -42,13 +42,13 @@ function(ui, search, redirect, record, itpm) {
      * @param {Object} response
      */
     function bulkSettlementUIForm(request, response, params){
-    	var promoallowanceSearchObj = promAllowanceSearch(params.pid);
+    	/*var promoallowanceSearchObj = promAllowanceSearch(params.pid);
     	var mops = [];
     	promoallowanceSearchObj.run().each(function(result){
     		mops.push(result.getValue('custrecord_itpm_all_mop'));
     		return true;
     	});
-    	log.debug('MOP on the Allowance Items', mops);
+    	log.debug('MOP on the Allowance Items', mops);*/
     	
     	//Searching Reolution Queue Record for already inserted Deductions
     	var queueSearchObj = queueSearch(params.pid);
@@ -78,7 +78,7 @@ function(ui, search, redirect, record, itpm) {
             +"<font size='1'>&nbsp&nbsp* The deductions selected below will be <b>QUEUED</b> for resolution. For IMMEDIATE resolution of deductions, do not use this tool. Resolve them individually.<br>"
             +"&nbsp&nbsp* The entire deduction open balance will be resolved by the settlement.<br>"
             +"&nbsp&nbsp* The entire settlement amount will be entered against the MOP selected below, for ALL settlements created in this process.<br>"
-    		+"&nbsp&nbsp* If the deduction open balance changes between now and the time os settlement creation, the settlement will not be created.</font></html>";
+    		+"&nbsp&nbsp* If the deduction open balance changes between now and the time of settlement creation, the settlement will not be created.</font></html>";
     	
     	form.addFieldGroup({
 			id:'custpage_fieldgroup_details',
@@ -122,18 +122,18 @@ function(ui, search, redirect, record, itpm) {
 			value : '1',
 			text : 'Lump Sum'
 		});
-		if(mops.indexOf("1") > -1){
+		//if(mops.indexOf("1") > -1){
 			mopField.addSelectOption({
 				value : '2',
 				text : 'Bill-Back'
 			});
-		}
-		if(mops.indexOf("3") > -1){
+		//}
+		//if(mops.indexOf("3") > -1){
 			mopField.addSelectOption({
 				value : '3',
 				text : 'Off-Invoice'
 			});
-		}
+		//}
 		
 		var deductionList = form.addSublist({
     	    id : 'custpage_deduction_list',
@@ -206,6 +206,11 @@ function(ui, search, redirect, record, itpm) {
 		log.debug('subcustomers',subcustomers);
 		
 		//Adding Deduction data to the deduction list
+		var tranFilters = [['mainline','is','T'],'AND',['custbody_itpm_customer','anyof', subcustomers]];
+		if(deductions.length != 0){
+			tranFilters.push("AND",['internalid','noneof', deductions]);
+		}
+		
 		var deductionSearch = search.create({
 			type:'customtransaction_itpm_deduction',
 			columns:[
@@ -219,11 +224,7 @@ function(ui, search, redirect, record, itpm) {
 			         'custbody_itpm_ddn_originalddn',
 			         'custbody_itpm_ddn_openbal'
 			         ],
-			filters:[
-			         ['mainline','is','T'],'and',
-			         ['custbody_itpm_customer','anyof', subcustomers],'and',
-			         ['internalid','noneof', deductions]
-			        ]		    		
+			filters: tranFilters		    		
 		});
 		
 		var i=0;
