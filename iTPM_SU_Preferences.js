@@ -263,6 +263,16 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		var accountPayableField = form.addField(getFieldOptions('custpage_itpm_pref_accountpayable', 'Accounts Payable', 'account'));
 		accountPayableField.isMandatory = true;
 		
+		//iTpm Version field
+		var iTpmVersionField = form.addField({
+			id: 'custpage_itpm_pref_itpmversion',
+			type: serverWidget.FieldType.TEXT,
+			label: 'iTPM Version',
+			container:'custpage_setup_preference'
+		}).updateDisplayType({
+		    displayType : serverWidget.FieldDisplayType.INLINE
+		});
+		
 		//Checkbox for Remove customer from split deduction transactions
 		var removeCustomerSplitDDNField = form.addField({
 			id: 'custpage_itpm_pref_remvcust_frmsplitddn',
@@ -383,6 +393,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 				}
 			}
 			
+			iTpmVersionField.defaultValue = preferanceRecord.getValue('custpage_itpm_pref_version'); //iTPM Version Field
 			ApplyiTPMNetBillDiscountChk.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_nblistprice')?'T':'F';
 			discountItemId = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
 			defaultAllType.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultalltype');
@@ -532,6 +543,14 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		    displayType : serverWidget.FieldDisplayType.INLINE
 		});
 		
+		prefSublist.addField({
+			id : 'custpage_itpm_version',
+			type : serverWidget.FieldType.TEXT,
+			label : 'iTPM Version'
+		}).updateDisplayType({
+		    displayType : serverWidget.FieldDisplayType.INLINE
+		});
+		
 		var i = 0,editURL = '';
 		var prefereceResult = getPreferences();
 		prefereceResult.each(function(e){
@@ -629,13 +648,14 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		discountItemId = request.parameters.custpage_itpm_pref_discountitem,
 		removeCustomer = request.parameters.custpage_itpm_pref_remvcust_frmsplitddn,
 		discountDates = request.parameters.custpage_itpm_disdate,
+		itpmVersion = request.parameters.custpage_itpm_pref_itpmversion;
 		subsidiary = (subsidiariesEnabled)? request.parameters.custpage_itpm_pref_subsidiary : 1;
 		var defaultalltype = request.parameters.custpage_itpm_pref_defaultalltype;
 		var defaultPriceLevel = request.parameters.custpage_itpm_pref_defaultpricelevel;
 		var eventType = request.parameters.custpage_itpm_eventtype;
 		var pfid = request.parameters.custpage_itpm_pfid;
 		var preferanceRecord;
-		
+
 		//searching for the records with same subsidiary before saving the record
 		//these below conditions for one-world and non-oneworld accounts
 		var prefLength = getPreferences(undefined, subsidiary).getRange(0,2).length;
@@ -658,7 +678,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			    isDynamic: true,
 			});
 		}
-		
+				
 		preferanceRecord.setValue({
 			fieldId: 'custrecord_itpm_pref_ddnaccount',
 			value: deductionAccount,
@@ -673,7 +693,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			ignoreFieldChange:true
 		}).setValue({
 			fieldId:'custrecord_itpm_pref_nblistprice',
-			value:(applyiTPMNetBillDiscount == 'T'),
+			value:(applyiTPMNetBillDiscount == 'T'),		
 			ignoreFieldChange:true
 		}).setValue({
 			fieldId:'custrecord_itpm_pref_discountitem',
@@ -698,6 +718,14 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 				fieldId:'custrecord_itpm_pref_subsidiary',
 				value:subsidiary,
 				ignoreFieldChange:true
+			});
+		}
+		
+		if(itpmVersion){
+			preferanceRecord.setValue({
+				fieldId: 'custrecord_itpm_pref_version',      //itpm pref version
+				value: itpmversion,
+				ignoreFieldChange: true
 			});
 		}
 		
