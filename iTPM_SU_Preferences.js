@@ -317,28 +317,28 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			source:'custpage_sd',
 			container:'custpage_setup_preference'
 		});
-		form.addField({
-			id: 'custpage_itpm_disdate',
-			type: serverWidget.FieldType.RADIO,
-			label: 'Order Date',
-			source:'custpage_od',
-			container:'custpage_setup_preference'
-		});
-
-		form.addField({
-			id: 'custpage_itpm_disdate',
-			type: serverWidget.FieldType.RADIO,
-			label: 'Both',
-			source:'custpage_both',
-			container:'custpage_setup_preference'
-		});
-		form.addField({
-			id: 'custpage_itpm_disdate',
-			type: serverWidget.FieldType.RADIO,
-			label: 'Either',
-			source:'custpage_either',
-			container:'custpage_setup_preference'
-		});
+//		form.addField({
+//			id: 'custpage_itpm_disdate',
+//			type: serverWidget.FieldType.RADIO,
+//			label: 'Order Date',
+//			source:'custpage_od',
+//			container:'custpage_setup_preference'
+//		});
+//
+//		form.addField({
+//			id: 'custpage_itpm_disdate',
+//			type: serverWidget.FieldType.RADIO,
+//			label: 'Both',
+//			source:'custpage_both',
+//			container:'custpage_setup_preference'
+//		});
+//		form.addField({
+//			id: 'custpage_itpm_disdate',
+//			type: serverWidget.FieldType.RADIO,
+//			label: 'Either',
+//			source:'custpage_either',
+//			container:'custpage_setup_preference'
+//		});
 		
 		//if subsidiary value defined than we are filtering the values
 		if(params.subid){
