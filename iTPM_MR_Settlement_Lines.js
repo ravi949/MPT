@@ -68,44 +68,43 @@ function(record, search, runtime, itpm) {
     		var promoID = searchResult.values["GROUP(custbody_itpm_set_promo)"]["value"];
     		//If all allowances rates are zero then we calculate evenly
     		var allRate = 0;
-    		var allLsRate = 0;
     		var allCount = 0;
     		//Getting the greater than 0.00 rate per unit allowances
     		var allSearch = search.create({
     			type: "customrecord_itpm_promoallowance",
-    			columns:[search.createColumn({
-    				name:'internalid',
-    				summary:search.Summary.COUNT
-    			})],
-    			filters:
-    				[
-    					["custrecord_itpm_all_promotiondeal","anyof",promoID], 
-    					"AND", 
-    					["custrecord_itpm_all_rateperuom","greaterthan","0.00"]
-    					]  
+    			columns:[
+    						search.createColumn({
+    							name:'internalid',
+    							summary:search.Summary.COUNT
+    						})
+    			         ],
+    			filters: [
+    					   ["custrecord_itpm_all_promotiondeal","anyof",promoID], 
+    					   "AND", 
+    					   ["custrecord_itpm_all_rateperuom","greaterthan","0.00"]
+    					 ]  
     		}).run().getRange(0,1);
     		allCount = parseFloat(allSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
-    		allLsRate = 1/allCount;
     		log.debug('allSearch for setId'+setId, allCount);
     		//If the greater than 0.00 rate per unit allowances are zero in Promotion then assign the variable for Evenly calculations
     		if(allCount == 0){
     			var searchObj = search.create({
     				type: "customrecord_itpm_promoallowance",
-    				columns:[search.createColumn({
-    					name:'internalid',
-    					summary:search.Summary.COUNT
-    				})],
-    				filters:
-    					[  
-    						["custrecord_itpm_all_promotiondeal","anyof",promoID], 
-    						"AND", 
-    						["custrecord_itpm_all_rateperuom","lessthanorequalto","0.00"]
-    						]   
+    				columns:[
+    							search.createColumn({
+    								name:'internalid',
+    								summary:search.Summary.COUNT
+    							})
+    						],
+    				filters: [  
+    							["custrecord_itpm_all_promotiondeal","anyof",promoID], 
+    							"AND", 
+    							["custrecord_itpm_all_rateperuom","lessthanorequalto","0.00"]
+    						 ]   
 
     			}).run().getRange(0,1);
     			allCount = parseFloat(searchObj[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
     			allRate = 1/allCount;
-    			allLsRate = 1/allCount;
     			log.debug('searchObj   for setId'+setId, allCount);
     		}
     		var promoLineSearch = search.create({
@@ -143,8 +142,7 @@ function(record, search, runtime, itpm) {
 						percent:result.getValue({name:'custrecord_itpm_all_allowancepercent',join:'custrecord_itpm_all_promotiondeal'}),
 						uom:result.getValue({name:'custrecord_itpm_all_uom',join:'custrecord_itpm_all_promotiondeal'}),
 						rate:result.getValue({name:'custrecord_itpm_all_allowancerate',join:'custrecord_itpm_all_promotiondeal'}),
-						allrate:allRate,
-						alllsrate:allLsRate
+						allrate:allRate
 					}
 				});
     			return true;
@@ -176,7 +174,7 @@ function(record, search, runtime, itpm) {
     		var tempAmountLS = 0;
     		var tempAmountBB = 0;
     		var tempAmountOI = 0;
-    		var allLsRate = val.alllsrate;//If all allowances rates are zero then we calculate evenly
+    		var allRate = val.allrate;//If all allowances rates are zero then we calculate evenly
     		var settlementRec = record.load({
     			type:'customtransaction_itpm_settlement',
     			id:key.setId
@@ -254,7 +252,6 @@ function(record, search, runtime, itpm) {
     				var factorBB = 1;
     				var factorOI = 1;
     				var lineAmount = 0;
-    				allRate = allValues.allrate;
     				//Getting KPI values for relative item on Allowances
     				for(var i = 0; i< kpilength; i++){
     					var kpiItem = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'});
@@ -335,8 +332,8 @@ function(record, search, runtime, itpm) {
     				var lsLineAmount = (lumsumSetReq * parseFloat(factorLs)).toFixed(2);
     				//If all allowances rates are zero then we calculate evenly
     				if(lsLineAmount == 0){
-						if(allLsRate > 0)
-							lsLineAmount = (lumsumSetReq * parseFloat(allLsRate)).toFixed(2);    						
+						if(allRate > 0)
+							lsLineAmount = (lumsumSetReq * parseFloat(allRate)).toFixed(2);    						
 					}
     				tempAmountLS += parseFloat(lsLineAmount);
     				var kpisitem = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'});
