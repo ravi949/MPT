@@ -67,7 +67,6 @@ function(record, search, runtime, itpm) {
     		var setId = searchResult.values["GROUP(internalid)"]["value"];
     		var promoID = searchResult.values["GROUP(custbody_itpm_set_promo)"]["value"];
     		//If all allowances rates are zero then we calculate evenly
-    		var allRate = 0;
     		var allCount = 0;
     		//Getting the greater than 0.00 rate per unit allowances
     		var allRateGrtThanZeroSearch = search.create({
@@ -86,27 +85,7 @@ function(record, search, runtime, itpm) {
     		}).run().getRange(0,1);
     		allCount = parseFloat(allRateGrtThanZeroSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
     		log.debug('allRateGrtThanZeroSearch for setId'+setId, allCount);
-    		//If the greater than 0.00 rate per unit allowances are zero in Promotion then assign the variable for Evenly calculations
-    		if(allCount == 0){
-    			var allRateLessThanZeroSearch = search.create({
-    				type: "customrecord_itpm_promoallowance",
-    				columns:[
-    							search.createColumn({
-    								name:'internalid',
-    								summary:search.Summary.COUNT
-    							})
-    						],
-    				filters: [  
-    							["custrecord_itpm_all_promotiondeal","anyof",promoID], 
-    							"AND", 
-    							["custrecord_itpm_all_rateperuom","lessthanorequalto","0.00"]
-    						 ]   
-
-    			}).run().getRange(0,1);
-    			allCount = parseFloat(allRateLessThanZeroSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
-    			allRate = 1/allCount;
-    			log.debug('allRateLessThanZeroSearch   for setId'+setId, allCount);
-    		}
+    		
     		var promoLineSearch = search.create({
     			type:'customrecord_itpm_promotiondeal',
     			columns:['name'
@@ -142,7 +121,7 @@ function(record, search, runtime, itpm) {
 						percent:result.getValue({name:'custrecord_itpm_all_allowancepercent',join:'custrecord_itpm_all_promotiondeal'}),
 						uom:result.getValue({name:'custrecord_itpm_all_uom',join:'custrecord_itpm_all_promotiondeal'}),
 						rate:result.getValue({name:'custrecord_itpm_all_allowancerate',join:'custrecord_itpm_all_promotiondeal'}),
-						allrate:allRate
+						allcount:allCount
 					}
 				});
     			return true;
@@ -174,7 +153,7 @@ function(record, search, runtime, itpm) {
     		var tempAmountLS = 0;
     		var tempAmountBB = 0;
     		var tempAmountOI = 0;
-    		var allRate = val.allrate;//If all allowances rates are zero then we calculate evenly
+    		var allCount = val.allcount;//If all allowances rates are zero then we calculate evenly
     		var settlementRec = record.load({
     			type:'customtransaction_itpm_settlement',
     			id:key.setId
@@ -277,9 +256,9 @@ function(record, search, runtime, itpm) {
     					log.audit('--BB AMOUNT--'+key.setId, billbackSetReq * factorBB * allValues.contribution);
     					lineAmount = (billbackSetReq * parseFloat(factorBB) * parseFloat(allValues.contribution)).toFixed(2);
     					//If all allowances rates are zero then we calculate evenly
-    					if(lineAmount == 0){
-    						if(allRate > 0)
-    							lineAmount = (billbackSetReq * parseFloat(factorBB) * parseFloat(allRate)).toFixed(2);    						
+    					if(lineAmount == 0){ 
+    						if(allCount == 0) 
+							lineAmount = (billbackSetReq * parseFloat(factorBB)).toFixed(2);
     					}
     					tempAmountBB += parseFloat(lineAmount);
     					if(lineAmount > 0 ){ 
@@ -299,9 +278,9 @@ function(record, search, runtime, itpm) {
     					log.audit('--offinvoiceSetReq & factorOI & contribution--'+key.setId, offinvoiceSetReq+' & '+factorOI+' & '+allValues.contribution);
     					lineAmount = (offinvoiceSetReq * parseFloat(factorOI) * parseFloat(allValues.contribution)).toFixed(2);
     					//If all allowances rates are zero then we calculate evenly
-    					if(lineAmount == 0){
-    						if(allRate > 0)
-    							lineAmount = (offinvoiceSetReq * parseFloat(factorOI) * parseFloat(allRate)).toFixed(2);    						
+    					if(lineAmount == 0){ 
+    						if(allCount == 0)
+    							lineAmount = (offinvoiceSetReq * parseFloat(factorOI)).toFixed(2);
     					}
     					tempAmountOI += parseFloat(lineAmount);
     					if(lineAmount > 0 ){
@@ -330,11 +309,6 @@ function(record, search, runtime, itpm) {
     				}   
     				log.audit('--lumsumSetReq & factorLs --'+key.setId, lumsumSetReq+' & '+factorLs);
     				var lsLineAmount = (lumsumSetReq * parseFloat(factorLs)).toFixed(2);
-    				//If all allowances rates are zero then we calculate evenly
-    				if(lsLineAmount == 0){
-						if(allRate > 0)
-							lsLineAmount = (lumsumSetReq * parseFloat(allRate)).toFixed(2);    						
-					}
     				tempAmountLS += parseFloat(lsLineAmount);
     				var kpisitem = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'});
     				if(lsLineAmount > 0){
