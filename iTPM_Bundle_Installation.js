@@ -74,6 +74,8 @@ function(config, task, search, record, runtime) {
      * @since 2016.1
      */
     function afterInstall(params) {
+    	log.error('version after install',params);
+    	
     	//script to modify status filter on all iTPM saved searches
     	updateSearchFilters();
     	//create preference records
@@ -103,6 +105,8 @@ function(config, task, search, record, runtime) {
      * @since 2016.1
      */
     function afterUpdate(params) {
+    	log.error('version after update',params);
+    	
     	//task for set the promotion default values
     	task.create({
     		taskType: task.TaskType.MAP_REDUCE,
@@ -854,6 +858,10 @@ function(config, task, search, record, runtime) {
     				id: e.id,
     				values: {
     					'custrecord_itpm_pref_version': iTPM_Version
+    				},
+    				options:{
+    					enableSourcing:false,
+    					ignoreMandatoryFields:true
     				}
     			});
     			return true;
