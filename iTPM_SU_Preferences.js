@@ -619,6 +619,14 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 					line:i
 				});
 			}
+			
+			if(e.getValue('custrecord_itpm_pref_version')){
+				prefSublist.setSublistValue({
+					id:'custpage_itpm_version',
+					value:e.getValue('custrecord_itpm_pref_version'),
+					line:i
+				});
+			}
 
 			i++;
 			return true;
