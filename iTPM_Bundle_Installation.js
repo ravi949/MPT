@@ -74,6 +74,8 @@ function(config, task, search, record, runtime) {
      * @since 2016.1
      */
     function afterInstall(params) {
+    	log.error('version after install',params);
+    	
     	//script to modify status filter on all iTPM saved searches
     	updateSearchFilters();
     	//create preference records
@@ -103,6 +105,8 @@ function(config, task, search, record, runtime) {
      * @since 2016.1
      */
     function afterUpdate(params) {
+    	log.error('version after update',params);
+    	
     	//task for set the promotion default values
     	task.create({
     		taskType: task.TaskType.MAP_REDUCE,
@@ -747,8 +751,12 @@ function(config, task, search, record, runtime) {
     			];
     		setWaitingToBeAppliedSearchMine.save();
     		
+    		//update the settlement search columns and place the settlement id as link
+    		settlementLink();
+    		
     	}catch(ex){
     		log.error(ex.name, ex.message);
+    		throw ex;
     	}
     }
     
@@ -756,37 +764,42 @@ function(config, task, search, record, runtime) {
      * @description creating the subsidiary based on preference records
      */
     function createPreferenceRecords(iTPM_Version){
-    	var featureEnabled = runtime.isFeatureInEffect({feature:'SUBSIDIARIES'});
-		var eventType = 'create';
-		
-    	var preferenceResult = search.create({
-			type:'customrecord_itpm_preferences',
-			columns:['internalid']
-		}).run().getRange(0,10);
-		var prefResultLength = preferenceResult.length;
-		preferenceResult = (prefResultLength == 0)? undefined : preferenceResult[0].getValue('internalid');
-				
-    	if(featureEnabled){
-    		var subsidiaryResult = search.create({
-        		type:search.Type.SUBSIDIARY,
-        		columns:['internalid','parent'],
-        		filters:[['isinactive','is',false]]
-        	}).run();
+    	try{
+    		var featureEnabled = runtime.isFeatureInEffect({feature:'SUBSIDIARIES'});
+    		var eventType = 'create';
     		
-    		if(prefResultLength <= 1){
-        		subsidiaryResult.each(function(e){
-        			if(prefResultLength == 1){
-        				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
-        			}
-    				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'),iTPM_Version);
-    				return true;
-    			});
-    		}else{
-    			//set iTPM version on iTPM Preference record
-    			setItpmVersion(iTPM_Version);
-    		}    		
-    	}else{
-    		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined,iTPM_Version) : '';
+        	var preferenceResult = search.create({
+    			type:'customrecord_itpm_preferences',
+    			columns:['internalid']
+    		}).run().getRange(0,10);
+    		var prefResultLength = preferenceResult.length;
+    		preferenceResult = (prefResultLength == 0)? undefined : preferenceResult[0].getValue('internalid');
+    				
+        	if(featureEnabled){
+        		var subsidiaryResult = search.create({
+            		type:search.Type.SUBSIDIARY,
+            		columns:['internalid','parent'],
+            		filters:[['isinactive','is',false]]
+            	}).run();
+        		
+        		if(prefResultLength <= 1){
+            		subsidiaryResult.each(function(e){
+            			if(prefResultLength == 1){
+            				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
+            			}
+        				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'),iTPM_Version);
+        				return true;
+        			});
+        		}else{
+        			//set iTPM version on iTPM Preference record
+        			setItpmVersion(iTPM_Version);
+        		}    		
+        	}else{
+        		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined,iTPM_Version) : '';
+        	}
+    	}catch(ex){
+    		log.error(ex.name, ex.message);
+    		throw ex;
     	}
     }
     
@@ -848,14 +861,17 @@ function(config, task, search, record, runtime) {
     				id: e.id,
     				values: {
     					'custrecord_itpm_pref_version': iTPM_Version
+    				},
+    				options:{
+    					enableSourcing:false,
+    					ignoreMandatoryFields:true
     				}
     			});
     			return true;
     		});
-    	}
-    	catch(ex){
-    		log.debug(ex.name,ex.message);
+    	}catch(ex){
     		log.error(ex.name,ex.message);
+    		throw ex;
     	}
     }
       
@@ -880,10 +896,9 @@ function(config, task, search, record, runtime) {
     		});
 
     		settlementSearch.save();
-    	}
-    	catch(ex){
-    		log.debug(ex.name,ex.message);
+    	}catch(ex){
     		log.error(ex.name,ex.message);
+    		throw ex;
     	}
     }
     

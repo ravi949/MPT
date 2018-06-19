@@ -83,7 +83,8 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 					         'custrecord_itpm_pref_defaultalltype',
 					         'custrecord_itpm_pref_defaultpricelevel',
 					         'custrecord_itpm_pref_remvcust_frmsplit',
-					         'custrecord_itpm_pref_discountdates']
+					         'custrecord_itpm_pref_discountdates',
+					         'custrecord_itpm_pref_version']
 			};
 			if(id){
 				searchOptions['filters'] = ['internalid','anyof',id];
@@ -393,7 +394,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 				}
 			}
 			
-			iTpmVersionField.defaultValue = preferanceRecord.getValue('custpage_itpm_pref_version'); //iTPM Version Field
+			iTpmVersionField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_version'); //iTPM Version Field
 			ApplyiTPMNetBillDiscountChk.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_nblistprice')?'T':'F';
 			discountItemId = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
 			defaultAllType.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_defaultalltype');
@@ -618,6 +619,14 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 					line:i
 				});
 			}
+			
+			if(e.getValue('custrecord_itpm_pref_version')){
+				prefSublist.setSublistValue({
+					id:'custpage_itpm_version',
+					value:e.getValue('custrecord_itpm_pref_version'),
+					line:i
+				});
+			}
 
 			i++;
 			return true;
@@ -724,7 +733,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		if(itpmVersion){
 			preferanceRecord.setValue({
 				fieldId: 'custrecord_itpm_pref_version',      //itpm pref version
-				value: itpmversion,
+				value: itpmVersion,
 				ignoreFieldChange: true
 			});
 		}
