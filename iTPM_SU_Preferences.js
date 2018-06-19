@@ -725,7 +725,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		if(itpmVersion){
 			preferanceRecord.setValue({
 				fieldId: 'custrecord_itpm_pref_version',      //itpm pref version
-				value: itpmversion,
+				value: itpmVersion,
 				ignoreFieldChange: true
 			});
 		}
