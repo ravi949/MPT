@@ -751,6 +751,9 @@ function(config, task, search, record, runtime) {
     			];
     		setWaitingToBeAppliedSearchMine.save();
     		
+    		//update the settlement search columns and place the settlement id as link
+    		settlementLink();
+    		
     	}catch(ex){
     		log.error(ex.name, ex.message);
     		throw ex;
