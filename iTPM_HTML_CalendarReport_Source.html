@@ -1,0 +1,184 @@
+<html>
+<head>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap-tpls.min.js"></script>
+		
+    <style type="text/css">
+		font-family: "Times New Roman", Georgia, Serif;
+		table {
+            font-size: 7pt; //old 9pt
+            table-layout: fixed;
+        }
+        #cust{
+        	font-weight: bold;
+            font-size: 10pt;
+            vertical-align: middle;
+            padding: 5px 6px 3px;
+            background-color: yellow;
+            color: #333333;
+        }
+        th {
+            font-weight: bold;
+            font-size: 9pt; //old 10pt
+            vertical-align: middle;
+            padding: 5px 6px 3px;
+            background-color: #e3e3e3;
+            color: #333333;
+        }
+        td {
+            padding: 4px 6px;
+            font-size: 7pt;
+            font-weight: bold;
+        }
+        b {
+            font-weight: bold;
+            color: #333333;
+        }
+        table.header td {
+            padding: 0px;
+            font-size: 8pt; //old 10pt
+        }
+        table.footer td {
+            padding: 0px;
+            font-size: 8pt;
+        }
+        table.body td {
+            padding-top: 2px;
+        }       
+        span.title {
+            font-size: 28pt;
+        }
+        span.number {
+            font-size: 16pt;
+        }
+        span.itemname {
+            font-weight: bold;
+            line-height: 150%;
+        }
+        hr {
+            width: 100%;
+            color: #d3d3d3;
+            background-color: #d3d3d3;
+            height: 1px;
+        }
+        
+     tr:first-child>td>.fc-day-grid-event {
+    	 margin-top: 2px;
+	 }
+
+	 .fc-event.fc-draggable, .fc-event[href], .fc-popover .fc-header .fc-close, a[data-goto] {
+	     cursor: pointer;
+	 }
+	 .fc-view-container *, .fc-view-container :after, .fc-view-container :before {
+	     -webkit-box-sizing: content-box;
+	     -moz-box-sizing: content-box;
+	     box-sizing: content-box;
+	 }
+	 .fc-day-grid-event {
+	     margin: 1px 2px 0;
+	     padding: 0 1px;
+	 }
+	 .fc-event, .fc-event:hover {
+	     text-decoration: none;
+	 }
+	 .fc-event, .fc-event-dot {
+	 	 color:black;
+	     background-color: #0dcfd6;
+	 }
+	 .fc-event {
+	     position: relative;
+	     display: block;
+	     font-size: .85em;
+	     line-height: 1.3;
+	     border-radius: 3px;
+	 }
+	 a {
+	     color: #1197C1;
+	 }
+	 a {
+	     cursor: pointer;
+	 }
+	 
+table.scroll {
+    /* width: 100%; */ /* Optional */
+    /* border-collapse: collapse; */
+    border-spacing: 0;
+    border: 2px solid black;
+}
+
+thead tr td, thead tr th{
+	border:1px solid black;
+}
+
+table.scroll tbody {
+    height: 100px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+tbody { border-top: 2px solid black; }
+
+tbody td, thead th {
+    /* width: 20%; */ /* Optional */
+    border-right: 1px solid black;
+    /* white-space: nowrap; */
+}
+
+tbody td:last-child, thead th:last-child {
+    border-right: none;
+}
+        
+</style>
+</head>
+<body>
+
+	   <table style="margin-top: 10px;" >
+	   		<thead>
+				<tr>
+					<td colspan="25" rowspan="2"><h3><b>Promotion Calendar Report</b></h3></td>
+					
+					<th class="text-center">
+						<span>January</span>
+						<span">February</span>
+						<span>March</span>
+						<span>April</span>
+						<span>May</span>
+						<span>June</span>
+						<span>July</span>
+						<span>August</span>
+						<span>September</span>
+						<span>October</span>
+						<span>November</span>
+						<span>December</span>
+					</th>
+				</tr>
+				
+				
+				<tr class="text-center">
+					<th id="cust" colspan="5">Customer</th>
+					<th id="cust" colspan="5">Item Description</th>
+					<th id="cust" colspan="5">Invoice #</th>
+					<th id="cust" colspan="5">Start Date</th>
+					<th id="cust" colspan="5">Due Date</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="promo in promo_data">
+					<td colspan="5"></td>
+					<td colspan="5"></td>
+					<td colspan="5"></td>
+					<td colspan="5"></td>
+					<td colspan="5"></td>
+					
+				</tr>
+			</tbody>
+		</table>
+
+</body>
+
+
+
+</html>
