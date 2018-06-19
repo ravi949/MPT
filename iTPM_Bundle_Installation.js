@@ -835,6 +835,9 @@ function(config, task, search, record, runtime) {
     	});
     }
     
+    /**
+     * @description sets iTPM Version under iTPM preferences.
+     */
     function setItpmVersion(iTPM_Version){
     	try{
     		search.create({
@@ -855,7 +858,36 @@ function(config, task, search, record, runtime) {
     		log.error(ex.name,ex.message);
     	}
     }
-        
+      
+    /**
+     * @description creating settlement id as a clickable link in the settlement subtab under the promotion.
+     */
+    function settlementLink(){
+    	try{
+    		var settlemntRecID = record.create({
+    			type:'customtransaction_itpm_settlement'
+    		}).getValue('customtype');
+
+    		var settlementSearch = search.load({
+    			id:"customsearch_itpm_promosettlementsummary",
+    		});
+
+    		settlementSearch.columns[1]=search.createColumn({
+    			name: 'formulatext',
+    			label: 'Settlement #',
+    			formula: "'<a href=/app/accounting/transactions/custom.nl?id='|| {internalid} ||'&customtype=" + settlemntRecID + "&whence= target=_blank>'|| {tranid} ||'</a>'",
+    			summary: search.Summary.GROUP
+    		});
+
+    		settlementSearch.save();
+    	}
+    	catch(ex){
+    		log.debug(ex.name,ex.message);
+    		log.error(ex.name,ex.message);
+    	}
+    }
+    
+    
     return {
         beforeInstall: beforeInstall,
         afterInstall: afterInstall,
