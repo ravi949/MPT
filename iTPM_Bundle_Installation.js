@@ -749,6 +749,7 @@ function(config, task, search, record, runtime) {
     		
     	}catch(ex){
     		log.error(ex.name, ex.message);
+    		throw ex;
     	}
     }
     
@@ -756,37 +757,42 @@ function(config, task, search, record, runtime) {
      * @description creating the subsidiary based on preference records
      */
     function createPreferenceRecords(iTPM_Version){
-    	var featureEnabled = runtime.isFeatureInEffect({feature:'SUBSIDIARIES'});
-		var eventType = 'create';
-		
-    	var preferenceResult = search.create({
-			type:'customrecord_itpm_preferences',
-			columns:['internalid']
-		}).run().getRange(0,10);
-		var prefResultLength = preferenceResult.length;
-		preferenceResult = (prefResultLength == 0)? undefined : preferenceResult[0].getValue('internalid');
-				
-    	if(featureEnabled){
-    		var subsidiaryResult = search.create({
-        		type:search.Type.SUBSIDIARY,
-        		columns:['internalid','parent'],
-        		filters:[['isinactive','is',false]]
-        	}).run();
+    	try{
+    		var featureEnabled = runtime.isFeatureInEffect({feature:'SUBSIDIARIES'});
+    		var eventType = 'create';
     		
-    		if(prefResultLength <= 1){
-        		subsidiaryResult.each(function(e){
-        			if(prefResultLength == 1){
-        				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
-        			}
-    				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'),iTPM_Version);
-    				return true;
-    			});
-    		}else{
-    			//set iTPM version on iTPM Preference record
-    			setItpmVersion(iTPM_Version);
-    		}    		
-    	}else{
-    		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined,iTPM_Version) : '';
+        	var preferenceResult = search.create({
+    			type:'customrecord_itpm_preferences',
+    			columns:['internalid']
+    		}).run().getRange(0,10);
+    		var prefResultLength = preferenceResult.length;
+    		preferenceResult = (prefResultLength == 0)? undefined : preferenceResult[0].getValue('internalid');
+    				
+        	if(featureEnabled){
+        		var subsidiaryResult = search.create({
+            		type:search.Type.SUBSIDIARY,
+            		columns:['internalid','parent'],
+            		filters:[['isinactive','is',false]]
+            	}).run();
+        		
+        		if(prefResultLength <= 1){
+            		subsidiaryResult.each(function(e){
+            			if(prefResultLength == 1){
+            				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
+            			}
+        				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'),iTPM_Version);
+        				return true;
+        			});
+        		}else{
+        			//set iTPM version on iTPM Preference record
+        			setItpmVersion(iTPM_Version);
+        		}    		
+        	}else{
+        		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined,iTPM_Version) : '';
+        	}
+    	}catch(ex){
+    		log.error(ex.name, ex.message);
+    		throw ex;
     	}
     }
     
@@ -852,10 +858,9 @@ function(config, task, search, record, runtime) {
     			});
     			return true;
     		});
-    	}
-    	catch(ex){
-    		log.debug(ex.name,ex.message);
+    	}catch(ex){
     		log.error(ex.name,ex.message);
+    		throw ex;
     	}
     }
       
@@ -880,10 +885,9 @@ function(config, task, search, record, runtime) {
     		});
 
     		settlementSearch.save();
-    	}
-    	catch(ex){
-    		log.debug(ex.name,ex.message);
+    	}catch(ex){
     		log.error(ex.name,ex.message);
+    		throw ex;
     	}
     }
     
