@@ -70,7 +70,7 @@ function(record, search, runtime, itpm) {
     		var allRate = 0;
     		var allCount = 0;
     		//Getting the greater than 0.00 rate per unit allowances
-    		var allSearch = search.create({
+    		var allRateGrtThanZeroSearch = search.create({
     			type: "customrecord_itpm_promoallowance",
     			columns:[
     						search.createColumn({
@@ -84,11 +84,11 @@ function(record, search, runtime, itpm) {
     					   ["custrecord_itpm_all_rateperuom","greaterthan","0.00"]
     					 ]  
     		}).run().getRange(0,1);
-    		allCount = parseFloat(allSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
-    		log.debug('allSearch for setId'+setId, allCount);
+    		allCount = parseFloat(allRateGrtThanZeroSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
+    		log.debug('allRateGrtThanZeroSearch for setId'+setId, allCount);
     		//If the greater than 0.00 rate per unit allowances are zero in Promotion then assign the variable for Evenly calculations
     		if(allCount == 0){
-    			var searchObj = search.create({
+    			var allRateLessThanZeroSearch = search.create({
     				type: "customrecord_itpm_promoallowance",
     				columns:[
     							search.createColumn({
@@ -103,9 +103,9 @@ function(record, search, runtime, itpm) {
     						 ]   
 
     			}).run().getRange(0,1);
-    			allCount = parseFloat(searchObj[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
+    			allCount = parseFloat(allRateLessThanZeroSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
     			allRate = 1/allCount;
-    			log.debug('searchObj   for setId'+setId, allCount);
+    			log.debug('allRateLessThanZeroSearch   for setId'+setId, allCount);
     		}
     		var promoLineSearch = search.create({
     			type:'customrecord_itpm_promotiondeal',
