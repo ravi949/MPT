@@ -100,8 +100,34 @@ define(['N/ui/serverWidget',
 						});
 						promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
 					}
-
-
+					
+					//Getting Promotion Planning Records count w.r.t Promotion
+		    		var promoPlanRecSearch = search.create({
+		    			type: "customrecord_itpm_promotion_planning",
+		    			columns:[
+		    						search.createColumn({
+		    							name:'internalid',
+		    							summary:search.Summary.COUNT
+		    						})
+		    			         ],
+		    			filters: [
+		    					   ["custrecord_itpm_pp_promotion","anyof",promoRec.id], 
+		    					   "AND", 
+		    					   ["isinactive","is","false"]
+		    					 ]  
+		    		}).run().getRange(0,1);
+		    		promoPlanRecCount = parseFloat(promoPlanRecSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
+		    		log.debug('promoPlanRecCount', promoPlanRecCount);
+					//adding Planning Complete button on promotion record if it has a promotion planning lines.
+		    		if(promoPlanRecCount > 0){
+		    			promoForm.addButton({
+							id:'custpage_planning_ompleted',
+							label:'Planning Completed',
+							functionName:'planningComplete('+promoRec.id+')'
+						});
+						promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
+		    		}
+					
 					//after copy and save the record it will show the copy in progress message
 					var copyInProgress = promoRec.getValue('custrecord_itpm_p_copyinprogress');
 					var copyRelatedRecords = promoRec.getValue('custrecord_itpm_p_copy');
