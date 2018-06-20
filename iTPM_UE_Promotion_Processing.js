@@ -8,7 +8,6 @@ define(['N/ui/serverWidget',
 	'N/runtime',
 	'N/url',
 	'N/search',
-	'N/error',
 	'./iTPM_Module.js'
 	],
 	/**
@@ -18,7 +17,7 @@ define(['N/ui/serverWidget',
 	 * @param {url} url
 	 * @param {search} search
 	 */
-	function(serverWidget,record,runtime,url,search,itpm,error) {
+	function(serverWidget,record,runtime,url,search,itpm) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
