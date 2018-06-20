@@ -30,6 +30,7 @@ function(render, search, runtime, file, ui) {
     			var calendarId = params.cid;
     			var startdate = '1/1/2018'//params.custpage_stratdate;
     			var enddate = '6/30/2018'//params.custpage_enddate;
+    			var customer = [1542]; //params.custrecord_itpm_cal_customer
     			log.debug('startdate &  enddate', startdate+' & '+enddate);
     			var scriptObj = runtime.getCurrentScript();
     			var templateFileId = '12781';
@@ -42,26 +43,19 @@ function(render, search, runtime, file, ui) {
     			
     			var renderer = render.create();
     			var xmlOutput = null;
-    			
-    			renderer.addCustomDataSource({
-    			    format: render.DataSource.OBJECT,
-    			    alias: 'period',
-    			    data: {name:'period',list:JSON.stringify([{sdate: startdate, edate: enddate}])}
-    			});
-    			
     			var sundaysList = getSundays();
-    			    			
+    			
     			renderer.addCustomDataSource({
     			    format: render.DataSource.OBJECT,
-    			    alias: 'jweeks',
-    			    data: {name:'jweeks',list:JSON.stringify(sundaysList)}
+    			    alias: 'weeks',
+    			    data: {name:'list',list:JSON.stringify(sundaysList)}
     			});
     			
-//    			renderer.addCustomDataSource({
-//    			    format: render.DataSource.OBJECT,
-//    			    alias: 'data',
-//    			    data: {type : 'data', list : JSON.stringify(getRenderDataWeeks(startdate, enddate, sundaysList)) }
-//    			});
+    			renderer.addCustomDataSource({
+    			    format: render.DataSource.OBJECT,
+    			    alias: 'promotionData',
+    			    data: {name : 'list', list : JSON.stringify(getRenderDataWeeks(customer, startdate, enddate)) }
+    			});
     			
     			renderer.templateContent = templateFile.getContents();
     			
@@ -79,7 +73,7 @@ function(render, search, runtime, file, ui) {
 		}
     }
 
-    function getRenderDataWeeks(startdate, enddate, sundaysList){
+    function getRenderDataWeeks(customer, startdate, enddate){
     	try{
     		var finalResults = [];
     		
@@ -100,30 +94,37 @@ function(render, search, runtime, file, ui) {
     			         sort: search.Sort.ASC,
     			         label: "Name"
     			      }),
-    			      search.createColumn({name: "custrecord_itpm_kpi_promotiondeal.custrecord_itpm_p_type", label: "Promo Type"}),
-    			      search.createColumn({name: "custrecord_itpm_p_shipstart", label: "Start Date"}),
-    			      search.createColumn({name: "custrecord_itpm_p_shipend", label: "End Date"})
+    			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_percentperuom",
+    			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_rateperuom",
+    			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item",
+    			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_itemdescription",
+    			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_uom",
+    			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop",
+    			      "custrecord_itpm_p_description",
+    			      "custrecord_itpm_p_type",
+    			      "custrecord_itpm_p_shipstart",
+    			      "custrecord_itpm_p_shipend"
     			   ]
     			});
-    			var searchResultCount = promoSearchObj.runPaged().count;
-    			log.debug("promoSearchObj result count",searchResultCount);
+//    			var searchResultCount = promoSearchObj.runPaged().count;
+//    			log.debug("promoSearchObj result count",searchResultCount);
     			promoSearchObj.run().each(function(result){
-    				var source = {};
-    		        var loopsource = {};
-    		        
-    		        source.entity = result.getText({ name: 'entity' });
-    		        source.item = result.getText({ name: 'item' });
-    		        source.transactionnumber = result.getValue({ name: 'transactionnumber' });
-    		        source.trandate = result.getValue({ name: 'trandate' });
-    		        source.duedate = result.getValue({ name: 'duedate' });
-    		        source.sweek = new Date(source.trandate).getWeek();
-    		        source.eweek = new Date(source.duedate).getWeek();
-    		        source.smonth = new Date(source.trandate).getMonth();
-    		        source.sundays = sundaysList;
-    		        
-    		        loopsource.values = source;
-    		        finalResults.push(loopsource);
-    				
+    		        finalResults.push({
+    		        	promo_desc	  : result.getValue({ name: 'custrecord_itpm_p_description'}),
+    	    		    promotype	  : result.getText({ name: 'custrecord_itpm_p_type'}),
+    	    		    shipstartdate : result.getValue({ name: 'custrecord_itpm_p_shipstart' }),
+    	    		    shipenddate   : result.getValue({ name: 'custrecord_itpm_p_shipend' }),
+    		        	entity 		  : result.getText({ name: 'custrecord_itpm_p_customer' }),
+    	    		    item   		  : result.getText({ name: 'custrecord_itpm_all_item', join:'custrecord_itpm_all_promotiondeal' }),
+    	    		    item_desc	  : result.getText({ name:'custrecord_itpm_all_itemdescription', join:'custrecord_itpm_all_promotiondeal' }),
+    	    		    rateperuom	  : result.getValue({ name:'custrecord_itpm_all_rateperuom', join:'custrecord_itpm_all_promotiondeal' }),
+    	    		    percentperuom : result.getValue({ name:'custrecord_itpm_all_percentperuom', join:'custrecord_itpm_all_promotiondeal' }),
+    	    		    uom			  : result.getText({ name:'custrecord_itpm_all_uom', join:'custrecord_itpm_all_promotiondeal' }),
+    	    		    mop           : result.getText({ name:'custrecord_itpm_all_mop', join:'custrecord_itpm_all_promotiondeal' }),
+    	    		    sweek 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getWeek(),
+    	    		    eweek 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getWeek(),
+    	    		    smonth 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getMonth()
+    		        });
     			   return true;
     			});
     		

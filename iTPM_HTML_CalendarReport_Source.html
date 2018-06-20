@@ -1,4 +1,4 @@
-<html>
+<html ng-app="app">
 <head>
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -133,7 +133,7 @@ tbody td:last-child, thead th:last-child {
         
 </style>
 </head>
-<body>
+<body ng-controller="reportCtrl">
 
 	   <table style="margin-top: 10px;" >
 	   		<thead>
@@ -142,7 +142,7 @@ tbody td:last-child, thead th:last-child {
 					
 					<th class="text-center">
 						<span>January</span>
-						<span">February</span>
+						<span>February</span>
 						<span>March</span>
 						<span>April</span>
 						<span>May</span>
@@ -166,19 +166,19 @@ tbody td:last-child, thead th:last-child {
 				</tr>
 			</thead>
 			<tbody>
-				<tr ng-repeat="promo in promo_data">
-					<td colspan="5"></td>
-					<td colspan="5"></td>
-					<td colspan="5"></td>
-					<td colspan="5"></td>
-					<td colspan="5"></td>
-					
+				<tr ng-repeat="obj in weeks track by $index">
+					<td colspan="5">{{obj.week}}</td>
 				</tr>
 			</tbody>
 		</table>
-
 </body>
-
-
-
+<script type="text/javascript">
+	angular.module('app',[]).controller('reportCtrl',function($scope){
+		console.log('hi');
+		$scope.promo_data = ${promotionData.list};
+		$scope.weeks = ${weeks.list};
+		console.log($scope.promo_data);
+		console.log($scope.weeks);
+	});
+</script>
 </html>
