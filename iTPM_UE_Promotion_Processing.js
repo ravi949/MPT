@@ -44,13 +44,14 @@ define(['N/ui/serverWidget',
 				
 				//for copy promotion validating promotion type is active or not
 				if(scriptContext.type == 'copy'){					
-					var checkPromotypeRecActive = record.load({
+					var promoTypeRec = record.load({
 						type:'customrecord_itpm_promotiontype',
 						id:promoRec.getValue('custrecord_itpm_p_type')
-					}).getValue('isinactive');
+					});
+					var checkPromotypeRecActive = promoTypeRec.getValue('isinactive');
+					var checkPromotypeRecAvailable = promoTypeRec.getValue('custrecord_itpm_pt_expiredorunavailable');
 					log.error('checkPromotypeRecActive',checkPromotypeRecActive);
-					if(checkPromotypeRecActive == true){
-						log.error('true');
+					if(checkPromotypeRecActive == true || checkPromotypeRecAvailable == false){						
 						throw{
 							name:'PROMOTIONTYPE_RECORD_IS_INACTIVE',
 							message :'Sorry, this promotion type is no longer valid for new promotions, and can not be copied.'
