@@ -366,7 +366,7 @@
                             <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
                                     <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == data">
-                                        <p class="{{promo_data.promo_status}}">&nbsp;</p>
+                                        <p class="{{promo_data.promo_status}}" ng-if="promo_data.smonth<= obj.month  && obj.month<= promo_data.emonth">&nbsp;</p>
                                     </td>
                                 </tr>
                             </table>
