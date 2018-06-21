@@ -89,16 +89,16 @@ function(render, search, runtime, file, ui) {
     		
     		var startdate = calendarRecLookup['custrecord_itpm_cal_startdate'] //'1/1/2018'
 			var enddate = calendarRecLookup['custrecord_itpm_cal_enddate'] //'6/30/2018'
-			var customers = calendarRecLookup['custrecord_itpm_cal_customer'];
+			var customers = calendarRecLookup['custrecord_itpm_cal_customer'].map(function(e){return e.value});
 			var allCustomersChecked = calendarRecLookup['custrecord_itpm_cal_allcustomers'];
-			var items =  calendarRecLookup['custrecord_itpm_cal_items'];
+			var items =  calendarRecLookup['custrecord_itpm_cal_items'].map(function(e){return e.value});
 			var allItemsChecked =  calendarRecLookup['custrecord_itpm_cal_allitems'];
-			var promoTypes = calendarRecLookup['custrecord_itpm_cal_promotiontypes'];
+			var promoTypes = calendarRecLookup['custrecord_itpm_cal_promotiontypes'].map(function(e){return e.value});
 			var allPromoTypesChecked = calendarRecLookup['custrecord_itpm_cal_allpromotiontypes'];
-			var promoStatus = calendarRecLookup['custrecord_itpm_cal_promotionstatus'][0].value;
+			var promoStatus = calendarRecLookup['custrecord_itpm_cal_promotionstatus'].map(function(e){return e.value});
 			
 			var promotionFilters = [
-			                          ["custrecord_itpm_p_status","anyof",3], 
+			                          ["custrecord_itpm_p_status","anyof",promoStatus], 
 				      			      "AND", 
 				    			      ["custrecord_itpm_p_shipstart","onorafter",startdate], 
 				    			      "AND", 
@@ -131,6 +131,7 @@ function(render, search, runtime, file, ui) {
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_uom",
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop",
     			      "custrecord_itpm_p_description",
+    			      "custrecord_itpm_p_status",
     			      "custrecord_itpm_p_type",
     			      "custrecord_itpm_p_shipstart",
     			      "custrecord_itpm_p_shipend"
@@ -138,23 +139,38 @@ function(render, search, runtime, file, ui) {
     			});
 //    			var searchResultCount = promoSearchObj.runPaged().count;
 //    			log.debug("promoSearchObj result count",searchResultCount);
+    			var status;
     			promoSearchObj.run().each(function(result){
+    				status = result.getValue({ name:'custrecord_itpm_p_status' });
+    				if(status == 1){
+    					status = 'status-orange';
+    				}else if(status == 2){
+    					status = 'status-yellow';
+    				}else if(status == 3){
+    					status = 'status-green';
+    				}else if(status == 4 || status == 5){
+    					status = 'status-red';
+    				}else if(status == 7){
+    					status = 'status-blue';
+    				}
     		        finalResults.push({
     		        	promo_desc	  : result.getValue({ name: 'custrecord_itpm_p_description'}),
-    	    		    promo_id		  : result.getValue({ name:'internalid' }),
+    	    		    promo_id	  : result.getValue({ name:'internalid' }),
+    	    		    promo_status  : status,
     		        	promo_type	  : result.getText({ name: 'custrecord_itpm_p_type'}),
-    	    		    ship_startdate : result.getValue({ name: 'custrecord_itpm_p_shipstart' }),
-    	    		    ship_enddate   : result.getValue({ name: 'custrecord_itpm_p_shipend' }),
+    	    		    ship_startdate: result.getValue({ name: 'custrecord_itpm_p_shipstart' }),
+    	    		    ship_enddate  : result.getValue({ name: 'custrecord_itpm_p_shipend' }),
     		        	entity 		  : result.getText({ name: 'custrecord_itpm_p_customer' }),
     	    		    item   		  : result.getText({ name: 'custrecord_itpm_all_item', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    item_desc	  : result.getText({ name:'custrecord_itpm_all_itemdescription', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    rate_peruom	  : result.getValue({ name:'custrecord_itpm_all_rateperuom', join:'custrecord_itpm_all_promotiondeal' }),
-    	    		    percent_peruom : result.getValue({ name:'custrecord_itpm_all_percentperuom', join:'custrecord_itpm_all_promotiondeal' }),
+    	    		    percent_peruom: result.getValue({ name:'custrecord_itpm_all_percentperuom', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    uom			  : result.getText({ name:'custrecord_itpm_all_uom', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    mop           : result.getText({ name:'custrecord_itpm_all_mop', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    sweek 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getWeek(),
     	    		    eweek 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getWeek(),
-    	    		    smonth 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getMonth()
+    	    		    smonth 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getMonth(),
+    	    		    emonth 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getMonth()
     		        });
     			   return true;
     			});
