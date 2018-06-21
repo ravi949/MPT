@@ -101,7 +101,7 @@ define(['N/ui/serverWidget',
 						promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
 					}
 					
-					//Getting Promotion Planning Records count w.r.t Promotion
+					//Getting Promotion Planning Records count w.r.t Promotion ID
 		    		var promoPlanRecSearch = search.create({
 		    			type: "customrecord_itpm_promotion_planning",
 		    			columns:[
@@ -121,7 +121,7 @@ define(['N/ui/serverWidget',
 					//adding Planning Complete button on promotion record if it has a promotion planning lines.
 		    		if(promoPlanRecCount > 0){
 		    			promoForm.addButton({
-							id:'custpage_planning_ompleted',
+							id:'custpage_planning_completed',
 							label:'Planning Completed',
 							functionName:'planningComplete('+promoRec.id+')'
 						});
