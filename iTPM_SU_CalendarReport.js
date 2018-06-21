@@ -26,12 +26,22 @@ function(render, search, runtime, file, ui) {
 			var params = request.parameters;
 			
     		if(request.method == 'GET'){
-    			//Script Parameters
-    			var calendarId = params.cid;
-    			var startdate = '1/1/2018'//params.custpage_stratdate;
-    			var enddate = '6/30/2018'//params.custpage_enddate;
-    			var customer = [1542]; //params.custrecord_itpm_cal_customer
-    			log.debug('startdate &  enddate', startdate+' & '+enddate);
+    			
+    			var calendarRecLookup = search.lookupFields({
+    				type:'customrecord_itpm_calendar',
+    				id:params.cid,
+    				columns:['custrecord_itpm_cal_customer',
+    				         'custrecord_itpm_cal_allcustomers',
+    				         'custrecord_itpm_cal_items',
+    				         'custrecord_itpm_cal_allitems',
+    				         'custrecord_itpm_cal_itemgroups',
+    				         'custrecord_itpm_cal_startdate',
+    				         'custrecord_itpm_cal_enddate',
+    				         'custrecord_itpm_cal_promotiontypes',
+    				         'custrecord_itpm_cal_allpromotiontypes',
+    				         'custrecord_itpm_cal_promotionstatus']
+    			});
+    			
     			var scriptObj = runtime.getCurrentScript();
     			var templateFileId = '12781';
     			log.debug('templateFileId: ', templateFileId);
@@ -54,7 +64,7 @@ function(render, search, runtime, file, ui) {
     			renderer.addCustomDataSource({
     			    format: render.DataSource.OBJECT,
     			    alias: 'promotionData',
-    			    data: {name : 'list', list : JSON.stringify(getRenderDataWeeks(customer, startdate, enddate)) }
+    			    data: {name : 'list', list : JSON.stringify(getRenderDataWeeks(calendarRecLookup)) }
     			});
     			
     			renderer.templateContent = templateFile.getContents();
@@ -73,22 +83,42 @@ function(render, search, runtime, file, ui) {
 		}
     }
 
-    function getRenderDataWeeks(customer, startdate, enddate){
+    function getRenderDataWeeks(calendarRecLookup){
     	try{
     		var finalResults = [];
     		
+    		var startdate = calendarRecLookup['custrecord_itpm_cal_startdate'] //'1/1/2018'
+			var enddate = calendarRecLookup['custrecord_itpm_cal_enddate'] //'6/30/2018'
+			var customers = calendarRecLookup['custrecord_itpm_cal_customer'];
+			var allCustomersChecked = calendarRecLookup['custrecord_itpm_cal_allcustomers'];
+			var items =  calendarRecLookup['custrecord_itpm_cal_items'];
+			var allItemsChecked =  calendarRecLookup['custrecord_itpm_cal_allitems'];
+			var promoTypes = calendarRecLookup['custrecord_itpm_cal_promotiontypes'];
+			var allPromoTypesChecked = calendarRecLookup['custrecord_itpm_cal_allpromotiontypes'];
+			var promoStatus = calendarRecLookup['custrecord_itpm_cal_promotionstatus'][0].value;
+			
+			var promotionFilters = [
+			                          ["custrecord_itpm_p_status","anyof",3], 
+				      			      "AND", 
+				    			      ["custrecord_itpm_p_shipstart","onorafter",startdate], 
+				    			      "AND", 
+				    			      ["custrecord_itpm_p_shipend","onorbefore",enddate]
+									];
+			if(!allCustomersChecked){
+				promotionFilters.push("AND",["custrecord_itpm_p_customer","anyof",customers]);
+			}
+			if(!allItemsChecked){
+				promotionFilters.push("AND",["custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item","anyof",customers]);
+			}
+			if(!allPromoTypesChecked){
+				promotionFilters.push("AND",["custrecord_itpm_p_type","anyof",promoTypes]);
+			}
+    		
     		var promoSearchObj = search.create({
     			   type: "customrecord_itpm_promotiondeal",
-    			   filters: [
-    			      ["custrecord_itpm_p_status","anyof",3], 
-    			      "AND", 
-    			      ["custrecord_itpm_p_shipstart","onorafter",startdate], 
-    			      "AND", 
-    			      ["custrecord_itpm_p_shipend","onorbefore",enddate], 
-    			      "AND", 
-    			      ["custrecord_itpm_p_customer","anyof",customer]
-    			   ],
+    			   filters: promotionFilters,
     			   columns: [
+    			      "internalid",
     			      search.createColumn({
     			         name: "custrecord_itpm_p_customer",
     			         sort: search.Sort.ASC,
@@ -111,14 +141,15 @@ function(render, search, runtime, file, ui) {
     			promoSearchObj.run().each(function(result){
     		        finalResults.push({
     		        	promo_desc	  : result.getValue({ name: 'custrecord_itpm_p_description'}),
-    	    		    promotype	  : result.getText({ name: 'custrecord_itpm_p_type'}),
-    	    		    shipstartdate : result.getValue({ name: 'custrecord_itpm_p_shipstart' }),
-    	    		    shipenddate   : result.getValue({ name: 'custrecord_itpm_p_shipend' }),
+    	    		    promo_id		  : result.getValue({ name:'internalid' }),
+    		        	promo_type	  : result.getText({ name: 'custrecord_itpm_p_type'}),
+    	    		    ship_startdate : result.getValue({ name: 'custrecord_itpm_p_shipstart' }),
+    	    		    ship_enddate   : result.getValue({ name: 'custrecord_itpm_p_shipend' }),
     		        	entity 		  : result.getText({ name: 'custrecord_itpm_p_customer' }),
     	    		    item   		  : result.getText({ name: 'custrecord_itpm_all_item', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    item_desc	  : result.getText({ name:'custrecord_itpm_all_itemdescription', join:'custrecord_itpm_all_promotiondeal' }),
-    	    		    rateperuom	  : result.getValue({ name:'custrecord_itpm_all_rateperuom', join:'custrecord_itpm_all_promotiondeal' }),
-    	    		    percentperuom : result.getValue({ name:'custrecord_itpm_all_percentperuom', join:'custrecord_itpm_all_promotiondeal' }),
+    	    		    rate_peruom	  : result.getValue({ name:'custrecord_itpm_all_rateperuom', join:'custrecord_itpm_all_promotiondeal' }),
+    	    		    percent_peruom : result.getValue({ name:'custrecord_itpm_all_percentperuom', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    uom			  : result.getText({ name:'custrecord_itpm_all_uom', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    mop           : result.getText({ name:'custrecord_itpm_all_mop', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    sweek 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getWeek(),

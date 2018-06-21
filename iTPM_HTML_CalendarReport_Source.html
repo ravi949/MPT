@@ -1,6 +1,6 @@
-<html ng-app="app">
+<!-- <html ng-app="app">
 <head>
-	<!-- Latest compiled and minified CSS -->
+	Latest compiled and minified CSS
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap.min.js"></script>
@@ -181,4 +181,1613 @@ tbody td:last-child, thead th:last-child {
 		console.log($scope.weeks);
 	});
 </script>
+</html>
+ -->
+
+
+
+
+<!DOCTYPE html>
+<html lang="en" ng-app="itpmReportApp" ng-cloak>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap-tpls.min.js"></script>
+	<style>
+		body {
+		    padding: 25px;
+		    box-sizing: border-box;
+		}
+
+		.CalViewReport {
+		    margin: 0 auto;
+		    background: #FFF;
+		    font-family: Arial, Helvetica, sans-serif;
+		}
+		
+		.DataTable,
+		DataCal {
+		    float: left;
+		    margin: 0;
+		    padding: 0;
+		}
+		
+		.CalDataTable,
+		.CalTable {
+		    border: 1px solid #a9b1b4;
+		    border-bottom: none;
+		}
+		
+		.CalTable {
+		    border-left: none;
+		    border-right: none;
+		}
+		
+		.CalDataTable {
+		    border-right: none;
+		}
+		
+		.DataCal {
+		    border-right: 1px solid #a9b1b4;
+		}
+		
+		.DataCal,
+		CalTable {
+		    overflow-x: scroll;
+		}
+		
+		.CalDataTable thead tr,
+		.CalTable thead tr {
+		    background: #e5e5e5;
+		}
+		
+		.CalDataTable thead tr th {
+		    font-size: 12px;
+		    font-weight: 700;
+		    padding: 5px;
+		    border-bottom: 1px solid #000;
+		}
+		
+		.CalDataTable thead tr th.nobrd {
+		    border-bottom: 1px solid transparent;
+		}
+		
+		.CalTable thead tr th {
+		    font-size: 12px;
+		    font-weight: 700;
+		    padding: 5px;
+		    border-bottom: 1px solid #000;
+		}
+		
+		.CalDataTable tbody tr td,
+		.CalTable tbody tr td {
+		    font-size: 13px;
+		    padding: 0;
+		    border-bottom: 1px solid #a9b1b4;
+		}
+		
+		.CalDataTable thead tr th,
+		.CalDataTable tbody tr td {
+		    border-right: 1px solid #a9b1b4;
+		}
+		
+		.CalDataTable thead tr th:not(:first-child),
+		.CalDataTable tbody tr td:not(:first-child) {
+		    padding: 5px;
+		}
+		
+		.CalDataTable thead tr th:first-child,
+		.CalDataTable tbody tr td:first-child {
+		    padding-left: 5px;
+		}
+		
+		.CalTable thead tr th,
+		.CalTable tbody tr td {
+		    border-left: 1px dashed #607b86;
+		}
+		
+		.CalWeekDaysHeader {
+		    margin: 0;
+		    padding: 0;
+		}
+		
+		.CalTable table.CalWeekDaysHeader tr td {
+		    border-bottom: none !important;
+		    font-size: 12px !important;
+		    font-weight: 500;
+		    text-align: center;
+		    padding: 0;
+		}
+		
+		.DataCalBody tr td {
+		    border-bottom: none !important;
+		    font-size: 13px !important;
+		    font-weight: 500;
+		    width: 28px;
+		    text-align: center;
+		    padding: 5px;
+		}
+		
+		.CalTable table.CalWeekDaysHeader tr td:not(:last-child) {
+		    border-right: 1px solid #a9b1b4;
+		}
+		
+		.CalTable table.CalWeekDaysHeader tr td,
+		.DataCalBody tr td {
+		    border-left: none !important;
+		}
+		
+		.CalTr2 th {
+		    padding: 0 !important;
+		}
+		
+		.DataCalBody {
+		    margin: 0;
+		    padding: 0;
+		}
+		
+		
+		/* .DataCalBody tbody tr td {
+		    width: 25px !important;
+		    padding: 5px;
+		} */
+		
+		.DataCalBody tr td:not(:last-child) {
+		    border-right: 1px solid #a9b1b4;
+		}
+		
+		.CalWeekDaysHeader tr td p {
+		    display: inline-block;
+		    width: 25px;
+		    padding: 5px 0;
+		    margin: 0
+		}
+		
+		.DataCalBody tr td p {
+		    width: 25px;
+		    padding: 5px;
+		    margin: 0;
+		    box-sizing: border-box;
+		}
+		
+		.CalTable thead tr th:first-child,
+		.CalTable tbody tr td:first-child {
+		    border-left: none;
+		}
+		
+		
+		/*********** 
+		Status Colors
+		************/
+		
+		.status-blue {
+		    background: #1E88E5;
+		}
+		
+		.status-yellow {
+		    background: #FFDE03;
+		}
+		
+		.status-red {
+		    background: #FF3D00;
+		}
+		
+		.status-green {
+		    background: #7CB342;
+		}
+		
+		.status-orange {
+		    background: #FB8C00;
+		}
+	</style>
+</head>
+
+<body ng-controller="itpmReportCtrl">
+    <div class="CalViewReport">
+        <div class="DataTable">
+            <table cellpadding="0" cellspacing="0" border="0" class="CalDataTable">
+                <thead>
+                    <tr>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                    </tr>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Item <br/>Description</th>
+                        <th>Promotion <br/>Type</th>
+                        <th>Promotion <br/>Description</th>
+                        <th>ID</th>
+                        <th>Start Ship</th>
+                        <th>End Ship</th>
+                        <th>UOM</th>
+                        <th>MOP</th>
+                        <th>%</th>
+                        <th>Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                	<tr ng-repeat="data in promo_data track by $index">
+                        <td>{{data.entity}}</td>
+                        <td>{{data.item_desc.split('').splice(0,12).join('')}}</td>
+                        <td>{{data.promo_type}}</td>
+                        <td>{{data.promo_desc.split('').splice(0,12).join('')}}</td>
+                        <td>{{data.promo_id}}</td>
+                        <td>{{data.ship_startdate}}</td>
+                        <td>{{data.ship_enddate}}</td>
+                        <td>{{data.uom}}</td>
+                        <td>{{data.mop}}</td>
+                        <td>{{data.percent_peruom}}</td>
+                        <td>{{data.rate_peruom}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="DataCal">
+            <table cellpadding="0" cellspacing="0" border="0" class="CalTable">
+                <thead>
+                    <tr>
+                        <th><br>January</th>
+                        <th><br>February </th>
+                        <th><br>March </th>
+                        <th><br>April </th>
+                        <th><br>May </th>
+                        <th><br>June </th>
+                        <th><br>July </th>
+                        <th><br>August </th>
+                        <th><br>September </th>
+                        <th><br>October </th>
+                        <th><br>November </th>
+                        <th><br>December</th>
+                    </tr>
+                    <tr class="CalTr2">
+                    	 <th ng-repeat="data in [0,1,2,3,4,5,6,7,8,9,10,11] track by $index">
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == data">
+                                        <p>{{obj.date}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                        <!--  <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                         <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                        <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                        <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                        <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                        <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                        <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                        <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                        <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                        <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                        <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                        <th>
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>7</p>
+                                    </td>
+                                    <td>
+                                        <p>14</p>
+                                    </td>
+                                    <td>
+                                        <p>21</p>
+                                    </td>
+                                    <td>
+                                        <p>28</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th>
+                    </tr>-->
+                </thead>
+                <tbody>
+                    <tr ng-repeat="data in promo_data track by $index">
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td ng-repeat="obj in weeks track by $index">
+                                        <p class="status-blue">&nbsp;</p>
+                                    </td>
+                                    <!-- <td>
+                                        <p class="status-blue">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-blue">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-blue">&nbsp;</p>
+                                    </td> -->
+                                </tr>
+                            </table>
+                        </td>
+                        <!-- <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p class="status-blue">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-blue">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-blue">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-blue">&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-green">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-green">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p class="status-yellow">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-red">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p class="status-yellow">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-yellow">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-yellow">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-yellow">&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-green">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-green">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-green">&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p class="status-green">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-green">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-green">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-green">&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-orange">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-orange">&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p class="status-orange">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-orange">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p class="status-orange">&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                    <td>
+                                        <p>&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td> -->
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+<script type="text/javascript">
+	angular.module('itpmReportApp',[]).controller('itpmReportCtrl',function($scope){
+		console.log('hi');
+		$scope.promo_data = ${promotionData.list};
+		$scope.weeks = ${weeks.list};
+		console.log($scope.promo_data);
+		console.log($scope.weeks);
+	});
+</script>
+
 </html>
