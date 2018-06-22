@@ -7,10 +7,12 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>iTPM Calendar Report</title>
     <!-- Latest compiled and minified CSS -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap-tpls.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/angular-dragtable@1.0.10/angular-dragtable.min.js"></script>	
 	<style>
 		body {
 	    	padding: 25px;
@@ -21,8 +23,14 @@
 		    margin: 0 auto;
 		    background: #FFF;
 		    font-family: Arial, Helvetica, sans-serif;
+		    height:500px;
+		    overflow-y:scroll;
 		}
-		
+		.CalViewReport::after{
+			content:'';
+			display:table;
+			clear:both;
+		}
 		.DataTable,
 		.DataCal {
 		    float: left;
@@ -31,11 +39,11 @@
 		}
 		
 		.DataTable {
-		    width: 59%;
+		    width: 69.5%;		 
 		}
 		
 		.DataCal {
-		    width: 40%;
+		    width: 30%;
 		}
 		
 		.CalDataTable thead tr th {
@@ -274,8 +282,7 @@
 </head>
 
 <body ng-controller="itpmReportCtrl">
-    <div class="CalViewReport">
-    	  <div class="ReportInfoMsg">
+    <div class="ReportInfoMsg">
             <ul>
                 <li class="orange">Draft</li>
                 <li class="yellow">Submitted</li>
@@ -284,6 +291,8 @@
                 <li class="blue">Closed</li>
             </ul>
         </div>
+    <div class="CalViewReport">
+    	  
         <div class="DataTable">
             <table cellpadding="0" cellspacing="0" border="0" class="CalDataTable">
                 <thead>
@@ -366,7 +375,7 @@
                             <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
                                     <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == data">
-                                        <p class="{{promo_data.promo_status}}" ng-if="promo_data.smonth<= obj.month  && obj.month<= promo_data.emonth">&nbsp;</p>
+                                        <p class="{{(promo_data.sweek <= obj.week && obj.week <= promo_data.eweek)?promo_data.promo_status:''}}">&nbsp;</p>
                                     </td>
                                 </tr>
                             </table>
@@ -379,7 +388,7 @@
 </body>
 
 <script type="text/javascript">
-	angular.module('itpmReportApp',[]).controller('itpmReportCtrl',function($scope){
+	angular.module('itpmReportApp',['Dragtable']).controller('itpmReportCtrl',function($scope){
 		$scope.promo_data = ${promotionData.list};
 		$scope.weeks = ${weeks.list};
 		console.log($scope.promo_data);
