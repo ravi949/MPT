@@ -42,8 +42,82 @@ function(render, search, runtime, file, ui) {
     				         'custrecord_itpm_cal_promotionstatus']
     			});
     			
-    			var scriptObj = runtime.getCurrentScript();
-    			var templateFileId = '12781';
+    			var scriptObj = runtime.getCurrentScript();    	
+    			
+    			//Getting the library file paths
+    			var iTPM_Jquery = search.create({
+    				type:search.Type.FOLDER,
+    				columns:[search.createColumn({
+						        name: "internalid",
+						        join: "file"
+						     }),search.createColumn({
+							        name: "url",
+							        join: "file"
+							 })],
+				    filters:[["file.name","is","iTPM_Jquery.min.js"]]
+    			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
+    			
+    			var iTPM_Angular = search.create({
+    				type:search.Type.FOLDER,
+    				columns:[search.createColumn({
+						        name: "internalid",
+						        join: "file"
+						     }),search.createColumn({
+							        name: "url",
+							        join: "file"
+							 })],
+				    filters:[["file.name","is","iTPM_Angular.min.js"]]
+    			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
+    			
+    			var iTPM_Angular_Bootstrap = search.create({
+    				type:search.Type.FOLDER,
+    				columns:[search.createColumn({
+						        name: "internalid",
+						        join: "file"
+						     }),search.createColumn({
+							        name: "url",
+							        join: "file"
+							 })],
+				    filters:[["file.name","is","iTPM_Angular_Bootstrap.min.js"]]
+    			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
+    			
+    			var iTPM_Angular_Bootstrap_tpls = search.create({
+    				type:search.Type.FOLDER,
+    				columns:[search.createColumn({
+						        name: "internalid",
+						        join: "file"
+						     }),search.createColumn({
+							        name: "url",
+							        join: "file"
+							 })],
+				    filters:[["file.name","is","iTPM_Angular_Bootstrap_tpls.min.js"]]
+    			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
+    			
+    			var iTPM_Angular_Draggable = search.create({
+    				type:search.Type.FOLDER,
+    				columns:[search.createColumn({
+						        name: "internalid",
+						        join: "file"
+						     }),search.createColumn({
+							        name: "url",
+							        join: "file"
+							 })],
+				    filters:[["file.name","is","iTPM_Angular_Draggable.min.js"]]
+    			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
+    			
+    			//Getting the template html file id
+    			var htmlTemplateId = search.create({
+    				type:search.Type.FOLDER,
+    				columns:[search.createColumn({
+						        name: "internalid",
+						        join: "file"
+						     }),search.createColumn({
+							        name: "url",
+							        join: "file"
+							 })],
+				    filters:[["file.name","is","iTPM_HTML_CalendarReport_Source.html"]]
+    			}).run().getRange(0,1)[0].getValue({name:'internalid',join:'file'});;
+    			var templateFileId = htmlTemplateId;
     			log.debug('templateFileId: ', templateFileId);
     			
     			//Loading template file
@@ -54,6 +128,12 @@ function(render, search, runtime, file, ui) {
     			var renderer = render.create();
     			var xmlOutput = null;
     			var sundaysList = getSundays();
+    			
+    			renderer.addCustomDataSource({
+    				format: render.DataSource.JSON,
+    				alias: 'urlObj',
+    				data: '{"itpm_jquery":'+JSON.stringify(iTPM_Jquery)+',"itpm_angular":'+JSON.stringify(iTPM_Angular)+',"itpm_angular_bootstrap":'+JSON.stringify(iTPM_Angular_Bootstrap)+',"itpm_angular_bootstrap_tpls":'+JSON.stringify(iTPM_Angular_Bootstrap_tpls)+',"itpm_angular_draggable":'+JSON.stringify(iTPM_Angular_Draggable)+'}'
+    			});
     			
     			renderer.addCustomDataSource({
     			    format: render.DataSource.OBJECT,

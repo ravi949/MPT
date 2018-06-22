@@ -7,12 +7,12 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>iTPM Calendar Report</title>
     <!-- Latest compiled and minified CSS -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap-tpls.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/angular-dragtable@1.0.10/angular-dragtable.min.js"></script>	
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src=${urlObj.itpm_jquery}></script>
+	<script src=${urlObj.itpm_angular}></script>
+	<script src=${urlObj.itpm_angular_bootstrap}></script>
+	<script src=${urlObj.itpm_angular_bootstrap_tpls}></script>
+	<script src=${urlObj.itpm_angular_draggable}></script>	
 	<style>
 		body {
 	    	padding: 25px;
@@ -282,7 +282,7 @@
 </head>
 
 <body ng-controller="itpmReportCtrl">
-	<center><h4 ng-if="loading"><b>Loading Report....</b></h4></center>
+	<center><h4 ng-if="loading"><b>Loading iTPM Report....</b></h4></center>
     <div class="ReportInfoMsg" ng-if="!loading" ng-cloak>
             <ul>
                 <li class="orange">Draft</li>
@@ -393,8 +393,10 @@
 		$scope.loading = true;
 		$scope.promo_data = ${promotionData.list};
 		$scope.weeks = ${weeks.list};
-		console.log($scope.promo_data);
-		console.log($scope.weeks);
+		/* $scope.urls = ${urlObj.list};
+		console.log($scope.urls); */
+		/* console.log($scope.promo_data);
+		console.log($scope.weeks); */
 		$scope.loading = false;
 	});
 </script>
