@@ -7,9 +7,10 @@ define(['N/render',
         'N/search',
         'N/runtime',
         'N/file',
+        'N/record',
         'N/ui/serverWidget'],
 
-function(render, search, runtime, file, ui) {
+function(render, search, runtime, file, record, ui) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -128,6 +129,10 @@ function(render, search, runtime, file, ui) {
     			var renderer = render.create();
     			var xmlOutput = null;
     			var sundaysList = getSundays();
+        		var promoRecTypeId = record.create({
+        			type:'customrecord_itpm_promotiondeal'
+        		}).getValue('rectype');
+    			var promoData = getPromotionData(calendarRecLookup, promoRecTypeId);
     			
     			renderer.addCustomDataSource({
     				format: render.DataSource.JSON,
@@ -144,7 +149,7 @@ function(render, search, runtime, file, ui) {
     			renderer.addCustomDataSource({
     			    format: render.DataSource.OBJECT,
     			    alias: 'promotionData',
-    			    data: {name : 'list', list : JSON.stringify(getRenderDataWeeks(calendarRecLookup)) }
+    			    data: {name : 'list', list : JSON.stringify(promoData) }
     			});
     			
     			renderer.templateContent = templateFile.getContents();
@@ -160,22 +165,27 @@ function(render, search, runtime, file, ui) {
 		}catch(e){
 			log.debug(e.name, e.message);
 			log.debug('Available Usage:', runtime.getCurrentScript().getRemainingUsage());
+			throw e;
 		}
     }
 
-    function getRenderDataWeeks(calendarRecLookup){
+    
+    /**
+     * @param {Object} calendarRecLookup
+     */
+    function getPromotionData(calendarRecLookup, promoRecTypeId){
     	try{
     		var finalResults = [];
     		
-    		var startdate = calendarRecLookup['custrecord_itpm_cal_startdate'] //'1/1/2018'
-			var enddate = calendarRecLookup['custrecord_itpm_cal_enddate'] //'6/30/2018'
-			var customers = calendarRecLookup['custrecord_itpm_cal_customer'].map(function(e){return e.value});
+    		var startdate = calendarRecLookup['custrecord_itpm_cal_startdate'];
+			var enddate = calendarRecLookup['custrecord_itpm_cal_enddate'];
 			var allCustomersChecked = calendarRecLookup['custrecord_itpm_cal_allcustomers'];
-			var items =  calendarRecLookup['custrecord_itpm_cal_items'].map(function(e){return e.value});
 			var allItemsChecked =  calendarRecLookup['custrecord_itpm_cal_allitems'];
-			var promoTypes = calendarRecLookup['custrecord_itpm_cal_promotiontypes'].map(function(e){return e.value});
 			var allPromoTypesChecked = calendarRecLookup['custrecord_itpm_cal_allpromotiontypes'];
 			var promoStatus = calendarRecLookup['custrecord_itpm_cal_promotionstatus'].map(function(e){return e.value});
+			var itemGroups = calendarRecLookup['custrecord_itpm_cal_itemgroups'].map(function(e){return e.value});
+			
+			log.audit('itemgroups',itemGroups);
 			
 			var promotionFilters = [
 			                          ["custrecord_itpm_p_status","anyof",promoStatus], 
@@ -185,14 +195,29 @@ function(render, search, runtime, file, ui) {
 				    			      ["custrecord_itpm_p_shipend","onorbefore",enddate]
 									];
 			if(!allCustomersChecked){
+				var customers = calendarRecLookup['custrecord_itpm_cal_customer'].map(function(e){return e.value});
 				promotionFilters.push("AND",["custrecord_itpm_p_customer","anyof",customers]);
 			}
 			if(!allItemsChecked){
-				promotionFilters.push("AND",["custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item","anyof",customers]);
+				var items =  calendarRecLookup['custrecord_itpm_cal_items'].map(function(e){return e.value});
+				search.create({
+					type:search.Type.ITEM_GROUP,
+					columns:['memberitem'],
+					filters:[['internalid','anyof',itemGroups]]
+				}).run().each(function(memberobj){
+					items.push(memberobj.getValue('memberitem'));
+					return true;
+				});
+				log.debug('item',items);
+				promotionFilters.push("AND",["custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item","anyof",items]);
 			}
 			if(!allPromoTypesChecked){
+				log.audit('promotion values', calendarRecLookup['custrecord_itpm_cal_promotiontypes']);
+				var promoTypes = calendarRecLookup['custrecord_itpm_cal_promotiontypes'];
+				promoTypes = (promoTypes.length == undefined)?promoTypes.split(",") : promoTypes.map(function(e){return e.value});
 				promotionFilters.push("AND",["custrecord_itpm_p_type","anyof",promoTypes]);
 			}
+			
     		
     		var promoSearchObj = search.create({
     			   type: "customrecord_itpm_promotiondeal",
@@ -207,7 +232,6 @@ function(render, search, runtime, file, ui) {
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_percentperuom",
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_rateperuom",
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item",
-    			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_itemdescription",
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_uom",
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop",
     			      "custrecord_itpm_p_description",
@@ -238,11 +262,12 @@ function(render, search, runtime, file, ui) {
     	    		    promo_id	  : result.getValue({ name:'internalid' }),
     	    		    promo_status  : status,
     		        	promo_type	  : result.getText({ name: 'custrecord_itpm_p_type'}),
+    		        	promo_rec_type: promoRecTypeId,
     	    		    ship_startdate: result.getValue({ name: 'custrecord_itpm_p_shipstart' }),
     	    		    ship_enddate  : result.getValue({ name: 'custrecord_itpm_p_shipend' }),
     		        	entity 		  : result.getText({ name: 'custrecord_itpm_p_customer' }),
     	    		    item   		  : result.getText({ name: 'custrecord_itpm_all_item', join:'custrecord_itpm_all_promotiondeal' }),
-    	    		    item_desc	  : result.getText({ name:'custrecord_itpm_all_itemdescription', join:'custrecord_itpm_all_promotiondeal' }),
+    	    		    item_desc	  : result.getText({ name:'custrecord_itpm_all_item', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    rate_peruom	  : result.getValue({ name:'custrecord_itpm_all_rateperuom', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    percent_peruom: result.getValue({ name:'custrecord_itpm_all_percentperuom', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    uom			  : result.getText({ name:'custrecord_itpm_all_uom', join:'custrecord_itpm_all_promotiondeal' }),
@@ -258,6 +283,7 @@ function(render, search, runtime, file, ui) {
     		return finalResults;
     	}catch(e){
     		log.debug(e.name, e.message);
+    		throw e;
     	}
     }
     

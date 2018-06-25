@@ -325,12 +325,15 @@
                     </tr>
                 </thead>
                 <tbody>
+                	<tr ng-if="promo_data.length <= 0">
+                        <td colspan="50" height="32px"><b>No Records Found.</b></td>
+                    </tr>
                 	<tr ng-repeat="data in promo_data track by $index">
                         <td>{{data.entity}}</td>
                         <td>{{data.item_desc.split('').splice(0,12).join('')}}</td>
                         <td>{{data.promo_type}}</td>
                         <td>{{data.promo_desc.split('').splice(0,12).join('')}}</td>
-                        <td>{{data.promo_id}}</td>
+                        <td><a href="/app/common/custom/custrecordentry.nl?rectype={{data.promo_rec_type}}&id={{data.promo_id}}">{{data.promo_id}}</a></td>
                         <td>{{data.ship_startdate}}</td>
                         <td>{{data.ship_enddate}}</td>
                         <td>{{data.uom}}</td>
@@ -371,6 +374,9 @@
                     </tr>
                 </thead>
                 <tbody>
+                	<tr ng-if="promo_data.length <= 0">
+                        <td colspan="50" height="32px">&nbsp;</td>
+                    </tr>
                     <tr ng-repeat="promo_data in promo_data track by $index">
                         <td ng-repeat="data in [0,1,2,3,4,5,6,7,8,9,10,11] track by $index">
                             <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
