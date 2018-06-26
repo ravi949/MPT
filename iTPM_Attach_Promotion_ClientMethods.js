@@ -83,6 +83,30 @@ function(url, message, record) {
 		}
 	}
 	
+	
+    //setting the true value to "Is Promotion Planning Complete?" check-box when user clicks the Promotion Completed button.
+	function planningComplete(promoID){
+		try{
+			console.log(' Promotion ID   '+ promoID);
+			var id = record.submitFields({
+			    type: 'customrecord_itpm_promotiondeal',
+			    id: promoID,
+			    values: {
+			    	'custrecord_itpm_p_ispromoplancomplete': 'T'
+			    },
+			    options: {
+			        enableSourcing: false,
+			        ignoreMandatoryFields : true
+			    }
+			});
+			
+			//redirect to the same promotion
+			window.location.reload();
+		}catch(e){
+			console.log(e.name,'function name = refreshKPIs, message = '+e.message);
+		}
+	}
+	
 	function redirectToBack(){
 		history.go(-1);
 	}
@@ -91,6 +115,7 @@ function(url, message, record) {
         newSettlement:newSettlement,
         refreshKPIs : refreshKPIs,
         bulkSettlements : bulkSettlements,
+        planningComplete : planningComplete,
         redirectToBack : redirectToBack
     };
     
