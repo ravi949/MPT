@@ -331,7 +331,7 @@
                 	<tr ng-repeat="data in promo_data track by $index">
                         <td>{{data.entity}}</td>
                         <td>{{data.item_desc.split('').splice(0,12).join('')}}</td>
-                        <td>{{data.promo_type}}</td>
+                        <td title="{{data.promo_type}}">{{data.promo_type}}</td>
                         <td>{{data.promo_desc.split('').splice(0,12).join('')}}</td>
                         <td><a href="/app/common/custom/custrecordentry.nl?rectype={{data.promo_rec_type}}&id={{data.promo_id}}">{{data.promo_id}}</a></td>
                         <td>{{data.ship_startdate}}</td>
@@ -348,24 +348,13 @@
             <table cellpadding="0" cellspacing="0" border="0" class="CalTable">
                 <thead>
                     <tr>
-                        <th><br>January</th>
-                        <th><br>February </th>
-                        <th><br>March </th>
-                        <th><br>April </th>
-                        <th><br>May </th>
-                        <th><br>June </th>
-                        <th><br>July </th>
-                        <th><br>August </th>
-                        <th><br>September </th>
-                        <th><br>October </th>
-                        <th><br>November </th>
-                        <th><br>December</th>
+                    	<th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth"><br>{{month.name}}</th>
                     </tr>
                     <tr class="CalTr2">
-                    	 <th ng-repeat="data in [0,1,2,3,4,5,6,7,8,9,10,11] track by $index">
+                    	 <th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth">
                             <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == data">
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
                                         <p>{{obj.date}}</p>
                                     </td>
                                 </tr>
@@ -378,10 +367,10 @@
                         <td colspan="50" height="32px">&nbsp;</td>
                     </tr>
                     <tr ng-repeat="promo_data in promo_data track by $index">
-                        <td ng-repeat="data in [0,1,2,3,4,5,6,7,8,9,10,11] track by $index">
+                        <td ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth">
                             <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == data">
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
                                         <p class="{{(promo_data.sweek <= obj.week && obj.week <= promo_data.eweek)?promo_data.promo_status:''}}">&nbsp;</p>
                                     </td>
                                 </tr>
@@ -399,6 +388,21 @@
 		$scope.loading = true;
 		$scope.promo_data = ${promotionData.list};
 		$scope.weeks = ${weeks.list};
+		$scope.startMonth = ${datesObj.startMonth};
+		$scope.endMonth = ${datesObj.endMonth};
+		$scope.months = [{id:0,name:"January"},
+		                 {id:1,name:"February"},
+		                 {id:2,name:"March"},
+		                 {id:3,name:"April"},
+		                 {id:4,name:"May"},
+		                 {id:5,name:"June"},
+		                 {id:6,name:"July"},
+		                 {id:7,name:"August"},
+		                 {id:8,name:"September"},
+		                 {id:9,name:"October"},
+		                 {id:10,name:"November"},
+		                 {id:11,name:"December"}];
+		console.log($scope.startMonth,$scope.endMonth);
 		/* $scope.urls = ${urlObj.list};
 		console.log($scope.urls); */
 		/* console.log($scope.promo_data);

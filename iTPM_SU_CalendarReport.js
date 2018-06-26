@@ -45,7 +45,7 @@ function(render, search, runtime, file, record, ui) {
     			
     			var scriptObj = runtime.getCurrentScript();    	
     			
-    			//Getting the library file paths
+    			//Getting the Jquery library file path
     			var iTPM_Jquery = search.create({
     				type:search.Type.FOLDER,
     				columns:[search.createColumn({
@@ -58,6 +58,7 @@ function(render, search, runtime, file, record, ui) {
 				    filters:[["file.name","is","iTPM_Jquery.min.js"]]
     			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
     			
+    			//Getting the Angular library file path
     			var iTPM_Angular = search.create({
     				type:search.Type.FOLDER,
     				columns:[search.createColumn({
@@ -70,6 +71,7 @@ function(render, search, runtime, file, record, ui) {
 				    filters:[["file.name","is","iTPM_Angular.min.js"]]
     			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
     			
+    			//Getting the Angular bootstrap library file path
     			var iTPM_Angular_Bootstrap = search.create({
     				type:search.Type.FOLDER,
     				columns:[search.createColumn({
@@ -82,6 +84,7 @@ function(render, search, runtime, file, record, ui) {
 				    filters:[["file.name","is","iTPM_Angular_Bootstrap.min.js"]]
     			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
     			
+    			//Getting the Angular bootstrap tpls library file path
     			var iTPM_Angular_Bootstrap_tpls = search.create({
     				type:search.Type.FOLDER,
     				columns:[search.createColumn({
@@ -94,6 +97,7 @@ function(render, search, runtime, file, record, ui) {
 				    filters:[["file.name","is","iTPM_Angular_Bootstrap_tpls.min.js"]]
     			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
     			
+    			//Getting the Angular draggable library file path
     			var iTPM_Angular_Draggable = search.create({
     				type:search.Type.FOLDER,
     				columns:[search.createColumn({
@@ -134,10 +138,19 @@ function(render, search, runtime, file, record, ui) {
         		}).getValue('rectype');
     			var promoData = getPromotionData(calendarRecLookup, promoRecTypeId);
     			
+    			//Adding the custom data source to the html file content
     			renderer.addCustomDataSource({
     				format: render.DataSource.JSON,
     				alias: 'urlObj',
     				data: '{"itpm_jquery":'+JSON.stringify(iTPM_Jquery)+',"itpm_angular":'+JSON.stringify(iTPM_Angular)+',"itpm_angular_bootstrap":'+JSON.stringify(iTPM_Angular_Bootstrap)+',"itpm_angular_bootstrap_tpls":'+JSON.stringify(iTPM_Angular_Bootstrap_tpls)+',"itpm_angular_draggable":'+JSON.stringify(iTPM_Angular_Draggable)+'}'
+    			});
+    			log.audit('dateobj','{"startMonth":'+JSON.stringify(calendarRecLookup["custrecord_itpm_cal_startdate"])+',"endMonth":'+JSON.stringify(calendarRecLookup["custrecord_itpm_cal_enddate"])+'}');
+    			var startMonth = new Date(calendarRecLookup["custrecord_itpm_cal_startdate"]).getMonth();
+    			var endMonth = new Date(calendarRecLookup["custrecord_itpm_cal_enddate"]).getMonth();
+    			renderer.addCustomDataSource({
+    				format: render.DataSource.JSON,
+    				alias: 'datesObj',
+    				data: '{"startMonth":'+JSON.stringify(startMonth)+',"endMonth":'+JSON.stringify(endMonth)+'}'
     			});
     			
     			renderer.addCustomDataSource({
@@ -172,6 +185,8 @@ function(render, search, runtime, file, record, ui) {
     
     /**
      * @param {Object} calendarRecLookup
+     * @param {Number} promoRecTypeId
+     * @return {Object} finalResults
      */
     function getPromotionData(calendarRecLookup, promoRecTypeId){
     	try{
@@ -194,31 +209,38 @@ function(render, search, runtime, file, record, ui) {
 				    			      "AND", 
 				    			      ["custrecord_itpm_p_shipend","onorbefore",enddate]
 									];
+			//If all customers checkbox not checked
 			if(!allCustomersChecked){
 				var customers = calendarRecLookup['custrecord_itpm_cal_customer'].map(function(e){return e.value});
 				promotionFilters.push("AND",["custrecord_itpm_p_customer","anyof",customers]);
 			}
+			
+			//If all item checkbox not checked
 			if(!allItemsChecked){
 				var items =  calendarRecLookup['custrecord_itpm_cal_items'].map(function(e){return e.value});
-				search.create({
-					type:search.Type.ITEM_GROUP,
-					columns:['memberitem'],
-					filters:[['internalid','anyof',itemGroups]]
-				}).run().each(function(memberobj){
-					items.push(memberobj.getValue('memberitem'));
-					return true;
-				});
+				if(items.length <= 0){
+					search.create({
+						type:search.Type.ITEM_GROUP,
+						columns:['memberitem'],
+						filters:[['internalid','anyof',itemGroups]]
+					}).run().each(function(memberobj){
+						items.push(memberobj.getValue('memberitem'));
+						return true;
+					});
+				}
 				log.debug('item',items);
 				promotionFilters.push("AND",["custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item","anyof",items]);
 			}
+			
+			//If all promotion types checkbox not checked
 			if(!allPromoTypesChecked){
 				log.audit('promotion values', calendarRecLookup['custrecord_itpm_cal_promotiontypes']);
 				var promoTypes = calendarRecLookup['custrecord_itpm_cal_promotiontypes'];
-				promoTypes = (promoTypes.length == undefined)?promoTypes.split(",") : promoTypes.map(function(e){return e.value});
+				promoTypes = (promoTypes.length == undefined)?promoTypes.value.split(",") : promoTypes.map(function(e){return e.value});
 				promotionFilters.push("AND",["custrecord_itpm_p_type","anyof",promoTypes]);
 			}
 			
-    		
+    		//Searching the allowances records based on some record filters
     		var promoSearchObj = search.create({
     			   type: "customrecord_itpm_promotiondeal",
     			   filters: promotionFilters,
