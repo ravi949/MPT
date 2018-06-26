@@ -87,7 +87,7 @@ define(['N/ui/serverWidget',
 					if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn') && !kpiAlocationCalcIsComplete){
 						promoForm.addButton({
 							id:'custpage_newsettlementbtn',
-							label:'New Settlement',
+							label:'Request Settlement',
 							functionName:'newSettlement('+promoRec.id+')'
 						});
 
