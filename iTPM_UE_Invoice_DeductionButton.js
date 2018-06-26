@@ -61,7 +61,7 @@ define(['N/search',
 		var invoiceDeductionsAreEmpty = deductionsAreEmpty(scriptContext.newRecord.id, deductionStatuses);
 		var ddnPermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscript_itpm_inv_ddn_permsn_rectypeid'));
 		log.debug('ddnPermission',ddnPermission);
-
+		
 		if(invStatus == 'Open' && invoiceDeductionsAreEmpty){
 			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
 			//itpm deduction permission should be create or edit or full
@@ -91,7 +91,7 @@ define(['N/search',
 		var ddnPermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscript_itpm_inv_ddn_permsn_rectypeid'));
 		log.debug('ddnPermission',ddnPermission);
 		log.debug('itpmAppliedTo',!itpmAppliedTo);
-		
+		var JEPermission = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
 		
 		//Credit Memo dont have any ITPM DEDUCTION records which is not Open,Pending and Resolved
 		var ddnStatus = true;
@@ -108,7 +108,7 @@ define(['N/search',
 		if(creditMemoStatus && ddnStatus){
 			scriptContext.form.clientScriptModulePath = './iTPM_Attach_CreditMemo_ClientMethods.js';
 			//itpm deduction permission should be create or edit or full
-			if(ddnPermission >= 2){
+			if(ddnPermission >= 2 && JEPermission >= 2){
 				scriptContext.form.addButton({
 					id:'custpage_itpm_newddn',
 					label:'Deduction',
