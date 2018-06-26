@@ -698,16 +698,6 @@ define(['N/ui/serverWidget',
 					]	    		
 		});
 	}
-	function makeUnique(arr){
-		var uniqueArray=[];
-		arr.forEach(function(element){
-			if(uniqueArray.indexOf(element)===-1){
-				uniqueArray.push(element);
-			}
-		})
-		return uniqueArray;
-	}
-
 
 	/**
 	 * @param start1
