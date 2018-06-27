@@ -263,6 +263,7 @@ function(render, search, runtime, file, record, serverWidget) {
     			         sort: search.Sort.ASC,
     			         label: "Name"
     			      }),
+    			      "name",
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_percentperuom",
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_rateperuom",
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item",
@@ -292,7 +293,7 @@ function(render, search, runtime, file, record, serverWidget) {
     					status = 'status-blue';
     				}
     		        finalResults.push({
-    		        	promo_desc	  : result.getValue({ name: 'custrecord_itpm_p_description'}),
+    		        	promo_desc	  : result.getValue({ name: 'name'}),
     	    		    promo_id	  : result.getValue({ name:'internalid' }),
     	    		    promo_status  : status,
     		        	promo_type	  : result.getText({ name: 'custrecord_itpm_p_type'}),

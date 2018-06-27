@@ -282,15 +282,17 @@
 		.ReportInfoMsg ul li.yellow {
 		    background: #FFDE03;
 		}
+		.pre-loader{
+			font-size:20px;
+			margin-top:15%;
+		}
 	</style>
 </head>
 
 <body ng-controller="itpmReportCtrl">
-	<center><h4 ng-if="loading"><b>Loading iTPM Report....</b></h4></center>
+	<center><h2 class="pre-loader" ng-if="loading"><b>Loading....</b></h2></center>
     <div class="ReportInfoMsg" ng-if="!loading" ng-cloak>
-    		<!-- <div style="clear:both;font-size:22px;color:#4d5f79;padding-bottom:15px;font-weight:bold;">iTPM Calendar Report</div> -->
-            <span style="font-weight:bold;color:#6f6f6f;font-size:16px;">Date/Time?</span>
-            <ul>
+    		<ul>
                 <li class="orange">Draft</li>
                 <li class="yellow">Submitted</li>
                 <li class="green">Approved</li>
@@ -339,7 +341,7 @@
                         <td>{{data.entity}}</td>
                         <td>{{data.item_desc.split('').splice(0,12).join('')}}</td>
                         <td title="{{data.promo_type}}">{{data.promo_type}}</td>
-                        <td>{{data.promo_desc.split('').splice(0,12).join('')}}</td>
+                        <td title={{data.promo_desc}}>{{data.promo_desc}}</td>
                         <td><a href="/app/common/custom/custrecordentry.nl?rectype={{data.promo_rec_type}}&id={{data.promo_id}}">{{data.promo_id}}</a></td>
                         <td>{{data.ship_startdate}}</td>
                         <td>{{data.ship_enddate}}</td>
