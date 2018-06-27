@@ -93,7 +93,7 @@ define(['N/ui/serverWidget',
 							columns: [ 'custrecord_itpm_kpi_promotiondeal', 'custrecord_itpm_kpi_item', 'custrecord_itpm_kpi_esttotalqty' ]
 					}).run().getRange(0,10).length > 0;
 
-					if((showSettlementButton) || (promoPermission == runtime.Permission.FULL) || (promoTypePermission >= runtime.Permission.EDIT) && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn') && !kpiAlocationCalcIsComplete){
+					if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn') && !kpiAlocationCalcIsComplete){
 						promoForm.addButton({
 							id:'custpage_newsettlementbtn',
 							label:'Request Settlement',
