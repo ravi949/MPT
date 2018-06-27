@@ -10,7 +10,7 @@ define(['N/render',
         'N/record',
         'N/ui/serverWidget'],
 
-function(render, search, runtime, file, record, ui) {
+function(render, search, runtime, file, record, serverWidget) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -22,6 +22,12 @@ function(render, search, runtime, file, record, ui) {
      */
     function onRequest(context) {
     	try{
+    		
+    		var form = serverWidget.createForm({
+        		title:'iTPM Calendar Report'
+        	});
+        	
+    		
     		var request = context.request;
 			var response = context.response;
 			var params = request.parameters;
@@ -174,6 +180,12 @@ function(render, search, runtime, file, record, ui) {
     			log.debug('Available Usage', runtime.getCurrentScript().getRemainingUsage());
     			
     			context.response.write(xmlOutput);
+    			form.addField({
+    	    		 id : 'custpage_itpm_test',
+    	    		 type : serverWidget.FieldType.INLINEHTML,
+    	    		 label : 'iTPM Report'
+    	    	}).defaultValue = xmlOutput;
+    			context.response.writePage(form);
     		}
 		}catch(e){
 			log.debug(e.name, e.message);
