@@ -290,7 +290,7 @@
 </head>
 
 <body ng-controller="itpmReportCtrl">
-	<center><h2 class="pre-loader" ng-if="loading"><b>Loading....</b></h2></center>
+	<center ng-if="loading"><h2 class="pre-loader"><b>Loading....</b></h2></center>
     <div class="ReportInfoMsg" ng-if="!loading" ng-cloak>
     		<ul>
                 <li class="orange">Draft</li>
