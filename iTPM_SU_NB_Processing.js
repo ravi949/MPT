@@ -36,9 +36,10 @@ define(['N/record',
 					id: request.parameters.id,
 					isDynamic: true
 				});
+				var subsidairyId = (itpm.subsidiariesEnabled())?transRec.getValue('subsidiary'):undefined;
 //				log.debug('Usage: After Loading TranRec ', runtime.getCurrentScript().getRemainingUsage());
 				log.debug('request.transRec.type',runtime.getCurrentScript().getRemainingUsage());
-				var prefDatesType = itpm.getPrefrenceValues(undefined)['prefDiscountDate'];
+				var prefDatesType = itpm.getPrefrenceValues(subsidairyId)['prefDiscountDate'];
 				log.debug('Usage: After getPrefDiscountDateValue ', runtime.getCurrentScript().getRemainingUsage());
 				var tranCustomer = transRec.getValue('entity');
 				var trandate = transRec.getText('trandate');  

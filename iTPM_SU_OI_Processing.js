@@ -24,21 +24,23 @@ define(['N/search',
 		try{
 			if(context.request.method == 'GET'){
 				log.debug('Usage: Start', runtime.getCurrentScript().getRemainingUsage());
-				//Getting Preference Data
-				var prefData = itpm.getPrefrenceValues(undefined);
-				var prefDatesType = prefData['prefDiscountDate'];
-				var prefDiscountItem = prefData['dicountItem'];
-				log.error('prefDatesType',prefDatesType);
-				log.error('prefDiscountItem',prefDiscountItem);
-				log.debug('Usage: After PrefData', runtime.getCurrentScript().getRemainingUsage());
-				log.debug('Usage: After Loading TranRec 1st', runtime.getCurrentScript().getRemainingUsage());
+				
 				//transaction Record: Loading the transaction type record with the ID coming from the parameters
 				var tranRecObj = record.load({
 					type: context.request.parameters.type, 
 					id: context.request.parameters.id,
 					isDynamic: true
 				});
-				log.debug('Usage: After Loading TranRec 2nd', runtime.getCurrentScript().getRemainingUsage());
+				var subsidairyId = (itpm.subsidiariesEnabled())?tranRecObj.getValue('subsidiary'):undefined;
+				//Getting Preference Data
+				var prefData = itpm.getPrefrenceValues(subsidairyId);
+				var prefDatesType = prefData['prefDiscountDate'];
+				var prefDiscountItem = prefData['dicountItem'];
+				log.error('prefDatesType',prefDatesType);
+				log.error('prefDiscountItem',prefDiscountItem);
+				log.debug('Usage: After PrefData', runtime.getCurrentScript().getRemainingUsage());
+				log.debug('Usage: After Loading TranRec 1st', runtime.getCurrentScript().getRemainingUsage());
+//				log.debug('Usage: After Loading TranRec 2nd', runtime.getCurrentScript().getRemainingUsage());
 
 				var trandate = tranRecObj.getText({fieldId : 'trandate'});
 				var tranId = tranRecObj.getText({fieldId : 'tranid'});
