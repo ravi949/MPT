@@ -118,6 +118,10 @@
 		    max-width: auto;
 		}
 		
+		.CalDataTable tbody tr td:nth-child(1){
+			max-width:85px;
+		}
+		
 		.CalDataTable tbody tr td:nth-child(2),
 		.CalDataTable tbody tr td:nth-child(3),
 		.CalDataTable tbody tr td:nth-child(4) {
@@ -161,7 +165,6 @@
 		    border-bottom: none !important;
 		    font-size: 13px !important;
 		    font-weight: 500;
-		    width: 28px;
 		    text-align: center;
 		    padding: 5px;
 		}
@@ -196,13 +199,13 @@
 		
 		.CalWeekDaysHeader tr td p {
 		    display: inline-block;
-		    width: 25px;
+		    width: 20px;
 		    padding: 5px 0;
 		    margin: 0
 		}
 		
 		.DataCalBody tr td p {
-		    width: 25px;
+		    width: 20px;
 		    padding: 5px;
 		    margin: 0;
 		    box-sizing: border-box;
@@ -217,7 +220,12 @@
 		    border-left: none;
 		}
 		
-		
+		.txtRight{
+			text-align:right;
+		}
+		.monthActive{
+			background: #ababab !important;
+		}
 		/*********** 
 		Status Colors
 		************/
@@ -338,8 +346,8 @@
                         <td colspan="50" height="32px"><b>No Records Found.</b></td>
                     </tr>
                 	<tr ng-repeat="data in promo_data track by $index">
-                        <td>{{data.entity}}</td>
-                        <td>{{data.item_desc.split('').splice(0,12).join('')}}</td>
+                        <td title="{{data.entity}}">{{data.entity}}</td>
+                        <td>{{data.item_desc}}</td>
                         <td title="{{data.promo_type}}">{{data.promo_type}}</td>
                         <td title={{data.promo_desc}}>{{data.promo_desc}}</td>
                         <td><a href="/app/common/custom/custrecordentry.nl?rectype={{data.promo_rec_type}}&id={{data.promo_id}}">{{data.promo_id}}</a></td>
@@ -347,8 +355,8 @@
                         <td>{{data.ship_enddate}}</td>
                         <td>{{data.uom}}</td>
                         <td>{{data.mop}}</td>
-                        <td>{{data.percent_peruom}}</td>
-                        <td>{{data.rate_peruom}}</td>
+                        <td class="txtRight">{{data.percent_peruom}}</td>
+                        <td class="txtRight">{{data.rate_peruom}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -357,10 +365,23 @@
             <table cellpadding="0" cellspacing="0" border="0" class="CalTable">
                 <thead>
                     <tr>
-                    	<th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth"><br>{{month.name}}</th>
+                    	<!-- Months Repeating -->
+                    	<!-- <th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth"><br>{{month.name}}</th> -->
+                    	<th ng-repeat="month in months track by $index" ng-class="{'monthActive':startMonth <= month.id && month.id <= endMonth}"><br>{{month.name}}</th>
                     </tr>
                     <tr class="CalTr2">
-                    	 <th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth">
+                    	 <!-- Months Weeks Repeating -->
+                    	 <!-- <th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth">
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
+                                        <p>{{obj.date}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th> -->
+                        
+                        <th ng-repeat="month in months track by $index">
                             <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
                                     <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
@@ -369,14 +390,27 @@
                                 </tr>
                             </table>
                         </th>
+                        
                     </tr>
                 </thead>
                 <tbody>
                 	<tr ng-if="promo_data.length <= 0">
                         <td colspan="50" height="32px">&nbsp;</td>
                     </tr>
-                    <tr ng-repeat="promo_data in promo_data track by $index">
+                    <!-- Data Columns Repeating -->
+                    <!-- <tr ng-repeat="promo_data in promo_data track by $index">
                         <td ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth">
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
+                                        <p class="{{(promo_data.sweek <= obj.week && obj.week <= promo_data.eweek)?promo_data.promo_status:''}}">&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr> -->
+                    <tr ng-repeat="promo_data in promo_data track by $index">
+                        <td ng-repeat="month in months track by $index">
                             <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
                                     <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
