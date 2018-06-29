@@ -125,7 +125,7 @@ function(record, search, itpm) {
 					type: 'customrecord_itpm_promotiondeal',
 					id: promoID,
 					values: {
-						custrecord_itpm_p_ispromoplancomplete: false
+						'custrecord_itpm_p_ispromoplancomplete': false
 					},
 					options: {
 						enableSourcing: false,
@@ -333,14 +333,22 @@ function(record, search, itpm) {
         				//return
         			} else {
         				groupItems.push(item.memberid);
-        				recordCreation( item,				//item record values
-        						        promoPlanValues,	//promotion plan record values 
-        						        promoPalnKey,		//promoId, PromoPlanId 
-        						        prefObj,			//Preference record values
-        						        groupItems,			//ItemGroup record items for Est.Qty values
-        						        itemCount,			//ItemGroup record total items count for Est.Qty values
-        						        (i+1) == itemCount	//Is This last item in ItemGroup or not
-        						        );
+        				allowanceRecordCreate( item,				//item record values
+        						        	   promoPlanValues,	//promotion plan record values 
+        						               promoPalnKey,		//promoId, PromoPlanId 
+        						               prefObj			//Preference record values
+        						        	  );
+        				estQtyRecordCreate( item,				//item record values
+					        	   			promoPlanValues,	//promotion plan record values 
+					        	   			promoPalnKey,		//promoId, PromoPlanId 
+					        	   			groupItems,			//ItemGroup record items for Est.Qty values
+					        	   			itemCount,			//ItemGroup record total items count for Est.Qty values
+					        	   			(i+1) == itemCount	//Is This last item in ItemGroup or not
+					        	  		  );
+        				retailInfoRecordCreate( item,				//item record values
+								        	    promoPlanValues,	//promotion plan record values 
+								        	    promoPalnKey		//promoId, PromoPlanId 
+								        	   );
         			}
         		});
         		
@@ -368,14 +376,22 @@ function(record, search, itpm) {
     						isAvailable:itemLookup['custitem_itpm_available']
     					}
 //        			 log.debug('item in individual item',item);
-        			 recordCreation( item,           	//item record values
+        			 allowanceRecordCreate( item,           	//item record values
 							         promoPlanValues, 	//promotion plan record values 
 							         promoPalnKey, 	  	//promoId, PromoPlanId 
-							         prefObj, 			//Preference record values
-							         groupItems,		//ItemGroup record items for Est.Qty values
-							         1,					//total items count for Est.Qty values
-							         false				// is This last item 
+							         prefObj 			//Preference record values
 							        );
+        			 estQtyRecordCreate( item,           	//item record values
+					         			 promoPlanValues, 	//promotion plan record values 
+					         			 promoPalnKey, 	  	//promoId, PromoPlanId 
+					         			 groupItems,		//ItemGroup record items for Est.Qty values
+					         			 1,					//total items count for Est.Qty values
+					         			 false				// is This last item 
+					        			);
+        			 retailInfoRecordCreate( item,           	//item record values
+					         				 promoPlanValues, 	//promotion plan record values 
+					         				 promoPalnKey 	  	//promoId, PromoPlanId 
+					        				);
         		 }
         	 }
         	if(promoPlanValues.estEverydayPrice <= 0){
@@ -432,14 +448,10 @@ function(record, search, itpm) {
     		log.error(ex.name,ex.message);
     	}
     }
-
-    function recordCreation(item, promoPlanValues, promoPalnKey, prefObj, groupItems, itemCount, isLast){
-
-//    	log.debug('item   in function ',item);
-    	log.debug('promoPlanValues in function',promoPlanValues);
-    	log.debug('promoPalnKey in function',promoPalnKey);
-//    	log.debug('groupItems in function',groupItems);
-    	
+    
+    function allowanceRecordCreate(item, promoPlanValues, promoPalnKey, prefObj){
+    	var priceObj = itpm.getImpactPrice({pid:promoPalnKey.promoID,itemid:item.memberid,pricelevel:promoPlanValues.promoLookupForPL,baseprice:item.baseprice});
+//		log.debug('priceObj',priceObj);
     	var unitsArray = itpm.getItemUnits(item.memberid)['unitArray']; //get the list of unists array
 		//log.debug('unitsArray',unitsArray);
 		var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == item.saleunit})[0].conversionRate); //member item sale unit rate conversion rate
@@ -455,10 +467,7 @@ function(record, search, itpm) {
 					 ['isinactive','is',false]]
 		}).run().getRange(0,2).length > 0 || promoPlanValues.additionalDisc
 //		log.debug('allowAddinalDiscounts',allowAddinalDiscounts);
-		var priceObj = itpm.getImpactPrice({pid:promoPalnKey.promoID,itemid:item.memberid,pricelevel:promoPlanValues.promoLookupForPL,baseprice:item.baseprice});
-//		log.debug('priceObj',priceObj);
-		
-		//Allowance record creation
+    	//Allowance record creation
 		var allNewRec = record.create({
 		       type: 'customrecord_itpm_promoallowance'                      
 		});
@@ -515,8 +524,9 @@ function(record, search, itpm) {
 			ignoreMandatoryFields:true
 		});
 		log.audit('allNewRecId',allNewRecId);
-
-		var baseQty = 0;
+    }
+    function estQtyRecordCreate(item, promoPlanValues, promoPalnKey, groupItems, itemCount, isLast){
+    	var baseQty = 0;
 		var incrementalQty = 0;
 		var tempBaseQty = (promoPlanValues.baseQty)?parseFloat(promoPlanValues.baseQty):0;
 		var tempIncrementalQty = (promoPlanValues.incrementalQty)?parseFloat(promoPlanValues.incrementalQty):0;
@@ -624,7 +634,9 @@ function(record, search, itpm) {
 			log.audit('estQtyNewRecId',estQtyNewRecId);
 		}
 
-		//Checks If Retail Info is present with the same item
+    }
+    function retailInfoRecordCreate(item, promoPlanValues, promoPalnKey){
+    	//Checks If Retail Info is present with the same item
 		if(promoPlanValues.estEverydayPrice <= 0){
 			//custrecord_itpm_pp_response
 			//var promoPlanRecId = promoPalnKey.promoPlanRecId;
@@ -697,9 +709,7 @@ function(record, search, itpm) {
 				log.audit('retalInfoNewRecId ',retalInfoNewRecId);
 			}
 		}
-		
-	}
-
+    }
     return {
         getInputData: getInputData,
         map: map,
