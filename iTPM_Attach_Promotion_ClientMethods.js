@@ -92,7 +92,8 @@ function(url, message, record) {
 			    type: 'customrecord_itpm_promotiondeal',
 			    id: promoID,
 			    values: {
-			    	'custrecord_itpm_p_ispromoplancomplete': 'T'
+			    	'custrecord_itpm_p_ispromoplancomplete': 'T',
+			    	'custrecord_itpm_p_isplanlinkrecdeleted': 'F'
 			    },
 			    options: {
 			        enableSourcing: false,

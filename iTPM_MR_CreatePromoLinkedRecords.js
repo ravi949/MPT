@@ -61,40 +61,7 @@ function(record, search, itpm) {
 
 //  		log.debug('searchResult',searchResult);
 //	  		log.debug('promotionID',promoID);
-//	  		log.debug('arrResult',arrResult);
-    		/*
-    		 Deleting the Promotion Related records
-    		 */
-    		//Array of objects with record type and field ids
-    		var searchRecs = [{
-    			type:'customrecord_itpm_promoallowance',
-    			promoFieldId:'custrecord_itpm_all_promotiondeal'
-    		},{
-    			type:'customrecord_itpm_estquantity',
-    			promoFieldId:'custrecord_itpm_estqty_promodeal'
-    		},{
-    			type:'customrecord_itpm_promoretailevent',
-    			promoFieldId:'custrecord_itpm_rei_promotiondeal'
-    		},{
-    			type:'customrecord_itpm_kpi',
-    			promoFieldId:'custrecord_itpm_kpi_promotiondeal'
-    		}];
-    		
-    		//Loop through the array and create the EstQty,Retail Info and kpi inactive records
-    		searchRecs.forEach(function(obj){
-    			search.create({
-    				type:obj.type,
-    				columns:['internalid'],
-    				filters:[[obj.promoFieldId,'anyof',promoID]]
-    			}).run().each(function(result){
-    				record.delete({
-    					type:obj.type,
-    					id:result.getValue('internalid')
-    				});
-    				return true;
-    			});
-    		});
-    		
+//	  		log.debug('arrResult',arrResult);    		
     		
     		var promoPlanRecSearch = search.create({
     			type: "customrecord_itpm_promotion_planning",
@@ -266,13 +233,60 @@ function(record, search, itpm) {
     		    id:promoId,
     		    columns:['custrecord_itpm_p_itempricelevel',
     		    		 'custrecord_itpm_p_type',
-    		    		 'custrecord_itpm_p_subsidiary'
+    		    		 'custrecord_itpm_p_subsidiary',
+                          'custrecord_itpm_p_isplanlinkrecdeleted'
     		    		]
     		});
-    		//log.debug('promoLookup',promoLookup);
-    		promoPlanValues.promoLookupForPL = promoLookup.custrecord_itpm_p_itempricelevel[0].value;
-    		var prefObj = itpm.getPrefrenceValues(promoLookup.custrecord_itpm_p_subsidiary[0].value);
+//    		log.debug('promoLookup',promoLookup);
+    		log.debug('promoLookup  ',promoLookup.custrecord_itpm_p_isplanlinkrecdeleted);
+    		if(!promoLookup.custrecord_itpm_p_isplanlinkrecdeleted){
+    			log.debug('Delelting linked records for promo: '+promoId,!promoLookup.custrecord_itpm_p_isplanlinkrecdeleted);
+    	   		//Deleting the Promotion Related records    	   		 
+    	   		//Array of objects with record type and field id's
+    	   		var searchRecs = [{
+    	   			type:'customrecord_itpm_promoallowance',
+    	   			promoFieldId:'custrecord_itpm_all_promotiondeal'
+    	   		},{
+    	   			type:'customrecord_itpm_estquantity',
+    	   			promoFieldId:'custrecord_itpm_estqty_promodeal'
+    	   		},{
+    	   			type:'customrecord_itpm_promoretailevent',
+    	   			promoFieldId:'custrecord_itpm_rei_promotiondeal'
+    	   		},{
+    	   			type:'customrecord_itpm_kpi',
+    	   			promoFieldId:'custrecord_itpm_kpi_promotiondeal'
+    	   		}];
+    	   		
+    	   		//Loop through the array and create the EstQty,Retail Info and kpi inactive records
+    	   		searchRecs.forEach(function(obj){
+    	   			search.create({
+    	   				type:obj.type,
+    	   				columns:['internalid'],
+    	   				filters:[[obj.promoFieldId,'anyof',promoId]]
+    	   			}).run().each(function(result){
+    	   				record.delete({
+    	   					type:obj.type,
+    	   					id:result.getValue('internalid')
+    	   				});
+    	   				return true;
+    	   			});
+    	   		});
+    	   		record.submitFields({
+    			    type: 'customrecord_itpm_promotiondeal',
+    			    id: promoId,
+    			    values: {
+    			    	'custrecord_itpm_p_isplanlinkrecdeleted': 'T'
+    			    },
+    			    options: {
+    			        enableSourcing: false,
+    			        ignoreMandatoryFields : true
+    			    }
+    			});	
+    		}
+    	 
     		
+    		promoPlanValues.promoLookupForPL = promoLookup.custrecord_itpm_p_itempricelevel[0].value;
+    		var prefObj = itpm.getPrefrenceValues(promoLookup.custrecord_itpm_p_subsidiary[0].value);    		
     		promoPlanValues.promoTypeLookupForAccount = search.lookupFields({
     		    type:'customrecord_itpm_promotiontype',
     		    id:promoLookup.custrecord_itpm_p_type[0].value,
@@ -290,26 +304,42 @@ function(record, search, itpm) {
             		type:record.Type.ITEM_GROUP,
             		id:itemId
             	});
-        		var itemCount = itemGroupRec.getLineCount('member');
-        		log.debug('itemCount',itemCount);
+        		
+//        		log.debug('itemCount',itemCount);
         		var items = itpm.getItemGroupItems(itemGroupRec,false,false); //get the list of item members array
-        		log.debug('items',items);
+//        		log.debug('items',items);
+        		//already allownace created with this item
+        		var listOfItems = [];
+        		search.create({
+    				type:'customrecord_itpm_promoallowance',
+    				columns:['internalid','custrecord_itpm_all_item'],
+    				filters:[['custrecord_itpm_all_item','anyof',items.map(function(e){ return e.memberid })],'and',
+    						 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
+    						 ['custrecord_itpm_all_allowaddnaldiscounts','is',false],'and',
+    						 ['isinactive','is',false]]
+    			}).run().each(function(e){
+    				listOfItems.push(e.getValue('custrecord_itpm_all_item'));
+    				return true;
+    			});
+        		items = items.filter(function(e){ return listOfItems.filter(function(k){return k == e.memberid}).length <= 0 });
+        		log.debug('items after removing invalid items',items);
+        		var itemCount = items.length;
     			//validating the units and base price
         		items.forEach(function(item,i){
-        			log.debug('items in I  '+ i,item);
+//        			log.debug('items in I  '+ i,item);
         			if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
         				//return
         			}else if(item.baseprice <= 0){
         				//return
         			} else {
         				groupItems.push(item.memberid);
-        				recordCreation( item, 
-        						        promoPlanValues, 
-        						        promoPalnKey, 
-        						        prefObj,
-        						        groupItems,
-        						        itemCount,
-        						        (i+1) == itemCount
+        				recordCreation( item,				//item record values
+        						        promoPlanValues,	//promotion plan record values 
+        						        promoPalnKey,		//promoId, PromoPlanId 
+        						        prefObj,			//Preference record values
+        						        groupItems,			//ItemGroup record items for Est.Qty values
+        						        itemCount,			//ItemGroup record total items count for Est.Qty values
+        						        (i+1) == itemCount	//Is This last item in ItemGroup or not
         						        );
         			}
         		});
@@ -338,17 +368,31 @@ function(record, search, itpm) {
     						isAvailable:itemLookup['custitem_itpm_available']
     					}
 //        			 log.debug('item in individual item',item);
-        			 recordCreation( item, 
-							         promoPlanValues, 
-							         promoPalnKey, 
-							         prefObj,
-							         groupItems,
-							         1,
-							         false
+        			 recordCreation( item,           	//item record values
+							         promoPlanValues, 	//promotion plan record values 
+							         promoPalnKey, 	  	//promoId, PromoPlanId 
+							         prefObj, 			//Preference record values
+							         groupItems,		//ItemGroup record items for Est.Qty values
+							         1,					//total items count for Est.Qty values
+							         false				// is This last item 
 							        );
         		 }
         	 }
-    		
+        	if(promoPlanValues.estEverydayPrice <= 0){
+        		record.submitFields({
+        			type: 'customrecord_itpm_promotion_planning',
+        			id: promoPlanRecId,
+        			values: {
+        				'custrecord_itpm_pp_response': 'iTPM Retail Event Information records are not created since There is no EST. EVERYDAY PRICE ',
+        			},
+        			options: {
+        				enableSourcing: false,
+        				ignoreMandatoryFields : true
+        			}
+        		});
+        	}
+        	//For unchecking the Promotion Is Planning Completed Check-box.
+        	context.write({key:promoId, value:0});
     	}catch(ex){
 			log.error(ex.name, ex.message);
 		}
@@ -362,15 +406,39 @@ function(record, search, itpm) {
      * @since 2015.1
      */
     function summarize(summary) {
-
+    	log.debug('summary ', summary);
+    	try{
+    		log.debug('summary',summary);
+    		var processedPromos = [0];
+    		summary.output.iterator().each(function (key, value){
+    			if(!processedPromos.some(function(e){return e == key})){
+        			log.debug('key in summary',key);
+    				record.submitFields({
+    					type: 'customrecord_itpm_promotiondeal',
+    					id: key,
+    					values: {
+    						'custrecord_itpm_p_ispromoplancomplete': 'F'
+    					},
+    					options: {
+    						enableSourcing: false,
+    						ignoreMandatoryFields : true
+    					}
+    				});
+    			}
+    			processedPromos.push(key);
+    			return true;
+        	});
+    	}catch(ex){
+    		log.error(ex.name,ex.message);
+    	}
     }
 
     function recordCreation(item, promoPlanValues, promoPalnKey, prefObj, groupItems, itemCount, isLast){
 
 //    	log.debug('item   in function ',item);
     	log.debug('promoPlanValues in function',promoPlanValues);
-//    	log.debug('promoPalnKey in function',promoPalnKey);
-    	log.debug('groupItems in function',groupItems);
+    	log.debug('promoPalnKey in function',promoPalnKey);
+//    	log.debug('groupItems in function',groupItems);
     	
     	var unitsArray = itpm.getItemUnits(item.memberid)['unitArray']; //get the list of unists array
 		//log.debug('unitsArray',unitsArray);
@@ -389,25 +457,21 @@ function(record, search, itpm) {
 //		log.debug('allowAddinalDiscounts',allowAddinalDiscounts);
 		var priceObj = itpm.getImpactPrice({pid:promoPalnKey.promoID,itemid:item.memberid,pricelevel:promoPlanValues.promoLookupForPL,baseprice:item.baseprice});
 //		log.debug('priceObj',priceObj);
-		//already allownace created with this item
-		var ifItemExist = search.create({
-								type:'customrecord_itpm_promoallowance',
-								columns:['internalid','custrecord_itpm_all_item'],
-								filters:[['custrecord_itpm_all_item','anyof',item.memberid],'and',
-										 ['custrecord_itpm_all_promotiondeal','anyof',promoPalnKey.promoID],'and',
-										 ['custrecord_itpm_all_allowaddnaldiscounts','is',false],'and',
-										 ['isinactive','is',false]]
-							}).run().getRange(0,2).length > 0;
 		
-		log.debug('ifItemExist',ifItemExist);
-		if(ifItemExist){
-			log.audit('aaajhsdflkjsadhf', ifItemExist);
-			return
-		}
 		//Allowance record creation
 		var allNewRec = record.create({
 		       type: 'customrecord_itpm_promoallowance'                      
 		});
+		//Setting Allowance Type Dynamically
+		var tempAllPer = (promoPlanValues.allPer)?parseFloat(promoPlanValues.allPer):0;
+		var tempAllRate = (promoPlanValues.allRate)?parseFloat(promoPlanValues.allRate):0;
+		var allType = prefObj.defaultAllwType;
+		if(tempAllPer > 0 && tempAllRate > 0)
+			allType = prefObj.defaultAllwType;
+		else if(tempAllPer > 0)
+			allType = 1;
+		else 
+			allType = 2;
 		//log.audit('allNewRec ',allNewRec);
 		allNewRec.setValue({
 			fieldId:'custrecord_itpm_all_promotiondeal',
@@ -441,10 +505,10 @@ function(record, search, itpm) {
 			value:promoPlanValues.allMOP
 		}).setValue({
 			fieldId:"custrecord_itpm_all_allowancepercent",
-			value:(promoPlanValues.allPer)?parseFloat(promoPlanValues.allPer):0
+			value:tempAllPer
 		}).setValue({
 			fieldId:"custrecord_itpm_all_allowancerate",
-			value:(promoPlanValues.allRate)?parseFloat(promoPlanValues.allRate):0
+			value:tempAllRate
 		});//custrecord_itpm_all_pricelevel
 		var allNewRecId = allNewRec.save({
 			enableSourcing:false,
@@ -498,15 +562,28 @@ function(record, search, itpm) {
 				['custrecord_itpm_estqty_promodeal','anyof',promoPalnKey.promoID],'and',
 				['custrecord_itpm_estqty_item','anyof',item.memberid]]
 		}).run().getRange(0,1);
-		log.debug('estVolumeResult',estVolumeResult)
+//		log.debug('estVolumeResult',estVolumeResult)
 		
 		if(estVolumeResult.length>0){ // Math.round(5.8);
 			var estQtyOldRec = record.load({
 				type:'customrecord_itpm_estquantity',
 				id:estVolumeResult[0].getValue('internalid')
-			}).save({
-				enableSourcing: true,
-				ignoreMandatoryFields: true
+			});
+			estQtyOldRec.setValue({
+				fieldId:"custrecord_itpm_estqty_qtyby",
+				value:promoPlanValues.itemUnit
+			}).setValue({
+				fieldId:"custrecord_itpm_estqty_qtyentryoptions",
+				value:4
+			}).setValue({
+				fieldId:"custrecord_itpm_estqty_baseqty",
+				value:(baseQty>0)?baseQty:0
+			}).setValue({
+				fieldId:"custrecord_itpm_estqty_incrementalqty",
+				value:(incrementalQty>0)?incrementalQty:0
+			}).setValue({
+				fieldId:"custrecord_itpm_estqty_redemption",
+				value:(promoPlanValues.redemptionFactor)?parseFloat(promoPlanValues.redemptionFactor):0
 			});
 			var estQtyOldRecId = estQtyOldRec.save({
 				enableSourcing:false,
@@ -548,56 +625,79 @@ function(record, search, itpm) {
 		}
 
 		//Checks If Retail Info is present with the same item
-		var retailInfoSearch = search.create({
-			type:'customrecord_itpm_promoretailevent',
-			columns:['internalid'],
-			filters:[['custrecord_itpm_rei_item','anyof',item.memberid],'and',
-				['custrecord_itpm_rei_promotiondeal','anyof',promoPalnKey.promoID],'and',
-				['isinactive','is',false]]
-		}).run().getRange(0,1);
-		if(retailInfoSearch.length > 0){
-			var retalInfoOldRec = record.load({
+		if(promoPlanValues.estEverydayPrice <= 0){
+			//custrecord_itpm_pp_response
+			//var promoPlanRecId = promoPalnKey.promoPlanRecId;
+			log.debug('promoPlanValues.estEverydayPrice ',promoPlanValues.estEverydayPrice );
+		}else{
+			var retailInfoSearch = search.create({
 				type:'customrecord_itpm_promoretailevent',
-				id:retailInfoSearch[0].getValue('internalid')
-			});
-			var retalInfoOldRecId = retalInfoOldRec.save({
-				enableSourcing:false,
-				ignoreMandatoryFields:true
-			});
-			log.audit('retalInfoOldRecId ',retalInfoOldRecId);
-		} else {
-			//Retail.Info record creation
-			var retalInfoNewRec = record.create({
-				type: 'customrecord_itpm_promoretailevent'                      
-			});
-			retalInfoNewRec.setValue({
-				fieldId:'custrecord_itpm_rei_promotiondeal',
-				value:promoPalnKey.promoID
-			}).setValue({
-				fieldId:"custrecord_itpm_rei_item",
-				value:item.memberid
-			}).setValue({
-				fieldId:"custrecord_itpm_rei_unit",
-				value:promoPlanValues.itemUnit
-			}).setValue({
-				fieldId:"custrecord_itpm_rei_esteverydayprice",
-				value:(promoPlanValues.estEverydayPrice)?parseFloat(promoPlanValues.estEverydayPrice):0
-			}).setValue({
-				fieldId:"custrecord_itpm_rei_estmerchprice",
-				value:(promoPlanValues.estMerchPrice)?parseFloat(promoPlanValues.estMerchPrice):0
-			}).setValue({
-				fieldId:"custrecord_itpm_rei_estacvdisplay",
-				value:(promoPlanValues.estAcvDisplay)?parseFloat(promoPlanValues.estAcvDisplay):0
-			}).setValue({
-				fieldId:"custrecord_itpm_rei_activity",
-				value:promoPlanValues.ReatailActivity
-			});
-			var retalInfoNewRecId = retalInfoNewRec.save({
-				enableSourcing:false,
-				ignoreMandatoryFields:true
-			});
-			log.audit('retalInfoNewRecId ',retalInfoNewRecId);
+				columns:['internalid'],
+				filters:[['custrecord_itpm_rei_item','anyof',item.memberid],'and',
+					['custrecord_itpm_rei_promotiondeal','anyof',promoPalnKey.promoID],'and',
+					['isinactive','is',false]]
+			}).run().getRange(0,1);
+			if(retailInfoSearch.length > 0){
+				var retalInfoOldRec = record.load({
+					type:'customrecord_itpm_promoretailevent',
+					id:retailInfoSearch[0].getValue('internalid')
+				});
+				retalInfoOldRec.setValue({
+					fieldId:"custrecord_itpm_rei_unit",
+					value:promoPlanValues.itemUnit
+				}).setValue({
+					fieldId:"custrecord_itpm_rei_esteverydayprice",
+					value:(promoPlanValues.estEverydayPrice)?parseFloat(promoPlanValues.estEverydayPrice):0
+				}).setValue({
+					fieldId:"custrecord_itpm_rei_estmerchprice",
+					value:(promoPlanValues.estMerchPrice)?parseFloat(promoPlanValues.estMerchPrice):0
+				}).setValue({
+					fieldId:"custrecord_itpm_rei_estacvdisplay",
+					value:(promoPlanValues.estAcvDisplay)?parseFloat(promoPlanValues.estAcvDisplay):0
+				}).setValue({
+					fieldId:"custrecord_itpm_rei_activity",
+					value:promoPlanValues.ReatailActivity
+				});
+				var retalInfoOldRecId = retalInfoOldRec.save({
+					enableSourcing:false,
+					ignoreMandatoryFields:true
+				});
+				log.audit('retalInfoOldRecId ',retalInfoOldRecId);
+			} else {
+				//Retail.Info record creation
+				var retalInfoNewRec = record.create({
+					type: 'customrecord_itpm_promoretailevent'                      
+				});
+				retalInfoNewRec.setValue({
+					fieldId:'custrecord_itpm_rei_promotiondeal',
+					value:promoPalnKey.promoID
+				}).setValue({
+					fieldId:"custrecord_itpm_rei_item",
+					value:item.memberid
+				}).setValue({
+					fieldId:"custrecord_itpm_rei_unit",
+					value:promoPlanValues.itemUnit
+				}).setValue({
+					fieldId:"custrecord_itpm_rei_esteverydayprice",
+					value:(promoPlanValues.estEverydayPrice)?parseFloat(promoPlanValues.estEverydayPrice):0
+				}).setValue({
+					fieldId:"custrecord_itpm_rei_estmerchprice",
+					value:(promoPlanValues.estMerchPrice)?parseFloat(promoPlanValues.estMerchPrice):0
+				}).setValue({
+					fieldId:"custrecord_itpm_rei_estacvdisplay",
+					value:(promoPlanValues.estAcvDisplay)?parseFloat(promoPlanValues.estAcvDisplay):0
+				}).setValue({
+					fieldId:"custrecord_itpm_rei_activity",
+					value:promoPlanValues.ReatailActivity
+				});
+				var retalInfoNewRecId = retalInfoNewRec.save({
+					enableSourcing:false,
+					ignoreMandatoryFields:true
+				});
+				log.audit('retalInfoNewRecId ',retalInfoNewRecId);
+			}
 		}
+		
 	}
 
     return {
