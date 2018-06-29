@@ -313,6 +313,8 @@ function(search, record, runtime, itpm) {
 	 */
 	function nbProcess(nbProcessData, lineRate, lineAmount){
 		try{
+			var lineRate = (lineRate)?parseFloat(lineRate):0;
+			var lineAmount = (lineAmount)?parseFloat(lineAmount):0;
 			//Fetching allowances related to the each item which is coming from Transaction Line
 			var itemResults = getAllowanceItems(nbProcessData.prefDatesType, nbProcessData.lineItem, nbProcessData.tranCustomer, nbProcessData.trandate, 2);
 			var j = 0;
@@ -328,6 +330,7 @@ function(search, record, runtime, itpm) {
 				if(allowanceType == 1){     					
 					var allConversionRate = nbProcessData.unitsList.filter(function(e){return e.id == allowanceUnitId})[0].conversionRate;
 					tranItemFinalRate = tranItemFinalRate + parseFloat(allowanceRateperuom * (nbProcessData.transconversionRate)/allConversionRate);
+					tranItemFinalRate = tranItemFinalRate.toFixed(4);
 				}else{
 					tranItemFinalRatePer = tranItemFinalRatePer + allowancePercentperuom;
 				}
@@ -395,6 +398,8 @@ function(search, record, runtime, itpm) {
 	 */
 	function oiProcess(oiProcessData, lineRate, lineAmount){
 		try{
+			var lineRate = (lineRate)?parseFloat(lineRate):0;
+			var lineAmount = (lineAmount)?parseFloat(lineAmount):0;
 			//Fetching allowances related to the each item which is coming from Transaction Line
 			var perItemResults = getAllowanceItems(oiProcessData.prefDatesType, oiProcessData.lineItem, oiProcessData.tranCustomer, oiProcessData.trandate, 3);
 			var j = 0;
