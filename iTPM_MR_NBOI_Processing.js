@@ -309,11 +309,10 @@ function(search, record, runtime, itpm) {
      * @param {String} lineRate
      * @param {String} lineAmount
 	 * 
+	 * @return amount
 	 */
 	function nbProcess(nbProcessData, lineRate, lineAmount){
 		try{
-			log.error('lineRate', typeof lineRate);
-			log.error('lineAmount',typeof lineAmount);
 			//Fetching allowances related to the each item which is coming from Transaction Line
 			var itemResults = getAllowanceItems(nbProcessData.prefDatesType, nbProcessData.lineItem, nbProcessData.tranCustomer, nbProcessData.trandate, 2);
 			var j = 0;
@@ -388,7 +387,11 @@ function(search, record, runtime, itpm) {
 	}
 	
 	/**
+	 * @param {Object} nbProcessData
+     * @param {String} lineRate
+     * @param {String} lineAmount
 	 * 
+	 * @return Array
 	 */
 	function oiProcess(oiProcessData, lineRate, lineAmount){
 		try{
