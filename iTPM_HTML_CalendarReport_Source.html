@@ -361,13 +361,13 @@
                 </tbody>
             </table>
         </div>
-        <div class="DataCal" id="CalTableScroll" ng-mouseup="mouseUp()" ng-mousedown="mouseDown($event)" ng-mousemove="mouseMove($event)">
+        <div class="DataCal" id="CalTableScroll" ng-init="scrollToStartMonth()" ng-mouseup="mouseUp()" ng-mousedown="mouseDown($event)" ng-mousemove="mouseMove($event)">
             <table cellpadding="0" cellspacing="0" border="0" class="CalTable">
                 <thead>
                     <tr>
                     	<!-- Months Repeating -->
                     	<!-- <th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth"><br>{{month.name}}</th> -->
-                    	<th ng-repeat="month in months track by $index" ng-class="{'monthActive':startMonth <= month.id && month.id <= endMonth}"><br>{{month.name}}</th>
+                    	<th ng-repeat="month in months track by $index" id="{{month.id}}" ng-class="{'monthActive':startMonth <= month.id && month.id <= endMonth}"><br>{{month.name}}</th>
                     </tr>
                     <tr class="CalTr2">
                     	 <!-- Months Weeks Repeating -->
@@ -444,7 +444,7 @@
 		                 {id:9,name:"October"},
 		                 {id:10,name:"November"},
 		                 {id:11,name:"December"}];
-		console.log($scope.startMonth,$scope.endMonth);
+		//console.log($scope.startMonth,$scope.endMonth);
 		$scope.loading = false;
 		
 		var down=false;
@@ -464,7 +464,11 @@
 				 document.getElementById('CalTableScroll').scrollLeft = scrollLeft + x - e.clientX;
 			 }
 		}
-		
+		$scope.scrollToStartMonth = function(){
+			setTimeout(function(){
+				document.getElementById('CalTableScroll').scrollLeft = $('#'+$scope.startMonth+'').position().left;
+			},100);
+		}
 	});
 	
 	
