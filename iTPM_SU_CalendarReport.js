@@ -27,6 +27,7 @@ function(render, search, runtime, file, record, serverWidget) {
         		title:'iTPM Calendar Report'
         	});
         	
+    		var scriptObj = runtime.getCurrentScript();  
     		
     		var request = context.request;
 			var response = context.response;
@@ -49,7 +50,27 @@ function(render, search, runtime, file, record, serverWidget) {
     				         'custrecord_itpm_cal_promotionstatus']
     			});
     			
-    			var scriptObj = runtime.getCurrentScript();    	
+    			//adding the iTPM Calendar record fields
+//    			form.addField({
+//    				id : 'custpage_itpm_calid',
+//    				type : serverWidget.FieldType.TEXT,
+//    				label : 'Name'
+//    			}).defaultValue = 
+//    			form.addField({
+//    				id : 'custpage_itpm_cal_custname',
+//    				type : serverWidget.FieldType.TEXT,
+//    				label : 'Customer Name'
+//    			}).defaultValue = 
+//    			form.addField({
+//    				id : 'custpage_itpm_cal_stdate',
+//    				type : serverWidget.FieldType.TEXT,
+//    				label : 'Start Date'
+//    			}).defaultValue = calendarRecLookup['custrecord_itpm_cal_startdate'];
+//    			form.addField({
+//    				id : 'custpage_itpm_cal_enddate',
+//    				type : serverWidget.FieldType.TEXT,
+//    				label : 'End Date'
+//    			}).defaultValue = calendarRecLookup['custrecord_itpm_cal_enddate'];
     			
     			//Getting the Jquery library file path
     			var iTPM_Jquery = search.create({

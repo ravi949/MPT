@@ -115,17 +115,24 @@
 		    overflow: hidden;
 		    text-overflow: ellipsis;
 		    white-space: nowrap;
-		    max-width: auto;
+		    max-width: 60px;
 		}
 		
 		.CalDataTable tbody tr td:nth-child(1){
 			max-width:85px;
 		}
 		
-		.CalDataTable tbody tr td:nth-child(2),
+		/*.CalDataTable tbody tr td:nth-child(2),
 		.CalDataTable tbody tr td:nth-child(3),
 		.CalDataTable tbody tr td:nth-child(4) {
 		    max-width: 100px;
+		}*/
+		
+		w-85 {
+		    max-width: 85px !important;
+		}
+		w-100 {
+		    max-width: 100px !important;
 		}
 		
 		.CalDataTable thead tr th,
@@ -328,17 +335,18 @@
                         <th class="nobrd">&nbsp;</th>
                     </tr>
                     <tr>
-                        <th>Customer</th>
-                        <th>Item</th>
-                        <th>Promotion <br>Type</th>
-                        <th>Promotion</th>
-                        <th>ID</th>
-                        <th>Start Ship</th>
-                        <th>End Ship</th>
-                        <th>UOM</th>
-                        <th>MOP</th>
-                        <th>%</th>
-                        <th>Rate</th>
+                    	<!-- <th>Promotion</th> -->
+                        <th drag-me drop-me>Customer</th>
+                        <th drag-me drop-me>Item</th>
+                        <th drag-me drop-me>Promotion <br>Type</th>
+                        <th drag-me drop-me>Promotion</th>
+                        <th drag-me drop-me>ID</th>
+                        <th drag-me drop-me>Start Ship</th>
+                        <th drag-me drop-me>End Ship</th>
+                        <th drag-me drop-me>UOM</th>
+                        <th drag-me drop-me>MOP</th>
+                        <th drag-me drop-me>%</th>
+                        <th drag-me drop-me>Rate</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -346,10 +354,11 @@
                         <td colspan="50" height="32px"><b>No Records Found.</b></td>
                     </tr>
                 	<tr ng-repeat="data in promo_data track by $index">
-                        <td title="{{data.entity}}">{{data.entity}}</td>
-                        <td>{{data.item_desc}}</td>
-                        <td title="{{data.promo_type}}">{{data.promo_type}}</td>
-                        <td title={{data.promo_desc}}>{{data.promo_desc}}</td>
+                		<!-- <td title={{data.promo_desc}}>{{data.promo_desc}}</td> -->
+                        <td class="w-85" title="{{data.entity}}">{{data.entity}}</td>
+                        <td class="w-100">{{data.item_desc}}</td>
+                        <td class="w-100" title="{{data.promo_type}}">{{data.promo_type}}</td>
+                        <td class="w-100" title={{data.promo_desc}}>{{data.promo_desc}}</td>
                         <td><a href="/app/common/custom/custrecordentry.nl?rectype={{data.promo_rec_type}}&id={{data.promo_id}}">{{data.promo_id}}</a></td>
                         <td>{{data.ship_startdate}}</td>
                         <td>{{data.ship_enddate}}</td>
@@ -361,17 +370,28 @@
                 </tbody>
             </table>
         </div>
-        <div class="DataCal" id="CalTableScroll" ng-init="scrollToStartMonth()" ng-mouseup="mouseUp()" ng-mousedown="mouseDown($event)" ng-mousemove="mouseMove($event)">
+        <!-- ng-init="scrollToStartMonth()" -->
+        <div class="DataCal" id="CalTableScroll" ng-mouseup="mouseUp()" ng-mousedown="mouseDown($event)" ng-mousemove="mouseMove($event)">
             <table cellpadding="0" cellspacing="0" border="0" class="CalTable">
                 <thead>
                     <tr>
                     	<!-- Months Repeating -->
-                    	<!-- <th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth"><br>{{month.name}}</th> -->
-                    	<th ng-repeat="month in months track by $index" id="{{month.id}}" ng-class="{'monthActive':startMonth <= month.id && month.id <= endMonth}"><br>{{month.name}}</th>
+                    	<th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth"><br>{{month.name}}</th>
+                    	<!-- <th ng-repeat="month in months track by $index" id="{{month.id}}" ng-class="{'monthActive':startMonth <= month.id && month.id <= endMonth}"><br>{{month.name}}</th> -->
                     </tr>
                     <tr class="CalTr2">
                     	 <!-- Months Weeks Repeating -->
-                    	 <!-- <th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth">
+                    	<th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth">
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
+                                        <p>{{obj.date}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th> 
+                        
+                       <!--  <th ng-repeat="month in months track by $index">
                             <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
                                     <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
@@ -381,16 +401,6 @@
                             </table>
                         </th> -->
                         
-                        <th ng-repeat="month in months track by $index">
-                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
-                                <tr>
-                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
-                                        <p>{{obj.date}}</p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </th>
-                        
                     </tr>
                 </thead>
                 <tbody>
@@ -398,7 +408,7 @@
                         <td colspan="50" height="32px">&nbsp;</td>
                     </tr>
                     <!-- Data Columns Repeating -->
-                    <!-- <tr ng-repeat="promo_data in promo_data track by $index">
+                    <tr ng-repeat="promo_data in promo_data track by $index">
                         <td ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth">
                             <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
@@ -408,8 +418,8 @@
                                 </tr>
                             </table>
                         </td>
-                    </tr> -->
-                    <tr ng-repeat="promo_data in promo_data track by $index">
+                    </tr>
+                    <!-- <tr ng-repeat="promo_data in promo_data track by $index">
                         <td ng-repeat="month in months track by $index">
                             <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
@@ -419,7 +429,7 @@
                                 </tr>
                             </table>
                         </td>
-                    </tr>
+                    </tr> -->
                 </tbody>
             </table>
         </div>

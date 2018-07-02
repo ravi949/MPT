@@ -25,11 +25,15 @@ function(url, message, record, format) {
 			var recObj = scriptContext.currentRecord;
 			
 			//comparing ship start and end
-			var shipStartObject = format.parse({ value: recObj.getValue('custrecord_itpm_cal_startdate'), type: format.Type.DATE });
-			var shipStartDate = format.format({ value: shipStartObject, type: format.Type.DATE });			
-			var shipEndObject = format.parse({ value: recObj.getValue('custrecord_itpm_cal_enddate'), type: format.Type.DATE });
-			var shipEndDate = format.format({ value: shipEndObject, type: format.Type.DATE });			
-			if(shipStartDate > shipEndDate){
+            var shipStart = new Date(recObj.getValue('custrecord_itpm_cal_startdate'));
+            var shipEnd = new Date(recObj.getValue('custrecord_itpm_cal_enddate'));
+			var shipStartObject = format.parse({ value: recObj.getValue('custrecord_itpm_cal_startdate'), type: format.Type.DATETIME});
+			var shipStartDate = format.format({ value: shipStartObject, type: format.Type.DATETIME });
+         	console.log(shipStart);
+			var shipEndObject = format.parse({ value: recObj.getValue('custrecord_itpm_cal_enddate'), type: format.Type.DATETIME });
+			var shipEndDate = format.format({ value: shipEndObject, type: format.Type.DATETIME });
+            console.log(shipEnd);
+			if(shipStart > shipEnd){
 				alert('Start Date should not be GREATER THAN the end date');
 				return false;
 			}
