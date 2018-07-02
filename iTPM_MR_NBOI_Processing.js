@@ -42,7 +42,7 @@ function(search, record, runtime, itpm) {
     			       	   'item.saleunit'
     			       	   ],
     			filters	: [
-    			       	   ["type","anyof","SalesOrd","CustInvc"], 
+    			       	   ["type","anyof","SalesOrd"], 
     			       	   	"AND",
     			       	   ["taxline","is","F"], 
    			       	   		"AND",
