@@ -22,12 +22,13 @@ function() {
     		var calendarForm = scriptContext.form
     		calendarForm.clientScriptModulePath =  './iTPM_Attach_CalendarView_ClientMethods.js';	
     		
-    		calendarForm.addButton({
-				id:'custpage_calendarReport',
-				label:'Show Report',
-				functionName:'newCalendarReport('+calendarRec.id+')'
-			});	
-    		
+    		if(scriptContext.type == "view"){
+    			calendarForm.addButton({
+    				id:'custpage_calendarReport',
+    				label:'Show Report',
+    				functionName:'newCalendarReport('+calendarRec.id+')'
+    			});
+    		}
     		
     	}catch(e){
     		log.error(e.name, e.message);
