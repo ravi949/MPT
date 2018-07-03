@@ -27,14 +27,8 @@ function(url, message, record, format) {
 			//comparing ship start and end
             var shipStart = new Date(recObj.getValue('custrecord_itpm_cal_startdate'));
             var shipEnd = new Date(recObj.getValue('custrecord_itpm_cal_enddate'));
-			var shipStartObject = format.parse({ value: recObj.getValue('custrecord_itpm_cal_startdate'), type: format.Type.DATETIME});
-			var shipStartDate = format.format({ value: shipStartObject, type: format.Type.DATETIME });
-         	console.log(shipStart);
-			var shipEndObject = format.parse({ value: recObj.getValue('custrecord_itpm_cal_enddate'), type: format.Type.DATETIME });
-			var shipEndDate = format.format({ value: shipEndObject, type: format.Type.DATETIME });
-            console.log(shipEnd);
 			if(shipStart > shipEnd){
-				alert('Start Date should not be GREATER THAN the end date');
+				alert('Start date should not be GREATER THAN the end date');
 				return false;
 			}
 			

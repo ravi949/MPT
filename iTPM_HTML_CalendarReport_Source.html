@@ -306,6 +306,7 @@
 
 <body ng-controller="itpmReportCtrl">
 	<center ng-if="loading"><h2 class="pre-loader"><b>Loading....</b></h2></center>
+    <br/>
     <div class="ReportInfoMsg" ng-if="!loading" ng-cloak>
     		<ul>
                 <li class="orange">Draft</li>
@@ -319,7 +320,7 @@
     <div class="CalViewReport" id="CalTableHeight" ng-if="!loading" ng-cloak>
     	  
         <div class="DataTable">
-            <table cellpadding="0" cellspacing="0" border="0" class="CalDataTable">
+            <table cellpadding="0" cellspacing="0" border="0" id="itpm-report-table" class="CalDataTable">
                 <thead>
                     <tr>
                         <th class="nobrd">&nbsp;</th>
@@ -334,7 +335,7 @@
                         <th class="nobrd">&nbsp;</th>
                         <th class="nobrd">&nbsp;</th>
                     </tr>
-                    <tr>
+                    <!-- <tr ng-if="promo_data.length > 0">
                     	<th drag-me drop-me>Customer</th>
                         <th drag-me drop-me>Item</th>
                         <th drag-me drop-me>Promotion <br>Type</th>
@@ -346,7 +347,22 @@
                         <th drag-me drop-me>MOP</th>
                         <th drag-me drop-me>%</th>
                         <th drag-me drop-me>Rate</th>
+                    </tr> -->
+                    
+                    <tr>
+                    	<th>Customer</th>
+                        <th>Item</th>
+                        <th>Promotion <br>Type</th>
+                        <th>Promotion</th>
+                        <th>ID</th>
+                        <th>Start Ship</th>
+                        <th>End Ship</th>
+                        <th>UOM</th>
+                        <th>MOP</th>
+                        <th>%</th>
+                        <th>Rate</th>
                     </tr>
+                    
                 </thead>
                 <tbody>
                 	<tr ng-if="promo_data.length <= 0">
@@ -434,6 +450,7 @@
     </div>
 </body>
 <script type="text/javascript">
+	//$("tr[id*='custpage_itpm_cal_view']").children()[0].width = "100%";
 	angular.module('itpmReportApp',['Dragtable']).controller('itpmReportCtrl',function($scope){
 		$scope.loading = true;
 		$scope.promo_data = ${promotionData.list};
