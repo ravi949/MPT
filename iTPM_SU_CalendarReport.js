@@ -23,216 +23,246 @@ function(render, search, runtime, file, record, serverWidget) {
     function onRequest(context) {
     	try{
     		
-    		var form = serverWidget.createForm({
-        		title:'iTPM Calendar Report'
-        	});
-        	
-    		var scriptObj = runtime.getCurrentScript();  
-    		
-    		var request = context.request;
-			var response = context.response;
-			var params = request.parameters;
-			
-    		if(request.method == 'GET'){
+    		if(context.request.method == "GET"){
+    			var form = serverWidget.createForm({
+            		title:'iTPM Calendar Report'
+            	});
+            	
+        		var scriptObj = runtime.getCurrentScript();  
+        		
+        		var request = context.request;
+    			var response = context.response;
+    			var params = request.parameters;
     			
-    			var calendarRecLookup = search.lookupFields({
-    				type:'customrecord_itpm_calendar',
-    				id:params.cid,
-    				columns:['name',
-    				         'altname',
-    				         'custrecord_itpm_cal_customer',
-    				         'custrecord_itpm_cal_allcustomers',
-    				         'custrecord_itpm_cal_items',
-    				         'custrecord_itpm_cal_allitems',
-    				         'custrecord_itpm_cal_itemgroups',
-    				         'custrecord_itpm_cal_startdate',
-    				         'custrecord_itpm_cal_enddate',
-    				         'custrecord_itpm_cal_promotiontypes',
-    				         'custrecord_itpm_cal_allpromotiontypes',
-    				         'custrecord_itpm_cal_promotionstatus']
+        		if(request.method == 'GET'){
+        			
+        			var calendarRecLookup = getCalendarValues(params.cid);
+        			
+        			//adding the iTPM Calendar record fields
+        			var calendarFieldGroup = form.addFieldGroup({
+        			    id : 'custpage_itpm_cal_fields',
+        			    label : 'Primary Information'
+        			});
+        			calendarFieldGroup.isBorderHidden = true;
+        			var htmlFieldGroup = form.addFieldGroup({
+        			    id : 'custpage_itpm_cal_view',
+        			    label : 'Calendar View'
+        			});
+        			htmlFieldGroup.isBorderHidden = true;
+        			
+        			form.addField({
+        				id : 'custpage_itpm_cal_mainname',
+        				type : serverWidget.FieldType.TEXT,
+        				label : 'Name',
+        				container:'custpage_itpm_cal_fields'
+        			}).updateDisplayType({
+        			    displayType : serverWidget.FieldDisplayType.INLINE
+        			}).defaultValue = calendarRecLookup['name'];
+        			
+        			form.addField({
+        				id : 'custpage_itpm_cal_name',
+        				type : serverWidget.FieldType.TEXT,
+        				label : 'Name',
+        				container:'custpage_itpm_cal_fields'
+        			}).updateDisplayType({
+        			    displayType : serverWidget.FieldDisplayType.INLINE
+        			}).defaultValue = calendarRecLookup['altname'];
+        			
+        			form.addField({
+        				id : 'custpage_itpm_cal_stdate',
+        				type : serverWidget.FieldType.TEXT,
+        				label : 'Start Date',
+        				container:'custpage_itpm_cal_fields'
+        			}).updateDisplayType({
+        			    displayType : serverWidget.FieldDisplayType.INLINE
+        			}).defaultValue = calendarRecLookup['custrecord_itpm_cal_startdate'];
+        			
+        			form.addField({
+        				id : 'custpage_itpm_cal_enddate',
+        				type : serverWidget.FieldType.TEXT,
+        				label : 'End Date',
+        				container:'custpage_itpm_cal_fields'
+        			}).updateDisplayType({
+        			    displayType : serverWidget.FieldDisplayType.INLINE
+        			}).defaultValue = calendarRecLookup['custrecord_itpm_cal_enddate'];
+        			
+        			var calendarIDField = form.addField({
+        				id : 'custpage_itpm_cal_id',
+        				type : serverWidget.FieldType.TEXT,
+        				label : 'Calendar Record ID',
+        				container:'custpage_itpm_cal_fields'
+        			}).updateDisplayType({
+        			    displayType : serverWidget.FieldDisplayType.INLINE
+        			})
+        			calendarIDField.defaultValue = params.cid;
+        			calendarIDField.updateDisplayType({
+        			    displayType : serverWidget.FieldDisplayType.HIDDEN
+        			});
+        			
+        			form.addSubmitButton({
+        				label:'Import CSV'
+        			});
+        			
+        			//Getting the Jquery library file path
+        			var iTPM_Jquery = search.create({
+        				type:search.Type.FOLDER,
+        				columns:[search.createColumn({
+    						        name: "internalid",
+    						        join: "file"
+    						     }),search.createColumn({
+    							        name: "url",
+    							        join: "file"
+    							 })],
+    				    filters:[["file.name","is","iTPM_Jquery.min.js"]]
+        			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
+        			
+        			//Getting the Angular library file path
+        			var iTPM_Angular = search.create({
+        				type:search.Type.FOLDER,
+        				columns:[search.createColumn({
+    						        name: "internalid",
+    						        join: "file"
+    						     }),search.createColumn({
+    							        name: "url",
+    							        join: "file"
+    							 })],
+    				    filters:[["file.name","is","iTPM_Angular.min.js"]]
+        			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
+        			
+        			//Getting the Angular bootstrap library file path
+        			var iTPM_Angular_Bootstrap = search.create({
+        				type:search.Type.FOLDER,
+        				columns:[search.createColumn({
+    						        name: "internalid",
+    						        join: "file"
+    						     }),search.createColumn({
+    							        name: "url",
+    							        join: "file"
+    							 })],
+    				    filters:[["file.name","is","iTPM_Angular_Bootstrap.min.js"]]
+        			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
+        			
+        			//Getting the Angular bootstrap tpls library file path
+        			var iTPM_Angular_Bootstrap_tpls = search.create({
+        				type:search.Type.FOLDER,
+        				columns:[search.createColumn({
+    						        name: "internalid",
+    						        join: "file"
+    						     }),search.createColumn({
+    							        name: "url",
+    							        join: "file"
+    							 })],
+    				    filters:[["file.name","is","iTPM_Angular_Bootstrap_tpls.min.js"]]
+        			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
+        			
+        			//Getting the Angular draggable library file path
+        			var iTPM_Angular_Draggable = search.create({
+        				type:search.Type.FOLDER,
+        				columns:[search.createColumn({
+    						        name: "internalid",
+    						        join: "file"
+    						     }),search.createColumn({
+    							        name: "url",
+    							        join: "file"
+    							 })],
+    				    filters:[["file.name","is","iTPM_Angular_Draggable.min.js"]]
+        			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
+        			
+        			//Getting the template html file id
+        			var htmlTemplateId = search.create({
+        				type:search.Type.FOLDER,
+        				columns:[search.createColumn({
+    						        name: "internalid",
+    						        join: "file"
+    						     }),search.createColumn({
+    							        name: "url",
+    							        join: "file"
+    							 })],
+    				    filters:[["file.name","is","iTPM_HTML_CalendarReport_Source.html"]]
+        			}).run().getRange(0,1)[0].getValue({name:'internalid',join:'file'});;
+        			var templateFileId = htmlTemplateId;
+        			log.debug('templateFileId: ', templateFileId);
+        			
+        			//Loading template file
+        			var templateFile = file.load({
+        			    id : templateFileId
+        			});
+        			
+        			var renderer = render.create();
+        			var xmlOutput = null;
+        			var sundaysList = getSundays();
+            		var promoRecTypeId = record.create({
+            			type:'customrecord_itpm_promotiondeal'
+            		}).getValue('rectype');
+        			var promoData = getPromotionData(calendarRecLookup, promoRecTypeId);
+        			
+        			//Adding the custom data source to the html file content
+        			renderer.addCustomDataSource({
+        				format: render.DataSource.JSON,
+        				alias: 'urlObj',
+        				data: '{"itpm_jquery":'+JSON.stringify(iTPM_Jquery)+',"itpm_angular":'+JSON.stringify(iTPM_Angular)+',"itpm_angular_bootstrap":'+JSON.stringify(iTPM_Angular_Bootstrap)+',"itpm_angular_bootstrap_tpls":'+JSON.stringify(iTPM_Angular_Bootstrap_tpls)+',"itpm_angular_draggable":'+JSON.stringify(iTPM_Angular_Draggable)+'}'
+        			});
+        			log.audit('dateobj','{"startMonth":'+JSON.stringify(calendarRecLookup["custrecord_itpm_cal_startdate"])+',"endMonth":'+JSON.stringify(calendarRecLookup["custrecord_itpm_cal_enddate"])+'}');
+        			var startMonth = new Date(calendarRecLookup["custrecord_itpm_cal_startdate"]).getMonth();
+        			var endMonth = new Date(calendarRecLookup["custrecord_itpm_cal_enddate"]).getMonth();
+        			renderer.addCustomDataSource({
+        				format: render.DataSource.JSON,
+        				alias: 'datesObj',
+        				data: '{"startMonth":'+JSON.stringify(startMonth)+',"endMonth":'+JSON.stringify(endMonth)+'}'
+        			});
+        			
+        			renderer.addCustomDataSource({
+        			    format: render.DataSource.OBJECT,
+        			    alias: 'weeks',
+        			    data: {name:'list',list:JSON.stringify(sundaysList)}
+        			});
+        			
+        			renderer.addCustomDataSource({
+        			    format: render.DataSource.OBJECT,
+        			    alias: 'promotionData',
+        			    data: {name : 'list', list : JSON.stringify(promoData) }
+        			});
+        			
+        			renderer.templateContent = templateFile.getContents();
+        			
+        			xmlOutput = renderer.renderAsString();
+        			
+        			if (!(xmlOutput) || xmlOutput === null) throw {name: 'xmlOutput', message:'No output from template renderer.'};
+        			
+        			log.debug('Available Usage', runtime.getCurrentScript().getRemainingUsage());
+        			
+        			context.response.write(xmlOutput);
+        			form.addField({
+        	    		 id : 'custpage_itpm_test',
+        	    		 type : serverWidget.FieldType.INLINEHTML,
+        	    		 label : 'iTPM Report',
+        	    		 container:'custpage_itpm_cal_view'
+        	    	}).defaultValue = xmlOutput;
+        			context.response.writePage(form);
+        		}
+    		}else if(context.request.method == "POST"){
+    			var cid = context.request.parameters['custpage_itpm_cal_id'];
+    			var calendarLookupFields = getCalendarValues(cid);
+    			var promoData = getPromotionData(calendarLookupFields, undefined);
+    			log.debug('cid',calendarLookupFields);
+    			
+    			var fileOutput = "Customer,Item,Promotion type,Promotion,Id,Start ship,End ship,UOM,MOP,%,Rate";
+    			
+    			promoData.forEach(function(promo){
+    				fileOutput+= "\n"+promo.entity+","+promo.item+","+promo.promo_type+","+promo.promo_desc+","+promo.promo_id+","+promo.ship_startdate+","+promo.ship_enddate+","+promo.uom+","+promo.mop+","+promo.percent_peruom+","+promo.rate_peruom
     			});
     			
-    			//adding the iTPM Calendar record fields
-    			var calendarFieldGroup = form.addFieldGroup({
-    			    id : 'custpage_itpm_cal_fields',
-    			    label : 'Primary Information'
+    			context.response.setHeader({
+    			    name: 'Content-Type',
+    			    value: 'text/csv',
     			});
-    			calendarFieldGroup.isBorderHidden = true;
-    			var htmlFieldGroup = form.addFieldGroup({
-    			    id : 'custpage_itpm_cal_view',
-    			    label : 'Calendar View'
+    			context.response.setHeader({
+    				name:'Content-Disposition',
+    				value:'inline; filename="iTPM_Report_"'+cid+'.csv"'
     			});
-    			htmlFieldGroup.isBorderHidden = true;
-    			
-    			form.addField({
-    				id : 'custpage_itpm_calid',
-    				type : serverWidget.FieldType.TEXT,
-    				label : 'Name',
-    				container:'custpage_itpm_cal_fields'
-    			}).updateDisplayType({
-    			    displayType : serverWidget.FieldDisplayType.INLINE
-    			}).defaultValue = calendarRecLookup['name'];
-    			form.addField({
-    				id : 'custpage_itpm_cal_name',
-    				type : serverWidget.FieldType.TEXT,
-    				label : 'Name',
-    				container:'custpage_itpm_cal_fields'
-    			}).updateDisplayType({
-    			    displayType : serverWidget.FieldDisplayType.INLINE
-    			}).defaultValue = calendarRecLookup['altname'];
-    			form.addField({
-    				id : 'custpage_itpm_cal_stdate',
-    				type : serverWidget.FieldType.TEXT,
-    				label : 'Start Date',
-    				container:'custpage_itpm_cal_fields'
-    			}).updateDisplayType({
-    			    displayType : serverWidget.FieldDisplayType.INLINE
-    			}).defaultValue = calendarRecLookup['custrecord_itpm_cal_startdate'];
-    			form.addField({
-    				id : 'custpage_itpm_cal_enddate',
-    				type : serverWidget.FieldType.TEXT,
-    				label : 'End Date',
-    				container:'custpage_itpm_cal_fields'
-    			}).updateDisplayType({
-    			    displayType : serverWidget.FieldDisplayType.INLINE
-    			}).defaultValue = calendarRecLookup['custrecord_itpm_cal_enddate'];
-    			
-    			//Getting the Jquery library file path
-    			var iTPM_Jquery = search.create({
-    				type:search.Type.FOLDER,
-    				columns:[search.createColumn({
-						        name: "internalid",
-						        join: "file"
-						     }),search.createColumn({
-							        name: "url",
-							        join: "file"
-							 })],
-				    filters:[["file.name","is","iTPM_Jquery.min.js"]]
-    			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
-    			
-    			//Getting the Angular library file path
-    			var iTPM_Angular = search.create({
-    				type:search.Type.FOLDER,
-    				columns:[search.createColumn({
-						        name: "internalid",
-						        join: "file"
-						     }),search.createColumn({
-							        name: "url",
-							        join: "file"
-							 })],
-				    filters:[["file.name","is","iTPM_Angular.min.js"]]
-    			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
-    			
-    			//Getting the Angular bootstrap library file path
-    			var iTPM_Angular_Bootstrap = search.create({
-    				type:search.Type.FOLDER,
-    				columns:[search.createColumn({
-						        name: "internalid",
-						        join: "file"
-						     }),search.createColumn({
-							        name: "url",
-							        join: "file"
-							 })],
-				    filters:[["file.name","is","iTPM_Angular_Bootstrap.min.js"]]
-    			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
-    			
-    			//Getting the Angular bootstrap tpls library file path
-    			var iTPM_Angular_Bootstrap_tpls = search.create({
-    				type:search.Type.FOLDER,
-    				columns:[search.createColumn({
-						        name: "internalid",
-						        join: "file"
-						     }),search.createColumn({
-							        name: "url",
-							        join: "file"
-							 })],
-				    filters:[["file.name","is","iTPM_Angular_Bootstrap_tpls.min.js"]]
-    			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
-    			
-    			//Getting the Angular draggable library file path
-    			var iTPM_Angular_Draggable = search.create({
-    				type:search.Type.FOLDER,
-    				columns:[search.createColumn({
-						        name: "internalid",
-						        join: "file"
-						     }),search.createColumn({
-							        name: "url",
-							        join: "file"
-							 })],
-				    filters:[["file.name","is","iTPM_Angular_Draggable.min.js"]]
-    			}).run().getRange(0,1)[0].getValue({name:'url',join:'file'});
-    			
-    			//Getting the template html file id
-    			var htmlTemplateId = search.create({
-    				type:search.Type.FOLDER,
-    				columns:[search.createColumn({
-						        name: "internalid",
-						        join: "file"
-						     }),search.createColumn({
-							        name: "url",
-							        join: "file"
-							 })],
-				    filters:[["file.name","is","iTPM_HTML_CalendarReport_Source.html"]]
-    			}).run().getRange(0,1)[0].getValue({name:'internalid',join:'file'});;
-    			var templateFileId = htmlTemplateId;
-    			log.debug('templateFileId: ', templateFileId);
-    			
-    			//Loading template file
-    			var templateFile = file.load({
-    			    id : templateFileId
+    			context.response.write({
+    				output:fileOutput
     			});
-    			
-    			var renderer = render.create();
-    			var xmlOutput = null;
-    			var sundaysList = getSundays();
-        		var promoRecTypeId = record.create({
-        			type:'customrecord_itpm_promotiondeal'
-        		}).getValue('rectype');
-    			var promoData = getPromotionData(calendarRecLookup, promoRecTypeId);
-    			
-    			//Adding the custom data source to the html file content
-    			renderer.addCustomDataSource({
-    				format: render.DataSource.JSON,
-    				alias: 'urlObj',
-    				data: '{"itpm_jquery":'+JSON.stringify(iTPM_Jquery)+',"itpm_angular":'+JSON.stringify(iTPM_Angular)+',"itpm_angular_bootstrap":'+JSON.stringify(iTPM_Angular_Bootstrap)+',"itpm_angular_bootstrap_tpls":'+JSON.stringify(iTPM_Angular_Bootstrap_tpls)+',"itpm_angular_draggable":'+JSON.stringify(iTPM_Angular_Draggable)+'}'
-    			});
-    			log.audit('dateobj','{"startMonth":'+JSON.stringify(calendarRecLookup["custrecord_itpm_cal_startdate"])+',"endMonth":'+JSON.stringify(calendarRecLookup["custrecord_itpm_cal_enddate"])+'}');
-    			var startMonth = new Date(calendarRecLookup["custrecord_itpm_cal_startdate"]).getMonth();
-    			var endMonth = new Date(calendarRecLookup["custrecord_itpm_cal_enddate"]).getMonth();
-    			renderer.addCustomDataSource({
-    				format: render.DataSource.JSON,
-    				alias: 'datesObj',
-    				data: '{"startMonth":'+JSON.stringify(startMonth)+',"endMonth":'+JSON.stringify(endMonth)+'}'
-    			});
-    			
-    			renderer.addCustomDataSource({
-    			    format: render.DataSource.OBJECT,
-    			    alias: 'weeks',
-    			    data: {name:'list',list:JSON.stringify(sundaysList)}
-    			});
-    			
-    			renderer.addCustomDataSource({
-    			    format: render.DataSource.OBJECT,
-    			    alias: 'promotionData',
-    			    data: {name : 'list', list : JSON.stringify(promoData) }
-    			});
-    			
-    			renderer.templateContent = templateFile.getContents();
-    			
-    			xmlOutput = renderer.renderAsString();
-    			
-    			if (!(xmlOutput) || xmlOutput === null) throw {name: 'xmlOutput', message:'No output from template renderer.'};
-    			
-    			log.debug('Available Usage', runtime.getCurrentScript().getRemainingUsage());
-    			
-    			context.response.write(xmlOutput);
-    			form.addField({
-    	    		 id : 'custpage_itpm_test',
-    	    		 type : serverWidget.FieldType.INLINEHTML,
-    	    		 label : 'iTPM Report',
-    	    		 container:'custpage_itpm_cal_view'
-    	    	}).defaultValue = xmlOutput;
-    			context.response.writePage(form);
     		}
 		}catch(e){
 			log.debug(e.name, e.message);
@@ -241,6 +271,28 @@ function(render, search, runtime, file, record, serverWidget) {
 		}
     }
 
+    /**
+     * @param {Number} cid
+     * @return {Array} search Result
+     */
+    function getCalendarValues(cid){
+    	return search.lookupFields({
+			type:'customrecord_itpm_calendar',
+			id:cid,
+			columns:['name',
+			         'altname',
+			         'custrecord_itpm_cal_customer',
+			         'custrecord_itpm_cal_allcustomers',
+			         'custrecord_itpm_cal_items',
+			         'custrecord_itpm_cal_allitems',
+			         'custrecord_itpm_cal_itemgroups',
+			         'custrecord_itpm_cal_startdate',
+			         'custrecord_itpm_cal_enddate',
+			         'custrecord_itpm_cal_promotiontypes',
+			         'custrecord_itpm_cal_allpromotiontypes',
+			         'custrecord_itpm_cal_promotionstatus']
+		});
+    }
     
     /**
      * @param {Object} calendarRecLookup
