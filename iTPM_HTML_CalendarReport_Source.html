@@ -335,8 +335,7 @@
                         <th class="nobrd">&nbsp;</th>
                     </tr>
                     <tr>
-                    	<!-- <th>Promotion</th> -->
-                        <th drag-me drop-me>Customer</th>
+                    	<th drag-me drop-me>Customer</th>
                         <th drag-me drop-me>Item</th>
                         <th drag-me drop-me>Promotion <br>Type</th>
                         <th drag-me drop-me>Promotion</th>
@@ -354,8 +353,7 @@
                         <td colspan="50" height="32px"><b>No Records Found.</b></td>
                     </tr>
                 	<tr ng-repeat="data in promo_data track by $index">
-                		<!-- <td title={{data.promo_desc}}>{{data.promo_desc}}</td> -->
-                        <td class="w-85" title="{{data.entity}}">{{data.entity}}</td>
+                		<td class="w-85" title="{{data.entity}}">{{data.entity}}</td>
                         <td class="w-100">{{data.item_desc}}</td>
                         <td class="w-100" title="{{data.promo_type}}">{{data.promo_type}}</td>
                         <td class="w-100" title={{data.promo_desc}}>{{data.promo_desc}}</td>
