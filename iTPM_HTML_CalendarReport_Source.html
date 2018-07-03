@@ -450,7 +450,7 @@
     </div>
 </body>
 <script type="text/javascript">
-	//$("tr[id*='custpage_itpm_cal_view']").children()[0].width = "100%";
+	$("tr[id*='custpage_itpm_cal_view']").children()[0].width = "100%";
 	angular.module('itpmReportApp',['Dragtable']).controller('itpmReportCtrl',function($scope){
 		$scope.loading = true;
 		$scope.promo_data = ${promotionData.list};

@@ -53,22 +53,22 @@ function(render, search, runtime, file, record, serverWidget) {
     			});
     			
     			//adding the iTPM Calendar record fields
-//    			var calendarFieldGroup = form.addFieldGroup({
-//    			    id : 'custpage_itpm_cal_fields',
-//    			    label : 'Primary Information'
-//    			});
-//    			calendarFieldGroup.isBorderHidden = true;
-//    			var htmlFieldGroup = form.addFieldGroup({
-//    			    id : 'custpage_itpm_cal_view',
-//    			    label : 'Calendar View'
-//    			});
-//    			htmlFieldGroup.isBorderHidden = true;
+    			var calendarFieldGroup = form.addFieldGroup({
+    			    id : 'custpage_itpm_cal_fields',
+    			    label : 'Primary Information'
+    			});
+    			calendarFieldGroup.isBorderHidden = true;
+    			var htmlFieldGroup = form.addFieldGroup({
+    			    id : 'custpage_itpm_cal_view',
+    			    label : 'Calendar View'
+    			});
+    			htmlFieldGroup.isBorderHidden = true;
     			
     			form.addField({
     				id : 'custpage_itpm_calid',
     				type : serverWidget.FieldType.TEXT,
     				label : 'Name',
-//    				container:'custpage_itpm_cal_fields'
+    				container:'custpage_itpm_cal_fields'
     			}).updateDisplayType({
     			    displayType : serverWidget.FieldDisplayType.INLINE
     			}).defaultValue = calendarRecLookup['name'];
@@ -76,7 +76,7 @@ function(render, search, runtime, file, record, serverWidget) {
     				id : 'custpage_itpm_cal_name',
     				type : serverWidget.FieldType.TEXT,
     				label : 'Name',
-//    				container:'custpage_itpm_cal_fields'
+    				container:'custpage_itpm_cal_fields'
     			}).updateDisplayType({
     			    displayType : serverWidget.FieldDisplayType.INLINE
     			}).defaultValue = calendarRecLookup['altname'];
@@ -84,7 +84,7 @@ function(render, search, runtime, file, record, serverWidget) {
     				id : 'custpage_itpm_cal_stdate',
     				type : serverWidget.FieldType.TEXT,
     				label : 'Start Date',
-//    				container:'custpage_itpm_cal_fields'
+    				container:'custpage_itpm_cal_fields'
     			}).updateDisplayType({
     			    displayType : serverWidget.FieldDisplayType.INLINE
     			}).defaultValue = calendarRecLookup['custrecord_itpm_cal_startdate'];
@@ -92,7 +92,7 @@ function(render, search, runtime, file, record, serverWidget) {
     				id : 'custpage_itpm_cal_enddate',
     				type : serverWidget.FieldType.TEXT,
     				label : 'End Date',
-//    				container:'custpage_itpm_cal_fields'
+    				container:'custpage_itpm_cal_fields'
     			}).updateDisplayType({
     			    displayType : serverWidget.FieldDisplayType.INLINE
     			}).defaultValue = calendarRecLookup['custrecord_itpm_cal_enddate'];
