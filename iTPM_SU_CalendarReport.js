@@ -8,9 +8,11 @@ define(['N/render',
         'N/runtime',
         'N/file',
         'N/record',
-        'N/ui/serverWidget'],
+        'N/ui/serverWidget',
+        './iTPM_Module.js'
+        ],
 
-function(render, search, runtime, file, record, serverWidget) {
+function(render, search, runtime, file, record, serverWidget, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -99,9 +101,14 @@ function(render, search, runtime, file, record, serverWidget) {
         			    displayType : serverWidget.FieldDisplayType.HIDDEN
         			});
         			
-        			form.addSubmitButton({
-        				label:'Import CSV'
-        			});
+        			//getting the user role iTPM Calendar permission and Export Lists permission
+        			var calendarRecPermission = itpm.getUserPermission(params.rectype);
+        			var exportListPermission = runtime.getCurrentUser().getPermission('LIST_EXPORT');
+        			if(calendarRecPermission >= 1 && exportListPermission >= 1){
+        				form.addSubmitButton({
+            				label:'Export CSV'
+            			});
+        			}
         			
         			//Getting the Jquery library file path
         			var iTPM_Jquery = search.create({
@@ -247,9 +254,9 @@ function(render, search, runtime, file, record, serverWidget) {
     			log.debug('cid',calendarLookupFields);
     			
     			var fileOutput = "Customer,Item,Promotion type,Promotion,Id,Start ship,End ship,UOM,MOP,%,Rate";
-    			
+
     			promoData.forEach(function(promo){
-    				fileOutput+= "\n"+promo.entity+","+promo.item+","+promo.promo_type+","+promo.promo_desc+","+promo.promo_id+","+promo.ship_startdate+","+promo.ship_enddate+","+promo.uom+","+promo.mop+","+promo.percent_peruom+","+promo.rate_peruom
+    				fileOutput+= "\n\""+promo.entity+"\","+promo.item+",\""+promo.promo_type+"\",\""+promo.promo_desc+"\",\""+promo.promo_id+"\","+promo.ship_startdate+","+promo.ship_enddate+","+promo.uom+","+promo.mop+","+promo.percent_peruom+","+promo.rate_peruom
     			});
     			
     			context.response.setHeader({

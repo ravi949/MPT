@@ -88,11 +88,12 @@ function(url, message, record, format) {
 		try{
 			var msgObj = displayMessage('New Report','Please wait while you are redirected to the new Calendar Report screen.');
 			msgObj.show();
+			var calendarRecType = new URL(location.href).searchParams.get('rectype');
 			var outputURL = url.resolveScript({
 				scriptId:'customscript_itpm_calendar_report',
 				deploymentId:'customdeploy_itpm_calendar_report',
 				returnExternalUrl: false,
-				params:{cid:cid}
+				params:{cid:cid,rectype:calendarRecType}
 			});
 			window.open(outputURL,'_self');
 		}catch(e){
