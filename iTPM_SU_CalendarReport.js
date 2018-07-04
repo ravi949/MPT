@@ -321,12 +321,12 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
 			log.audit('itemgroups',itemGroups);
 			
 			var promotionFilters = [
-			                          ["custrecord_itpm_p_status","anyof",promoStatus], 
-				      			      "AND", 
-				    			      ["custrecord_itpm_p_shipstart","onorafter",startdate], 
-				    			      "AND", 
-				    			      ["custrecord_itpm_p_shipend","onorbefore",enddate]
-									];
+			   ["custrecord_itpm_p_status","anyof",promoStatus], 
+			   "AND", 
+			   ["custrecord_itpm_p_shipstart","onorafter",startdate], 
+			   "AND", 
+			   ["custrecord_itpm_p_shipend","onorbefore",enddate]
+			];
 			//If all customers checkbox not checked
 			if(!allCustomersChecked){
 				var customers = calendarRecLookup['custrecord_itpm_cal_customer'].map(function(e){return e.value});
