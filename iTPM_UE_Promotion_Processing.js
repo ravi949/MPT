@@ -137,7 +137,7 @@ define(['N/ui/serverWidget',
 		    		promoPlanRecCount = parseFloat(promoPlanRecSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
 		    		log.debug('promoPlanRecCount', promoPlanRecCount);
 					//adding Planning Complete button on promotion record if it has a promotion planning lines.
-		    		if(promoPlanRecCount > 0){
+		    		if(promoPlanRecCount > 0 && promoRec.getValue('custrecord_itpm_p_ispromoplancomplete')== false){
 		    			promoForm.addButton({
 							id:'custpage_planning_completed',
 							label:'Planning Completed',
