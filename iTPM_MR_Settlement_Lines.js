@@ -85,6 +85,20 @@ function(record, search, runtime, itpm) {
     		}).run().getRange(0,1);
     		allCount = parseFloat(allRateGrtThanZeroSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
     		log.debug('allRateGrtThanZeroSearch for setId'+setId, allCount);
+    		//Getting the Promotion Type ID
+    		var promoTypeId = search.lookupFields({
+    		    type:'customrecord_itpm_promotiondeal',
+    		    id:38,
+    		    columns:['custrecord_itpm_p_type']
+    		}).custrecord_itpm_p_type[0].value;
+    		log.debug('promoTypeId  ',promoTypeId);
+    		//Getting the 	DO NOT update Liability based on Actuals value
+    		var updateOnActuals = search.lookupFields({
+    		    type:'customrecord_itpm_promotiontype',
+    		    id:promoTypeId ,
+    		    columns:['custrecord_itpm_pt_dontupdate_lbonactual']
+    		}).custrecord_itpm_pt_dontupdate_lbonactual;
+    		log.debug('updateOnActuals  ',updateOnActuals);
     		
     		var promoLineSearch = search.create({
     			type:'customrecord_itpm_promotiondeal',
@@ -121,7 +135,8 @@ function(record, search, runtime, itpm) {
 						percent:result.getValue({name:'custrecord_itpm_all_allowancepercent',join:'custrecord_itpm_all_promotiondeal'}),
 						uom:result.getValue({name:'custrecord_itpm_all_uom',join:'custrecord_itpm_all_promotiondeal'}),
 						rate:result.getValue({name:'custrecord_itpm_all_allowancerate',join:'custrecord_itpm_all_promotiondeal'}),
-						allcount:allCount
+						allcount:allCount,
+						updateonactuals:updateOnActuals
 					}
 				});
     			return true;
@@ -154,6 +169,7 @@ function(record, search, runtime, itpm) {
     		var tempAmountBB = 0;
     		var tempAmountOI = 0;
     		var allCount = val.allcount;//If all allowances rates are zero then we calculate evenly
+    		var updateOnActuals = val.updateonactuals//If all allowances rates are zero then we calculate evenly
     		var settlementRec = record.load({
     			type:'customtransaction_itpm_settlement',
     			id:key.setId
@@ -242,6 +258,10 @@ function(record, search, runtime, itpm) {
     							factorBB = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factorestbb'});
     							factorOI = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factorestoi'});
     						}
+    						if(allCount == 0 && !updateOnActuals){
+    							factorBB = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factorestbb'});
+    							factorOI = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factorestoi'});
+    						}
     					}
     				}
     				//for Line memo value
@@ -306,7 +326,10 @@ function(record, search, runtime, itpm) {
     					factorLs = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factoractualls'});
     				}else{
     					factorLs = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factorestls'});
-    				}   
+    				} 
+    				if(allCount == 0 && !updateOnActuals){
+    					factorLs = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_factorestls'});
+					}
     				log.audit('--lumsumSetReq & factorLs --'+key.setId, lumsumSetReq+' & '+factorLs);
     				var lsLineAmount = (lumsumSetReq * parseFloat(factorLs)).toFixed(2);
     				tempAmountLS += parseFloat(lsLineAmount);
