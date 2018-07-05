@@ -86,8 +86,8 @@ function(url, message, record, format) {
 	
     function newCalendarReport(cid){
 		try{
-			var msgObj = displayMessage('New Report','Please wait while you are redirected to the new Calendar Report screen.');
-			msgObj.show();
+//			var msgObj = displayMessage('New Report','Please wait while you are redirected to the new Calendar Report screen.');
+//			msgObj.show();
 			var calendarRecType = new URL(location.href).searchParams.get('rectype');
 			var outputURL = url.resolveScript({
 				scriptId:'customscript_itpm_calendar_report',
@@ -95,7 +95,7 @@ function(url, message, record, format) {
 				returnExternalUrl: false,
 				params:{cid:cid,rectype:calendarRecType}
 			});
-			window.open(outputURL,'_self');
+			window.open(outputURL,'_blank');
 		}catch(e){
 			console.log(e.name,'function name = newCalendarReport, message = '+e.message);
 		}
