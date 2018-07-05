@@ -62,7 +62,7 @@ define(['N/ui/serverWidget',
 				if(scriptContext.type == 'view'){
 					var status = promoRec.getValue('custrecord_itpm_p_status');
 					var condition = promoRec.getValue('custrecord_itpm_p_condition');
-					var customer = promoRec.getValue('custrecord_itpm_p_customer');
+					var customer = promoRec.getValue('custrecord_itpm_p_customer');					
 
 					//ALLOW SETTLEMENTS WHEN PROMOTION IS ACTIVE?
 					var allowForSettlement = record.load({
@@ -73,8 +73,16 @@ define(['N/ui/serverWidget',
 					//role based permission allow permissions (CREATE,EDIT and FULL)
 					var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_settlementpermissionsrec');
 					var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
+					log.debug('rolePermission',rolePermission);
 					rolePermission = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
 					var showSettlementButton = (rolePermission  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
+					//checking promotion permission
+					var promotionRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_promopermissionrec');
+					var promoPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionRectypeId);
+					var user = runtime.getCurrentUser();
+					//checking promotionType permission
+					var promotionTypeRectypeId = runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission');
+					var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);				
 					var kpiAlocationCalcIsComplete = search.create({
 						type: "customrecord_itpm_kpi",
 						filters: [
