@@ -62,8 +62,7 @@ define(['N/ui/serverWidget',
 				if(scriptContext.type == 'view'){
 					var status = promoRec.getValue('custrecord_itpm_p_status');
 					var condition = promoRec.getValue('custrecord_itpm_p_condition');
-					var customer = promoRec.getValue('custrecord_itpm_p_customer');
-					var owner = promoRec.getValue('owner');
+					var customer = promoRec.getValue('custrecord_itpm_p_customer');					
 
 					//ALLOW SETTLEMENTS WHEN PROMOTION IS ACTIVE?
 					var allowForSettlement = record.load({
