@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>iTPM Calendar Report</title>
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+   <!--  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> -->
 	<script src=${urlObj.itpm_jquery}></script>
 	<script src=${urlObj.itpm_angular}></script>
 	<script src=${urlObj.itpm_angular_bootstrap}></script>
@@ -23,8 +23,8 @@
 		    margin: 0 auto;
 		    background: #FFF;
 		    font-family: Arial, Helvetica, sans-serif;
-		    height:500px;
-		    overflow-y:scroll;
+		    /* height:500px;
+		    overflow-y:scroll; */
 		}
 		.CalViewReport::after{
 			content:'';
@@ -115,13 +115,24 @@
 		    overflow: hidden;
 		    text-overflow: ellipsis;
 		    white-space: nowrap;
-		    max-width: auto;
+		    max-width: 60px;
 		}
 		
-		.CalDataTable tbody tr td:nth-child(2),
+		.CalDataTable tbody tr td:nth-child(1){
+			max-width:85px;
+		}
+		
+		/*.CalDataTable tbody tr td:nth-child(2),
 		.CalDataTable tbody tr td:nth-child(3),
 		.CalDataTable tbody tr td:nth-child(4) {
 		    max-width: 100px;
+		}*/
+		
+		w-85 {
+		    max-width: 85px !important;
+		}
+		w-100 {
+		    max-width: 100px !important;
 		}
 		
 		.CalDataTable thead tr th,
@@ -161,7 +172,6 @@
 		    border-bottom: none !important;
 		    font-size: 13px !important;
 		    font-weight: 500;
-		    width: 28px;
 		    text-align: center;
 		    padding: 5px;
 		}
@@ -196,16 +206,20 @@
 		
 		.CalWeekDaysHeader tr td p {
 		    display: inline-block;
-		    width: 25px;
+		    width: 20px;
 		    padding: 5px 0;
 		    margin: 0
 		}
 		
 		.DataCalBody tr td p {
-		    width: 25px;
+		    width: 20px;
 		    padding: 5px;
 		    margin: 0;
 		    box-sizing: border-box;
+		    user-select:none;
+		    -webkit-user-select:none;
+		    -moz-user-select:none;
+		    -ms-user-select:none;
 		}
 		
 		.CalTable thead tr th:first-child,
@@ -213,7 +227,12 @@
 		    border-left: none;
 		}
 		
-		
+		.txtRight{
+			text-align:right;
+		}
+		.monthActive{
+			background: #ababab !important;
+		}
 		/*********** 
 		Status Colors
 		************/
@@ -278,13 +297,18 @@
 		.ReportInfoMsg ul li.yellow {
 		    background: #FFDE03;
 		}
+		.pre-loader{
+			font-size:20px;
+			margin-top:15%;
+		}
 	</style>
 </head>
 
 <body ng-controller="itpmReportCtrl">
-	<center><h4 ng-if="loading"><b>Loading iTPM Report....</b></h4></center>
+	<center ng-if="loading"><h2 class="pre-loader"><b>Loading....</b></h2></center>
+    <br/>
     <div class="ReportInfoMsg" ng-if="!loading" ng-cloak>
-            <ul>
+    		<ul>
                 <li class="orange">Draft</li>
                 <li class="yellow">Submitted</li>
                 <li class="green">Approved</li>
@@ -292,10 +316,11 @@
                 <li class="blue">Closed</li>
             </ul>
         </div>
-    <div class="CalViewReport" ng-if="!loading" ng-cloak>
+        <br/>
+    <div class="CalViewReport" id="CalTableHeight" ng-if="!loading" ng-cloak>
     	  
         <div class="DataTable">
-            <table cellpadding="0" cellspacing="0" border="0" class="CalDataTable">
+            <table cellpadding="0" cellspacing="0" border="0" id="itpm-report-table" class="CalDataTable">
                 <thead>
                     <tr>
                         <th class="nobrd">&nbsp;</th>
@@ -310,11 +335,25 @@
                         <th class="nobrd">&nbsp;</th>
                         <th class="nobrd">&nbsp;</th>
                     </tr>
+                    <!-- <tr ng-if="promo_data.length > 0">
+                    	<th drag-me drop-me>Customer</th>
+                        <th drag-me drop-me>Item</th>
+                        <th drag-me drop-me>Promotion <br>Type</th>
+                        <th drag-me drop-me>Promotion</th>
+                        <th drag-me drop-me>ID</th>
+                        <th drag-me drop-me>Start Ship</th>
+                        <th drag-me drop-me>End Ship</th>
+                        <th drag-me drop-me>UOM</th>
+                        <th drag-me drop-me>MOP</th>
+                        <th drag-me drop-me>%</th>
+                        <th drag-me drop-me>Rate</th>
+                    </tr> -->
+                    
                     <tr>
-                        <th>Customer</th>
-                        <th>Item <br>Description</th>
+                    	<th>Customer</th>
+                        <th>Item</th>
                         <th>Promotion <br>Type</th>
-                        <th>Promotion <br>Description</th>
+                        <th>Promotion</th>
                         <th>ID</th>
                         <th>Start Ship</th>
                         <th>End Ship</th>
@@ -323,88 +362,141 @@
                         <th>%</th>
                         <th>Rate</th>
                     </tr>
+                    
                 </thead>
                 <tbody>
                 	<tr ng-if="promo_data.length <= 0">
                         <td colspan="50" height="32px"><b>No Records Found.</b></td>
                     </tr>
                 	<tr ng-repeat="data in promo_data track by $index">
-                        <td>{{data.entity}}</td>
-                        <td>{{data.item_desc.split('').splice(0,12).join('')}}</td>
-                        <td>{{data.promo_type}}</td>
-                        <td>{{data.promo_desc.split('').splice(0,12).join('')}}</td>
+                		<td class="w-85" title="{{data.entity}}">{{data.entity}}</td>
+                        <td class="w-100">{{data.item_desc}}</td>
+                        <td class="w-100" title="{{data.promo_type}}">{{data.promo_type}}</td>
+                        <td class="w-100" title={{data.promo_desc}}>{{data.promo_desc}}</td>
                         <td><a href="/app/common/custom/custrecordentry.nl?rectype={{data.promo_rec_type}}&id={{data.promo_id}}">{{data.promo_id}}</a></td>
                         <td>{{data.ship_startdate}}</td>
                         <td>{{data.ship_enddate}}</td>
                         <td>{{data.uom}}</td>
                         <td>{{data.mop}}</td>
-                        <td>{{data.percent_peruom}}</td>
-                        <td>{{data.rate_peruom}}</td>
+                        <td class="txtRight">{{data.percent_peruom}}</td>
+                        <td class="txtRight">{{data.rate_peruom | number:2}}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <div class="DataCal">
+        <!-- ng-init="scrollToStartMonth()" -->
+        <div class="DataCal" id="CalTableScroll" ng-mouseup="mouseUp()" ng-mousedown="mouseDown($event)" ng-mousemove="mouseMove($event)">
             <table cellpadding="0" cellspacing="0" border="0" class="CalTable">
                 <thead>
                     <tr>
-                        <th><br>January</th>
-                        <th><br>February </th>
-                        <th><br>March </th>
-                        <th><br>April </th>
-                        <th><br>May </th>
-                        <th><br>June </th>
-                        <th><br>July </th>
-                        <th><br>August </th>
-                        <th><br>September </th>
-                        <th><br>October </th>
-                        <th><br>November </th>
-                        <th><br>December</th>
+                    	<!-- Months Repeating -->
+                    	<th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth"><br>{{month.name}}</th>
+                    	<!-- <th ng-repeat="month in months track by $index" id="{{month.id}}" ng-class="{'monthActive':startMonth <= month.id && month.id <= endMonth}"><br>{{month.name}}</th> -->
                     </tr>
                     <tr class="CalTr2">
-                    	 <th ng-repeat="data in [0,1,2,3,4,5,6,7,8,9,10,11] track by $index">
+                    	 <!-- Months Weeks Repeating -->
+                    	<th ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth">
                             <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == data">
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
                                         <p>{{obj.date}}</p>
                                     </td>
                                 </tr>
                             </table>
-                        </th>
+                        </th> 
+                        
+                       <!--  <th ng-repeat="month in months track by $index">
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
+                                        <p>{{obj.date}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th> -->
+                        
                     </tr>
                 </thead>
                 <tbody>
                 	<tr ng-if="promo_data.length <= 0">
                         <td colspan="50" height="32px">&nbsp;</td>
                     </tr>
+                    <!-- Data Columns Repeating -->
                     <tr ng-repeat="promo_data in promo_data track by $index">
-                        <td ng-repeat="data in [0,1,2,3,4,5,6,7,8,9,10,11] track by $index">
+                        <td ng-repeat="month in months track by $index" ng-if="startMonth <= month.id && month.id <= endMonth">
                             <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == data">
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
                                         <p class="{{(promo_data.sweek <= obj.week && obj.week <= promo_data.eweek)?promo_data.promo_status:''}}">&nbsp;</p>
                                     </td>
                                 </tr>
                             </table>
                         </td>
                     </tr>
+                    <!-- <tr ng-repeat="promo_data in promo_data track by $index">
+                        <td ng-repeat="month in months track by $index">
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
+                                        <p class="{{(promo_data.sweek <= obj.week && obj.week <= promo_data.eweek)?promo_data.promo_status:''}}">&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr> -->
                 </tbody>
             </table>
         </div>
     </div>
 </body>
-
 <script type="text/javascript">
+	$("tr[id*='custpage_itpm_cal_view']").children()[0].width = "100%";
 	angular.module('itpmReportApp',['Dragtable']).controller('itpmReportCtrl',function($scope){
 		$scope.loading = true;
 		$scope.promo_data = ${promotionData.list};
 		$scope.weeks = ${weeks.list};
-		/* $scope.urls = ${urlObj.list};
-		console.log($scope.urls); */
-		/* console.log($scope.promo_data);
-		console.log($scope.weeks); */
+		$scope.startMonth = ${datesObj.startMonth};
+		$scope.endMonth = ${datesObj.endMonth};
+		$scope.months = [{id:0,name:"January"},
+		                 {id:1,name:"February"},
+		                 {id:2,name:"March"},
+		                 {id:3,name:"April"},
+		                 {id:4,name:"May"},
+		                 {id:5,name:"June"},
+		                 {id:6,name:"July"},
+		                 {id:7,name:"August"},
+		                 {id:8,name:"September"},
+		                 {id:9,name:"October"},
+		                 {id:10,name:"November"},
+		                 {id:11,name:"December"}];
+		//console.log($scope.startMonth,$scope.endMonth);
 		$scope.loading = false;
+		
+		var down=false;
+		var scrollLeft=0;
+		var x = 0;
+		
+		$scope.mouseDown = function(e){
+			 down = true;
+			 scrollLeft = document.getElementById('CalTableScroll').scrollLeft;
+			 x = e.clientX;
+		}
+		$scope.mouseUp = function(){
+			down = false;
+		}
+		$scope.mouseMove = function(e){
+			 if (down) {
+				 document.getElementById('CalTableScroll').scrollLeft = scrollLeft + x - e.clientX;
+			 }
+		}
+		$scope.scrollToStartMonth = function(){
+			setTimeout(function(){
+				document.getElementById('CalTableScroll').scrollLeft = $('#'+$scope.startMonth+'').position().left;
+			},100);
+		}
 	});
-</script>
+	
+	
+	</script>
 
 </html>

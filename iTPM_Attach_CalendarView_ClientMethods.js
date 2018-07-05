@@ -25,12 +25,10 @@ function(url, message, record, format) {
 			var recObj = scriptContext.currentRecord;
 			
 			//comparing ship start and end
-			var shipStartObject = format.parse({ value: recObj.getValue('custrecord_itpm_cal_startdate'), type: format.Type.DATE });
-			var shipStartDate = format.format({ value: shipStartObject, type: format.Type.DATE });			
-			var shipEndObject = format.parse({ value: recObj.getValue('custrecord_itpm_cal_enddate'), type: format.Type.DATE });
-			var shipEndDate = format.format({ value: shipEndObject, type: format.Type.DATE });			
-			if(shipStartDate > shipEndDate){
-				alert('Start Date should not be GREATER THAN the end date');
+            var shipStart = new Date(recObj.getValue('custrecord_itpm_cal_startdate'));
+            var shipEnd = new Date(recObj.getValue('custrecord_itpm_cal_enddate'));
+			if(shipStart > shipEnd){
+				alert('Start date should not be GREATER THAN the end date');
 				return false;
 			}
 			
@@ -88,15 +86,16 @@ function(url, message, record, format) {
 	
     function newCalendarReport(cid){
 		try{
-			var msgObj = displayMessage('New Report','Please wait while you are redirected to the new Calendar Report screen.');
-			msgObj.show();
+//			var msgObj = displayMessage('New Report','Please wait while you are redirected to the new Calendar Report screen.');
+//			msgObj.show();
+			var calendarRecType = new URL(location.href).searchParams.get('rectype');
 			var outputURL = url.resolveScript({
 				scriptId:'customscript_itpm_calendar_report',
 				deploymentId:'customdeploy_itpm_calendar_report',
 				returnExternalUrl: false,
-				params:{cid:cid}
+				params:{cid:cid,rectype:calendarRecType}
 			});
-			window.open(outputURL,'_self');
+			window.open(outputURL,'_blank');
 		}catch(e){
 			console.log(e.name,'function name = newCalendarReport, message = '+e.message);
 		}
