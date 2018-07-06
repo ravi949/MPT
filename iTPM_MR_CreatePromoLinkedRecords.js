@@ -66,51 +66,21 @@ function(record, search, itpm) {
     		var promoPlanRecSearch = search.create({
     			type: "customrecord_itpm_promotion_planning",
     			columns:[
-	    				search.createColumn({
-	    					name: "internalid"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_promotion"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_item"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_unit"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_mop"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_rate"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_percent"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_additionaldisc"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_base"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_incremental"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_redemption"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_esteverydayprice"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_estmerchprice"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_estacvdisplay"
-	    				}),
-	    				search.createColumn({
-	    					name: "custrecord_itpm_pp_activity"
-	    				})
+	    				search.createColumn({name: "internalid"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_promotion"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_item"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_unit"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_mop"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_rate"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_percent"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_additionaldisc"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_base"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_incremental"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_redemption"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_esteverydayprice"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_estmerchprice"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_estacvdisplay"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_activity"})
     				],
     				filters: [
     					["custrecord_itpm_pp_promotion","anyof",promoID], 
@@ -309,6 +279,19 @@ function(record, search, itpm) {
         			}
         		});
     			return;
+    		}else{
+    			record.submitFields({
+        			type: 'customrecord_itpm_promotion_planning',
+        			id: promoPlanRecId,
+        			values: {
+        				'custrecord_itpm_pp_response': '',
+        			},
+        			options: {
+        				enableSourcing: false,
+        				ignoreMandatoryFields : true
+        			}
+        		});
+    			return;
     		}
     		promoPlanValues.promoTypeLookupForAccount = promoTypeLookup.custrecord_itpm_pt_defaultaccount[0].value;
 //    		log.debug('promoTypeLookupForAccount',promoPlanValues.promoTypeLookupForAccount);
@@ -456,6 +439,18 @@ function(record, search, itpm) {
         					unitMisMatchedItems.push(item.memberid);
         				}
         				
+        				//Submitting response with empty string if process is successful
+        				record.submitFields({
+                 			type: 'customrecord_itpm_promotion_planning',
+                 			id: promoPlanRecId,
+                 			values: {
+                 				'custrecord_itpm_pp_response': '',
+                 			},
+                 			options: {
+                 				enableSourcing: false,
+                 				ignoreMandatoryFields : true
+                 			}
+                 		});
         		 }
         	 }
         	/*if(promoPlanValues.estEverydayPrice <= 0){
@@ -476,13 +471,25 @@ function(record, search, itpm) {
         			type: 'customrecord_itpm_promotion_planning',
         			id: promoPlanRecId,
         			values: {
-        				'custrecord_itpm_pp_response': 'Selected Item units are not mcthed with Item units',
+        				'custrecord_itpm_pp_response': 'Selected Item units are not matched with Item units',
         			},
         			options: {
         				enableSourcing: false,
         				ignoreMandatoryFields : true
         			}
         		});
+        	}else{
+        		record.submitFields({
+         			type: 'customrecord_itpm_promotion_planning',
+         			id: promoPlanRecId,
+         			values: {
+         				'custrecord_itpm_pp_response': '',
+         			},
+         			options: {
+         				enableSourcing: false,
+         				ignoreMandatoryFields : true
+         			}
+         		});
         	}
         	//For unchecking the Promotion Is Planning Completed Check-box.
         	context.write({key:promoId, value:0});

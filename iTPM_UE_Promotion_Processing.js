@@ -82,7 +82,8 @@ define(['N/ui/serverWidget',
 					var user = runtime.getCurrentUser();
 					//checking promotionType permission
 					var promotionTypeRectypeId = runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission');
-					var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);				
+					var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);
+					var owner = promoRec.getValue('owner');	
 					var kpiAlocationCalcIsComplete = search.create({
 						type: "customrecord_itpm_kpi",
 						filters: [
@@ -144,8 +145,14 @@ define(['N/ui/serverWidget',
 		    		}).run().getRange(0,1);
 		    		promoPlanRecCount = parseFloat(promoPlanRecSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
 		    		log.debug('promoPlanRecCount', promoPlanRecCount);
+		    		log.debug('promoPermission', promoPermission);
+		    		log.debug('promoTypePermission', promoTypePermission);
+		    		log.debug('owner', owner);
+		    		log.debug('user', user.id);
+		    		
 					//adding Planning Complete button on promotion record if it has a promotion planning lines.
-		    		if(promoPlanRecCount > 0 && promoRec.getValue('custrecord_itpm_p_ispromoplancomplete')== false){
+		    		if((promoPlanRecCount > 0 && promoRec.getValue('custrecord_itpm_p_ispromoplancomplete')== false && (status == 1 || status == 2 || status == 3) && (promoPermission == 4 || promoTypePermission >= 3 ||(promoPermission >= 2 && owner == user.id && (status == 1 || (status == 2 && condition == 1)))))){
+		    			log.audit(true);
 		    			promoForm.addButton({
 							id:'custpage_planning_completed',
 							label:'Planning Completed',
