@@ -172,6 +172,19 @@ define(['N/ui/serverWidget',
 								label:'script'
 							}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Copy is in progress",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
 					}
+					
+					//after Planing Completed showing the progress message while batch process running
+					var promoPlaningProgress = promoRec.getValue('custrecord_itpm_p_ispromoplancomplete');
+					if(promoPlaningProgress){
+						var msgText = "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
+						              "and made available under the subtabs by the same name. This process runs at 0, 15, 30 and 45 minutes "+
+						              "after the hour. Any allowances by item groups will be expanded to the associated items.";
+							scriptContext.form.addField({
+								id:'custpage_planingprogress_message',
+								type:serverWidget.FieldType.INLINEHTML,
+								label:'script'
+							}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+					}
 				}
 
 				if (scriptContext.type == 'view' || scriptContext.type == 'edit'){
