@@ -197,7 +197,7 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
         			
         			var renderer = render.create();
         			var xmlOutput = null;
-        			var sundaysList = getSundays();
+        			var sundaysList = getSundays(new Date(calendarRecLookup['custrecord_itpm_cal_startdate']).getFullYear());
             		var promoRecTypeId = record.create({
             			type:'customrecord_itpm_promotiondeal'
             		}).getValue('rectype');
@@ -252,11 +252,73 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
     			var calendarLookupFields = getCalendarValues(cid);
     			var promoData = getPromotionData(calendarLookupFields, undefined);
     			log.debug('cid',calendarLookupFields);
+    			var startMonth = new Date(calendarLookupFields["custrecord_itpm_cal_startdate"]).getMonth();
+    			var endMonth = new Date(calendarLookupFields["custrecord_itpm_cal_enddate"]).getMonth();
     			
     			var fileOutput = "Customer,Item,Promotion type,Promotion,Id,Start ship,End ship,UOM,MOP,%,Rate";
 
+    			var arrOfMonths = [{
+    				id:0,
+    				name:'Jan'
+    			},{
+    				id:1,
+    				name:'Feb'
+    			},{
+    				id:2,
+    				name:'Mar'
+    			},{
+    				id:3,
+    				name:'Apr'
+    			},{
+    				id:4,
+    				name:'May'
+    			},{
+    				id:5,
+    				name:'Jun'
+    			},{
+    				id:6,
+    				name:'Jul'
+    			},{
+    				id:7,
+    				name:'Aug'
+    			},{
+    				id:8,
+    				name:'Sept'
+    			},{
+    				id:9,
+    				name:'Oct'
+    			},{
+    				id:10,
+    				name:'Nov'
+    			},{
+    				id:11,
+    				name:'Dec'
+    			}];
+    			var sundaysList = getSundays(new Date(calendarLookupFields['custrecord_itpm_cal_startdate']).getFullYear());
+    			
+    			//setting the months with weeks columns csv
+    			arrOfMonths.forEach(function(m){
+    				if(startMonth <= m.id && m.id <= endMonth){
+            			sundaysList.forEach(function(e){
+            				if(m.id == e.month){
+            					fileOutput += ","+m.name+"-"+e.date
+            				}
+            			});
+    				}
+    			});
+
+    			//adding the data into csv table columns
     			promoData.forEach(function(promo){
-    				fileOutput+= "\n\""+promo.entity+"\","+promo.item+",\""+promo.promo_type+"\",\""+promo.promo_desc+"\",\""+promo.promo_id+"\","+promo.ship_startdate+","+promo.ship_enddate+","+promo.uom+","+promo.mop+","+promo.percent_peruom+","+promo.rate_peruom
+    				fileOutput += "\n\""+promo.entity+"\","+promo.item+",\""+promo.promo_type+"\",\""+promo.promo_desc+"\",\""+promo.promo_id+"\","+promo.ship_startdate+","+promo.ship_enddate+","+promo.uom+","+promo.mop+","+promo.percent_peruom+","+promo.rate_peruom+",";
+    				sundaysList.forEach(function(e){
+    					if(startMonth <= e.month && e.month <= endMonth){
+    						if(promo.sweek <= e.week && e.week <= promo.eweek){
+    							fileOutput += promo.promo_status.text+",";
+    						}else{
+    							fileOutput += ",";
+    						}
+    					}
+    				});
     			});
     			
     			context.response.setHeader({
@@ -265,8 +327,9 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
     			});
     			context.response.setHeader({
     				name:'Content-Disposition',
-    				value:'inline; filename="iTPM_Report_"'+cid+'.csv"'
+    				value:'inline; filename ='+calendarLookupFields["name"]+'.csv'
     			});
+    			log.debug('download csv usage', runtime.getCurrentScript().getRemainingUsage());
     			context.response.write({
     				output:fileOutput
     			});
@@ -388,15 +451,15 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
     			promoSearchObj.run().each(function(result){
     				status = result.getValue({ name:'custrecord_itpm_p_status' });
     				if(status == 1){
-    					status = 'status-orange';
+    					status = {text:'Draft',cls:'status-orange'};
     				}else if(status == 2){
-    					status = 'status-yellow';
+    					status = {text:'Pending Approval',cls:'status-yellow'};
     				}else if(status == 3){
-    					status = 'status-green';
+    					status = {text:'Approved',cls:'status-green'};
     				}else if(status == 4 || status == 5){
-    					status = 'status-red';
+    					status = {text:(status)?'Rejected':'Voided',cls:'status-red'};
     				}else if(status == 7){
-    					status = 'status-blue';
+    					status = {text:'Closed',cls:'status-blue'};
     				}
     		        finalResults.push({
     		        	promo_desc	  : result.getValue({ name: 'name'}),
@@ -443,14 +506,14 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
     	var D = new Date(y, 0, 1)
     	var day = D.getDay();
     	if (day != 0) D.setDate(D.getDate() + (7 - day));
-    	A[0] = { month: 0, week: week, date: D.getDate(), count: 0};
+    	A[0] = { month: 0, week: week, date: D.getDate(), year:y, count: 0};
     	var prevMonth;
     	while (D) {
     		prevMonth = D.getMonth();
     		week = week+1;
     		D.setDate(D.getDate() + 7);
     		if (D.getFullYear() != y) return A;
-    		A.push({ month: D.getMonth(), week: week, date: D.getDate(), count: 0 });
+    		A.push({ month: D.getMonth(), week: week, date: D.getDate(), year: y, count: 0 });
     	}
     	
     	return A;
