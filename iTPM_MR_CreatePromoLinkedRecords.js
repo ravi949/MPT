@@ -5,13 +5,14 @@
  */
 define(['N/record',
 		'N/search',
+		'N/runtime',
 		'./iTPM_Module.js'
 		],
 /**
  * @param {record} record
  * @param {search} search
  */
-function(record, search, itpm) {
+function(record, search, runtime, itpm) {
    
     /**
      * Marks the beginning of the Map/Reduce process and generates input data.
@@ -172,7 +173,9 @@ function(record, search, itpm) {
     		var itemId = promoPlanValues.itemId;
     		var groupItems = [];//for Est.Qty search
     		var unitMisMatchedItems = []; // Unit miss matched items to show in Promotion Planning record RESPONSE field.
+    		var zeroBasePriceItems = []; //to store the item name where base price of item is zero
     		
+    		log.error('=====GOVERNANCE START=====', runtime.getCurrentScript().getRemainingUsage());
     		var promoLookup = search.lookupFields({
     		    type:'customrecord_itpm_promotiondeal',
     		    id:promoId,
@@ -292,7 +295,8 @@ function(record, search, itpm) {
 						if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
 							//return
 						}else if(item.baseprice <= 0){
-							log.audit('Item Group: Item Base Price', item.baseprice);
+							log.debug('Item Group: Item Base Price', item.baseprice);
+							zeroBasePriceItems.push(item.itemname);
 							//return
 						}else{
 							var unitsArray = itpm.getItemUnits(item.memberid)['unitArray']; //get the list of unists array
@@ -311,12 +315,13 @@ function(record, search, itpm) {
 								retailInfoRecordCreate(item, promoPlanValues, promoPalnKey, (i+1) == itemCount, listOfItems);
 								
 								//Submitting response with empty string if process is successful
-								log.error('EMPTY: ****Base Price Of selected Item is Zero.', promoPlanRecId);
+								log.debug('EMPTY: ####', promoPlanRecId);
 								record.submitFields({
 									type: 'customrecord_itpm_promotion_planning',
 									id: promoPlanRecId,
 									values: {
 										'custrecord_itpm_pp_response': '',
+										'custrecord_itpm_pp_processed': 'T'
 									},
 									options: {
 										enableSourcing: false,
@@ -324,18 +329,35 @@ function(record, search, itpm) {
 									}
 								});
 							}else{
-									unitMisMatchedItems.push(item.memberid);
+									unitMisMatchedItems.push(item.itemname);
 							}
 						}
 					});
 					
-					if(unitMisMatchedItems.length > 0){
-						log.error('Selected Item units are not matched with Item units', promoPlanRecId);
+					if(zeroBasePriceItems.length > 0){
+						log.debug('Base Price Of Items ('+zeroBasePriceItems+') in the selected Item group is Zero.', promoPlanRecId);
 						record.submitFields({
 							type: 'customrecord_itpm_promotion_planning',
 							id: promoPlanRecId,
 							values: {
-								'custrecord_itpm_pp_response': 'Few items ('+unitMisMatchedItems+') from the selected Item Group units are not matched with Item units on the planning record'
+								'custrecord_itpm_pp_response': 'Base Price Of Items ('+zeroBasePriceItems+') in the selected Item group is Zero.',
+								'custrecord_itpm_pp_processed': (zeroBasePriceItems.length == items.length)?'F':'T'
+							},
+							options: {
+								enableSourcing: false,
+								ignoreMandatoryFields : true
+							}
+						});
+					}
+					
+					if(unitMisMatchedItems.length > 0){
+						log.debug('Selected Item units are not matched with Item units', promoPlanRecId);
+						record.submitFields({
+							type: 'customrecord_itpm_promotion_planning',
+							id: promoPlanRecId,
+							values: {
+								'custrecord_itpm_pp_response': 'Few items ('+unitMisMatchedItems+') from the selected Item Group units are not matched with Item units on the planning record',
+								'custrecord_itpm_pp_processed': 'F'
 							},
 							options: {
 								enableSourcing: false,
@@ -352,15 +374,16 @@ function(record, search, itpm) {
 						id:itemId,
 						columns:['baseprice']
 					});
-					log.audit('baseprice',itemLookup['baseprice']);
+					log.debug('baseprice',itemLookup['baseprice']);
                  
 					if(itemLookup['baseprice'] <= 0){
-						log.error('Base Price Of selected Item is Zero.', promoPlanRecId);
+						log.debug('Base Price Of selected Item is Zero.', promoPlanRecId);
 						record.submitFields({
 							type: 'customrecord_itpm_promotion_planning',
 							id: promoPlanRecId,
 							values: {
 								'custrecord_itpm_pp_response': 'Base Price Of selected Item is Zero.',
+								'custrecord_itpm_pp_processed': 'F'
 							},
 							options: {
 								enableSourcing: false,
@@ -396,12 +419,13 @@ function(record, search, itpm) {
 							retailInfoRecordCreate(item, promoPlanValues, promoPalnKey, false, []);
 							
 							//Submitting response with empty string if process is successful
-							log.error('EMPTY: ****Base Price Of selected Item is Zero.', promoPlanRecId);
+							log.debug('EMPTY: ****', promoPlanRecId);
 							record.submitFields({
 								type: 'customrecord_itpm_promotion_planning',
 								id: promoPlanRecId,
 								values: {
 									'custrecord_itpm_pp_response': '',
+									'custrecord_itpm_pp_processed': 'T'
 								},
 								options: {
 									enableSourcing: false,
@@ -409,12 +433,13 @@ function(record, search, itpm) {
 								}
 							});
 						}else{
-							log.error('Selected Item units are not matched with Item units', promoPlanRecId);
+							log.debug('Selected Item units are not matched with Item units', promoPlanRecId);
 							record.submitFields({
 								type: 'customrecord_itpm_promotion_planning',
 								id: promoPlanRecId,
 								values: {
 									'custrecord_itpm_pp_response': 'Selected Item units are not matched with the Item units on the planning record',
+									'custrecord_itpm_pp_processed': 'F'
 								},
 								options: {
 									enableSourcing: false,
@@ -438,21 +463,21 @@ function(record, search, itpm) {
 					});
 				}*/
 			}else{
-				log.error('Selected Method Of Payment is not valid to create Allowances', promoPlanRecId);
+				log.debug('Selected Method Of Payment is not valid to create Allowances', promoPlanRecId);
     			record.submitFields({
         			type: 'customrecord_itpm_promotion_planning',
         			id: promoPlanRecId,
         			values: {
         				'custrecord_itpm_pp_response': 'Selected Method Of Payment is not valid to create Allowances',
+        				'custrecord_itpm_pp_processed': 'F'
         			},
         			options: {
         				enableSourcing: false,
         				ignoreMandatoryFields : true
         			}
         		});
-    			//return;	
     		}
-    		
+    		log.error('=====GOVERNANCE END=====', runtime.getCurrentScript().getRemainingUsage());
     		
         	//For unchecking the Promotion Is Planning Completed Check-box.
         	context.write({key:promoId, value:0});
