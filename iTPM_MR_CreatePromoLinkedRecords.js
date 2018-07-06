@@ -357,7 +357,7 @@ function(record, search, runtime, itpm) {
 							id: promoPlanRecId,
 							values: {
 								'custrecord_itpm_pp_response': 'Few items ('+unitMisMatchedItems+') from the selected Item Group units are not matched with Item units on the planning record',
-								'custrecord_itpm_pp_processed': 'F'
+								'custrecord_itpm_pp_processed': (unitMisMatchedItems.length == items.length)?'F':'T'
 							},
 							options: {
 								enableSourcing: false,
