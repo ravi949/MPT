@@ -665,12 +665,13 @@ define(['N/search',
 			var itemLookup = search.lookupFields({
 				type:search.Type.ITEM,
 				id:memberid,
-				columns:['custitem_itpm_available','saleunit','baseprice','unitstype','itemid']
+				columns:['custitem_itpm_available','saleunit','baseprice','unitstype','itemid','name']
 			});
 			if(needNotAllowed || itemLookup['custitem_itpm_available']){
 				if(needDuplicates || items.some(function(e){return e.memberid != memberid})){
 					items.push({
 						memberid:memberid,
+						itemname:itemLookup['name'],
 						saleunit:(itemLookup['saleunit'].length > 0)?itemLookup['saleunit'][0].value:0,
 						unitstype:(itemLookup['unitstype'].length > 0)?itemLookup['unitstype'][0].value:0,
 						baseprice:itemLookup['baseprice'],
