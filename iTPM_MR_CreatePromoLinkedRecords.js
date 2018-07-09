@@ -292,9 +292,7 @@ function(record, search, runtime, itpm) {
 					//validating the units and base price
 					items.forEach(function(item,i){
 						log.debug('items in I  '+ i,item);
-						if(items[i-1] && (items[i-1].saleunit != item.saleunit || items[i-1].unitstype != item.unitstype)){
-							//return
-						}else if(item.baseprice <= 0){
+						if(item.baseprice <= 0){
 							log.debug('Item Group: Item Base Price', item.baseprice);
 							zeroBasePriceItems.push(item.itemname);
 							//return
@@ -359,7 +357,7 @@ function(record, search, runtime, itpm) {
 							type: 'customrecord_itpm_promotion_planning',
 							id: promoPlanRecId,
 							values: {
-								'custrecord_itpm_pp_response': "The UOM you selected is not valid for this items ("+unitMisMatchedItems+").  UOM changed to the item's sales unit.",
+								'custrecord_itpm_pp_response': "The UOM you selected is not valid for this items ("+unitMisMatchedItems+"). UOM changed to the item's sales unit.",
 								'custrecord_itpm_pp_processed': (unitMisMatchedItems.length == items.length)?'F':'T'
 							},
 							options: {
@@ -400,34 +398,49 @@ function(record, search, runtime, itpm) {
 							columns:['custitem_itpm_available','saleunit','baseprice','unitstype','itemid']
 						});
 						var item = {
-							memberid:itemId,
-							saleunit:(itemLookup['saleunit'].length > 0)?itemLookup['saleunit'][0].value:0,
-							unitstype:(itemLookup['unitstype'].length > 0)?itemLookup['unitstype'][0].value:0,
-							baseprice:itemLookup['baseprice'],
-							isAvailable:itemLookup['custitem_itpm_available']
+								memberid:itemId,
+								saleunit:(itemLookup['saleunit'].length > 0)?itemLookup['saleunit'][0].value:0,
+										unitstype:(itemLookup['unitstype'].length > 0)?itemLookup['unitstype'][0].value:0,
+												baseprice:itemLookup['baseprice'],
+												isAvailable:itemLookup['custitem_itpm_available']
 						}
-//                  	log.debug('item in individual item',item);
+//						log.debug('item in individual item',item);
 						var unitsArray = itpm.getItemUnits(item.memberid)['unitArray']; //get the list of unists array
 						log.debug('unitsArray',unitsArray);
 						var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == item.saleunit})[0].conversionRate); //member item sale unit rate conversion rate
-                     	log.debug('itemUnitRate',itemUnitRate);
+						log.debug('itemUnitRate',itemUnitRate);
 						var rateArray = unitsArray.filter(function(e){return e.id == promoPlanValues.itemUnit}); //member item base unit conversion rate
-                     	log.debug('rate',rateArray);
-                        
+						log.debug('rateArray',rateArray);
+						var rate = itemUnitRate;
 						if(rateArray.length > 0){
-							var rate = parseFloat(rateArray[0].conversionRate);
-//                  	   	log.debug('rate in If',rate); 
-							allowanceRecordCreate(item, promoPlanValues, promoPalnKey, prefObj, itemUnitRate, rate);
-							estQtyRecordCreate(item, promoPlanValues, promoPalnKey, groupItems, 1, false);
-							retailInfoRecordCreate(item, promoPlanValues, promoPalnKey, false, []);
-							
-							//Submitting response with empty string if process is successful
-							log.debug('EMPTY: ****', promoPlanRecId);
+							rate = parseFloat(rateArray[0].conversionRate);
+							log.debug('rate in If',rate); 
+						} 
+						allowanceRecordCreate(item, promoPlanValues, promoPalnKey, prefObj, itemUnitRate, rate);
+						estQtyRecordCreate(item, promoPlanValues, promoPalnKey, groupItems, 1, false);
+						retailInfoRecordCreate(item, promoPlanValues, promoPalnKey, false, []);
+
+						//Submitting response with empty string if process is successful
+						log.debug('EMPTY: ****', promoPlanRecId);
+						record.submitFields({
+							type: 'customrecord_itpm_promotion_planning',
+							id: promoPlanRecId,
+							values: {
+								'custrecord_itpm_pp_response': '',
+								'custrecord_itpm_pp_processed': 'T'
+							},
+							options: {
+								enableSourcing: false,
+								ignoreMandatoryFields : true
+							}
+						});
+						if(rateArray.length <= 0){
+							log.debug('Selected Item units are not matched with Item units', promoPlanRecId);
 							record.submitFields({
 								type: 'customrecord_itpm_promotion_planning',
 								id: promoPlanRecId,
 								values: {
-									'custrecord_itpm_pp_response': '',
+									'custrecord_itpm_pp_response': "The UOM you selected is not valid for this item. UOM changed to the item's sales unit.",
 									'custrecord_itpm_pp_processed': 'T'
 								},
 								options: {
@@ -435,22 +448,8 @@ function(record, search, runtime, itpm) {
 									ignoreMandatoryFields : true
 								}
 							});
-						}else{
-							log.debug('Selected Item units are not matched with Item units', promoPlanRecId);
-							record.submitFields({
-								type: 'customrecord_itpm_promotion_planning',
-								id: promoPlanRecId,
-								values: {
-									'custrecord_itpm_pp_response': 'Selected Item units are not matched with the Item units on the planning record',
-									'custrecord_itpm_pp_processed': 'F'
-								},
-								options: {
-									enableSourcing: false,
-									ignoreMandatoryFields : true
-								}
-							});
 						}
-                    }
+					}
 				}
 				/*if(promoPlanValues.estEverydayPrice <= 0){
 					record.submitFields({
