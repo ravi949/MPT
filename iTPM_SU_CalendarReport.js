@@ -8,11 +8,12 @@ define(['N/render',
         'N/runtime',
         'N/file',
         'N/record',
+        'N/util',
         'N/ui/serverWidget',
         './iTPM_Module.js'
         ],
 
-function(render, search, runtime, file, record, serverWidget, itpm) {
+function(render, search, runtime, file, record, util, serverWidget, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -24,6 +25,19 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
      */
     function onRequest(context) {
     	try{
+    		
+    		var arrOfMonths = [{id:0,name:"Jan"},
+				                 {id:1,name:"Feb"},
+				                 {id:2,name:"Mar"},
+				                 {id:3,name:"Apr"},
+				                 {id:4,name:"May"},
+				                 {id:5,name:"Jun"},
+				                 {id:6,name:"Jul"},
+				                 {id:7,name:"Aug"},
+				                 {id:8,name:"Sept"},
+				                 {id:9,name:"Oct"},
+				                 {id:10,name:"Nov"},
+				                 {id:11,name:"Dec"}];
     		
     		if(context.request.method == "GET"){
     			var form = serverWidget.createForm({
@@ -197,8 +211,22 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
         			
         			var renderer = render.create();
         			var xmlOutput = null;
-        			var sundaysList = getSundays(new Date(calendarRecLookup['custrecord_itpm_cal_startdate']).getFullYear());
-            		var promoRecTypeId = record.create({
+        			var startDateYear = new Date(calendarRecLookup['custrecord_itpm_cal_startdate']).getFullYear(),
+        				endDateYear = new Date(calendarRecLookup['custrecord_itpm_cal_enddate']).getFullYear();
+        			var startMonth = new Date(calendarRecLookup["custrecord_itpm_cal_startdate"]).getMonth(),
+        				endMonth = new Date(calendarRecLookup["custrecord_itpm_cal_enddate"]).getMonth();
+        			
+        			var sundaysList = getSundays(startDateYear, startMonth, (startDateYear != endDateYear)?11:endMonth);
+        			arrOfMonths = arrOfMonths.map(function(e){ e.startMonth = startMonth;e.endMonth = (startDateYear != endDateYear)?11:endMonth;e.year = startDateYear;return e });
+        			
+        			if(startDateYear != endDateYear){
+        				arrOfMonths = arrOfMonths.concat(arrOfMonths.slice().map(function(e){ e = util.extend({}, e);e.startMonth = 0;e.endMonth = endMonth;e.year = endDateYear;return e }));
+        				sundaysList = sundaysList.concat(getSundays(endDateYear, 0, endMonth));
+        			}
+        			
+        			log.error('arrOfMonths',arrOfMonths);
+            		
+        			var promoRecTypeId = record.create({
             			type:'customrecord_itpm_promotiondeal'
             		}).getValue('rectype');
         			var promoData = getPromotionData(calendarRecLookup, promoRecTypeId);
@@ -209,13 +237,11 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
         				alias: 'urlObj',
         				data: '{"itpm_jquery":'+JSON.stringify(iTPM_Jquery)+',"itpm_angular":'+JSON.stringify(iTPM_Angular)+',"itpm_angular_bootstrap":'+JSON.stringify(iTPM_Angular_Bootstrap)+',"itpm_angular_bootstrap_tpls":'+JSON.stringify(iTPM_Angular_Bootstrap_tpls)+',"itpm_angular_draggable":'+JSON.stringify(iTPM_Angular_Draggable)+'}'
         			});
-        			log.audit('dateobj','{"startMonth":'+JSON.stringify(calendarRecLookup["custrecord_itpm_cal_startdate"])+',"endMonth":'+JSON.stringify(calendarRecLookup["custrecord_itpm_cal_enddate"])+'}');
-        			var startMonth = new Date(calendarRecLookup["custrecord_itpm_cal_startdate"]).getMonth();
-        			var endMonth = new Date(calendarRecLookup["custrecord_itpm_cal_enddate"]).getMonth();
+
         			renderer.addCustomDataSource({
-        				format: render.DataSource.JSON,
-        				alias: 'datesObj',
-        				data: '{"startMonth":'+JSON.stringify(startMonth)+',"endMonth":'+JSON.stringify(endMonth)+'}'
+        				format: render.DataSource.OBJECT,
+        				alias: 'monthObj',
+        				data: {name:'months', list:JSON.stringify(arrOfMonths)}
         			});
         			
         			renderer.addCustomDataSource({
@@ -252,58 +278,31 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
     			var calendarLookupFields = getCalendarValues(cid);
     			var promoData = getPromotionData(calendarLookupFields, undefined);
     			log.debug('cid',calendarLookupFields);
+    			var startDateYear = new Date(calendarLookupFields['custrecord_itpm_cal_startdate']).getFullYear(),
+				endDateYear = new Date(calendarLookupFields['custrecord_itpm_cal_enddate']).getFullYear();
+			
     			var startMonth = new Date(calendarLookupFields["custrecord_itpm_cal_startdate"]).getMonth();
     			var endMonth = new Date(calendarLookupFields["custrecord_itpm_cal_enddate"]).getMonth();
     			
     			var fileOutput = "Customer,Item,Promotion type,Promotion,Id,Start ship,End ship,UOM,MOP,%,Rate";
 
-    			var arrOfMonths = [{
-    				id:0,
-    				name:'Jan'
-    			},{
-    				id:1,
-    				name:'Feb'
-    			},{
-    				id:2,
-    				name:'Mar'
-    			},{
-    				id:3,
-    				name:'Apr'
-    			},{
-    				id:4,
-    				name:'May'
-    			},{
-    				id:5,
-    				name:'Jun'
-    			},{
-    				id:6,
-    				name:'Jul'
-    			},{
-    				id:7,
-    				name:'Aug'
-    			},{
-    				id:8,
-    				name:'Sept'
-    			},{
-    				id:9,
-    				name:'Oct'
-    			},{
-    				id:10,
-    				name:'Nov'
-    			},{
-    				id:11,
-    				name:'Dec'
-    			}];
-    			var sundaysList = getSundays(new Date(calendarLookupFields['custrecord_itpm_cal_startdate']).getFullYear());
+    			
+    			var sundaysList = getSundays(startDateYear, startMonth, (startDateYear != endDateYear)?11:endMonth);
+    			arrOfMonths = arrOfMonths.map(function(e){ e.startMonth = startMonth;e.endMonth = (startDateYear != endDateYear)?11:endMonth;e.year = startDateYear;return e });
+    			
+    			if(startDateYear != endDateYear){
+    				arrOfMonths = arrOfMonths.concat(arrOfMonths.slice().map(function(e){ e = util.extend({}, e);e.startMonth = 0;e.endMonth = endMonth;e.year = endDateYear;return e }));
+    				sundaysList = sundaysList.concat(getSundays(endDateYear, 0, endMonth));
+    			}
     			
     			//setting the months with weeks columns csv
     			arrOfMonths.forEach(function(m){
-    				if(startMonth <= m.id && m.id <= endMonth){
-            			sundaysList.forEach(function(e){
-            				if(m.id == e.month){
-            					fileOutput += ","+m.name+"-"+e.date
-            				}
-            			});
+    				if(m.startMonth <= m.id && m.id <= m.endMonth){
+    					sundaysList.forEach(function(e){
+    						if(m.year == e.year && m.id == e.month){
+    							fileOutput += ","+m.year+"-"+m.name+"-"+e.date
+    						}
+    					});
     				}
     			});
 
@@ -311,9 +310,21 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
     			promoData.forEach(function(promo){
     				fileOutput += "\n\""+promo.entity+"\","+promo.item+",\""+promo.promo_type+"\",\""+promo.promo_desc+"\",\""+promo.promo_id+"\","+promo.ship_startdate+","+promo.ship_enddate+","+promo.uom+","+promo.mop+","+promo.percent_peruom+","+promo.rate_peruom+",";
     				sundaysList.forEach(function(e){
-    					if(startMonth <= e.month && e.month <= endMonth){
-    						if(promo.sweek <= e.week && e.week <= promo.eweek){
-    							fileOutput += promo.promo_status.text+",";
+    					if(e.startMonth <= e.month && e.month <= e.endMonth){
+    						if(promo.syear == promo.eyear){
+    							if(promo.syear == e.year && promo.sweek <= e.week && e.week <= promo.eweek){
+    								fileOutput += promo.promo_status.text+",";
+    							}else{
+    								fileOutput += ",";
+    							}
+    						}else if(promo.syear != promo.eyear){
+    							if(e.year == promo.syear && promo.sweek <= e.week){
+    								fileOutput += promo.promo_status.text+",";
+    	    					 }else if(e.year == promo.eyear && e.week <= promo.eweek){
+    	    						 fileOutput += promo.promo_status.text+",";
+    	    					 }else{
+    	    						 fileOutput += ",";
+    	    					 }
     						}else{
     							fileOutput += ",";
     						}
@@ -479,7 +490,9 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
     	    		    sweek 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getWeek(),
     	    		    eweek 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getWeek(),
     	    		    smonth 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getMonth(),
-    	    		    emonth 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getMonth()
+    	    		    emonth 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getMonth(),
+    	    		    syear		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getFullYear(),
+    	    		    eyear		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getFullYear()
     		        });
     			   return true;
     			});
@@ -499,21 +512,22 @@ function(render, search, runtime, file, record, serverWidget, itpm) {
     }
     
 
-	var week = 1;
-    function getSundays(y) {
+	
+    function getSundays(y, startMonth, endMonth) {
+    	var week = 1;
     	y = y || new Date().getFullYear();
     	var A = [];
     	var D = new Date(y, 0, 1)
     	var day = D.getDay();
     	if (day != 0) D.setDate(D.getDate() + (7 - day));
-    	A[0] = { month: 0, week: week, date: D.getDate(), year:y, count: 0};
+    	A[0] = { month: 0, week: week, date: D.getDate(), startMonth:startMonth, endMonth:endMonth, year:y, count: 0};
     	var prevMonth;
     	while (D) {
     		prevMonth = D.getMonth();
     		week = week+1;
     		D.setDate(D.getDate() + 7);
     		if (D.getFullYear() != y) return A;
-    		A.push({ month: D.getMonth(), week: week, date: D.getDate(), year: y, count: 0 });
+    		A.push({ month: D.getMonth(), week: week, date: D.getDate(), startMonth:startMonth, endMonth:endMonth, year: y, count: 0 });
     	}
     	
     	return A;
