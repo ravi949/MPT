@@ -201,8 +201,8 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
         			var promoRecTypeId = record.create({
             			type:'customrecord_itpm_promotiondeal'
             		}).getValue('rectype');
-        			var dataObj = getPromotionData(calendarRecLookup, promoRecTypeId);
         			
+        			var dataObj = getPromotionData(calendarRecLookup, promoRecTypeId);    			
         			var promoData = dataObj.finalResults;
         			var arrOfMonths = dataObj.arrOfMonths;
         			var sundaysList = dataObj.sundaysList;
@@ -255,8 +255,8 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
     			var calendarLookupFields = getCalendarValues(cid);
 //    			var promoData = getPromotionData(calendarLookupFields, undefined);
     			log.debug('cid',calendarLookupFields);
-    			var dataObj = getPromotionData(calendarLookupFields, undefined);
     			
+    			var dataObj = getPromotionData(calendarLookupFields, undefined);
     			var promoData = dataObj.finalResults;
     			var arrOfMonths = dataObj.arrOfMonths;
     			var sundaysList = dataObj.sundaysList;
