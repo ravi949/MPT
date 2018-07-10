@@ -25,20 +25,6 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
      */
     function onRequest(context) {
     	try{
-    		
-    		var arrOfMonths = [{id:0,name:"Jan"},
-				                 {id:1,name:"Feb"},
-				                 {id:2,name:"Mar"},
-				                 {id:3,name:"Apr"},
-				                 {id:4,name:"May"},
-				                 {id:5,name:"Jun"},
-				                 {id:6,name:"Jul"},
-				                 {id:7,name:"Aug"},
-				                 {id:8,name:"Sept"},
-				                 {id:9,name:"Oct"},
-				                 {id:10,name:"Nov"},
-				                 {id:11,name:"Dec"}];
-    		
     		if(context.request.method == "GET"){
     			var form = serverWidget.createForm({
             		title:'iTPM Calendar Report'
@@ -211,25 +197,16 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
         			
         			var renderer = render.create();
         			var xmlOutput = null;
-        			var startDateYear = new Date(calendarRecLookup['custrecord_itpm_cal_startdate']).getFullYear(),
-        				endDateYear = new Date(calendarRecLookup['custrecord_itpm_cal_enddate']).getFullYear();
-        			var startMonth = new Date(calendarRecLookup["custrecord_itpm_cal_startdate"]).getMonth(),
-        				endMonth = new Date(calendarRecLookup["custrecord_itpm_cal_enddate"]).getMonth();
-        			
-        			var sundaysList = getSundays(startDateYear, startMonth, (startDateYear != endDateYear)?11:endMonth);
-        			arrOfMonths = arrOfMonths.map(function(e){ e.startMonth = startMonth;e.endMonth = (startDateYear != endDateYear)?11:endMonth;e.year = startDateYear;return e });
-        			
-        			if(startDateYear != endDateYear){
-        				arrOfMonths = arrOfMonths.concat(arrOfMonths.slice().map(function(e){ e = util.extend({}, e);e.startMonth = 0;e.endMonth = endMonth;e.year = endDateYear;return e }));
-        				sundaysList = sundaysList.concat(getSundays(endDateYear, 0, endMonth));
-        			}
-        			
-        			log.error('arrOfMonths',arrOfMonths);
-            		
+	
         			var promoRecTypeId = record.create({
             			type:'customrecord_itpm_promotiondeal'
             		}).getValue('rectype');
-        			var promoData = getPromotionData(calendarRecLookup, promoRecTypeId);
+        			var dataObj = getPromotionData(calendarRecLookup, promoRecTypeId);
+        			
+        			var promoData = dataObj.finalResults;
+        			var arrOfMonths = dataObj.arrOfMonths;
+        			var sundaysList = dataObj.sundaysList;
+        			
         			
         			//Adding the custom data source to the html file content
         			renderer.addCustomDataSource({
@@ -276,24 +253,14 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
     		}else if(context.request.method == "POST"){
     			var cid = context.request.parameters['custpage_itpm_cal_id'];
     			var calendarLookupFields = getCalendarValues(cid);
-    			var promoData = getPromotionData(calendarLookupFields, undefined);
+//    			var promoData = getPromotionData(calendarLookupFields, undefined);
     			log.debug('cid',calendarLookupFields);
-    			var startDateYear = new Date(calendarLookupFields['custrecord_itpm_cal_startdate']).getFullYear(),
-				endDateYear = new Date(calendarLookupFields['custrecord_itpm_cal_enddate']).getFullYear();
-			
-    			var startMonth = new Date(calendarLookupFields["custrecord_itpm_cal_startdate"]).getMonth();
-    			var endMonth = new Date(calendarLookupFields["custrecord_itpm_cal_enddate"]).getMonth();
+    			var dataObj = getPromotionData(calendarLookupFields, undefined);
     			
+    			var promoData = dataObj.finalResults;
+    			var arrOfMonths = dataObj.arrOfMonths;
+    			var sundaysList = dataObj.sundaysList;
     			var fileOutput = "Customer,Item,Promotion type,Promotion,Id,Start ship,End ship,UOM,MOP,%,Rate";
-
-    			
-    			var sundaysList = getSundays(startDateYear, startMonth, (startDateYear != endDateYear)?11:endMonth);
-    			arrOfMonths = arrOfMonths.map(function(e){ e.startMonth = startMonth;e.endMonth = (startDateYear != endDateYear)?11:endMonth;e.year = startDateYear;return e });
-    			
-    			if(startDateYear != endDateYear){
-    				arrOfMonths = arrOfMonths.concat(arrOfMonths.slice().map(function(e){ e = util.extend({}, e);e.startMonth = 0;e.endMonth = endMonth;e.year = endDateYear;return e }));
-    				sundaysList = sundaysList.concat(getSundays(endDateYear, 0, endMonth));
-    			}
     			
     			//setting the months with weeks columns csv
     			arrOfMonths.forEach(function(m){
@@ -383,6 +350,18 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
     function getPromotionData(calendarRecLookup, promoRecTypeId){
     	try{
     		var finalResults = [];
+    		var arrOfMonths = [{id:0,name:"Jan"},
+				                 {id:1,name:"Feb"},
+				                 {id:2,name:"Mar"},
+				                 {id:3,name:"Apr"},
+				                 {id:4,name:"May"},
+				                 {id:5,name:"Jun"},
+				                 {id:6,name:"Jul"},
+				                 {id:7,name:"Aug"},
+				                 {id:8,name:"Sept"},
+				                 {id:9,name:"Oct"},
+				                 {id:10,name:"Nov"},
+				                 {id:11,name:"Dec"}];
     		
     		var startdate = calendarRecLookup['custrecord_itpm_cal_startdate'];
 			var enddate = calendarRecLookup['custrecord_itpm_cal_enddate'];
@@ -391,6 +370,20 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 			var allPromoTypesChecked = calendarRecLookup['custrecord_itpm_cal_allpromotiontypes'];
 			var promoStatus = calendarRecLookup['custrecord_itpm_cal_promotionstatus'].map(function(e){return e.value});
 			var itemGroups = calendarRecLookup['custrecord_itpm_cal_itemgroups'].map(function(e){return e.value});
+			
+			
+			var startDateYear = new Date(calendarRecLookup['custrecord_itpm_cal_startdate']).getFullYear(),
+			endDateYear = new Date(calendarRecLookup['custrecord_itpm_cal_enddate']).getFullYear();
+			var startMonth = new Date(calendarRecLookup["custrecord_itpm_cal_startdate"]).getMonth(),
+			endMonth = new Date(calendarRecLookup["custrecord_itpm_cal_enddate"]).getMonth();
+
+			var sundaysList = getSundays(startDateYear, startMonth, (startDateYear != endDateYear)?11:endMonth);
+			arrOfMonths = arrOfMonths.map(function(e){ e.startMonth = startMonth;e.endMonth = (startDateYear != endDateYear)?11:endMonth;e.year = startDateYear;return e });
+
+			if(startDateYear != endDateYear){
+				arrOfMonths = arrOfMonths.concat(arrOfMonths.slice().map(function(e){ e = util.extend({}, e);e.startMonth = 0;e.endMonth = endMonth;e.year = endDateYear;return e }));
+				sundaysList = sundaysList.concat(getSundays(endDateYear, 0, endMonth));
+			}
 			
 			log.audit('itemgroups',itemGroups);
 			
@@ -497,7 +490,11 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
     			   return true;
     			});
     		
-    		return finalResults;
+    		return {
+    				finalResults: finalResults, 
+    				arrOfMonths: arrOfMonths,
+    				sundaysList: sundaysList
+    				};
     	}catch(e){
     		log.debug(e.name, e.message);
     		throw e;
