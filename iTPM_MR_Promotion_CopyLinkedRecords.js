@@ -70,6 +70,7 @@ function(record, search) {
 				   type: "customrecord_itpm_promotiondeal",
 				   filters: [
 					   ["internalid",'is',copyPromoId],"AND",
+					   ["CUSTRECORD_ITPM_PP_PROMOTION.isinactive","is",false],"AND",
 					   ["CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.isinactive","is",false],"AND",
 					   ["CUSTRECORD_ITPM_REI_PROMOTIONDEAL.isinactive","is",false],"AND",
 					   ["CUSTRECORD_ITPM_ESTQTY_PROMODEAL.isinactive","is",false]
@@ -77,6 +78,10 @@ function(record, search) {
 				   columns: [
 				      search.createColumn({
 				         name: "internalid"
+				      }),
+				      search.createColumn({
+				    	  name: "internalid",
+				    	  join: "CUSTRECORD_ITPM_PP_PROMOTION"
 				      }),
 				      search.createColumn({
 				         name: "internalid",
@@ -126,6 +131,12 @@ function(record, search) {
 					}
 					if(e.getValue({join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',name:'internalid'}) != ""){
 						contextObj = {promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',name:'internalid'}),type:'all'};
+						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
+							executeResultSet.push({id:contextObj.recId,type:contextObj.type});
+						}
+					}
+					if(e.getValue({join:'CUSTRECORD_ITPM_PP_PROMOTION',name:'internalid'}) != ""){
+						contextObj = {promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_PP_PROMOTION',name:'internalid'}),type:'planning'};
 						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
 							executeResultSet.push({id:contextObj.recId,type:contextObj.type});
 						}
@@ -273,6 +284,19 @@ function(record, search) {
 						ignoreMandatoryFields: true
 					});
 				}				 
+				break;
+			case 'planning':
+				record.copy({
+					type: 'customrecord_itpm_promotion_planning',
+					id:keyObj.recId
+				}).setValue({
+					fieldId: 'custrecord_itpm_pp_promotion',
+					value:keyObj.promoID,
+					ignoreFieldChange: true
+				}).save({
+					enableSourcing: false,
+					ignoreMandatoryFields: true
+				});
 				break;
 			}
 			
