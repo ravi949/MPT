@@ -30,7 +30,7 @@ function(url, message, record, format) {
 			var dateDiffInWeeks = getDiffWeeks(shipStart, shipEnd);
 			
 			if(52 < dateDiffInWeeks){
-				alert('Number of weeks in between START and END dates should not exceed 53 weeks');
+				alert('Number of weeks in between START and END dates should not exceed 52 weeks');
 				return false;
 			}
             
