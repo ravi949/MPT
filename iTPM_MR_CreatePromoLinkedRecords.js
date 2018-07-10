@@ -626,9 +626,9 @@ function(record, search, runtime, itpm) {
 		var tempIncrementalQty = (promoPlanValues.incrementalQty)?parseFloat(promoPlanValues.incrementalQty):0;
 		log.audit('tempIncrementalQty',tempIncrementalQty);
 		if(tempBaseQty>0) 
-			baseQty = Math.round(tempBaseQty/itemCount);
+			baseQty = Math.floor(tempBaseQty/itemCount);
 		if(tempIncrementalQty>0) 
-			incrementalQty = Math.round(tempIncrementalQty/itemCount);
+			incrementalQty = Math.floor(tempIncrementalQty/itemCount);
 		if(isLast){
 			var estQtyTotal = search.create({
 			   type: "customrecord_itpm_estquantity",
@@ -668,7 +668,7 @@ function(record, search, runtime, itpm) {
 		}).run().getRange(0,1);
 //		log.debug('estVolumeResult',estVolumeResult)
 		
-		if(estVolumeResult.length>0){ // Math.round(5.8);
+		if(estVolumeResult.length>0){ 
 			var estQtyOldRec = record.load({
 				type:'customrecord_itpm_estquantity',
 				id:estVolumeResult[0].getValue('internalid')
