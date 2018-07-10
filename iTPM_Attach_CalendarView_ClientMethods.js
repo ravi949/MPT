@@ -29,7 +29,7 @@ function(url, message, record, format) {
             var shipEnd = new Date(recObj.getValue('custrecord_itpm_cal_enddate'));
 			var dateDiffInWeeks = getDiffWeeks(shipStart, shipEnd);
 			
-			if(53 < dateDiffInWeeks){
+			if(52 < dateDiffInWeeks){
 				alert('Number of weeks in between START and END dates should not exceed 53 weeks');
 				return false;
 			}
