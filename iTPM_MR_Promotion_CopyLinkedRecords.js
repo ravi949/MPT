@@ -295,6 +295,7 @@ function(record, search) {
 	}
 	
 	/**
+	 * Returns search object to get Promotion linked records
 	 * @param {string} lineType
 	 * @param {number} copyPromoId
 	 */
