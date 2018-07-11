@@ -27,7 +27,14 @@ function(url, message, record, format) {
 			//comparing ship start and end
             var shipStart = new Date(recObj.getValue('custrecord_itpm_cal_startdate'));
             var shipEnd = new Date(recObj.getValue('custrecord_itpm_cal_enddate'));
-			if(shipStart > shipEnd){
+			var dateDiffInWeeks = getDiffWeeks(shipStart, shipEnd);
+			
+			if(52 < dateDiffInWeeks){
+				alert('Number of weeks in between START and END dates should not exceed 52 weeks');
+				return false;
+			}
+            
+            if(shipStart > shipEnd){
 				alert('Start date should not be GREATER THAN the end date');
 				return false;
 			}
@@ -71,6 +78,20 @@ function(url, message, record, format) {
 		}
 	}
 	
+	/**
+	 * @param {date} dt2
+	 * @param {date} dt1
+	 */
+	function getDiffWeeks(dt2, dt1){
+		var diff =(dt2.getTime() - dt1.getTime()) / 1000;
+		diff /= (60 * 60 * 24 * 7);
+		return Math.abs(Math.round(diff));
+	}
+	
+	/**
+	 * @param {string} title
+	 * @param {string} text
+	 */
 	function displayMessage(title,text){
 		try{
 			var msg = message.create({
@@ -84,6 +105,9 @@ function(url, message, record, format) {
 		}
 	}
 	
+	/**
+	 * @param {number} cid
+	 */
     function newCalendarReport(cid){
 		try{
 //			var msgObj = displayMessage('New Report','Please wait while you are redirected to the new Calendar Report screen.');
@@ -101,6 +125,9 @@ function(url, message, record, format) {
 		}
 	}
     
+    /**
+     * @description redirect the user to back navigation
+     */
     function redirectToBack(){
 		history.go(-1);
 	}
