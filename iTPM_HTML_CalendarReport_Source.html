@@ -343,17 +343,17 @@
                         <td colspan="50" height="32px"><b>No Records Found.</b></td>
                     </tr>
                 	<tr ng-repeat="data in promo_data track by $index">
-                		<td title="{{data.entity}}">{{data.entity}}</td>
-                        <td>{{data.item_desc}}</td>
-                        <td title="{{data.promo_type}}">{{data.promo_type}}</td>
-                        <td title={{data.promo_desc}}>{{data.promo_desc}}</td>
-                        <td><a href="/app/common/custom/custrecordentry.nl?rectype={{data.promo_rec_type}}&id={{data.promo_id}}">{{data.promo_id}}</a></td>
-                        <td>{{data.ship_startdate}}</td>
-                        <td>{{data.ship_enddate}}</td>
-                        <td>{{data.uom}}</td>
-                        <td>{{data.mop}}</td>
-                        <td class="txtRight">{{data.percent_peruom}}</td>
-                        <td class="txtRight">{{data.rate_peruom | number:2}}</td>
+                		<td title="{{::data.entity}}">{{::data.entity}}</td>
+                        <td>{{::data.item_desc}}</td>
+                        <td title="{{::data.promo_type}}">{{::data.promo_type}}</td>
+                        <td title={{::data.promo_desc}}>{{::data.promo_desc}}</td>
+                        <td><a href="/app/common/custom/custrecordentry.nl?rectype={{::data.promo_rec_type}}&id={{data.promo_id}}">{{data.promo_id}}</a></td>
+                        <td>{{::data.ship_startdate}}</td>
+                        <td>{{::data.ship_enddate}}</td>
+                        <td>{{::data.uom}}</td>
+                        <td>{{::data.mop}}</td>
+                        <td class="txtRight">{{::data.percent_peruom}}</td>
+                        <td class="txtRight">{{::data.rate_peruom | number:2}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -364,7 +364,7 @@
                 <thead>
                     <tr>
                     	<!-- Months Repeating -->
-                    	<th ng-repeat="month in months track by $index" ng-if="month.startMonth <= month.id && month.id <= month.endMonth"><br>{{month.name}}-{{month.year}}</th>
+                    	<th ng-repeat="month in months track by $index" ng-if="month.startMonth <= month.id && month.id <= month.endMonth"><br>{{::month.name}}-{{::month.year}}</th>
                     	<!-- <th ng-repeat="month in months track by $index" id="{{month.id}}" ng-class="{'monthActive':startMonth <= month.id && month.id <= endMonth}"><br>{{month.name}}</th> -->
                     </tr>
                     <tr class="CalTr2">
@@ -373,7 +373,7 @@
                             <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
                                     <td ng-repeat="obj in weeks track by $index" ng-if="obj.year == month.year && obj.month == month.id">
-                                        <p>{{obj.date}}</p>
+                                        <p>{{::obj.date}}</p>
                                     </td>
                                 </tr>
                             </table>
