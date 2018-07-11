@@ -62,23 +62,28 @@ function(record, search) {
 			copyPromoId = arrResult['internalid.CUSTRECORD_ITPM_P_COPIEDFROM'].value,
 			contextObj = null,executeResultSet = [];
 			
+			//getting the iTPM Planning record search results
 			getSearchResults("CUSTRECORD_ITPM_PP_PROMOTION",copyPromoId).run().each(function(e){
 				contextObj = {promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_PP_PROMOTION',name:'internalid'}),type:'planning'};
 				executeResultSet.push({id:contextObj.recId,type:contextObj.type});
 				return true;
 			});
 			
+			//getting the iTPM Allowance record search results
 			getSearchResults("CUSTRECORD_ITPM_ALL_PROMOTIONDEAL",copyPromoId).run().each(function(e){
 				contextObj = {promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',name:'internalid'}),type:'all'};
 				executeResultSet.push({id:contextObj.recId,type:contextObj.type});
 				return true;
 			});
 			
+			//getting the iTPM Est Qty record search results
 			getSearchResults("CUSTRECORD_ITPM_ESTQTY_PROMODEAL",copyPromoId).run().each(function(e){
 				contextObj = {type:'estqty',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'})}
 				executeResultSet.push({id:contextObj.recId,type:contextObj.type});
 				return true;
 			});
+			
+			//getting the iTPM Retail Info record search results
 			getSearchResults("CUSTRECORD_ITPM_REI_PROMOTIONDEAL",copyPromoId).run().each(function(e){
 				contextObj = {type:'retail',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'})}
 				executeResultSet.push({id:contextObj.recId,type:contextObj.type});
@@ -111,7 +116,7 @@ function(record, search) {
 			}
 		
 		}catch(e){
-			log.error(e.name,'Map state, message = '+e.message);
+			log.error(e.name,'Map state, message = '+e.message+' promoId'+promoID+' copypromoid'+copyPromoId);
 		}		
 	}
 
@@ -262,7 +267,7 @@ function(record, search) {
 			}
 			
 		}catch (e) {
-			log.error(e.name,'Reduce state, message = '+e.message);
+			log.error(e.name,'Reduce state, message = '+e.message+' copyPromoId'+keyObj.promoID);
 		}
 	}
 
