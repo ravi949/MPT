@@ -279,9 +279,9 @@
 </head>
 
 <body ng-controller="itpmReportCtrl">
-	<center ng-if="loading"><h2 class="pre-loader"><b>Loading....</b></h2></center>
+	<center ng-if="::loading"><h2 class="pre-loader"><b>Loading....</b></h2></center>
     <br/>
-    <div class="ReportInfoMsg" ng-if="!loading" ng-cloak>
+    <div class="ReportInfoMsg" ng-if="::!loading" ng-cloak>
     		<ul>
                 <li class="orange">Draft</li>
                 <li class="yellow">Pending Approval</li>
@@ -291,7 +291,7 @@
             </ul>
         </div>
         <br/>
-    <div class="CalViewReport" id="CalTableHeight" ng-if="!loading" ng-cloak>
+    <div class="CalViewReport" id="CalTableHeight" ng-if="::!loading" ng-cloak>
     	  
         <div class="DataTable">
             <table cellpadding="0" cellspacing="0" border="0" id="itpm-report-table" class="CalDataTable">
@@ -339,15 +339,15 @@
                     
                 </thead>
                 <tbody>
-                	<tr ng-if="promo_data.length <= 0">
+                	<tr ng-if="::promo_data.length <= 0">
                         <td colspan="50" height="32px"><b>No Records Found.</b></td>
                     </tr>
-                	<tr ng-repeat="data in promo_data track by $index">
+                	<tr ng-repeat="data in ::promo_data track by $index">
                 		<td title="{{::data.entity}}">{{::data.entity}}</td>
                         <td>{{::data.item_desc}}</td>
                         <td title="{{::data.promo_type}}">{{::data.promo_type}}</td>
                         <td title={{::data.promo_desc}}>{{::data.promo_desc}}</td>
-                        <td><a href="/app/common/custom/custrecordentry.nl?rectype={{::data.promo_rec_type}}&id={{data.promo_id}}">{{data.promo_id}}</a></td>
+                        <td><a href="/app/common/custom/custrecordentry.nl?rectype={{::data.promo_rec_type}}&id={{::data.promo_id}}">{{::data.promo_id}}</a></td>
                         <td>{{::data.ship_startdate}}</td>
                         <td>{{::data.ship_enddate}}</td>
                         <td>{{::data.uom}}</td>
@@ -359,20 +359,20 @@
             </table>
         </div>
         <!-- ng-init="scrollToStartMonth()" -->
-        <div class="DataCal" id="CalTableScroll" ng-mouseup="mouseUp()" ng-mousedown="mouseDown($event)" ng-mousemove="mouseMove($event)">
+        <div class="DataCal" id="CalTableScroll">
             <table cellpadding="0" cellspacing="0" border="0" class="CalTable">
                 <thead>
                     <tr>
                     	<!-- Months Repeating -->
-                    	<th ng-repeat="month in months track by $index" ng-if="month.startMonth <= month.id && month.id <= month.endMonth"><br>{{::month.name}}-{{::month.year}}</th>
+                    	<th ng-repeat="month in ::months track by $index" ng-if="month.startMonth <= month.id && month.id <= month.endMonth"><br>{{::month.name}}-{{::month.year}}</th>
                     	<!-- <th ng-repeat="month in months track by $index" id="{{month.id}}" ng-class="{'monthActive':startMonth <= month.id && month.id <= endMonth}"><br>{{month.name}}</th> -->
                     </tr>
                     <tr class="CalTr2">
                     	 <!-- Months Weeks Repeating -->
-                    	<th ng-repeat="month in months track by $index" ng-if="month.startMonth <= month.id && month.id <= month.endMonth">
+                    	<th ng-repeat="month in ::months track by $index" ng-if="month.startMonth <= month.id && month.id <= month.endMonth">
                             <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.year == month.year && obj.month == month.id">
+                                    <td ng-repeat="obj in ::weeks track by $index" ng-if="obj.year == month.year && obj.month == month.id">
                                         <p>{{::obj.date}}</p>
                                     </td>
                                 </tr>
@@ -392,17 +392,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                	<tr ng-if="promo_data.length <= 0">
+                	<tr ng-if="::promo_data.length <= 0">
                         <td colspan="50" height="32px">&nbsp;</td>
                     </tr>
                     <!-- Data Columns Repeating -->
-                   <tr ng-repeat="promo_data in promo_data track by $index">
-                      <td ng-repeat="month in months track by $index" ng-if="month.startMonth <= month.id && month.id <= month.endMonth">
+                   <tr ng-repeat="promo_data in ::promo_data track by $index">
+                      <td ng-repeat="month in ::months track by $index" ng-if="month.startMonth <= month.id && month.id <= month.endMonth">
                        
                             <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td ng-repeat="obj in weeks track by $index" ng-if="month.year == obj.year && obj.month == month.id">
-                                        <p class="{{isRangeValid(promo_data,obj,month)?promo_data.promo_status.cls:''}}">&nbsp;</p>
+                                    <td ng-repeat="obj in ::weeks track by $index" ng-if="month.year == obj.year && obj.month == month.id">
+                                        <p class="{{::isRangeValid(promo_data,obj,month)?promo_data.promo_status.cls:''}}">&nbsp;</p>
                                     </td>
                                 </tr>
                             </table>
@@ -438,29 +438,6 @@
 		console.log($scope.promo_data); */
 		//console.log($scope.startMonth,$scope.endMonth);
 		$scope.loading = false;
-		
-		var down=false;
-		var scrollLeft=0;
-		var x = 0;
-		
-		$scope.mouseDown = function(e){
-			 down = true;
-			 scrollLeft = document.getElementById('CalTableScroll').scrollLeft;
-			 x = e.clientX;
-		}
-		$scope.mouseUp = function(){
-			down = false;
-		}
-		$scope.mouseMove = function(e){
-			 if (down) {
-				 document.getElementById('CalTableScroll').scrollLeft = scrollLeft + x - e.clientX;
-			 }
-		}
-		$scope.scrollToStartMonth = function(){
-			setTimeout(function(){
-				document.getElementById('CalTableScroll').scrollLeft = $('#'+$scope.startMonth+'').position().left;
-			},100);
-		} 
 		
 		//validating the promotion date ranges between the weeks
 		$scope.isRangeValid = function(promo_data,obj,month){
