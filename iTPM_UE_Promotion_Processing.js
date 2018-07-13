@@ -155,7 +155,7 @@ define(['N/ui/serverWidget',
 		    			log.audit(true);
 		    			promoForm.addButton({
 							id:'custpage_planning_completed',
-							label:'Planning Completed',
+							label:'Process Plan',
 							functionName:'planningComplete('+promoRec.id+')'
 						});
 						promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
