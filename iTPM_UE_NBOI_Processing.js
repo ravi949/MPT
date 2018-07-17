@@ -98,7 +98,7 @@ define(['N/redirect',
 				log.debug('Usage : nbEstGov', nbEstGov);
 				log.debug('Usage : oiEstGov', oiEstGov);
 				log.debug('UE FINAL: ', runtime.getCurrentScript().getRemainingUsage());
-				if(nbEstGov < 900 && oiEstGov < 900){
+				if(nbEstGov < 500 && oiEstGov < 500){
 					redirect.toSuitelet({
 						scriptId: 'customscript_itpm_nb_processing' ,
 						deploymentId: 'customdeploy_itpm_nb_processing',

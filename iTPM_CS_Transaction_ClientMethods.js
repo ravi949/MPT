@@ -3,11 +3,11 @@
  * @NScriptType ClientScript
  * @NModuleScope TargetAccount
  */
-define(['N/ui/dialog'],
+define([],
 /**
- * @param {dialog} dialog
+ * 
  */
-function(dialog) {
+function() {
     /**
      * Validation function to be executed when record is saved.
      *
@@ -22,13 +22,10 @@ function(dialog) {
         	var transRecord = scriptContext.currentRecord;
         	if(transRecord.getValue('custbody_itpm_applydiscounts') && 
         	   transRecord.getValue('custbody_itpm_discounts_applied')){
-        		dialog.alert({
-        			title:'alert',
-        			message:'iTPM previously processed and applied off-invoice and net--bill allowances to this sales order.'+ 
-        			'If you proceed, you may create duplicate allowances on this sales order. Manually review and confirm the accuracy of all discounts and net-bill amounts.'
-        		}).then(function(success){
-        			console.log(success);
-        		});
+        		var success = confirm('iTPM previously processed and applied off-invoice and net--bill allowances to this sales order.'+ 
+        			'If you proceed, you may create duplicate allowances on this sales order. Manually review and confirm the accuracy of all discounts and net-bill amounts.');
+        		return success;
+        		
         	}
         	return true;
     	}catch(ex){
