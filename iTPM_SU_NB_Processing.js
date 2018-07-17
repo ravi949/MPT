@@ -57,6 +57,18 @@ define(['N/record',
 						fieldId   : 'item',
 						line      : i
 					});
+					
+					//skipping the discount item from the list
+					var itemType = search.lookupFields({
+						type:search.Type.ITEM,
+						id:lineItem,
+						columns:['recordtype']
+					}).recordtype;
+					
+					if(itemType == "discountitem"){
+						continue;
+					}
+					
 					var quantity = transRec.getSublistValue({
 						sublistId : 'item',
 						fieldId   : 'quantity',

@@ -88,7 +88,7 @@ function(record, search, runtime, itpm) {
     		//Getting the Promotion Type ID
     		var promoTypeId = search.lookupFields({
     		    type:'customrecord_itpm_promotiondeal',
-    		    id:38,
+    		    id:promoID,
     		    columns:['custrecord_itpm_p_type']
     		}).custrecord_itpm_p_type[0].value;
     		log.debug('promoTypeId  ',promoTypeId);

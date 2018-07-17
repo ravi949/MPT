@@ -3,11 +3,76 @@
  * @NScriptType UserEventScript
  * @NModuleScope TargetAccount
  */
-define(['N/redirect', 'N/search', 'N/runtime', 'N/record'],
-		/**
-		 * @param {redirect} redirect
-		 */
-		function(redirect,search,runtime,record) {
+define(['N/redirect', 
+        'N/search', 
+        'N/runtime', 
+        'N/record',
+        'N/ui/serverWidget'],
+	/**
+	* @param {redirect} redirect
+	* @param {search} search
+	* @param {runtime} runtime
+	* @param {record} record
+	* @param {serverWidget} serverWidget
+	*/
+	function(redirect, search, runtime, record, serverWidget) {
+
+	/**
+	 * Function definition to be triggered before record is loaded.
+	 *
+	 * @param {Object} scriptContext
+	 * @param {Record} scriptContext.newRecord - New record
+	 * @param {string} scriptContext.type - Trigger type
+	 * @param {Form} scriptContext.form - Current form
+	 * @Since 2015.2
+	 */
+	function beforeLoad(scriptContext) {
+		try{
+			var tranRec = scriptContext.newRecord;
+			//after Planing Completed showing the progress message while batch process running
+			var tranItpmDiscount = tranRec.getValue('custbody_itpm_applydiscounts');
+			var tranItpmDisApplied = tranRec.getValue('custbody_itpm_discounts_applied');
+			if((scriptContext.type == 'view' || scriptContext.type == 'edit') && 
+				tranItpmDiscount && !tranItpmDisApplied){
+				var msgText = "Please wait! iTPM is processing off-invoice and net-bill allowances for this sales order."+
+				" To prevent invoicing errors, wait to approve and/or fulfill this order until processing is completed. This process runs every 15 minutes. ";
+				scriptContext.form.addField({
+					id:'custpage_nboiprocessing_message',
+					type:serverWidget.FieldType.INLINEHTML,
+					label:'script'
+				}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+			}
+		} catch(ex) {
+			log.error('NBOI_UE_BeforeLoad', ex.name + '; message: ' + ex.message +'; Id:' + scriptContext.newRecord.id);
+		}
+
+	}
+	
+	
+	/**
+	 * Function definition to be triggered before record is loaded.
+	 *
+	 * @param {Object} scriptContext
+	 * @param {Record} scriptContext.newRecord - New record
+	 * @param {Record} scriptContext.oldRecord - Old record
+	 * @param {string} scriptContext.type - Trigger type
+	 * @Since 2015.2
+	 */
+	function beforeSubmit(scriptContext) {
+		try{
+			var transRecord = scriptContext.newRecord;
+			if(scriptContext.type == 'edit' && transRecord.getValue('custbody_itpm_applydiscounts')){
+				transRecord.setValue({
+					fieldId:'custbody_itpm_discounts_applied',
+					value:false
+				});
+			}
+		}catch(ex){
+			log.error(ex.name ,ex.message);
+		}
+	}
+	
+	
 	/**
 	 * Function definition to be triggered before record is loaded.
 	 *
@@ -19,15 +84,10 @@ define(['N/redirect', 'N/search', 'N/runtime', 'N/record'],
 	 */
 	function afterSubmit(scriptContext) {
 		try{
-			
-			/*var transRecord =record.load({
-				type: scriptContext.newRecord.type, 
-				id: scriptContext.newRecord.id,
-				isDynamic: true
-			});*/
 			var transRecord = scriptContext.newRecord;
-			if(scriptContext.type == 'create' && transRecord.getValue('custbody_itpm_applydiscounts')){
-//			if(scriptContext.type == 'create'){
+			if((scriptContext.type == 'create' || scriptContext.type == 'edit') && 
+				transRecord.getValue('custbody_itpm_applydiscounts') && 
+				!transRecord.getValue('custbody_itpm_discounts_applied')){
 
 				//fetching Preferance data
 				var prefDatesType = getPrefDiscountDateValue();
@@ -51,6 +111,13 @@ define(['N/redirect', 'N/search', 'N/runtime', 'N/record'],
 		}
 
 	}
+	
+	/**
+	 * @param {string} allowanceType
+	 * @param {string} transRecId
+	 * @param {string} transRecType
+	 * @param {string} prefDatesType
+	 */
 	function getEstGovernance(allowanceType, transRecId, transRecType, prefDatesType){
 		
 		var transRec = record.load({
@@ -94,6 +161,15 @@ define(['N/redirect', 'N/search', 'N/runtime', 'N/record'],
 		estGov = estGov + 20;
 		return estGov;
 	}
+	
+	/**
+	 * @param {string} prefDatesType
+	 * @param {string} item
+	 * @param {string} customer
+	 * @param {string} trandate
+	 * @param {string} allowanceType
+	 * @return {object} searchObject
+	 */
 	function getAllowanceItems(prefDatesType, item, customer, trandate, allowanceType){
 		var tranFilters = [
 		                   ['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_status','anyof','3'], //here 3 means status is Approved
@@ -149,6 +225,10 @@ define(['N/redirect', 'N/search', 'N/runtime', 'N/record'],
 		});    	
 		return searchObj.run();
 	}
+	
+	/**
+	 * @return discount date value
+	 */
 	function getPrefDiscountDateValue(){
 		try{
 			var searchObj = search.create({
@@ -165,11 +245,15 @@ define(['N/redirect', 'N/search', 'N/runtime', 'N/record'],
 				id:searchResults[0].getValue('internalid')
 			});
 			return loadedRec.getValue({fieldId: 'custrecord_itpm_pref_discountdates'});
-		}catch(e){
-			log.error(e.name, e.message);
+		}catch(ex){
+			log.error(ex.name, ex.message);
 		}    	
 	}
+	
+	
 	return {
+		beforeLoad: beforeLoad,
+		beforeSubmit: beforeSubmit,
 		afterSubmit: afterSubmit
 	};
 
