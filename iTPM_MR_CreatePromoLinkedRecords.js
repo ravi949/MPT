@@ -572,9 +572,9 @@ function(record, search, runtime, itpm) {
 		if(tempAllPer > 0 && tempAllRate > 0)
 			allType = prefObj.defaultAllwType;
 		else if(tempAllPer > 0)
-			allType = 1;
-		else 
 			allType = 2;
+		else 
+			allType = 1;
 		//log.audit('allNewRec ',allNewRec);
 		allNewRec.setValue({
 			fieldId:'custrecord_itpm_all_promotiondeal',
@@ -602,7 +602,7 @@ function(record, search, runtime, itpm) {
 			value:promoPlanValues.promoTypeLookupForAccount
 		}).setValue({
 			fieldId:"custrecord_itpm_all_type",
-			value:prefObj.defaultAllwType
+			value:allType
 		}).setValue({
 			fieldId:"custrecord_itpm_all_mop",
 			value:promoPlanValues.allMOP
@@ -611,7 +611,7 @@ function(record, search, runtime, itpm) {
 			value:tempAllPer
 		}).setValue({
 			fieldId:"custrecord_itpm_all_allowancerate",
-			value:tempAllRate
+			value:tempAllRate.toFixed(2)
 		});//custrecord_itpm_all_pricelevel
 		var allNewRecId = allNewRec.save({
 			enableSourcing:false,
