@@ -56,6 +56,17 @@ define(['N/search',
 						fieldId   : 'item',
 						line      : i
 					});
+					
+					//skipping the discount item from the list
+					var itemType = search.lookupFields({
+						type:search.Type.ITEM,
+						id:lineItem,
+						columns:['recordtype']
+					}).recordtype;
+					
+					if(itemType == "discountitem"){
+						continue;
+					}
 
 					var quantity = tranRecObj.getSublistValue({
 						sublistId : 'item',
@@ -221,8 +232,10 @@ define(['N/search',
 				tranRecObj.setValue({
 					fieldId: "custbody_itpm_applydiscounts",
 					value: false
-				});
-				tranRecObj.save({
+				}).setValue({
+					fieldId:'custbody_itpm_discounts_applied',
+					value:true
+				}).save({
 					enableSourcing: true,
 					ignoreMandatoryFields: true
 				});
@@ -234,7 +247,7 @@ define(['N/search',
 				log.debug('Usage: Final', runtime.getCurrentScript().getRemainingUsage());
 			}
 		}catch(e){
-			log.error(e.anme, e.message);
+			log.error(e.name, e.message);
 		}
 	}
 	

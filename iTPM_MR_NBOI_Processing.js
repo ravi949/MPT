@@ -52,7 +52,9 @@ function(search, record, runtime, itpm) {
 			       	   	    "AND",
    			       	   	   ["item","noneof","@NONE@"], 
     			       	   	"AND", 
-    			       	   ["custbody_itpm_applydiscounts","is","T"]
+    			       	   ["custbody_itpm_applydiscounts","is","T"],
+    			       	   "AND",
+    			       	   ["custbody_itpm_discounts_applied","is","F"]
     			       	  ]
     		});
     	}catch(e){
@@ -84,6 +86,18 @@ function(search, record, runtime, itpm) {
     		var lineUnit = mapData['saleunit.item'].value;
     		var lineRate = mapData.rate;
     		var lineAmount = mapData.amount;
+    		
+    		
+    		//skipping the discount item from the list
+			var itemType = search.lookupFields({
+				type:search.Type.ITEM,
+				id:lineItem,
+				columns:['recordtype']
+			}).recordtype;
+			
+			if(itemType == "discountitem"){
+				return;
+			}
     		
     		log.audit('===== Usage: START =====', runtime.getCurrentScript().getRemainingUsage());
     		var subsidairyId = (itpm.subsidiariesEnabled())?subsidiary:undefined;
@@ -166,6 +180,18 @@ function(search, record, runtime, itpm) {
 					fieldId   : 'item',
 					line      : i
 				});
+    			
+    			//skipping the discount item from the list
+				var itemType = search.lookupFields({
+					type:search.Type.ITEM,
+					id:lineItem,
+					columns:['recordtype']
+				}).recordtype;
+				
+				if(itemType == "discountitem"){
+					continue;
+				}
+    			
     			var lineID = tranRecObj.getSublistValue({
 					sublistId : 'item',
 					fieldId   : 'line',
@@ -282,8 +308,10 @@ function(search, record, runtime, itpm) {
     		tranRecObj.setValue({
 				fieldId: "custbody_itpm_applydiscounts",
 				value: false
-			});
-    		tranRecObj.save({
+			}).setValue({
+				fieldId:'custbody_itpm_discounts_applied',
+				value:true
+			}).save({
 				enableSourcing: true,
 				ignoreMandatoryFields: true
 			});
