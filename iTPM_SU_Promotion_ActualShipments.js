@@ -298,12 +298,15 @@ function(serverWidget, search, record, format, url, itpm) {
 								line:i,
 								value:page.data[i].getText('item')
 							});
-							actualShipmentSublist.setSublistValue({
-								id:'custpage_item_description',
-								line:i,
-								value:page.data[i].getValue({name:'description',join:'item'})
-							});
-
+							
+							if(page.data[i].getValue({name:'description',join:'item'})){
+								actualShipmentSublist.setSublistValue({
+									id:'custpage_item_description',
+									line:i,
+									value:page.data[i].getValue({name:'description',join:'item'})
+								});
+							}
+							
 							actualShipmentSublist.setSublistValue({
 								id:'custpage_shippmentid',
 								line:i,
@@ -398,35 +401,50 @@ function(serverWidget, search, record, format, url, itpm) {
 					
 					//searching for the items which present in the promotion est qty.
 					itemFulResult = getItemFulfillmentSearch(searchColumnObj);
-					var i = 0;
+					var i = 0,itemDescription,itemUnit,quantityUOM;
 					itemFulResult.run().each(function(e){
 						itemSummarySublist.setSublistValue({
 							id:'custpage_itemsummary_item',
 							line:i,
 							value:e.getText({name:'item',summary:search.Summary.GROUP})
 						});
-						itemSummarySublist.setSublistValue({
-							id:'custpage_itemsummary_description',
-							line:i,
-							value:e.getValue({name:'description',join:'item',summary:search.Summary.GROUP})
-						});
-						if(yearResult == 'last52'){
+						
+						itemDescription = e.getValue({name:'description',join:'item',summary:search.Summary.GROUP});
+						quantityUOM		= e.getValue({name:'quantityuom',summary:search.Summary.SUM});
+						itemUnit 		= e.getText({name:'unit',summary:search.Summary.GROUP});
+						
+						if(itemDescription){
+							itemSummarySublist.setSublistValue({
+								id:'custpage_itemsummary_description',
+								line:i,
+								value:itemDescription
+							});
+						}
+
+						if(yearResult == 'last52' && quantityUOM){
 							itemSummarySublist.setSublistValue({
 								id:'custpage_itemsummary_average',
 								line:i,
-								value:(parseFloat(e.getValue({name:'quantityuom',summary:search.Summary.SUM}))/52).toFixed(2)
+								value:(parseFloat(quantityUOM)/52).toFixed(2)
 							});
 						}
-						itemSummarySublist.setSublistValue({
-							id:'custpage_itemsummary_uom',
-							line:i,
-							value: e.getText({name:'unit',summary:search.Summary.GROUP})
-						});
-						itemSummarySublist.setSublistValue({
-							id:'custpage_itemsummary_quantity',
-							line:i,
-							value: e.getValue({name:'quantityuom',summary:search.Summary.SUM})
-						});
+						
+						if(itemUnit){
+							itemSummarySublist.setSublistValue({
+								id:'custpage_itemsummary_uom',
+								line:i,
+								value:itemUnit
+							});
+						}
+						
+						if(quantityUOM){
+							itemSummarySublist.setSublistValue({
+								id:'custpage_itemsummary_quantity',
+								line:i,
+								value:quantityUOM
+							});
+						}
+
 						i++;
 						return true;
 					});
