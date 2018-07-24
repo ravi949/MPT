@@ -301,41 +301,43 @@ function(record, search, runtime, itpm) {
 						}else{
 							var unitsArray = itpm.getItemUnits(item.memberid)['unitArray']; //get the list of units array
 							log.debug('unitsArray',unitsArray);
-							var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == item.saleunit})[0].conversionRate); //member item sale unit rate conversion rate
-							log.debug('itemUnitRate',itemUnitRate);
-							var rateArray = unitsArray.filter(function(e){return e.id == promoPlanValues.itemUnit}); //member item base unit conversion rate
-							log.debug('rateArray',rateArray);
-							var rate = itemUnitRate;
-							if(rateArray.length > 0){
-								rate = parseFloat(rateArray[0].conversionRate);
-								promoPlanValues.itemUnitMissMatch = false;
-								log.debug('rate in If',rate); 
-							}else{
-								log.debug('rate in else',rate);
-								promoPlanValues.itemUnitMissMatch = true;
-								unitMisMatchedItems.push(item.itemname);
-							}
-
-							groupItems.push(item.memberid);
-							allowanceRecordCreate(item, promoPlanValues, promoPalnKey, prefObj, itemUnitRate, rate);
-							estQtyRecordCreate(item, promoPlanValues, promoPalnKey, groupItems, itemCount, (i+1) == itemCount);
-							retailInfoRecordCreate(item, promoPlanValues, promoPalnKey, (i+1) == itemCount, listOfItems);
-
-							//Submitting response with empty string if process is successful
-							log.debug('EMPTY: ####', promoPlanRecId);
-							record.submitFields({
-								type: 'customrecord_itpm_promotion_planning',
-								id: promoPlanRecId,
-								values: {
-									'custrecord_itpm_pp_response': '',
-									'custrecord_itpm_pp_processed': 'T'
-								},
-								options: {
-									enableSourcing: false,
-									ignoreMandatoryFields : true
+							if(unitsArray.length > 0){
+								var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == item.saleunit})[0].conversionRate); //member item sale unit rate conversion rate
+								log.debug('itemUnitRate',itemUnitRate);
+								var rateArray = unitsArray.filter(function(e){return e.id == promoPlanValues.itemUnit}); //member item base unit conversion rate
+								log.debug('rateArray',rateArray);
+								var rate = itemUnitRate;
+								if(rateArray.length > 0){
+									rate = parseFloat(rateArray[0].conversionRate);
+									promoPlanValues.itemUnitMissMatch = false;
+									log.debug('rate in If',rate); 
+								}else{
+									log.debug('rate in else',rate);
+									promoPlanValues.itemUnitMissMatch = true;
+									unitMisMatchedItems.push(item.itemname);
 								}
-							});
 
+								groupItems.push(item.memberid);
+								allowanceRecordCreate(item, promoPlanValues, promoPalnKey, prefObj, itemUnitRate, rate);
+								estQtyRecordCreate(item, promoPlanValues, promoPalnKey, groupItems, itemCount, (i+1) == itemCount);
+								retailInfoRecordCreate(item, promoPlanValues, promoPalnKey, (i+1) == itemCount, listOfItems);
+
+								//Submitting response with empty string if process is successful
+								log.debug('EMPTY: ####', promoPlanRecId);
+								record.submitFields({
+									type: 'customrecord_itpm_promotion_planning',
+									id: promoPlanRecId,
+									values: {
+										'custrecord_itpm_pp_response': '',
+										'custrecord_itpm_pp_processed': 'T'
+									},
+									options: {
+										enableSourcing: false,
+										ignoreMandatoryFields : true
+									}
+								});
+							
+							}
 						}
 					});
 					
@@ -375,7 +377,7 @@ function(record, search, runtime, itpm) {
 							type: 'customrecord_itpm_promotion_planning',
 							id: promoPlanRecId,
 							values: {
-								'custrecord_itpm_pp_response': 'The selected items('+listOfItemNames+') is already created and it does not allow additional discounts',
+								'custrecord_itpm_pp_response': 'The selected items('+listOfItemNames+') is already created and it does not allow additional discounts'
 							},
 							options: {
 								enableSourcing: false,
@@ -392,14 +394,15 @@ function(record, search, runtime, itpm) {
 	                			 ['custrecord_itpm_all_promotiondeal','anyof',promoId],'and',
 	                			 ['custrecord_itpm_all_allowaddnaldiscounts','is',false],'and',
 	                			 ['isinactive','is',false]]
-                	}).run().getRange(0,2).length > 0;
+                	}).run().getRange(0,2);
                 	log.audit('itemExist',itemExist);
-                	if(itemExist){
+                	if(itemExist.length > 0){
                 		record.submitFields({
 							type: 'customrecord_itpm_promotion_planning',
 							id: promoPlanRecId,
 							values: {
-								'custrecord_itpm_pp_response': 'The selected item is already created and it does not allow additional discounts',
+								'custrecord_itpm_pp_response': 'The selected items('+itemExist[0].getText('custrecord_itpm_all_item')+') is already created and it does not allow additional discounts',
+            					'custrecord_itpm_pp_processed': 'F'
 							},
 							options: {
 								enableSourcing: false,
@@ -439,52 +442,67 @@ function(record, search, runtime, itpm) {
 //              			log.debug('item in individual item',item);
                 			var unitsArray = itpm.getItemUnits(item.memberid)['unitArray']; //get the list of unists array
                 			log.debug('unitsArray',unitsArray);
-                			var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == item.saleunit})[0].conversionRate); //member item sale unit rate conversion rate
-                			log.debug('itemUnitRate',itemUnitRate);
-                			var rateArray = unitsArray.filter(function(e){return e.id == promoPlanValues.itemUnit}); //member item base unit conversion rate
-                			log.debug('rateArray',rateArray);
-                			var rate = itemUnitRate;
-                			if(rateArray.length > 0){
-                				rate = parseFloat(rateArray[0].conversionRate);
-                				promoPlanValues.itemUnitMissMatch = false;
-                				log.debug('rate in If',rate); 
+                			if(unitsArray.length > 0){
+                				var itemUnitRate = parseFloat(unitsArray.filter(function(e){return e.id == item.saleunit})[0].conversionRate); //member item sale unit rate conversion rate
+                    			log.debug('itemUnitRate',itemUnitRate);
+                    			var rateArray = unitsArray.filter(function(e){return e.id == promoPlanValues.itemUnit}); //member item base unit conversion rate
+                    			log.debug('rateArray',rateArray);
+                    			var rate = itemUnitRate;
+                    			if(rateArray.length > 0){
+                    				rate = parseFloat(rateArray[0].conversionRate);
+                    				promoPlanValues.itemUnitMissMatch = false;
+                    				log.debug('rate in If',rate); 
+                    			}else{
+                    				promoPlanValues.itemUnitMissMatch = true;							
+                    			}
+
+                    			allowanceRecordCreate(item, promoPlanValues, promoPalnKey, prefObj, itemUnitRate, rate);
+                    			estQtyRecordCreate(item, promoPlanValues, promoPalnKey, groupItems, 1, false);
+                    			retailInfoRecordCreate(item, promoPlanValues, promoPalnKey, false, []);
+
+                    			//Submitting response with empty string if process is successful
+                    			log.debug('EMPTY: ****', promoPlanRecId);
+                    			record.submitFields({
+                    				type: 'customrecord_itpm_promotion_planning',
+                    				id: promoPlanRecId,
+                    				values: {
+                    					'custrecord_itpm_pp_response': '',
+                    					'custrecord_itpm_pp_processed': 'T'
+                    				},
+                    				options: {
+                    					enableSourcing: false,
+                    					ignoreMandatoryFields : true
+                    				}
+                    			});
+                    			if(rateArray.length <= 0){
+                    				log.debug('Selected Item units are not matched with Item units', promoPlanRecId);
+                    				record.submitFields({
+                    					type: 'customrecord_itpm_promotion_planning',
+                    					id: promoPlanRecId,
+                    					values: {
+                    						'custrecord_itpm_pp_response': "The UOM you selected is not valid for this items ("+itemLookup.itemid+"). UOM changed to the item's sales unit.",
+                    						'custrecord_itpm_pp_processed': 'T'
+                    					},
+                    					options: {
+                    						enableSourcing: false,
+                    						ignoreMandatoryFields : true
+                    					}
+                    				});
+                    			}
                 			}else{
-                				promoPlanValues.itemUnitMissMatch = true;							
-                			}
-
-                			allowanceRecordCreate(item, promoPlanValues, promoPalnKey, prefObj, itemUnitRate, rate);
-                			estQtyRecordCreate(item, promoPlanValues, promoPalnKey, groupItems, 1, false);
-                			retailInfoRecordCreate(item, promoPlanValues, promoPalnKey, false, []);
-
-                			//Submitting response with empty string if process is successful
-                			log.debug('EMPTY: ****', promoPlanRecId);
-                			record.submitFields({
-                				type: 'customrecord_itpm_promotion_planning',
-                				id: promoPlanRecId,
-                				values: {
-                					'custrecord_itpm_pp_response': '',
-                					'custrecord_itpm_pp_processed': 'T'
-                				},
-                				options: {
-                					enableSourcing: false,
-                					ignoreMandatoryFields : true
-                				}
-                			});
-                			if(rateArray.length <= 0){
-                				log.debug('Selected Item units are not matched with Item units', promoPlanRecId);
                 				record.submitFields({
-                					type: 'customrecord_itpm_promotion_planning',
-                					id: promoPlanRecId,
-                					values: {
-                						'custrecord_itpm_pp_response': "The UOM you selected is not valid for this item. UOM changed to the item's sales unit.",
-                						'custrecord_itpm_pp_processed': 'T'
-                					},
-                					options: {
-                						enableSourcing: false,
-                						ignoreMandatoryFields : true
-                					}
-                				});
-                			}
+                    				type: 'customrecord_itpm_promotion_planning',
+                    				id: promoPlanRecId,
+                    				values: {
+                    					'custrecord_itpm_pp_response': "The selected items ("+itemLookup.itemid+") has no units.",
+                    					'custrecord_itpm_pp_processed': 'F'
+                    				},
+                    				options: {
+                    					enableSourcing: false,
+                    					ignoreMandatoryFields : true
+                    				}
+                    			});
+                			}                			
                 		}
                 	}
 
