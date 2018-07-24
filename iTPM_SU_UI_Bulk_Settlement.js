@@ -198,8 +198,8 @@ function(ui, search, redirect, record, itpm) {
     	    label : 'Cancel',
     	    functionName:"redirectToBack"
     	});
-    	
-    	form.clientScriptModulePath =  './iTPM_Attach_Promotion_ClientMethods.js';
+    	//Attaching client script for redirect to back
+    	form.clientScriptModulePath =  './iTPM_Attach_Deduction_Buttons.js';
 		
 		//Fetching all sub-customers of customer on the Promotion
 		var subcustomers = itpm.getSubCustomers(params.pcustomer);
