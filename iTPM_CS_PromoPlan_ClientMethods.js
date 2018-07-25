@@ -30,6 +30,7 @@ function(record, search, dialog) {
     		var promoPlanRec = scriptContext.currentRecord;
     		if(scriptContext.fieldId == 'custrecord_itpm_pp_mop'){
     			var isValidMOP =  validMOP(promoPlanRec.getValue('custrecord_itpm_pp_promotion'),promoPlanRec.getValue('custrecord_itpm_pp_mop'));
+    			console.log('isValidMOP',isValidMOP);
     		}
     	}catch(e){
 			log.error(e.name,e.message);
@@ -50,10 +51,11 @@ function(record, search, dialog) {
     	try{
     		var promoPlanRec = scriptContext.currentRecord;
     		var isValidMOP = validMOP(promoPlanRec.getValue('custrecord_itpm_pp_promotion'),promoPlanRec.getValue('custrecord_itpm_pp_mop'));
+    		console.log('isValidMOP',isValidMOP);
     		if(isValidMOP){    			
-    	    	return false;
-    		}else{
     	    	return true;
+    		}else{
+    	    	return false;
     		} 
     	}catch(e){
 			log.error(e.name,e.message);
