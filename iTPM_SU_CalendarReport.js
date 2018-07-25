@@ -305,7 +305,7 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 					name:'Content-Disposition',
 					value:'inline; filename ='+calendarLookupFields["name"]+'.csv'
 				});
-				log.debug('download csv usage', runtime.getCurrentScript().getRemainingUsage());
+				log.debug('download csv usage', scriptObj.getRemainingUsage());
 				response.write({
 					output:fileOutput
 				});
