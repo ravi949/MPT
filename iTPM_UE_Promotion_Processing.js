@@ -177,8 +177,8 @@ define(['N/ui/serverWidget',
 					var promoPlaningProgress = promoRec.getValue('custrecord_itpm_p_ispromoplancomplete');
 					if(promoPlaningProgress){
 						var msgText = "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
-						              "and made available under the subtabs by the same name. This process runs at 0, 15, 30 and 45 minutes "+
-						              "after the hour. Any allowances by item groups will be expanded to the associated items.";
+						              "and made available under the subtabs by the same name. Please wait for processing to complete. "+
+						              "Any allowances by item groups will be expanded to the associated items.";
 							scriptContext.form.addField({
 								id:'custpage_planingprogress_message',
 								type:serverWidget.FieldType.INLINEHTML,
