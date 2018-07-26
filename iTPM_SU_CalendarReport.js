@@ -53,7 +53,7 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 				form.addField({
 					id : 'custpage_itpm_cal_mainname',
 					type : serverWidget.FieldType.TEXT,
-					label : 'Name',
+					label : 'ID',
 					container:'custpage_itpm_cal_fields'
 				}).updateDisplayType({
 					displayType : serverWidget.FieldDisplayType.INLINE
@@ -196,9 +196,7 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 				var renderer = render.create();
 				var xmlOutput = null;
 
-				var promoRecTypeId = record.create({
-					type:'customrecord_itpm_promotiondeal'
-				}).getValue('rectype');
+				var promoRecTypeId = scriptObj.getParameter({name: 'custscript_itpm_promotype_recordtypeid'})
 
 				var dataObj = getPromotionData(calendarRecLookup, promoRecTypeId);    			
 				var promoData = dataObj.finalResults;
