@@ -1,13 +1,16 @@
 /**
  * @NApiVersion 2.x
+ *  @NScriptType ClientScript
  * @NModuleScope TargetAccount
  */
 define(['N/url',
 		'N/ui/message',
-		'N/record'
+		'N/record',
+		'N/ui/dialog',
+		'N/search'
 	   ],
 
-function(url, message, record) {
+function(url, message, record, dialog, search) {
 	
 	function displayMessage(title,text){
 		try{
@@ -111,8 +114,61 @@ function(url, message, record) {
 	function redirectToBack(){
 		history.go(-1);
 	}
-	
+    /**
+     * Validation function to be executed when sublist line is committed.
+     *
+     * @param {Object} scriptContext
+     * @param {Record} scriptContext.currentRecord - Current form record
+     * @param {string} scriptContext.sublistId - Sublist name
+     *
+     * @returns {boolean} Return true if sublist line is valid
+     *
+     * @since 2015.2
+     */
+    function validateLine(scriptContext) {
+    	try{
+    		var promoRec = scriptContext.currentRecord;
+    		if(promoRec.getValue('custrecord_itpm_p_type')){
+    			var promoTypeLookup = search.lookupFields({
+        		    type:'customrecord_itpm_promotiontype',
+        		    id:promoRec.getValue('custrecord_itpm_p_type'),
+        		    columns:['custrecord_itpm_pt_validmop']
+        		});
+            	console.log('promoTypeLookup   '+promoTypeLookup.custrecord_itpm_pt_validmop[0].text);
+            	var allMOP = promoRec.getCurrentSublistValue({
+            	    sublistId: scriptContext.sublistId,
+            	    fieldId: 'custrecord_itpm_pp_mop'
+            	});
+            	console.log(allMOP);
+        		var isValidMOP = promoTypeLookup.custrecord_itpm_pt_validmop.some(function(e){return e.value == allMOP});
+        		console.log('isValidMOP',isValidMOP);
+            	if(isValidMOP){
+            		return true;
+            	}else{
+            		dialog.alert({
+                        title: 'Warning',
+                        message: 'The selected Method Of Payment is not valid. <br>'+
+                        		 '<br> Valid Method Of Payments are "'+
+                        		 promoTypeLookup.custrecord_itpm_pt_validmop.map(function(e){ return e.text}).join(",")+'".'
+                    });
+            		return false;
+            	}
+    		}else{
+    			dialog.alert({
+                    title: 'Warning',
+                    message: 'Select the Promotion Type.' 
+                });
+    			return false;
+    		}
+        	
+    	}catch(e){
+			log.error(e.name,e.message);
+			console.log(e.name,'function name = validateLine, message = '+e.message);
+		}
+    }
+       
 	return {
+        validateLine: validateLine,
         newSettlement:newSettlement,
         refreshKPIs : refreshKPIs,
         bulkSettlements : bulkSettlements,
