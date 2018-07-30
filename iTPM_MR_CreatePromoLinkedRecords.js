@@ -175,7 +175,7 @@ function(record, search, runtime, itpm) {
     		var unitMisMatchedItems = []; // Unit miss matched items to show in Promotion Planning record RESPONSE field.
     		var zeroBasePriceItems = []; //to store the item name where base price of item is zero
     		
-    		log.error('=====GOVERNANCE START===== palnId: '+promoPlanRecId+' promoId: '+promoId, runtime.getCurrentScript().getRemainingUsage());
+    		log.audit('=====GOVERNANCE START===== palnId: '+promoPlanRecId+' promoId: '+promoId, runtime.getCurrentScript().getRemainingUsage());
     		var promoLookup = search.lookupFields({
     		    type:'customrecord_itpm_promotiondeal',
     		    id:promoId,
@@ -524,7 +524,7 @@ function(record, search, runtime, itpm) {
         			}
         		});
     		}
-    		log.error('=====GOVERNANCE END=====promoPlanRecId: '+promoPlanRecId+' promoId: '+promoId, runtime.getCurrentScript().getRemainingUsage());
+    		log.audit('=====GOVERNANCE END=====promoPlanRecId: '+promoPlanRecId+' promoId: '+promoId, runtime.getCurrentScript().getRemainingUsage());
     		
         	//For unchecking the Promotion Is Planning Completed Check-box.
         	context.write({key:promoId, value:0});
