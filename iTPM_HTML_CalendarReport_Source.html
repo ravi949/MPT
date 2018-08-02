@@ -1,0 +1,478 @@
+
+<!DOCTYPE html>
+<html lang="en" ng-app="itpmReportApp">
+
+<head>
+    <script src=${urlObj.itpm_jquery}></script>
+	<script src=${urlObj.itpm_angular}></script>
+	<script src=${urlObj.itpm_angular_bootstrap}></script>
+	<script src=${urlObj.itpm_angular_bootstrap_tpls}></script>
+	<script src=${urlObj.itpm_angular_draggable}></script>	
+	<style>
+		.CalViewReport {
+		    margin: 0 auto;
+		    background: #FFF;
+		    font-family: Arial, Helvetica, sans-serif;
+		}
+		
+		.DataTable,
+		.DataCal {
+		    float: left;
+		    margin: 0;
+		    padding: 0;		    
+		}
+		
+		.DataTable {
+		    width: 59%;
+		}
+		
+		.DataCal {
+		    width: 40%;
+		    max-width: 800px !important;
+		    -webkit-user-select: none; /* Safari 3.1+ */
+		    -moz-user-select: none; /* Firefox 2+ */
+		    -ms-user-select: none; /* IE 10+ */
+		    user-select: none; /* Standard syntax */
+		}
+		
+		.CalDataTable thead tr th {
+		    text-align: left;
+		}
+		
+		@media screen and (max-width: 1024px) {
+		    .DataTable {
+		        width: 69%;
+		    }
+		    .DataCal {
+		        width: 30%;
+		    }
+		}
+		
+		.CalDataTable,
+		.CalTable {
+		    border: 1px solid #a9b1b4;
+		    border-bottom: none;
+		}
+		
+		.CalTable {
+		    border-left: none;
+		    border-right: none;
+		}
+		
+		.CalDataTable {
+		    border-right: none;
+		    width: 100%;
+		}
+		
+		.DataCal {
+		    border-right: 1px solid #a9b1b4;
+		}
+		
+		.DataCal,
+		CalTable {
+		    overflow-x: scroll;
+		}
+		
+		.CalDataTable thead tr,
+		.CalTable thead tr {
+		    background: #e5e5e5;
+		}
+		
+		.CalDataTable thead tr th {
+		    font-size: 12px;
+		    font-weight: 700;
+		    padding: 5px;
+		    border-bottom: 1px solid #000;
+		}
+		
+		.CalDataTable thead tr th.nobrd {
+		    border-bottom: 1px solid transparent;
+		}
+		
+		.CalTable thead tr th {
+		    font-size: 12px;
+		    font-weight: 700;
+		    padding: 5px;
+		    border-bottom: 1px solid #000;
+		}
+		
+		.CalDataTable tbody tr td,
+		.CalTable tbody tr td {
+		    font-size: 13px;
+		    padding: 0;
+		    border-bottom: 1px solid #a9b1b4;
+		    overflow: hidden;
+		    text-overflow: ellipsis;
+		    white-space: nowrap;
+		    max-width: auto;
+		}
+		
+		.CalDataTable tbody tr td:nth-child(1),
+		.CalDataTable tbody tr td:nth-child(2),
+		.CalDataTable tbody tr td:nth-child(3),
+		.CalDataTable tbody tr td:nth-child(4) {
+		    max-width: 84px;
+		}
+		
+		.CalDataTable thead tr th,
+		.CalDataTable tbody tr td {
+		    border-right: 1px solid #a9b1b4;
+		}
+		
+		.CalDataTable thead tr th:not(:first-child),
+		.CalDataTable tbody tr td:not(:first-child) {
+		    padding: 5px;
+		}
+		
+		.CalDataTable thead tr th:first-child,
+		.CalDataTable tbody tr td:first-child {
+		    padding: 5px;
+		}
+		
+		.CalTable thead tr th,
+		.CalTable tbody tr td {
+		    border-left: 1px dashed #607b86;
+		}
+		
+		.CalWeekDaysHeader {
+		    margin: 0;
+		    padding: 0;
+		}
+		
+		.CalTable table.CalWeekDaysHeader tr td {
+		    border-bottom: none !important;
+		    font-size: 12px !important;
+		    font-weight: 500;
+		    text-align: center;
+		    padding: 0;
+		}
+		
+		.DataCalBody tr td {
+		    border-bottom: none !important;
+		    font-size: 13px !important;
+		    font-weight: 500;
+		    width: 28px;
+		    text-align: center;
+		    padding: 5px;
+		}
+		
+		.CalTable table.CalWeekDaysHeader tr td:not(:last-child) {
+		    border-right: 1px solid #a9b1b4;
+		}
+		
+		.CalTable table.CalWeekDaysHeader tr td,
+		.DataCalBody tr td {
+		    border-left: none !important;
+		}
+		
+		.CalTr2 th {
+		    padding: 0 !important;
+		}
+		
+		.DataCalBody {
+		    margin: 0;
+		    padding: 0;
+		}
+		
+		
+		/* .DataCalBody tbody tr td {
+		    width: 25px !important;
+		    padding: 5px;
+		} */
+		
+		.DataCalBody tr td:not(:last-child) {
+		    border-right: 1px solid #a9b1b4;
+		}
+		
+		.CalWeekDaysHeader tr td p {
+		    display: inline-block;
+		    width: 25px;
+		    padding: 5px 0;
+		    margin: 0
+		}
+		
+		.DataCalBody tr td p {
+		    width: 25px;
+		    padding: 5px;
+		    margin: 0;
+		    box-sizing: border-box;
+		}
+		
+		.CalTable thead tr th:first-child,
+		.CalTable tbody tr td:first-child {
+		    border-left: none;
+		}
+		
+				
+		/*********** 
+		Status Colors
+		************/
+		
+		.status-blue {
+		    background: #1E88E5;
+		}
+		
+		.status-yellow {
+		    background: #FFDE03;
+		}
+		
+		.status-red {
+		    background: #FF3D00;
+		}
+		
+		.status-green {
+		    background: #7CB342;
+		}
+		
+		.status-orange {
+		    background: #FB8C00;
+		}
+		
+		.ReportInfoMsg ul {
+		    float: right;
+		    margin-right: 1%;
+		    ;
+		}
+		
+		.ReportInfoMsg::after {
+		    content: '';
+		    display: table;
+		    clear: both;
+		}
+		
+		.ReportInfoMsg ul li {
+		    display: inline-block;
+		    list-style-type: none;
+		    padding: 6px 12px;
+		    color: #000;
+		    font-size: 12px;
+		    border-radius: 2px;
+		}
+		
+		.ReportInfoMsg ul li.red {
+		    background: #FF3D00;
+		}
+		
+		.ReportInfoMsg ul li.blue {
+		    background: #1E88E5;
+		}
+		
+		.ReportInfoMsg ul li.green {
+		    background: #7CB342;
+		}
+		
+		.ReportInfoMsg ul li.orange {
+		    background: #FB8C00;
+		}
+		
+		.ReportInfoMsg ul li.yellow {
+		    background: #FFDE03;
+		}
+		.txtRight{
+			text-align:right;
+		}
+		.pre-loader{
+			font-size:20px;
+			margin-top:15%;
+		}
+	</style>
+</head>
+
+<body ng-controller="itpmReportCtrl">
+	<center ng-if="::loading"><h2 class="pre-loader"><b>Loading....</b></h2></center>
+    <br/>
+    <div class="ReportInfoMsg" ng-if="::!loading" ng-cloak>
+    		<ul>
+                <li class="orange">Draft</li>
+                <li class="yellow">Pending Approval</li>
+                <li class="green">Approved</li>
+                <li class="red">Rejected/Voided</li>
+                <li class="blue">Closed</li>
+            </ul>
+        </div>
+        <br/>
+    <div class="CalViewReport" id="CalTableHeight" ng-if="::!loading" ng-cloak>
+    	  
+        <div class="DataTable">
+            <table cellpadding="0" cellspacing="0" border="0" id="itpm-report-table" class="CalDataTable">
+                <thead>
+                    <tr>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                        <th class="nobrd">&nbsp;</th>
+                    </tr>
+                    <!-- <tr ng-if="promo_data.length > 0">
+                    	<th drag-me drop-me>Customer</th>
+                        <th drag-me drop-me>Item</th>
+                        <th drag-me drop-me>Promotion <br>Type</th>
+                        <th drag-me drop-me>Promotion</th>
+                        <th drag-me drop-me>ID</th>
+                        <th drag-me drop-me>Start Ship</th>
+                        <th drag-me drop-me>End Ship</th>
+                        <th drag-me drop-me>UOM</th>
+                        <th drag-me drop-me>MOP</th>
+                        <th drag-me drop-me>%</th>
+                        <th drag-me drop-me>Rate</th>
+                    </tr> -->
+                    
+                    <tr>
+                    	<th>Customer</th>
+                        <th>Item</th>
+                        <th>Promotion <br>Type</th>
+                        <th>Promotion</th>
+                        <th>ID</th>
+                        <th>Start Ship</th>
+                        <th>End Ship</th>
+                        <th>UOM</th>
+                        <th>MOP</th>
+                        <th>%</th>
+                        <th>Rate</th>
+                    </tr>
+                    
+                </thead>
+                <tbody>
+                	<tr ng-if="::promo_data.length <= 0">
+                        <td colspan="50" height="32px"><b>No Records Found.</b></td>
+                    </tr>
+                	<tr ng-repeat="data in ::promo_data track by $index">
+                		<td title="{{::data.entity}}">{{::data.entity}}</td>
+                        <td>{{::data.item_desc}}</td>
+                        <td title="{{::data.promo_type}}">{{::data.promo_type}}</td>
+                        <td title={{::data.promo_desc}}>{{::data.promo_desc}}</td>
+                        <td><a href="/app/common/custom/custrecordentry.nl?rectype={{::data.promo_rec_type}}&id={{::data.promo_id}}">{{::data.promo_id}}</a></td>
+                        <td>{{::data.ship_startdate}}</td>
+                        <td>{{::data.ship_enddate}}</td>
+                        <td>{{::data.uom}}</td>
+                        <td>{{::data.mop}}</td>
+                        <td class="txtRight">{{::data.percent_peruom}}</td>
+                        <td class="txtRight">{{::data.rate_peruom | number:2}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- ng-init="scrollToStartMonth()" -->
+        <div class="DataCal" id="CalTableScroll" ng-mouseup="mouseUp()" ng-mousedown="mouseDown($event)" ng-mousemove="mouseMove($event)">
+            <table cellpadding="0" cellspacing="0" border="0" class="CalTable">
+                <thead>
+                    <tr>
+                    	<!-- Months Repeating -->
+                    	<th ng-repeat="month in ::months track by $index" ng-if="month.startMonth <= month.id && month.id <= month.endMonth"><br>{{::month.name}}-{{::month.year}}</th>
+                    	<!-- <th ng-repeat="month in months track by $index" id="{{month.id}}" ng-class="{'monthActive':startMonth <= month.id && month.id <= endMonth}"><br>{{month.name}}</th> -->
+                    </tr>
+                    <tr class="CalTr2">
+                    	 <!-- Months Weeks Repeating -->
+                    	<th ng-repeat="month in ::months track by $index" ng-if="month.startMonth <= month.id && month.id <= month.endMonth">
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td ng-repeat="obj in ::weeks track by $index" ng-if="obj.year == month.year && obj.month == month.id">
+                                        <p>{{::obj.date}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th> 
+                        
+                        <!-- <th ng-repeat="month in months track by $index">
+                            <table class="CalWeekDaysHeader" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
+                                        <p>{{obj.date}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </th> -->
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                	<tr ng-if="::promo_data.length <= 0">
+                        <td colspan="50" height="32px">&nbsp;</td>
+                    </tr>
+                    <!-- Data Columns Repeating -->
+                   <tr ng-repeat="promo_data in ::promo_data track by $index">
+                      <td ng-repeat="month in ::months track by $index" ng-if="month.startMonth <= month.id && month.id <= month.endMonth">
+                       
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td ng-repeat="obj in ::weeks track by $index" ng-if="month.year == obj.year && obj.month == month.id">
+                                        <p class="{{::isRangeValid(promo_data,obj,month)?promo_data.promo_status.cls:''}}">&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- <tr ng-repeat="promo_data in promo_data track by $index">
+                        <td ng-repeat="month in months track by $index">
+                            <table class="DataCalBody" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td ng-repeat="obj in weeks track by $index" ng-if="obj.month == month.id">
+                                        <p class="{{(promo_data.sweek <= obj.week && obj.week <= promo_data.eweek)?promo_data.promo_status:''}}">&nbsp;</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr> -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+	$("tr[id*='custpage_itpm_cal_view']").children()[0].width = "100%";
+	angular.module('itpmReportApp',['Dragtable']).controller('itpmReportCtrl',function($scope){
+		$scope.loading = true;
+		$scope.promo_data = ${promotionData.list};
+		$scope.weeks = ${weeks.list};
+		/* console.log($scope.weeks); */
+		/* $scope.startMonth = ${datesObj.startMonth};
+		$scope.endMonth = ${datesObj.endMonth}; */
+		$scope.months = ${monthObj.list};
+		/* console.log($scope.months);
+		console.log($scope.promo_data); */
+		//console.log($scope.startMonth,$scope.endMonth);
+		$scope.loading = false;
+		
+		var down=false;
+		var scrollLeft=0;
+		var x = 0;
+		
+		$scope.mouseDown = function(e){
+			 down = true;
+			 scrollLeft = document.getElementById('CalTableScroll').scrollLeft;
+			 x = e.clientX;
+		}
+		$scope.mouseUp = function(){
+			down = false;
+		}
+		$scope.mouseMove = function(e){
+			 if (down) {
+				 document.getElementById('CalTableScroll').scrollLeft = scrollLeft + x - e.clientX;
+			 }
+		}
+		
+		//validating the promotion date ranges between the weeks
+		$scope.isRangeValid = function(promo_data,obj,month){
+			if(promo_data.syear == promo_data.eyear){
+				return (promo_data.syear == obj.year &&  promo_data.sweek <= obj.week && obj.week <= promo_data.eweek);
+			}else if(promo_data.syear != promo_data.eyear){
+				 if(month.year == promo_data.syear){
+					 return promo_data.sweek <= obj.week
+				 }else if(month.year == promo_data.eyear){
+					 return obj.week <= promo_data.eweek
+				 }
+			}
+			return false;
+		}
+	});
+	
+	
+	</script>
+
+</html> 

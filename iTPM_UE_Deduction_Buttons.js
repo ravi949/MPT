@@ -174,7 +174,7 @@ define(['N/runtime',
 			if (sc.type == sc.UserEventType.EDIT || sc.type == sc.UserEventType.XEDIT){
 				var exc = runtime.executionContext;
 				log.debug('UserEventType: ' + sc.type + '; ExecutionContext: ' + exc + '; RecordId: ' + sc.newRecord.id);
-				if (exc == runtime.ContextType.USEREVENT || exc == runtime.ContextType.SUITELET){
+				if (exc == runtime.ContextType.USEREVENT || exc == runtime.ContextType.SUITELET || exc == runtime.ContextType.MAP_REDUCE){
 					var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'});
 					var status = sc.oldRecord.getValue({fieldId:'transtatus'});
 					log.debug('OpenBal: ' + openBalance + '; Status: ' + status);

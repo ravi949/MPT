@@ -7,7 +7,7 @@ define(['N/record',
         'N/search',
         'N/redirect',
         'N/runtime',
-        './iTPM_Module'
+        './iTPM_Module.js'
         ],
 		/**
 		 * @param {record} record
@@ -36,9 +36,10 @@ define(['N/record',
 					id: request.parameters.id,
 					isDynamic: true
 				});
+				var subsidairyId = (itpm.subsidiariesEnabled())?transRec.getValue('subsidiary'):undefined;
 //				log.debug('Usage: After Loading TranRec ', runtime.getCurrentScript().getRemainingUsage());
 				log.debug('request.transRec.type',runtime.getCurrentScript().getRemainingUsage());
-				var prefDatesType = getPrefDiscountDateValue();
+				var prefDatesType = itpm.getPrefrenceValues(subsidairyId)['prefDiscountDate'];
 				log.debug('Usage: After getPrefDiscountDateValue ', runtime.getCurrentScript().getRemainingUsage());
 				var tranCustomer = transRec.getValue('entity');
 				var trandate = transRec.getText('trandate');  
@@ -56,6 +57,18 @@ define(['N/record',
 						fieldId   : 'item',
 						line      : i
 					});
+					
+					//skipping the discount item from the list
+					var itemType = search.lookupFields({
+						type:search.Type.ITEM,
+						id:lineItem,
+						columns:['recordtype']
+					}).recordtype;
+					
+					if(itemType == "discountitem"){
+						continue;
+					}
+					
 					var quantity = transRec.getSublistValue({
 						sublistId : 'item',
 						fieldId   : 'quantity',
@@ -114,7 +127,7 @@ define(['N/record',
 //						log.debug('tranItemFinalRatePer',tranItemFinalRatePer);
 //						log.debug('Allowance Id ',result.getValue({name:'id'}));
 						//Validating the Discount log custom record whether exist or not for the current transaction internalid
-						var discountRecExists = validateDiscountLogRecord(context.request.parameters.id, lineItem, i);
+						var discountRecExists = itpm.validateDiscountLog(context.request.parameters.id, lineItem, i);
 //						log.debug('Usage: After discountRecExists ', runtime.getCurrentScript().getRemainingUsage());
 						var discountLogLineValues = {
 								'sline_log' : discountRecExists['discountId'],
@@ -140,8 +153,8 @@ define(['N/record',
 						{
 //							log.debug('IF: discountRec Exists',discountRecExists['recordExists']+' & '+discountRecExists['discountId']);
 							//Adding lines to the existed Discount Log record
-							addDiscountLogLine(discountRecExists['discountId'], discountLogLineValues);
-//							log.debug('Usage: After addDiscountLogLine if', runtime.getCurrentScript().getRemainingUsage());
+							itpm.createDiscountLogLine(discountRecExists['discountId'], discountLogLineValues);
+//							log.debug('Usage: After createDiscountLogLine if', runtime.getCurrentScript().getRemainingUsage());
 						}
 						//If not exists, then create a sales discount log (custom record). Populate the fields. 
 						//Then create the sales discount line records (custom record, child of sales discount log)
@@ -161,11 +174,11 @@ define(['N/record',
 									'slog_lineamount'    : lineAmount
 							};
 							//Creating Discount Log record
-							var discountLogRecInternalID = addDiscountLog(discountLogValues);
+							var discountLogRecInternalID = itpm.createDiscountLog(discountLogValues);
 //							log.debug('Usage: After discountLogRecInternalID else', runtime.getCurrentScript().getRemainingUsage());
 							//Adding Discount Log Lines
-							addDiscountLogLine(discountLogRecInternalID, discountLogLineValues);
-//							log.debug('Usage: After addDiscountLogLine else', runtime.getCurrentScript().getRemainingUsage());
+							itpm.createDiscountLogLine(discountLogRecInternalID, discountLogLineValues);
+//							log.debug('Usage: After createDiscountLogLine else', runtime.getCurrentScript().getRemainingUsage());
 						}    					
 						j++;
 						log.debug('Usage: For each END  '+i, runtime.getCurrentScript().getRemainingUsage());
@@ -211,194 +224,7 @@ define(['N/record',
 			log.error(ex.name ,ex.message);
 		}
 	}
-	/**
-	 * @param {Object} discountLogValues
-	 * 
-	 * @return {String} discountLogRecID
-	 */
-	function addDiscountLog(discountLogValues){
-		var discountLogRecObj = record.create({
-			type: 'customrecord_itpm_discountlog',
-			isDynamic: true
-		});
-
-		discountLogRecObj.setValue({
-			fieldId: 'name',
-			value: discountLogValues.name,
-			ignoreFieldChange: true
-		});
-		discountLogRecObj.setValue({
-			fieldId: 'custrecord_itpm_slog_customer',
-			value: discountLogValues.slog_customer,
-			ignoreFieldChange: true
-		});
-		discountLogRecObj.setValue({
-			fieldId: 'custrecord_itpm_slog_transaction',
-			value: discountLogValues.slog_transaction,
-			ignoreFieldChange: true
-		});
-		discountLogRecObj.setValue({
-			fieldId: 'custrecord_itpm_slog_linenumber',
-			value: discountLogValues.slog_linenumber,
-			ignoreFieldChange: true
-		});
-		discountLogRecObj.setValue({
-			fieldId: 'custrecord_itpm_slog_lineitem',
-			value: discountLogValues.slog_lineitem,
-			ignoreFieldChange: true
-		});
-		discountLogRecObj.setValue({
-			fieldId: 'custrecord_itpm_slog_linequantity',
-			value: discountLogValues.slog_linequantity,
-			ignoreFieldChange: true
-		});
-		discountLogRecObj.setValue({
-			fieldId: 'custrecord_itpm_slog_linepricelevel',
-			value: discountLogValues.slog_linepricelevel,
-			ignoreFieldChange: true
-		});
-		discountLogRecObj.setValue({
-			fieldId: 'custrecord_itpm_slog_lineunit',
-			value: discountLogValues.slog_lineunit,
-			ignoreFieldChange: true
-		});
-		discountLogRecObj.setValue({
-			fieldId: 'custrecord_itpm_slog_linerate',
-			value: discountLogValues.slog_linerate,
-			ignoreFieldChange: true
-		});
-		discountLogRecObj.setValue({
-			fieldId: 'custrecord_itpm_slog_lineamount',
-			value: discountLogValues.slog_lineamount,
-			ignoreFieldChange: true
-		});
-
-		var discountLogRecID = discountLogRecObj.save({
-			enableSourcing: true,
-			ignoreMandatoryFields: true
-		});
-		return discountLogRecID;
-	}
-
-
-	/**
-	 * @param {String} recID
-	 * @param {Object} discountLogLineValues
-	 * 
-	 */
-	function addDiscountLogLine(recID, discountLogLineValues){
-		var discountLogLineRecObj = record.create({
-			type: 'customrecord_itpm_discountlogline',
-			isDynamic: true
-		});
-
-		discountLogLineRecObj.setValue({
-			fieldId: 'custrecord_itpm_sline_log',
-			value: recID,
-			ignoreFieldChange: true
-		});
-		discountLogLineRecObj.setValue({
-			fieldId: 'name',
-			value: discountLogLineValues.name,
-			ignoreFieldChange: true
-		});
-		discountLogLineRecObj.setValue({
-			fieldId: 'custrecord_itpm_sline_allpromotion',
-			value: discountLogLineValues.sline_allpromotion,
-			ignoreFieldChange: true
-		});
-		discountLogLineRecObj.setValue({
-			fieldId: 'custrecord_itpm_sline_allowance',
-			value: discountLogLineValues.sline_allowance,
-			ignoreFieldChange: true
-		});
-//		discountLogLineRecObj.setValue({
-//		fieldId: 'custrecord_itpm_sline_allid',
-//		value: discountLogLineValues.sline_allid,
-//		ignoreFieldChange: true
-//		});
-		discountLogLineRecObj.setValue({
-			fieldId: 'custrecord_itpm_sline_allmop',
-			value: discountLogLineValues.sline_allmop,
-			ignoreFieldChange: true
-		});
-		discountLogLineRecObj.setValue({
-			fieldId: 'custrecord_itpm_sline_alltype',
-			value: discountLogLineValues.sline_alltype,
-			ignoreFieldChange: true
-		});
-		discountLogLineRecObj.setValue({
-			fieldId: 'custrecord_itpm_sline_allunit',
-			value: discountLogLineValues.sline_allunit,
-			ignoreFieldChange: true
-		});
-		discountLogLineRecObj.setValue({
-			fieldId: 'custrecord_itpm_sline_allpercent',
-			value: discountLogLineValues.sline_allpercent,
-			ignoreFieldChange: true
-		});
-		discountLogLineRecObj.setValue({
-			fieldId: 'custrecord_itpm_sline_allrate',
-			value: discountLogLineValues.sline_allrate,
-			ignoreFieldChange: true
-		});
-		discountLogLineRecObj.setValue({
-			fieldId: 'custrecord_itpm_sline_calcrate',
-			value: discountLogLineValues.sline_calcrate,
-			ignoreFieldChange: true
-		});
-//		discountLogLineRecObj.setValue({
-//		fieldId: 'custrecord_itpm_sline_item',
-//		value: discountLogLineValues.sline_item,
-//		ignoreFieldChange: true
-//		});
-//		discountLogLineRecObj.setValue({
-//		fieldId: 'custrecord_itpm_sline_tranqty',
-//		value: discountLogLineValues.sline_tranqty,
-//		ignoreFieldChange: true
-//		});
-//		discountLogLineRecObj.setValue({
-//		fieldId: 'custrecord_itpm_sline_tranunit',
-//		value: discountLogLineValues.sline_tranunit,
-//		ignoreFieldChange: true
-//		});
-//		discountLogLineRecObj.setValue({
-//		fieldId: 'custrecord_itpm_sline_tranrate',
-//		value: discountLogLineValues.sline_tranrate,
-//		ignoreFieldChange: true
-//		});
-//		discountLogLineRecObj.setValue({
-//		fieldId: 'custrecord_itpm_sline_tranamt',
-//		value: discountLogLineValues.sline_tranamt,
-//		ignoreFieldChange: true
-//		});
-
-		discountLogLineRecObj.save({
-			enableSourcing: true,
-			ignoreMandatoryFields: true
-		});
-	}
-
-	function getPrefDiscountDateValue(){
-		try{
-			var searchObj = search.create({
-				type: 'customrecord_itpm_preferences',
-				columns : [{name: 'internalid'}]
-			});
-
-			var searchResults = searchObj.run().getRange({
-				start: 0,
-				end  : 2
-			});
-			var loadedRec = record.load({
-				type:'customrecord_itpm_preferences',	 
-				id:searchResults[0].getValue('internalid')
-			});
-			return loadedRec.getValue({fieldId: 'custrecord_itpm_pref_discountdates'});
-		}catch(e){
-			log.error(e.name, e.message);
-		}    	
-	}
+	
 	/**
 	 * @param {String} prefDatesType
 	 * @param {String} item
@@ -462,39 +288,7 @@ define(['N/record',
 		});    	
 		return searchObj.run();
 	}
-	/**
-	 * @param {String} tranInternalid
-	 * 
-	 * @return {Array} Validation
-	 */
-	function validateDiscountLogRecord(tranInternalid, itemID, line){
-		var validation = [];
-		var searchObj = search.create({
-			type: 'customrecord_itpm_discountlog',
-			filters : [["custrecord_itpm_slog_transaction", "anyof", tranInternalid],
-			           "AND", 
-			           ["custrecord_itpm_slog_linenumber","is",line],
-			           "AND",
-			           ["custrecord_itpm_slog_lineitem","anyof",itemID]],
-			           columns : [{name: 'name'},{name: 'internalid'}]
-		});
-
-		var searchResults = searchObj.run().getRange({
-			start: 0,
-			end  : 999
-		});
-
-		if(searchResults.length == 0){
-			validation['recordExists'] = false;
-
-		}
-		else{
-			validation['recordExists'] = true;
-			validation['discountId'] = searchResults[0].getValue('internalid');
-		}
-		return validation;
-	}
-
+	
 	return {
 		onRequest: onRequest
 	};

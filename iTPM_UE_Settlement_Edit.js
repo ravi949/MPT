@@ -96,13 +96,13 @@ function(redirect,runtime,search,ST_Module, itpm) {
     		
     		if(scriptContext.type == 'edit' || scriptContext.type == 'create'){
     			// All settlement request values MUST be greater than zero. (Do NOT allow Lump Sum AND Bill Back to be zero during submit, on EDIT. Either of the fields can individually be zero, but not both.)
-    			if(promoLS <= 0 && !promoHasAllNB){
+    			/*if(promoLS <= 0 && !promoHasAllNB){
 					if(lumsumSetReq > 0){
 						throw {error:'custom',message:"Lump sum request value should be zero"};
 					}
-				}
+				}*/
     			//If Lump sum value in settlement record have a value and LS Amount on promotion is zero then we throw error 
-    			if(lumsumSetReq > 0){
+    			if(lumsumSetReq > 0 && !promoHasAllNB){
     				if(promoLS <= 0){
     					throw {error:'custom',message:" Promotion: "+promoDealRec['name']+" Lump sum should be greater than Zero"};
     				}
@@ -175,7 +175,7 @@ function(redirect,runtime,search,ST_Module, itpm) {
     			}
     		}
     	}catch(e){
-    		log.error(e.name, e.message);
+    		log.error(e.name,'function name = aftersubmit, message = '+e.message);
     	}
     }
 

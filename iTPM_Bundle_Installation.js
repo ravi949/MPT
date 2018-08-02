@@ -74,10 +74,12 @@ function(config, task, search, record, runtime) {
      * @since 2016.1
      */
     function afterInstall(params) {
+    	log.error('version after install',params);
+    	
     	//script to modify status filter on all iTPM saved searches
     	updateSearchFilters();
     	//create preference records
-    	createPreferenceRecords();
+    	createPreferenceRecords(params.version);
     }
     
     /**
@@ -103,6 +105,8 @@ function(config, task, search, record, runtime) {
      * @since 2016.1
      */
     function afterUpdate(params) {
+    	log.error('version after update',params);
+    	
     	//task for set the promotion default values
     	task.create({
     		taskType: task.TaskType.MAP_REDUCE,
@@ -128,7 +132,7 @@ function(config, task, search, record, runtime) {
     	updateSearchFilters();
     	
     	//create and update the preference records
-    	createPreferenceRecords();
+    	createPreferenceRecords(params.toVersion);
     }
     
     
@@ -517,33 +521,33 @@ function(config, task, search, record, runtime) {
     		myDeductionSearch.save();
 
     		//Adding Port-let Filters
-    		//# Promotions waiting for Approval (All Users)
-    		var promoWaitingAprovalSearchAll = search.load({
-    			id: 'customsearch_itpm_promo_pendingapproval'
-    		});    	
-    		promoWaitingAprovalSearchAll.filterExpression =[
-    			["isinactive","is","F"], 
-    			"AND", 
-    			["custrecord_itpm_p_status","anyof","2"]
-    			];
-    		promoWaitingAprovalSearchAll.save();
+    		//15. Adding Filters to Saved Search: - iTPM All Promotions Pending Approval
+//    		var promoWaitingAprovalSearchAll = search.load({
+//    			id: 'customsearch_itpm_promo_pendingapproval'
+//    		});    	
+//    		promoWaitingAprovalSearchAll.filterExpression =[
+//    			["isinactive","is","F"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_status","anyof","2"]
+//    			];
+//    		promoWaitingAprovalSearchAll.save();
 
-    		//# Promotions waiting for Approval (Mine)   
-    		var promoWaitingAprovalSearchMine = search.load({
-    			id: 'customsearch_itpm_promo_pendinapprov_own'
-    		});    	
-    		promoWaitingAprovalSearchMine.filterExpression =[
-    			["isinactive","is","F"], 
-    			"AND", 
-    			["custrecord_itpm_p_status","anyof","2"], 
-    			"AND", 
-    			["owner","anyof","@CURRENT@"]
-    			];
-    		promoWaitingAprovalSearchMine.save();
+    		//16. Adding Filters to Saved Search: - iTPM My Promotions Pending Approval   
+//    		var promoWaitingAprovalSearchMine = search.load({
+//    			id: 'customsearch_itpm_promo_pendinapprov_own'
+//    		});    	
+//    		promoWaitingAprovalSearchMine.filterExpression =[
+//    			["isinactive","is","F"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_status","anyof","2"], 
+//    			"AND", 
+//    			["owner","anyof","@CURRENT@"]
+//    			];
+//    		promoWaitingAprovalSearchMine.save();
 
-    		//# Settlements waiting to be Applied (All users)   
+    		//17. Adding Filters to Saved Search: - iTPM All Requested / Unapplied Settlements   
     		var setWaitingToBeAppliedSearchAll = search.load({
-    			id: 'customsearch_itpm_set_tobeapplied'
+    			id: 'customsearch_itpm_set_requestedunapplied'
     		});    	
     		setWaitingToBeAppliedSearchAll.filterExpression =[
     			["type","anyof","Custom"+settlemntRecID], 
@@ -554,46 +558,46 @@ function(config, task, search, record, runtime) {
     			];
     		setWaitingToBeAppliedSearchAll.save();
 
-    		//- iTPM Promotions Active Today - Owner  
-    		var iTPMPromoActiveTodaySearchOwner = search.load({
-    			id: 'customsearch_itpm_promo_activeowner'
-    		});    	
-    		iTPMPromoActiveTodaySearchOwner.filterExpression =[
-    			["isinactive","is","F"], 
-    			"AND", 
-    			["custrecord_itpm_p_condition","anyof","2"], 
-    			"AND", 
-    			["owner","anyof","@CURRENT@"]
-    			];
-    		iTPMPromoActiveTodaySearchOwner.save();
+    		//18. Adding Filters to Saved Search: - iTPM My Active Promotions  
+//    		var iTPMPromoActiveTodaySearchOwner = search.load({
+//    			id: 'customsearch_itpm_myactivepromo'
+//    		});    	
+//    		iTPMPromoActiveTodaySearchOwner.filterExpression =[
+//    			["isinactive","is","F"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_condition","anyof","2"], 
+//    			"AND", 
+//    			["owner","anyof","@CURRENT@"]
+//    			];
+//    		iTPMPromoActiveTodaySearchOwner.save();
 
-    		//- iTPM Promotions Active Today 
-    		var iTPMPromoActiveTodaySearch = search.load({
-    			id: 'customsearch_itpm_promo_active'
-    		});    	
-    		iTPMPromoActiveTodaySearch.filterExpression =[
-    			["isinactive","is","F"], 
-    			"AND", 
-    			["custrecord_itpm_p_condition","anyof","2"]
-    			];
-    		iTPMPromoActiveTodaySearch.save();
+    		//19. Adding Filters to Saved Search: - iTPM Promotions Active Today 
+//    		var iTPMPromoActiveTodaySearch = search.load({
+//    			id: 'customsearch_itpm_promo_active'
+//    		});    	
+//    		iTPMPromoActiveTodaySearch.filterExpression =[
+//    			["isinactive","is","F"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_condition","anyof","2"]
+//    			];
+//    		iTPMPromoActiveTodaySearch.save();
 
-    		//- iTPM Promotions Active in Next 30 days 
-    		var iTPMPromoActiveInNext30DaysSearch = search.load({
-    			id: 'customsearch_itpm_promo_active_in_30'
-    		});    	
-    		iTPMPromoActiveInNext30DaysSearch.filterExpression =[
-    			["custrecord_itpm_p_condition","anyof","1"], 
-    			"AND", 
-    			["custrecord_itpm_p_status","anyof","3","2","1"], 
-    			"AND", 
-    			[["formuladate: {custrecord_itpm_p_shipstart}","after","thirtydaysfromnow"],"OR",["formuladate: {custrecord_itpm_p_shipend}","after","thirtydaysfromnow"]]
-    			];
-    		iTPMPromoActiveInNext30DaysSearch.save();
+    		//20. Adding Filters to Saved Search: - iTPM Promotions Active in Next 30 days 
+//    		var iTPMPromoActiveInNext30DaysSearch = search.load({
+//    			id: 'customsearch_itpm_promo_active_in_30'
+//    		});    	
+//    		iTPMPromoActiveInNext30DaysSearch.filterExpression =[
+//    			["custrecord_itpm_p_condition","anyof","1"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_status","anyof","3","2","1"], 
+//    			"AND", 
+//    			[["formuladate: {custrecord_itpm_p_shipstart}","after","thirtydaysfromnow"],"OR",["formuladate: {custrecord_itpm_p_shipend}","after","thirtydaysfromnow"]]
+//    			];
+//    		iTPMPromoActiveInNext30DaysSearch.save();
 
-    		//- iTPM Open Deductions assigned to Me
+    		//21. Adding Filters to Saved Search: - iTPM My Open Deductions
     		var iTPMOpenDdnsAssignedToMeSearch = search.load({
-    			id: 'customsearch_itpm_ddn_open_assigntome'
+    			id: 'customsearch_itpm_ddn_open_my'
     		});    	
     		iTPMOpenDdnsAssignedToMeSearch.filterExpression = [
     			["type","anyof","Custom"+deductionRecID], 
@@ -604,9 +608,9 @@ function(config, task, search, record, runtime) {
     			];
     		iTPMOpenDdnsAssignedToMeSearch.save();
 
-    		//- iTPM Open Deductions over 90 days Old
+    		//22. Adding Filters to Saved Search: - iTPM Open Deductions (90+ Days)
     		var iTPMOpenDeductionsOver90DaysOldSearch = search.load({
-    			id: 'customsearch_itpm_ddn_open_over90daysold'
+    			id: 'customsearch_itpm_ddn_open_90plus'
     		});    	
     		iTPMOpenDeductionsOver90DaysOldSearch.filterExpression = [
     			["type","anyof","Custom"+deductionRecID], 
@@ -617,9 +621,9 @@ function(config, task, search, record, runtime) {
     			];
     		iTPMOpenDeductionsOver90DaysOldSearch.save();
 
-    		//- iTPM Open Deductions between 60 to 90 days old
+    		//23. Adding Filters to Saved Search: - iTPM Open Deductions (60 - 90 Days)
     		var iTPMOpenDdnBetween60To90DaysOldSearch = search.load({
-    			id: 'customsearch_itpm_ddn_open_btween60to90'
+    			id: 'customsearch_itpm_ddn_open_60to90'
     		});    	
     		iTPMOpenDdnBetween60To90DaysOldSearch.filterExpression = [
     			["type","anyof","Custom"+deductionRecID], 
@@ -630,9 +634,9 @@ function(config, task, search, record, runtime) {
     			];
     		iTPMOpenDdnBetween60To90DaysOldSearch.save();
 
-    		//- iTPM Open Deductions between 30 to 60 days old
+    		//24. Adding Filters to Saved Search: - iTPM Open Deductions (30 - 60 Days)
     		var iTPMOpenDdnBetween30To60DaysOldSearch = search.load({
-    			id: 'customsearch_itpm_ddn_open_btween30to60'
+    			id: 'customsearch_itpm_ddn_open_30to60'
     		});    	
     		iTPMOpenDdnBetween30To60DaysOldSearch.filterExpression = [
     			["type","anyof","Custom"+deductionRecID], 
@@ -643,33 +647,33 @@ function(config, task, search, record, runtime) {
     			];
     		iTPMOpenDdnBetween30To60DaysOldSearch.save();
 
-    		//- iTPM Open Deductions less than 30 days
+    		//25. Adding Filters to Saved Search: - iTPM Open Deductions (0 - 30 Days)
     		var iTPMOpenDdnLessThan30DaysSearch= search.load({
-    			id: 'customsearch_itpm_ddn_open_lessthan30'
+    			id: 'customsearch_itpm_ddn_open_0to30'
     		});    	
     		iTPMOpenDdnLessThan30DaysSearch.filterExpression = [
     			["type","anyof","Custom"+deductionRecID], 
     			"AND", 
     			["status","anyof","Custom"+deductionRecID+":A"], 
     			"AND", 
-    			["custbody_itpm_ddn_daysaged","lessthan","30","60"]
+    			["custbody_itpm_ddn_daysaged","lessthan","30"]
     			];
     		iTPMOpenDdnLessThan30DaysSearch.save();
 
-    		//- iTPM Promotion Pending Approval but Active or Completed  
-    		var iTPMPromoPendingApprovalButActiveOrCompletedSearch = search.load({
-    			id: 'customsearch_itpm_promo_pending_acticomp'
-    		});    	
-    		iTPMPromoPendingApprovalButActiveOrCompletedSearch.filterExpression = [
-    			["isinactive","is","F"], 
-    			"AND", 
-    			["custrecord_itpm_p_status","anyof","2"], 
-    			"AND", 
-    			["custrecord_itpm_p_condition","anyof","2","3"]
-    			];
-    		iTPMPromoPendingApprovalButActiveOrCompletedSearch.save();
+    		//26. Adding Filters to Saved Search: - iTPM Active / Completed Promotions Pending Approval  
+//    		var iTPMPromoPendingApprovalButActiveOrCompletedSearch = search.load({
+//    			id: 'customsearch_itpm_promopending_actcom'
+//    		});    	
+//    		iTPMPromoPendingApprovalButActiveOrCompletedSearch.filterExpression = [
+//    			["isinactive","is","F"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_status","anyof","2"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_condition","anyof","2","3"]
+//    			];
+//    		iTPMPromoPendingApprovalButActiveOrCompletedSearch.save();
 
-    		//- iTPM Settlements in Processing
+    		//27. Adding Filters to Saved Search: - iTPM Settlements in Processing
     		var iTPMSetInProcessingSearch= search.load({
     			id: 'customsearch_itpm_set_inprocessing'
     		});    	
@@ -682,7 +686,7 @@ function(config, task, search, record, runtime) {
     			];
     		iTPMSetInProcessingSearch.save();
 
-    		//- iTPM Deductions in Processing 
+    		//28. Adding Filters to Saved Search: - iTPM Deductions in Processing 
     		var iTPMDdnInProcessingSearch = search.load({
     			id: 'customsearch_itpm_ddn_inprocessing'
     		});    	
@@ -695,48 +699,48 @@ function(config, task, search, record, runtime) {
     			];
     		iTPMDdnInProcessingSearch.save();
 
-    		//- iTPM Promotions being Copied  
-    		var iTPMPromoBeingCopiedSearch = search.load({
-    			id: 'customsearch_itpm_promo_copyinprogress'
-    		});    	
-    		iTPMPromoBeingCopiedSearch.filterExpression = [
-    			["isinactive","is","F"], 
-    			"AND", 
-    			["custrecord_itpm_p_copyinprogress","is","T"]
-    			];
-    		iTPMPromoBeingCopiedSearch.save();
+    		//29. Adding Filters to Saved Search: - iTPM Promotions being Copied  
+//    		var iTPMPromoBeingCopiedSearch = search.load({
+//    			id: 'customsearch_itpm_promo_copyinprogress'
+//    		});    	
+//    		iTPMPromoBeingCopiedSearch.filterExpression = [
+//    			["isinactive","is","F"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_copyinprogress","is","T"]
+//    			];
+//    		iTPMPromoBeingCopiedSearch.save();
 
-    		//- iTPM Approved Promotions 90 days or Older - Owner  
-    		var iTPMOwnApprovedPromo90DaysOrOlderSearch = search.load({
-    			id: 'customsearch_itpm_promo_apprvd_90daysown'
-    		});    	
-    		iTPMOwnApprovedPromo90DaysOrOlderSearch.filterExpression = [
-    			["isinactive","is","F"], 
-    			"AND", 
-    			["custrecord_itpm_p_status","anyof","3"], 
-    			"AND", 
-    			["owner","anyof","@CURRENT@"], 
-    			"AND", 
-    			[["custrecord_itpm_p_shipstart","onorbefore","ninetydaysago"],"OR",["custrecord_itpm_p_shipend","onorbefore","ninetydaysago"]]
-    			];
-    		iTPMOwnApprovedPromo90DaysOrOlderSearch.save();
+    		//30. Adding Filters to Saved Search: - iTPM My Approved Promotions (90+ Days)  
+//    		var iTPMOwnApprovedPromo90DaysOrOlderSearch = search.load({
+//    			id: 'customsearch_itpm_myapprovedpromo_90plus'
+//    		});    	
+//    		iTPMOwnApprovedPromo90DaysOrOlderSearch.filterExpression = [
+//    			["isinactive","is","F"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_status","anyof","3"], 
+//    			"AND", 
+//    			["owner","anyof","@CURRENT@"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_shipend","onorbefore","ninetydaysago"]
+//    			];
+//    		iTPMOwnApprovedPromo90DaysOrOlderSearch.save();
 
-    		//- iTPM Approved Promotions 90 days or Older  
-    		var iTPMApprovedPromo90DaysOrOlderSearch = search.load({
-    			id: 'customsearch_itpm_promo_apprvd_90daysold'
-    		});    	
-    		iTPMApprovedPromo90DaysOrOlderSearch.filterExpression = [
-    			["isinactive","is","F"], 
-    			"AND", 
-    			["custrecord_itpm_p_status","anyof","3"], 
-    			"AND", 
-    			[["custrecord_itpm_p_shipstart","onorbefore","ninetydaysago"],"OR",["custrecord_itpm_p_shipend","onorbefore","ninetydaysago"]]
-    			];
-    		iTPMApprovedPromo90DaysOrOlderSearch.save();
+    		//31. Adding Filters to Saved Search: - iTPM Approved Promotions (90+ Days)  
+//    		var iTPMApprovedPromo90DaysOrOlderSearch = search.load({
+//    			id: 'customsearch_itpm_approvedpromo_90plus'
+//    		});    	
+//    		iTPMApprovedPromo90DaysOrOlderSearch.filterExpression = [
+//    			["isinactive","is","F"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_status","anyof","3"], 
+//    			"AND", 
+//    			["custrecord_itpm_p_shipend","onorbefore","ninetydaysago"]
+//    			];
+//    		iTPMApprovedPromo90DaysOrOlderSearch.save();
 
-    		//# Settlements waiting to be Applied (Mine)  
+    		//32. Adding Filters to Saved Search: - iTPM My Requested / Unapplied Settlements  
     		var setWaitingToBeAppliedSearchMine = search.load({
-    			id: 'customsearch_itpm_set_tobeapplied_owner'
+    			id: 'customsearch_itpm_set_my_unapplied'
     		});    	
     		setWaitingToBeAppliedSearchMine.filterExpression =[
     			["type","anyof","Custom"+settlemntRecID], 
@@ -747,43 +751,55 @@ function(config, task, search, record, runtime) {
     			];
     		setWaitingToBeAppliedSearchMine.save();
     		
+    		//update the settlement search columns and place the settlement id as link
+    		settlementLink();
+    		
     	}catch(ex){
     		log.error(ex.name, ex.message);
+    		throw ex;
     	}
     }
     
     /**
      * @description creating the subsidiary based on preference records
      */
-    function createPreferenceRecords(){
-    	var featureEnabled = runtime.isFeatureInEffect({feature:'SUBSIDIARIES'});
-		var eventType = 'create';
-		
-    	var preferenceResult = search.create({
-			type:'customrecord_itpm_preferences',
-			columns:['internalid']
-		}).run().getRange(0,10);
-		var prefResultLength = preferenceResult.length;
-		preferenceResult = (prefResultLength == 0)? undefined : preferenceResult[0].getValue('internalid');
-				
-    	if(featureEnabled){
-    		var subsidiaryResult = search.create({
-        		type:search.Type.SUBSIDIARY,
-        		columns:['internalid','parent'],
-        		filters:[['isinactive','is',false]]
-        	}).run();
+    function createPreferenceRecords(iTPM_Version){
+    	try{
+    		var featureEnabled = runtime.isFeatureInEffect({feature:'SUBSIDIARIES'});
+    		var eventType = 'create';
     		
-    		if(prefResultLength <= 1){
-        		subsidiaryResult.each(function(e){
-        			if(prefResultLength == 1){
-        				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
-        			}
-    				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'));
-    				return true;
-    			});
-    		}    		
-    	}else{
-    		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined) : '';
+        	var preferenceResult = search.create({
+    			type:'customrecord_itpm_preferences',
+    			columns:['internalid']
+    		}).run().getRange(0,10);
+    		var prefResultLength = preferenceResult.length;
+    		preferenceResult = (prefResultLength == 0)? undefined : preferenceResult[0].getValue('internalid');
+    				
+        	if(featureEnabled){
+        		var subsidiaryResult = search.create({
+            		type:search.Type.SUBSIDIARY,
+            		columns:['internalid','parent'],
+            		filters:[['isinactive','is',false]]
+            	}).run();
+        		
+        		if(prefResultLength <= 1){
+            		subsidiaryResult.each(function(e){
+            			if(prefResultLength == 1){
+            				eventType = (!e.getValue('parent'))? 'edit' : 'copy';
+            			}
+        				createOrEditPreferenceRecord(preferenceResult,eventType,e.getValue('internalid'),iTPM_Version);
+        				return true;
+        			});
+        		}else{
+        			//set iTPM version on iTPM Preference record
+        			setItpmVersion(iTPM_Version);
+        		}    		
+        	}else{
+        		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined,iTPM_Version) : '';
+        	}
+    	}catch(ex){
+    		log.error(ex.name, ex.message);
+    		throw ex;
     	}
     }
     
@@ -793,7 +809,7 @@ function(config, task, search, record, runtime) {
      * @param {Object} subid
      * @description create the prefernce record for specific subsidiary
      */
-    function createOrEditPreferenceRecord(id, event, subid){
+    function createOrEditPreferenceRecord(id, event, subid, iTPM_Version){
     	var preferenceRec;
     	switch(event){
     	case 'create':
@@ -820,14 +836,72 @@ function(config, task, search, record, runtime) {
     		preferenceRec.setValue({
         		fieldId:'custrecord_itpm_pref_subsidiary',
         		value:subid
-        	})
+        	});
     	}
     	
-    	preferenceRec.save({
+    	preferenceRec.setValue({
+    		fieldId:'custrecord_itpm_pref_version',
+    		value:iTPM_Version
+    	}).save({
     		enableSourcing:false,
     		ignoreMandatoryFields:true
     	});
     }
+    
+    /**
+     * @description sets iTPM Version under iTPM preferences.
+     */
+    function setItpmVersion(iTPM_Version){
+    	try{
+    		search.create({
+    			type:'customrecord_itpm_preferences',
+    		}).run().each(function(e){
+    			record.submitFields({
+    				type: 'customrecord_itpm_preferences',
+    				id: e.id,
+    				values: {
+    					'custrecord_itpm_pref_version': iTPM_Version
+    				},
+    				options:{
+    					enableSourcing:false,
+    					ignoreMandatoryFields:true
+    				}
+    			});
+    			return true;
+    		});
+    	}catch(ex){
+    		log.error(ex.name,ex.message);
+    		throw ex;
+    	}
+    }
+      
+    /**
+     * @description creating settlement id as a clickable link in the settlement subtab under the promotion.
+     */
+    function settlementLink(){
+    	try{
+    		var settlemntRecID = record.create({
+    			type:'customtransaction_itpm_settlement'
+    		}).getValue('customtype');
+
+    		var settlementSearch = search.load({
+    			id:"customsearch_itpm_promosettlementsummary",
+    		});
+
+    		settlementSearch.columns[1]=search.createColumn({
+    			name: 'formulatext',
+    			label: 'Settlement #',
+    			formula: "'<a href=/app/accounting/transactions/custom.nl?id='|| {internalid} ||'&customtype=" + settlemntRecID + "&whence= target=_blank>'|| {tranid} ||'</a>'",
+    			summary: search.Summary.GROUP
+    		});
+
+    		settlementSearch.save();
+    	}catch(ex){
+    		log.error(ex.name,ex.message);
+    		throw ex;
+    	}
+    }
+    
     
     return {
         beforeInstall: beforeInstall,

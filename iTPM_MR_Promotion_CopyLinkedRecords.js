@@ -60,105 +60,74 @@ function(record, search) {
 			arrResult = searchResult.values,
 			promoID = arrResult.internalid.value,
 			copyPromoId = arrResult['internalid.CUSTRECORD_ITPM_P_COPIEDFROM'].value,
-			contextObj = null,executeResultSet = []
-
-//			log.debug('searchResult',searchResult);
-//			log.debug('promotionID',promoID);
-//			log.debug('copyPromoId',copyPromoId);
+			contextObj = null,executeResultSet = [];
 			
-			var loadedSearch = search.create({
-				   type: "customrecord_itpm_promotiondeal",
-				   filters: [
-					   ["internalid",'is',copyPromoId],"AND",
-					   ["CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.isinactive","is",false],"AND",
-					   ["CUSTRECORD_ITPM_REI_PROMOTIONDEAL.isinactive","is",false],"AND",
-					   ["CUSTRECORD_ITPM_ESTQTY_PROMODEAL.isinactive","is",false]
-				   ],
-				   columns: [
-				      search.createColumn({
-				         name: "internalid"
-				      }),
-				      search.createColumn({
-				         name: "internalid",
-				         join: "CUSTRECORD_ITPM_P_COPIEDFROM"
-				      }),
-				      search.createColumn({
-				         name: "internalid",
-				         join: "CUSTRECORD_ITPM_ALL_PROMOTIONDEAL"
-				      }),
-				      search.createColumn({
-					     name: "internalid",
-					     join: "CUSTRECORD_ITPM_ESTQTY_PROMODEAL"
-					  }),
-				      search.createColumn({
-				         name: "internalid",
-				         join: "CUSTRECORD_ITPM_REI_PROMOTIONDEAL"
-				      })
-				   ]
-				}).run();
-			//Run the search to get all linked records without any break
-			var result,resultLength,
-        	count = 0, pageSize = 1000,
-        	currentIndex = 0, arrayofRecs =[];
-				
-				do{
-					result = loadedSearch.getRange(currentIndex, currentIndex + pageSize);
-					arrayofRecs = arrayofRecs.concat(result);
-					count = result.length;
-					currentIndex += pageSize;
-				}while(count == pageSize);
-//				log.debug('arrayofRecs',copyPromoId)
 
-
-				//Deducting the duplicates, and removing them and pushing those results into array
-				arrayofRecs.forEach(function(e){
-					if(e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'}) != ""){
-						contextObj = {type:'estqty',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'})}
-						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
-							executeResultSet.push({id:contextObj.recId,type:contextObj.type});
-						}
-					}
-					if(e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'}) != ""){
-						contextObj = {type:'retail',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'})}
-						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
-							executeResultSet.push({id:contextObj.recId,type:contextObj.type});
-						}
-					}
-					if(e.getValue({join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',name:'internalid'}) != ""){
-						contextObj = {promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',name:'internalid'}),type:'all'};
-						if(!executeResultSet.some(function(k){return (contextObj.recId == k.id && contextObj.type == k.type)})){	
-							executeResultSet.push({id:contextObj.recId,type:contextObj.type});
-						}
-					}
-				})
-
-				//Write the data into the context.
-				var resultLength = executeResultSet.length-1;
-				executeResultSet.forEach(function(e,index){
-					if(e.type == 'all'){
-						context.write({promoID:promoID,copyPromoId:copyPromoId,recId:e.id,type:e.type,lastResult:resultLength == index})
-					}else{
-						context.write({type:e.type,promoID:promoID,copyPromoId:copyPromoId,recId:e.id,lastResult:resultLength == index});
-					}
-				})
-
-				if(executeResultSet.length <= 0){
-					record.submitFields({
-						type: 'customrecord_itpm_promotiondeal',
-						id: promoID,
-						values: {
-							custrecord_itpm_p_copy: false,
-							custrecord_itpm_p_copyinprogress:false
-						},
-						options: {
-							enableSourcing: false,
-							ignoreMandatoryFields : true
-						}
-					});
+			//getting the iTPM Planning record search results
+			getSearchResults("CUSTRECORD_ITPM_PP_PROMOTION",copyPromoId).run().each(function(e){
+				if(e.getValue({join:'CUSTRECORD_ITPM_PP_PROMOTION',name:'internalid'})){
+					contextObj = {promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_PP_PROMOTION',name:'internalid'}),type:'planning'};
+					executeResultSet.push({id:contextObj.recId,type:contextObj.type});
 				}
+				return true;
+			});
+			
+			//getting the iTPM Allowance record search results
+			getSearchResults("CUSTRECORD_ITPM_ALL_PROMOTIONDEAL",copyPromoId).run().each(function(e){
+				if(e.getValue({join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',name:'internalid'})){
+					contextObj = {promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ALL_PROMOTIONDEAL',name:'internalid'}),type:'all'};
+					executeResultSet.push({id:contextObj.recId,type:contextObj.type});					
+				}
+				return true;
+			});
+			
+			//getting the iTPM Est Qty record search results
+			getSearchResults("CUSTRECORD_ITPM_ESTQTY_PROMODEAL",copyPromoId).run().each(function(e){
+				if(e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'})){
+					contextObj = {type:'estqty',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_ESTQTY_PROMODEAL',name:'internalid'})}
+					executeResultSet.push({id:contextObj.recId,type:contextObj.type});
+				}
+				return true;
+			});
+			
+			//getting the iTPM Retail Info record search results
+			getSearchResults("CUSTRECORD_ITPM_REI_PROMOTIONDEAL",copyPromoId).run().each(function(e){
+				if(e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'})){
+					contextObj = {type:'retail',promoID:promoID,copyPromoId:copyPromoId,recId:e.getValue({join:'CUSTRECORD_ITPM_REI_PROMOTIONDEAL',name:'internalid'})}
+					executeResultSet.push({id:contextObj.recId,type:contextObj.type});
+				}
+				return true;
+			});
+
+			log.debug('executeResultSet',executeResultSet);
+			
+			//Write the data into the context.
+			var resultLength = executeResultSet.length-1;
+			executeResultSet.forEach(function(e,index){
+				if(e.type == 'all'){
+					context.write({promoID:promoID,copyPromoId:copyPromoId,recId:e.id,type:e.type,lastResult:resultLength == index})
+				}else{
+					context.write({type:e.type,promoID:promoID,copyPromoId:copyPromoId,recId:e.id,lastResult:resultLength == index});
+				}
+			})
+
+			if(executeResultSet.length <= 0){
+				record.submitFields({
+					type: 'customrecord_itpm_promotiondeal',
+					id: promoID,
+					values: {
+						custrecord_itpm_p_copy: false,
+						custrecord_itpm_p_copyinprogress:false
+					},
+					options: {
+						enableSourcing: false,
+						ignoreMandatoryFields : true
+					}
+				});
+			}
 		
 		}catch(e){
-			log.error(e.name,'Map state, message = '+e.message);
+			log.error(e.name,'Map state, message = '+e.message+' promoId'+promoID+' copypromoid'+copyPromoId);
 		}		
 	}
 
@@ -274,6 +243,19 @@ function(record, search) {
 					});
 				}				 
 				break;
+			case 'planning':
+				record.copy({
+					type: 'customrecord_itpm_promotion_planning',
+					id:keyObj.recId
+				}).setValue({
+					fieldId: 'custrecord_itpm_pp_promotion',
+					value:keyObj.promoID,
+					ignoreFieldChange: true
+				}).save({
+					enableSourcing: false,
+					ignoreMandatoryFields: true
+				});
+				break;
 			}
 			
 			//changing the field values of the promotion deal record.
@@ -296,7 +278,7 @@ function(record, search) {
 			}
 			
 		}catch (e) {
-			log.error(e.name,'Reduce state, message = '+e.message);
+			log.error(e.name,'Reduce state, message = '+e.message+' copyPromoId'+keyObj.promoID);
 		}
 	}
 
@@ -322,6 +304,35 @@ function(record, search) {
 			columns:['custitem_itpm_available']
 		}).custitem_itpm_available
 	}
+	
+	/**
+	 * Returns search object to get Promotion linked records
+	 * @param {string} lineType
+	 * @param {number} copyPromoId
+	 */
+	function getSearchResults(lineType, copyPromoId){
+		return search.create({
+			   type: "customrecord_itpm_promotiondeal",
+			   filters: [
+				   ["internalid",'is',copyPromoId],"AND",
+				   [(lineType+".isinactive").toString(),"is",false]
+			   ],
+			   columns: [
+			      search.createColumn({
+			         name: "internalid"
+			      }),
+			      search.createColumn({
+			    	  name: "internalid",
+			    	  join: lineType
+			      }),
+			      search.createColumn({
+			         name: "internalid",
+			         join: "CUSTRECORD_ITPM_P_COPIEDFROM"
+			      })
+			   ]
+			});
+	}
+	
 	return {
 		getInputData: getInputData,
 		map: map,

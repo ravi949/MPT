@@ -60,11 +60,13 @@ function(record, search, runtime, itpm) {
     		
     		var estQtyResult = search.create({
     			type:'customrecord_itpm_estquantity',
-    			columns:['custrecord_itpm_estqty_qtyby','custrecord_itpm_estqty_totalqty'],
+    			columns:['custrecord_itpm_estqty_qtyby','custrecord_itpm_estqty_totalqty','custrecord_itpm_estqty_redemption'],
     			filters:[['custrecord_itpm_estqty_promodeal','anyof',promotionIdEQ],'and',
     			         ['custrecord_itpm_estqty_item','anyof',itemIdEQ]]
     		}).run().getRange(0,1)[0];
     		var totalestqty = parseFloat(estQtyResult.getValue('custrecord_itpm_estqty_totalqty'));
+    		var redemptionFactor = parseInt(estQtyResult.getValue('custrecord_itpm_estqty_redemption'));
+    		var estPromotedQty = Math.floor(totalestqty*(redemptionFactor/100));
     		var unit = estQtyResult.getValue('custrecord_itpm_estqty_qtyby');
     		
     		//Calculating Estimated Revenue real time: Step 1
@@ -78,7 +80,7 @@ function(record, search, runtime, itpm) {
 //    		log.debug('itemSaleUnit, unitrate, saleunitrate',itemSaleUnit+' & '+unitrate+' & '+saleunitrate);
 
     		//Calculating Estimated Revenue: Step 3
-    		var estimatedRevenue = parseFloat(totalestqty) * parseFloat(itemImpactPrice.price) * (unitrate / saleunitrate);
+    		var estimatedRevenue = parseFloat(estPromotedQty) * parseFloat(itemImpactPrice.price) * (unitrate / saleunitrate);
     		log.audit('estimatedRevenue '+JSONObj['internalid']['value'],estimatedRevenue);
 
     		record.submitFields({

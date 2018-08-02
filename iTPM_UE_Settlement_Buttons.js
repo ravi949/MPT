@@ -60,7 +60,7 @@ function(runtime, serverWidget, itpm) {
     				}
 
     				//Check Permission = CREATE or greater and Journal Entry permission = CREATE or FULL
-    				if (checkPermission >= 2 && JEPermission >= 2 && (setLumSum > 0 || setBB > 0)){
+    				if (setPermission >= 3 && checkPermission >= 2 && JEPermission >= 2 && (setLumSum > 0 || setBB > 0)){
     					scriptContext.form.addButton({
         					id:'custpage_itpm_applytocheck',
         					label:'Apply To Check',

@@ -37,6 +37,14 @@ function(record, runtime, search, serverWidget, itpm) {
         		    displayType : serverWidget.FieldDisplayType.DISABLED
         		});
         		
+        		scriptContext.form.addField({
+        			id : 'custpage_itpm_ddsplit_totallineamount',
+					type : serverWidget.FieldType.CURRENCY,
+					label : 'Total Line Amount'
+        		}).updateDisplayType({
+        		    displayType : serverWidget.FieldDisplayType.INLINE
+        		});
+        		
         		scriptContext.newRecord.setValue({
         			fieldId:'custrecord_itpm_split_deduction',
         			value:params.ddn
@@ -146,9 +154,10 @@ function(record, runtime, search, serverWidget, itpm) {
     			//changing the split record status
         		record.submitFields({
         			type:'customtransaction_itpm_deduction',
-        			id:scriptContext.newRecord.getValue('custrecord_itpm_split_deduction'),
+        			id:ddnSplitRec.getValue('custrecord_itpm_split_deduction'),
         			values:{
-        				'transtatus':'E'
+        				'transtatus':'E',
+        				'custbody_itpm_ddn_splitoff': ddnSplitRec.getValue('custrecord_itpm_split_ddnopenbal')
         			},
         			options:{
         				enableSourcing:false,
