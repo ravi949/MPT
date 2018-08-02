@@ -426,22 +426,35 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
     			   type: "customrecord_itpm_promotiondeal",
     			   filters: promotionFilters,
     			   columns: [
-    			      "internalid",
     			      search.createColumn({
     			         name: "custrecord_itpm_p_customer",
-    			         sort: search.Sort.ASC,
-    			         label: "Name"
+    			         sort: search.Sort.ASC
     			      }),
+    			      search.createColumn({
+     			         name: "custrecord_itpm_p_shipstart",
+     			         sort: search.Sort.ASC
+     			      }),
+     			      search.createColumn({
+     			         name: "internalid",
+     			         sort: search.Sort.ASC
+     			      }),
+     			      search.createColumn({
+     			         name: "custrecord_itpm_all_item",
+     			         join:"custrecord_itpm_all_promotiondeal",
+     			         sort: search.Sort.ASC
+     			      }),
+     			      search.createColumn({
+     			         name: "custrecord_itpm_all_mop",
+     			         join:"custrecord_itpm_all_promotiondeal",
+     			         sort: search.Sort.DESC
+     			      }),
     			      "name",
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_percentperuom",
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_rateperuom",
-    			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_item",
     			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_uom",
-    			      "custrecord_itpm_all_promotiondeal.custrecord_itpm_all_mop",
     			      "custrecord_itpm_p_description",
     			      "custrecord_itpm_p_status",
     			      "custrecord_itpm_p_type",
-    			      "custrecord_itpm_p_shipstart",
     			      "custrecord_itpm_p_shipend"
     			   ]
     			});
