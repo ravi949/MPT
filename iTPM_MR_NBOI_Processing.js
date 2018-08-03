@@ -24,23 +24,27 @@ function(search, record, runtime, itpm) {
      */
     function getInputData() {
     	try{
+    		var searchColumns = [
+    	    			       	   'internalid',
+    	    			       	   'type',
+    	    			       	   'entity',
+    	    			       	   'tranid',
+    	    			       	   'trandate',
+    	    			       	   'line',
+    	    			       	   'item',
+    	    			       	   'quantity',
+    	    			       	   'pricelevel',
+    	    			       	   'rate',
+    	    			       	   'amount',
+    	    			       	   'item.saleunit'
+    	    			       	   ];
+
+    		if(itpm.subsidiariesEnabled()){
+    			searchColumns.push('subsidiary');
+    		}
     		return search.create({
     			type	: search.Type.TRANSACTION,
-    			columns	: [
-    			       	   'internalid',
-    			       	   'type',
-    			       	   'entity',
-    			       	   'tranid',
-    			       	   'trandate',
-    			       	   'subsidiary',
-    			       	   'line',
-    			       	   'item',
-    			       	   'quantity',
-    			       	   'pricelevel',
-    			       	   'rate',
-    			       	   'amount',
-    			       	   'item.saleunit'
-    			       	   ],
+    			columns	: searchColumns,
     			filters	: [
     			       	   ["type","anyof","SalesOrd"], 
     			       	   	"AND",
@@ -78,7 +82,7 @@ function(search, record, runtime, itpm) {
     		var tranCustomer = mapData.entity.value;
 			var trandate = mapData.trandate;  
 			var tranId = mapData.tranid;
-			var subsidiary = mapData.subsidiary.value;
+			var subsidiary = (itpm.subsidiariesEnabled())?mapData.subsidiary.value:1;
 			var line = mapData.line;
     		var lineItem = mapData.item.value;
     		var quantity = mapData.quantity;
