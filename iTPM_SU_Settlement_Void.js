@@ -40,6 +40,7 @@ define(['N/record',
 				var subsidiaryExists = itpm.subsidiariesEnabled();
 				var currencyExists = itpm.currenciesEnabled();
 				var lineCount = SetRec.getLineCount('line');
+				
 
 				if(lineCount > 0){
 					var JERec = record.create({
@@ -98,8 +99,7 @@ define(['N/record',
 					var lumsumType = SetRec.getSublistValue({sublistId:'line',fieldId:'custcol_itpm_lsbboi',line:i});
 
 					log.debug(i,'account ='+account+' credit='+credit+' debit='+debit+' lumsumType='+lumsumType);
-					log.debug('JERec',JERec);
-
+					log.debug('JERec',JERec);					
 					JERec.setSublistValue({
 						sublistId:'line',
 						fieldId:'account',
@@ -124,6 +124,21 @@ define(['N/record',
 						sublistId:'line',
 						fieldId:'entity',
 						value:SetRec.getValue('custbody_itpm_customer'),
+						line:i
+					}).setSublistValue({
+						sublistId:'line',
+						fieldId:'department',
+						value:SetRec.getValue('department'),
+						line:i
+					}).setSublistValue({
+						sublistId:'line',
+						fieldId:'class',
+						value:SetRec.getValue('class'),
+						line:i
+					}).setSublistValue({
+						sublistId:'line',
+						fieldId:'location',
+						value:SetRec.getValue('location'),
 						line:i
 					});
 

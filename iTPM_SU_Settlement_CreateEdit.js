@@ -462,6 +462,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 		    	})
 		    	return true;
 		    });
+		    deptField.defaultValue = deductionRec.getValue('department');
 	    }
     	
 	    //class
@@ -488,7 +489,8 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 	  			 isSelected:classSet == e.id
 		    	})
 		    	return true;
-		    })
+		    });
+	    	classField.defaultValue = deductionRec.getValue('class');
 	    }
 	    
     	//location
@@ -515,6 +517,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 		    	})
 		    	return true;
 		    });
+		    locationField.defaultValue = deductionRec.getValue('location');
 	    }
 
 	    /*  CLASSIFICATION end  */

@@ -117,6 +117,24 @@ function(search, record, redirect, runtime, itpm) {
     					value: deductionRecordObj.getValue('custbody_itpm_customer'),
     					line:0
     				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'department',
+    					value: deductionRecordObj.getValue('department'),
+    					line:0
+    				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'class',
+    					value: deductionRecordObj.getValue('class'),
+    					line:0
+    				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'location',
+    					value: deductionRecordObj.getValue('location'),
+    					line:0
+    				});
     				
     				//Adding Debit Line
     				scriptContext.newRecord.setSublistValue({
@@ -141,6 +159,24 @@ function(search, record, redirect, runtime, itpm) {
     					sublistId: 'line',
     					fieldId:'entity',
     					value: deductionRecordObj.getValue('custbody_itpm_customer'),
+    					line:1
+    				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'department',
+    					value: deductionRecordObj.getValue('department'),
+    					line:1
+    				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'class',
+    					value: deductionRecordObj.getValue('class'),
+    					line:1
+    				});
+    				scriptContext.newRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId:'location',
+    					value: deductionRecordObj.getValue('location'),
     					line:1
     				});
    				}

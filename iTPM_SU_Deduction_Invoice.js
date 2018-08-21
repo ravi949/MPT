@@ -168,6 +168,18 @@ function(record, search, runtime, itpm) {
     				sublistId: 'line',
     				fieldId:'entity',
     				value:customerId
+    			}).setCurrentSublistValue({
+    				sublistId: 'line',
+    				fieldId:'department',
+    				value:deductionRec.getValue('department')
+    			}).setCurrentSublistValue({
+    				sublistId: 'line',
+    				fieldId:'class',
+    				value:deductionRec.getValue('class')
+    			}).setCurrentSublistValue({
+    				sublistId: 'line',
+    				fieldId:'location',
+    				value:deductionRec.getValue('location')
     			}).commitLine({
     				sublistId: 'line'
     			});
@@ -191,6 +203,18 @@ function(record, search, runtime, itpm) {
     				sublistId: 'line',
     				fieldId:'entity',
     				value:customerId
+    			}).setCurrentSublistValue({
+    				sublistId: 'line',
+    				fieldId:'department',
+    				value:deductionRec.getValue('department')
+    			}).setCurrentSublistValue({
+    				sublistId: 'line',
+    				fieldId:'class',
+    				value:deductionRec.getValue('class')
+    			}).setCurrentSublistValue({
+    				sublistId: 'line',
+    				fieldId:'location',
+    				value:deductionRec.getValue('location')
     			}).commitLine({
     				sublistId: 'line'
     			});
