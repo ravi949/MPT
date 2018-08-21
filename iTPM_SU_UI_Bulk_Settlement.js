@@ -1,4 +1,5 @@
 /**
+
  * @NApiVersion 2.x
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
@@ -206,7 +207,7 @@ function(ui, search, redirect, record, itpm) {
 		log.debug('subcustomers',subcustomers);
 		
 		//Adding Deduction data to the deduction list
-		var tranFilters = [['mainline','is','T'],'AND',['custbody_itpm_customer','anyof', subcustomers]];
+		var tranFilters = [['mainline','is','T'],'AND',['custbody_itpm_customer','anyof', subcustomers],'AND',["linesequencenumber","equalto","0"]];
 		if(deductions.length != 0){
 			tranFilters.push("AND",['internalid','noneof', deductions]);
 		}
