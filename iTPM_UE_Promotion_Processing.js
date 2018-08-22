@@ -40,7 +40,7 @@ define(['N/ui/serverWidget',
 						value: itpm.getPrefrenceValues(undefined)['defaultPriceLevel']
 					});
 				}
-				
+
 				//for copy promotion validating promotion type is active or not
 				if(scriptContext.type == 'copy'){					
 					var promoTypeRec = record.load({
@@ -49,7 +49,7 @@ define(['N/ui/serverWidget',
 					});
 					var checkPromotypeRecActive = promoTypeRec.getValue('isinactive');
 					var checkPromotypeRecAvailable = promoTypeRec.getValue('custrecord_itpm_pt_expiredorunavailable');
-					log.error('checkPromotypeRecActive',checkPromotypeRecActive);
+					log.debug('checkPromotypeRecActive',checkPromotypeRecActive);
 					if(checkPromotypeRecActive == true || checkPromotypeRecAvailable == false){						
 						throw{
 							name:'PROMOTIONTYPE_RECORD_IS_INACTIVE',
@@ -57,7 +57,7 @@ define(['N/ui/serverWidget',
 						}				
 					}
 				}
-				
+
 				//this block for adding the New Settement button to Promotion record.
 				if(scriptContext.type == 'view'){
 					var status = promoRec.getValue('custrecord_itpm_p_status');
@@ -127,41 +127,41 @@ define(['N/ui/serverWidget',
 						});
 						promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
 					}
-					
+
 					//Getting Promotion Planning Records count w.r.t Promotion ID
-		    		var promoPlanRecSearch = search.create({
-		    			type: "customrecord_itpm_promotion_planning",
-		    			columns:[
-		    						search.createColumn({
-		    							name:'internalid',
-		    							summary:search.Summary.COUNT
-		    						})
-		    			         ],
-		    			filters: [
-		    					   ["custrecord_itpm_pp_promotion","anyof",promoRec.id], 
-		    					   "AND", 
-		    					   ["isinactive","is",false]
-		    					 ]  
-		    		}).run().getRange(0,1);
-		    		promoPlanRecCount = parseFloat(promoPlanRecSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
-		    		log.debug('promoPlanRecCount', promoPlanRecCount);
-		    		log.debug('promoPermission', promoPermission);
-		    		log.debug('promoTypePermission', promoTypePermission);
-		    		log.debug('owner', owner);
-		    		log.debug('user', user.id);
-		    		
+					var promoPlanRecSearch = search.create({
+						type: "customrecord_itpm_promotion_planning",
+						columns:[
+							search.createColumn({
+								name:'internalid',
+								summary:search.Summary.COUNT
+							})
+							],
+							filters: [
+								["custrecord_itpm_pp_promotion","anyof",promoRec.id], 
+								"AND", 
+								["isinactive","is",false]
+								]  
+					}).run().getRange(0,1);
+					promoPlanRecCount = parseFloat(promoPlanRecSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
+					log.debug('promoPlanRecCount', promoPlanRecCount);
+					log.debug('promoPermission', promoPermission);
+					log.debug('promoTypePermission', promoTypePermission);
+					log.debug('owner', owner);
+					log.debug('user', user.id);
+
 					//adding Planning Complete button on promotion record if it has a promotion planning lines.
-		    		if((promoPlanRecCount > 0 && promoRec.getValue('custrecord_itpm_p_ispromoplancomplete')== false && 
-		    		   (status == 1 || status == 2 || status == 3) && (promoPermission == 4 || promoTypePermission >= 3 ||(promoPermission >= 2 && owner == user.id && (status == 1 || (status == 2 && condition == 1)))))){
-		    			log.audit(true);
-		    			promoForm.addButton({
+					if((promoPlanRecCount > 0 && promoRec.getValue('custrecord_itpm_p_ispromoplancomplete')== false && 
+							(status == 1 || status == 2 || status == 3) && (promoPermission == 4 || promoTypePermission >= 3 ||(promoPermission >= 2 && owner == user.id && (status == 1 || (status == 2 && condition == 1)))))){
+						log.audit(true);
+						promoForm.addButton({
 							id:'custpage_planning_completed',
 							label:'Process Plan',
 							functionName:'planningComplete('+promoRec.id+')'
 						});
 						promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
-		    		}
-					
+					}
+
 					//after copy and save the record it will show the copy in progress message
 					var copyInProgress = promoRec.getValue('custrecord_itpm_p_copyinprogress');
 					var copyRelatedRecords = promoRec.getValue('custrecord_itpm_p_copy');
@@ -173,18 +173,45 @@ define(['N/ui/serverWidget',
 								label:'script'
 							}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Copy is in progress",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
 					}
-					
+
+					//Showing banner message to users on the promotion which used to copy promotion, and show up-to completion of the copy process
+					var copyProcess,childRecCopyProcess;
+					var isThisUsedForCopy = search.create({
+						type	: 'customrecord_itpm_promotiondeal',
+						columns : ['custrecord_itpm_p_copyinprogress', 'custrecord_itpm_p_copy'],
+						filters : [["custrecord_itpm_p_copiedfrom","anyof",promoRec.id]]
+					});
+
+					isThisUsedForCopy.run().each(function(result){
+						if(result.getValue('custrecord_itpm_p_copyinprogress') && result.getValue('custrecord_itpm_p_copy')){
+							copyProcess = result.getValue('custrecord_itpm_p_copyinprogress');
+							childRecCopyProcess = result.getValue('custrecord_itpm_p_copy');
+						}
+						return true;
+					});
+
+					if(copyProcess && childRecCopyProcess){
+						var msgText = "To prevent errors, please don't edit this promotion until completion of the copy process. "+
+						"This promotion is being used to create one or more new promotions. <br>"+
+						"You can still make more copies of this promotion while the copy is in process.";
+						scriptContext.form.addField({
+							id	  : 'custpage_copywarn_message',
+							type  : serverWidget.FieldType.INLINEHTML,
+							label : 'script'
+						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please Do NOT edit this promotion.",message:"'+msgText+'",type: msg.Type.WARNING}).show()})</script>'
+					}
+
 					//after Planing Completed showing the progress message while batch process running
 					var promoPlaningProgress = promoRec.getValue('custrecord_itpm_p_ispromoplancomplete');
 					if(promoPlaningProgress){
 						var msgText = "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
-						              "and made available under the subtabs by the same name. Please wait for processing to complete. "+
-						              "Any allowances by item groups will be expanded to the associated items.";
-							scriptContext.form.addField({
-								id:'custpage_planingprogress_message',
-								type:serverWidget.FieldType.INLINEHTML,
-								label:'script'
-							}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+						"and made available under the subtabs by the same name. Please wait for processing to complete. "+
+						"Any allowances by item groups will be expanded to the associated items.";
+						scriptContext.form.addField({
+							id:'custpage_planingprogress_message',
+							type:serverWidget.FieldType.INLINEHTML,
+							label:'script'
+						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
 					}
 				}
 
@@ -308,7 +335,7 @@ define(['N/ui/serverWidget',
 
 			}
 			var scriptObj = runtime.getCurrentScript();
-			log.debug("Remaining governance units: " + scriptObj.getRemainingUsage());
+			log.error("Remaining governance units: " + scriptObj.getRemainingUsage());
 		}catch(ex){
 			log.error(ex.name, ex.message +'; beforeLoad; trigger type: ' + scriptContext.type + '; recordID: ' + scriptContext.newRecord.id + '; recordType: ' + scriptContext.newRecord.type);
 			if(ex.name == 'PROMOTIONTYPE_RECORD_IS_INACTIVE'){
@@ -335,18 +362,18 @@ define(['N/ui/serverWidget',
 			var newStatus = promoNewRec.getValue('custrecord_itpm_p_status');
 			var condition = promoNewRec.getValue('custrecord_itpm_p_condition');
 			var promoId = promoNewRec.id;
-			
+
 			if(eventType == 'edit'){
-				log.error('oldStatus', oldStatus);
-				log.error('newStatus', newStatus);
-				log.error('condition', condition);
+				log.debug('oldStatus', oldStatus);
+				log.debug('newStatus', newStatus);
+				log.debug('condition', condition);
 				if(
 						(oldStatus == 3 && newStatus == 3 && (condition == 2 || condition == 3)) || 
 						(oldStatus == 2 && newStatus == 3 && (condition == 2 || condition == 3)) || 
 						(oldStatus == 7 && newStatus == 3 && (condition == 2 || condition == 3)) ||
 						(oldStatus == 3 && (newStatus == 7 || newStatus == 5) && (condition == 2 || condition == 3))
 				){
-					log.error('promoId', promoId);
+					log.debug('promoId', promoId);
 					var searchCount = search.create({
 						type : 'customrecord_itpm_kpiqueue',
 						filters : [
@@ -387,7 +414,7 @@ define(['N/ui/serverWidget',
 			id : 'custpage_sublist_summary_overlapromotions',
 			type : (eventType == 'view')?serverWidget.SublistType.INLINEEDITOR:serverWidget.SublistType.LIST,
 					tab:'custpage_overlappromotions',
-					label : 'Summary'
+					label : 'Promotions'
 		});
 		Summarysublist.addField({
 			id : 'custpage_summary_overlappromo_id',
@@ -437,7 +464,7 @@ define(['N/ui/serverWidget',
 			id : 'custpage_sublist_overlapromotions',
 			type : (eventType == 'view')?serverWidget.SublistType.INLINEEDITOR:serverWidget.SublistType.LIST,
 					tab:'custpage_overlappromotions',
-					label : 'Detail'
+					label : 'Allowances'
 		});
 		var itemField = sublist.addField({
 			id : 'custpage_overlappromo_item',
@@ -522,6 +549,8 @@ define(['N/ui/serverWidget',
 			});
 		}
 
+
+
 		//getting the Promotion/Deal Estimated Qty list
 		var estQtyItems = [];
 		search.create({
@@ -532,7 +561,7 @@ define(['N/ui/serverWidget',
 			estQtyItems.push(e.getValue('custrecord_itpm_estqty_item'));
 			return true;
 		});
-
+		var uniquepromos = [];
 		//if estqty have items then only it going to search for the results
 		if(estQtyItems.length>0){
 			var i = 0,k = 0;
@@ -562,7 +591,8 @@ define(['N/ui/serverWidget',
 
 				var oldPromoId = promoDealSearchId,newPromoid;
 				var promos = []; 
-				var uniques = [] ;
+				
+
 				search.create({
 					type:'customrecord_itpm_estquantity',
 					columns:['custrecord_itpm_estqty_item',
@@ -579,7 +609,9 @@ define(['N/ui/serverWidget',
 				}).run().each(function(estQty){
 					if(oldPromoId != newPromoid){
 						newPromoid = estQty.getValue('custrecord_itpm_estqty_promodeal');
-						log.debug(true);
+						//log.error(true,newPromoid);
+						uniquepromos.push(newPromoid);
+
 						Summarysublist.setSublistValue({
 							id : 'custpage_summary_overlappromo_id',
 							line : k,
@@ -694,9 +726,9 @@ define(['N/ui/serverWidget',
 				});	
 //				i++;
 				return true;
+
 			});
 		}
-
 	}
 
 	/**
