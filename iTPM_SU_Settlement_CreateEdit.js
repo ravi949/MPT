@@ -462,7 +462,6 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 		    	})
 		    	return true;
 		    });
-		    
 	    }
     	
 	    //class
@@ -490,7 +489,6 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 		    	})
 		    	return true;
 		    });
-	    	
 	    }
 	    
     	//location
@@ -517,7 +515,6 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 		    	})
 		    	return true;
 		    });
-		    
 	    }
 
 	    /*  CLASSIFICATION end  */
