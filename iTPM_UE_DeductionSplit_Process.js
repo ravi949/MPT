@@ -63,7 +63,7 @@ define(['N/record',
 							id:'custpage_copyinprg_message',
 							type:serverWidget.FieldType.INLINEHTML,
 							label:'script'
-						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Do NOT click on Back Button",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Do NOT Click on Back Button",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
 				
 				
 			}
