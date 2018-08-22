@@ -6,10 +6,11 @@
 define(['N/runtime',
 		'N/redirect',
 		'N/search',
+		'N/ui/serverWidget',
 		'./iTPM_Module.js'
 	],
 
-	function(runtime, redirect, search, itpm) {
+	function(runtime, redirect, search, serverWidget, itpm) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -73,6 +74,29 @@ define(['N/runtime',
 			){				
 				log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
 				sc.form.clientScriptModulePath = clientScriptPath;
+				
+				//Show banner on the Deduction when Resolution Queue is filled with this deduction
+				var resolutionQueue = search.create({
+					type : 'customrecord_itpm_resolutionqueue',
+					columns: ['internalid'],
+					filters: [
+					          ["custrecord_itpm_rq_deduction","anyof",sc.newRecord.id], 
+					          "AND", 
+					          ["custrecord_itpm_rq_processingnotes","isempty",""], 
+					          "AND", 
+					          ["custrecord_itpm_rq_settlement","anyof","@NONE@"]
+					          ],
+				});
+				
+				if(resolutionQueue.runPaged().count != 0){
+					var msgText = "To prevent errors, please don't use this deduction for any other process. "+
+					              "This dedution is already being placed in <b>Resolution Queue</b>.";
+					sc.form.addField({
+						id	  : 'custpage_warn_message',
+						type  : serverWidget.FieldType.INLINEHTML,
+						label : 'script'
+					}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please Do NOT use this Deduction.",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+				}
 				
 				//Get JE with Pending Approval, if there is any open deduction created a JE
 				var count = jeSearchToShowDeductionButtons(sc.newRecord.id);
