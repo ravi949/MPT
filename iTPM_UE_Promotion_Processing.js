@@ -64,104 +64,123 @@ define(['N/ui/serverWidget',
 					var condition = promoRec.getValue('custrecord_itpm_p_condition');
 					var customer = promoRec.getValue('custrecord_itpm_p_customer');					
 
-					//ALLOW SETTLEMENTS WHEN PROMOTION IS ACTIVE?
-					var allowForSettlement = record.load({
-						type:'customrecord_itpm_promotiontype',
-						id:promoRec.getValue('custrecord_itpm_p_type')
-					}).getValue('custrecord_itpm_pt_settlewhenpromoactive');
-
-					//role based permission allow permissions (CREATE,EDIT and FULL)
-					var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_settlementpermissionsrec');
-					var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
-					log.debug('rolePermission',rolePermission);
-					rolePermission = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
-					var showSettlementButton = (rolePermission  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
-					//checking promotion permission
-					var promotionRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_promopermissionrec');
-					var promoPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionRectypeId);
-					var user = runtime.getCurrentUser();
-					//checking promotionType permission
-					var promotionTypeRectypeId = runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission');
-					var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);
-					var owner = promoRec.getValue('owner');	
-					var kpiAlocationCalcIsComplete = search.create({
-						type: "customrecord_itpm_kpi",
-						filters: [
-							["custrecord_itpm_kpi_allocfactcalculated","is","F"],  "AND", 
-							["custrecord_itpm_kpi_promotiondeal","anyof",promoRec.id]
-							],
-							columns: [ 'custrecord_itpm_kpi_promotiondeal', 'custrecord_itpm_kpi_item', 'custrecord_itpm_kpi_esttotalqty' ]
-					}).run().getRange(0,10).length > 0;
-
-					if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn') && !kpiAlocationCalcIsComplete){
-						promoForm.addButton({
-							id:'custpage_newsettlementbtn',
-							label:'Request Settlement',
-							functionName:'newSettlement('+promoRec.id+')'
-						});
-
-						promoForm.addButton({
-							id:'custpage_bulksettlementbtn',
-							label:'Resolve Deductions',
-							functionName:'bulkSettlements('+promoRec.id+','+customer+')'
-						});
-
-						promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
-					}
-
-					//Showing Refresh KPIs button only for APPROVED and CLOSED statuses (Don't show if this Promotion was already exist in KPI Queue)
-					var searchCount = search.create({
-						type : 'customrecord_itpm_kpiqueue',
-						filters : [
-							['custrecord_itpm_kpiq_promotion', 'is', promoRec.id],'and',
-							['custrecord_itpm_kpiq_start','isempty',null],'and',
-							['custrecord_itpm_kpiq_end','isempty',null]
-							]
-					}).runPaged().count;
-					log.debug('REFRESH KPIs button: searchCount', searchCount);
-					if((status == 3 || status == 7) && searchCount == 0){
-						promoForm.addButton({
-							id:'custpage_refresh_kpis',
-							label:'Refresh KPIs',
-							functionName:'refreshKPIs('+promoRec.id+')'
-						});
-						promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
-					}
-
-					//Getting Promotion Planning Records count w.r.t Promotion ID
-					var promoPlanRecSearch = search.create({
-						type: "customrecord_itpm_promotion_planning",
-						columns:[
-							search.createColumn({
-								name:'internalid',
-								summary:search.Summary.COUNT
-							})
-							],
+					//'Request Settlement' and 'Resolve Deductions' Buttons
+					try{
+						//ALLOW SETTLEMENTS WHEN PROMOTION IS ACTIVE?
+						var allowForSettlement = record.load({
+							type:'customrecord_itpm_promotiontype',
+							id:promoRec.getValue('custrecord_itpm_p_type')
+						}).getValue('custrecord_itpm_pt_settlewhenpromoactive');
+						
+						//role based permission allow permissions (CREATE,EDIT and FULL)
+						var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_settlementpermissionsrec');						
+						var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
+						log.debug('rolePermission',rolePermission);
+						var rolePermissionIs = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
+						
+						var kpiAlocationCalcIsComplete = search.create({
+							type: "customrecord_itpm_kpi",
 							filters: [
-								["custrecord_itpm_pp_promotion","anyof",promoRec.id], 
-								"AND", 
-								["isinactive","is",false]
-								]  
-					}).run().getRange(0,1);
-					promoPlanRecCount = parseFloat(promoPlanRecSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
-					log.debug('promoPlanRecCount', promoPlanRecCount);
-					log.debug('promoPermission', promoPermission);
-					log.debug('promoTypePermission', promoTypePermission);
-					log.debug('owner', owner);
-					log.debug('user', user.id);
+								["custrecord_itpm_kpi_allocfactcalculated","is","F"],  "AND", 
+								["custrecord_itpm_kpi_promotiondeal","anyof",promoRec.id]
+								],
+								columns: [ 'custrecord_itpm_kpi_promotiondeal', 'custrecord_itpm_kpi_item', 'custrecord_itpm_kpi_esttotalqty' ]
+						}).run().getRange(0,10).length > 0;
+						
+						var showSettlementButton = (rolePermissionIs  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
+						if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn') && !kpiAlocationCalcIsComplete){
+							promoForm.addButton({
+								id:'custpage_newsettlementbtn',
+								label:'Request Settlement',
+								functionName:'newSettlement('+promoRec.id+')'
+							});
 
-					//adding Planning Complete button on promotion record if it has a promotion planning lines.
-					if((promoPlanRecCount > 0 && promoRec.getValue('custrecord_itpm_p_ispromoplancomplete')== false && 
-							(status == 1 || status == 2 || status == 3) && (promoPermission == 4 || promoTypePermission >= 3 ||(promoPermission >= 2 && owner == user.id && (status == 1 || (status == 2 && condition == 1)))))){
-						log.audit(true);
-						promoForm.addButton({
-							id:'custpage_planning_completed',
-							label:'Process Plan',
-							functionName:'planningComplete('+promoRec.id+')'
-						});
-						promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
+							promoForm.addButton({
+								id:'custpage_bulksettlementbtn',
+								label:'Resolve Deductions',
+								functionName:'bulkSettlements('+promoRec.id+','+customer+')'
+							});
+
+							promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
+						}
+					}catch(nex){
+						log.error(nex.name+' For "Request Settlement" and "Resolve Deductions" Buttons',nex.message);
+					}
+					
+					//'Refresh KPIs' Button
+					try{
+						//Showing Refresh KPIs button only for APPROVED and CLOSED statuses (Don't show if this Promotion was already exist in KPI Queue)
+						var searchCount = search.create({
+							type : 'customrecord_itpm_kpiqueue',
+							filters : [
+								['custrecord_itpm_kpiq_promotion', 'is', promoRec.id],'and',
+								['custrecord_itpm_kpiq_start','isempty',null],'and',
+								['custrecord_itpm_kpiq_end','isempty',null]
+								]
+						}).runPaged().count;
+						log.debug('REFRESH KPIs button: searchCount', searchCount);
+						
+						if((status == 3 || status == 7) && searchCount == 0){
+							promoForm.addButton({
+								id:'custpage_refresh_kpis',
+								label:'Refresh KPIs',
+								functionName:'refreshKPIs('+promoRec.id+')'
+							});
+							promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
+						}
+					}catch(nex){
+						log.error(nex.name+' For "Refresh KPIs" button',nex.message);
 					}
 
+					//'Process Plan' Button
+					try{
+						//Getting Promotion Planning Records count w.r.t Promotion ID
+						var promoPlanRecSearch = search.create({
+							type: "customrecord_itpm_promotion_planning",
+							columns:[
+								search.createColumn({
+									name:'internalid',
+									summary:search.Summary.COUNT
+								})
+								],
+								filters: [
+									["custrecord_itpm_pp_promotion","anyof",promoRec.id], 
+									"AND", 
+									["isinactive","is",false]
+									]  
+						}).run().getRange(0,1);
+						promoPlanRecCount = parseFloat(promoPlanRecSearch[0].getValue({name:'internalid',summary:search.Summary.COUNT}));
+						log.debug('promoPlanRecCount', promoPlanRecCount);
+						
+						//checking promotion permission
+						var promotionRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_promopermissionrec');
+						var promoPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionRectypeId);
+						log.debug('promoPermission', promoPermission);
+						//checking promotionType permission
+						var promotionTypeRectypeId = runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission');
+						var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);
+						log.debug('promoTypePermission', promoTypePermission);
+						
+						var owner = promoRec.getValue('owner');
+						log.debug('owner', owner);
+						var user = runtime.getCurrentUser();
+						log.debug('user', user.id);
+						
+						//adding Planning Complete button on promotion record if it has a promotion planning lines.
+						if((promoPlanRecCount > 0 && promoRec.getValue('custrecord_itpm_p_ispromoplancomplete')== false && 
+								(status == 1 || status == 2 || status == 3) && (promoPermission == 4 || promoTypePermission >= 3 ||(promoPermission >= 2 && owner == user.id && (status == 1 || (status == 2 && condition == 1)))))){
+							log.audit(true);
+							promoForm.addButton({
+								id:'custpage_planning_completed',
+								label:'Process Plan',
+								functionName:'planningComplete('+promoRec.id+')'
+							});
+							promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
+						}
+					}catch(nex){
+						log.error(nex.name+' For "Process Plan" button',nex.message);
+					}
+					
 					//after copy and save the record it will show the copy in progress message
 					var copyInProgress = promoRec.getValue('custrecord_itpm_p_copyinprogress');
 					var copyRelatedRecords = promoRec.getValue('custrecord_itpm_p_copy');
@@ -335,7 +354,7 @@ define(['N/ui/serverWidget',
 
 			}
 			var scriptObj = runtime.getCurrentScript();
-			log.error("Remaining governance units: " + scriptObj.getRemainingUsage());
+			log.debug("Remaining governance units: " + scriptObj.getRemainingUsage());
 		}catch(ex){
 			log.error(ex.name, ex.message +'; beforeLoad; trigger type: ' + scriptContext.type + '; recordID: ' + scriptContext.newRecord.id + '; recordType: ' + scriptContext.newRecord.type);
 			if(ex.name == 'PROMOTIONTYPE_RECORD_IS_INACTIVE'){
