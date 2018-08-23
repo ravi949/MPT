@@ -151,7 +151,7 @@ define(['N/ui/serverWidget',
 							['custrecord_itpm_promo_allocationcontrbtn','is',false],'and',
 							[
 								[['custrecord_itpm_p_type.custrecord_itpm_pt_settlewhenpromoactive','is','T'],'and',
-									['custrecord_itpm_p_condition','anyof',2]],'or', //active if promotion type allow for settlemen in active
+									['custrecord_itpm_p_condition','anyof',2]],'or', //active if promotion type allow for settlement in active
 									['custrecord_itpm_p_condition','anyof', 3]  //completed
 								],'and',
 								['custrecord_itpm_p_customer','anyof', custrecIds],'and',
