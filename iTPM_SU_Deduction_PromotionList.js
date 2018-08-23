@@ -143,7 +143,8 @@ define(['N/ui/serverWidget',
 						'custrecord_itpm_p_customer',
 						'custrecord_itpm_p_netpromotionalle',
 						'custrecord_itpm_p_type.custrecord_itpm_pt_validmop',
-						'custrecord_itpm_p_otherrefcode'
+						'custrecord_itpm_p_otherrefcode',
+						'custrecord_itpm_p_type'
 						],
 						filters:[
 							['custrecord_itpm_p_status','anyof', 3],'and', //approved
@@ -195,8 +196,8 @@ define(['N/ui/serverWidget',
 								'custpage_itpm_id':promoRecId,
 								'custpage_itpm_prmtitle':e.getValue('name'),
 								'custpage_itpm_otherrefcode':e.getValue('custrecord_itpm_p_otherrefcode'),
-								'custpage_itpm_prmtype':e.getValue('custrecord_itpm_p_otherrefcode'),
-								'custpage_itpm_prmcondn':promoRecord.getText('custrecord_itpm_p_type'),
+								'custpage_itpm_prmtype':e.getText('custrecord_itpm_p_type'),
+								'custpage_itpm_prmcondn':promoRecord.getText('custrecord_itpm_p_condition'),
 								'custpage_itpm_prmshipstdt':promoRecord.getText('custrecord_itpm_p_shipstart'),
 								'custpage_itpm_prmshipenddt':promoRecord.getText('custrecord_itpm_p_shipend'),
 								'custpage_itpm_netlaiblity':promoRecord.getText('custrecord_itpm_p_netpromotionalle'),
