@@ -76,26 +76,43 @@ define(['N/runtime',
 				sc.form.clientScriptModulePath = clientScriptPath;
 				
 				//Show banner on the Deduction when Resolution Queue is filled with this deduction
-				var resolutionQueue = search.create({
-					type : 'customrecord_itpm_resolutionqueue',
-					columns: ['internalid'],
-					filters: [
-					          ["custrecord_itpm_rq_deduction","anyof",sc.newRecord.id], 
-					          "AND", 
-					          ["custrecord_itpm_rq_processingnotes","isempty",""], 
-					          "AND", 
-					          ["custrecord_itpm_rq_settlement","anyof","@NONE@"]
-					          ],
-				});
-				
-				if(resolutionQueue.runPaged().count != 0){
-					var msgText = "To prevent errors, please don't use this deduction for any other process. "+
-					              "This dedution is already being placed in <b>Resolution Queue</b>.";
-					sc.form.addField({
-						id	  : 'custpage_warn_message',
-						type  : serverWidget.FieldType.INLINEHTML,
-						label : 'script'
-					}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please Do NOT use this Deduction.",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+				try{
+					var resolutionQueue = search.create({
+						type : 'customrecord_itpm_resolutionqueue',
+						columns: ['internalid'],
+						filters: [
+						          ["custrecord_itpm_rq_deduction","anyof",sc.newRecord.id], 
+						          "AND", 
+						          ["custrecord_itpm_rq_processingnotes","isempty",""], 
+						          "AND", 
+						          ["custrecord_itpm_rq_settlement","anyof","@NONE@"]
+						         ]
+					});
+					
+					var expenseQueue = search.create({
+						type : 'customrecord_itpm_expensequeue',
+						columns: ['internalid'],
+						filters: [
+						          ["custrecord_itpm_eq_deduction","anyof",sc.newRecord.id], 
+						          "AND", 
+						          ["custrecord_itpm_eq_processingnotes","isempty",""], 
+						          "AND", 
+						          ["custrecord_itpm_eq_journalentry","anyof","@NONE@"]
+						         ],
+					});
+					
+					if((resolutionQueue.runPaged().count != 0) || (expenseQueue.runPaged().count != 0)){
+						var msgText = "To prevent errors, please do NOT edit this deduction, or use this deduction for any other process "+
+						              "until after processing is completed. This deduction is queued up in the <b>Resolution or Expense Queues</b> "+
+						              "and processing is pending.";
+						sc.form.addField({
+							id	  : 'custpage_warn_message',
+							type  : serverWidget.FieldType.INLINEHTML,
+							label : 'script'
+						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please DO NOT modify this Deduction.",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+					}
+				}catch(e){
+					log.debug(e.name, e.message);
 				}
 				
 				//Get JE with Pending Approval, if there is any open deduction created a JE
