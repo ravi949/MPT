@@ -67,7 +67,6 @@ define(['N/record',
 							label:'script'
 						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Do NOT Click on Back Button",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
 				
-				
 			}
 		}catch(ex){
 			log.error(ex.name,ex.message);
