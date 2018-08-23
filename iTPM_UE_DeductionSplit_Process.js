@@ -57,7 +57,9 @@ define(['N/record',
 					value:params.ddn
 				});       		
 			}
-			if(scriptContext.type == 'view'){				
+			if(scriptContext.type == 'view'){	
+				
+				//To show banner on Deduction Split record to prevent error message when user click on Back Button
 					var msgText = "Click on the Deduction to navigate to the iTPM Deduction record, or use the menu bar. Do NOT click on Back"
 						scriptContext.form.addField({
 							id:'custpage_copyinprg_message',
