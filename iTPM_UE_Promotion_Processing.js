@@ -166,10 +166,50 @@ define(['N/ui/serverWidget',
 						var user = runtime.getCurrentUser();
 						log.debug('user', user.id);
 						
+						//Checking If the promotion is used/Processed in other records
+						var IsPromoUsed = false;
+						if(status == 3){
+							var allowanceResult = [];
+							search.create({
+								type: "customrecord_itpm_promoallowance",
+								filters: [
+									["custrecord_itpm_all_promotiondeal","anyof",promoRec.id], 
+									"AND", 
+									["isinactive","is","F"]							                                        
+									],
+									columns: ["id"]
+							}).run().each(function(e){
+								allowanceResult.push(e.getValue({name:'id'}));							            		
+								return true;
+							});
+							IsPromoUsed = search.create({
+								type : 'customrecord_itpm_discountlogline',
+								filters : ['custrecord_itpm_sline_allowance', 'anyof', allowanceResult],
+								columns: ['custrecord_itpm_sline_allpromotion','custrecord_itpm_sline_allowance']
+							      
+								}).run().getRange(0,10).length > 0;
+
+							log.audit('is DLL created for Promotion '+promoRec.id, IsPromoUsed );
+							IsPromoUsed = search.create({
+								type : 'customtransaction_itpm_settlement',
+								filters : ['custbody_itpm_set_promo', 'anyof', promoRec.id],
+								columns: ['custbody_itpm_set_promo']
+								}).run().getRange(0,10).length > 0;
+							log.audit('is Settlement Created for Promotion '+promoRec.id, IsPromoUsed);
+						}						
+						
 						//adding Planning Complete button on promotion record if it has a promotion planning lines.
-						if((promoPlanRecCount > 0 && promoRec.getValue('custrecord_itpm_p_ispromoplancomplete')== false && 
-								(status == 1 || status == 2 || status == 3) && (promoPermission == 4 || promoTypePermission >= 3 ||(promoPermission >= 2 && owner == user.id && (status == 1 || (status == 2 && condition == 1)))))){
-							log.audit(true);
+						if(
+								(promoPlanRecCount > 0 && 
+								promoRec.getValue('custrecord_itpm_p_ispromoplancomplete')== false && 
+								(status == 1 || status == 2 || status == 3) && 
+								(
+										promoPermission == 4 || promoTypePermission >= 3 ||(promoPermission >= 2 && 
+										owner == user.id && 
+										(status == 1 || (status == 2 && condition == 1))))
+								) &&
+								!IsPromoUsed
+							){
 							promoForm.addButton({
 								id:'custpage_planning_completed',
 								label:'Process Plan',
