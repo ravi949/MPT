@@ -88,64 +88,24 @@ function(url, message, record, dialog, search) {
 	
 	
     //setting the true value to "Is Promotion Planning Complete?" check-box when user clicks the Promotion Completed button.
-	function planningComplete(promoID,planning_processed){
+	function planningComplete(promoID){
 		try{
 			console.log(' Promotion ID   '+ promoID);
-			console.log(' planning_processed   '+ planning_processed);
-
-			if(planning_processed){
-				var msgText = "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
-				"and made available under the subtabs by the same name. Please wait for processing to complete. "+
-				"Any allowances by item groups will be expanded to the associated items.";		
-
-				var popMessage = "All planning records are already processed. Do you want to submit for processing again?";
-
-				dialog.create({
-					title: "Please Confirm",
-					message: popMessage,
-					buttons:[{label:'Continue',value:true},{label:'Cancel',value:false}]
-				}).then(function(result){
-					if(result){
-						var msg = displayMessage('info',msgText);
-						msg.show();
-						var id = record.submitFields({
-							type: 'customrecord_itpm_promotiondeal',
-							id: promoID,
-							values: {
-								'custrecord_itpm_p_ispromoplancomplete': 'T',
-								'custrecord_itpm_p_isplanlinkrecdeleted': 'F'
-							},
-							options: {
-								enableSourcing: false,
-								ignoreMandatoryFields : true
-							}
-						});
-						//redirect to the same promotion
-						window.location.reload();
-					}
-				}).catch(function(reason){
-					console.log(reason);
-				});
-			}
-			//else if(!planning_processed){
-			else{
-				var id = record.submitFields({
-					type: 'customrecord_itpm_promotiondeal',
-					id: promoID,
-					values: {
-						'custrecord_itpm_p_ispromoplancomplete': 'T',
-						'custrecord_itpm_p_isplanlinkrecdeleted': 'F'
-					},
-					options: {
-						enableSourcing: false,
-						ignoreMandatoryFields : true
-					}
-				});
-				//redirect to the same promotion
-				window.location.reload();
-			}
+			var id = record.submitFields({
+			    type: 'customrecord_itpm_promotiondeal',
+			    id: promoID,
+			    values: {
+			    	'custrecord_itpm_p_ispromoplancomplete': 'T',
+			    	'custrecord_itpm_p_isplanlinkrecdeleted': 'F'
+			    },
+			    options: {
+			        enableSourcing: false,
+			        ignoreMandatoryFields : true
+			    }
+			});
 			
-			
+			//redirect to the same promotion
+			window.location.reload();
 		}catch(e){
 			console.log(e.name,'function name = refreshKPIs, message = '+e.message);
 		}
