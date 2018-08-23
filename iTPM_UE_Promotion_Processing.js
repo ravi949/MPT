@@ -150,9 +150,6 @@ define(['N/ui/serverWidget',
 		    		log.debug('owner', owner);
 		    		log.debug('user', user.id);
 		    		
-		    		//Checking weather all the lines in the promotion planning is processed or not.
-		    		var planning_processed = promoPlanningSearch(promoRec.id);
-		    		log.debug('planning_processed',planning_processed);
 					//adding Planning Complete button on promotion record if it has a promotion planning lines.
 		    		if((promoPlanRecCount > 0 && promoRec.getValue('custrecord_itpm_p_ispromoplancomplete')== false && 
 		    		   (status == 1 || status == 2 || status == 3) && (promoPermission == 4 || promoTypePermission >= 3 ||(promoPermission >= 2 && owner == user.id && (status == 1 || (status == 2 && condition == 1)))))){
@@ -160,7 +157,7 @@ define(['N/ui/serverWidget',
 		    			promoForm.addButton({
 							id:'custpage_planning_completed',
 							label:'Process Plan',
-							functionName:'planningComplete('+promoRec.id+','+planning_processed+')'
+							functionName:'planningComplete('+promoRec.id+')'
 						});
 						promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
 		    		}
@@ -778,35 +775,6 @@ define(['N/ui/serverWidget',
 		return diffDays;
 	}	
 	
-	
-	/**
-	 * @param params promoId, promoForm
-	 * @return {Object} search object.
-	 * @description search from planning processing records.
-	 */
-	function promoPlanningSearch(promoId){
-		try{
-			var ppSearch = search.create({
-				type:'customrecord_itpm_promotion_planning',
-				columns:['internalid','custrecord_itpm_pp_processed'],
-				filters:[['custrecord_itpm_pp_promotion','anyof',promoId],'and',['custrecord_itpm_pp_processed','is',false]]		    		
-			});
-
-//			ppSearch.run().each(function(e){
-//				if(!e.getValue('custrecord_itpm_pp_processed')){
-//					value = false;
-//					return value;
-//				}
-//			});
-			return !(ppSearch.run().getRange(0,2).length > 0);
-		}catch(ex){
-			log.debug(ex.name,ex.message);
-			log.error(ex.name,ex.message);
-			log.audit(ex.name,ex.message);
-		}
-	}
-
-
 	return {
 		beforeLoad: beforeLoad,
 		afterSubmit: afterSubmit
