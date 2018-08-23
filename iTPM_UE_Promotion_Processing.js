@@ -196,8 +196,11 @@ define(['N/ui/serverWidget',
 								columns: ['custbody_itpm_set_promo']
 								}).run().getRange(0,10).length > 0;
 							log.audit('is Settlement Created for Promotion '+promoRec.id, IsPromoUsed);
-						}						
+						}
 						
+						//Checking weather all the lines in the promotion planning is processed or not.
+						var planning_processed = promoPlanningSearch(promoRec.id);
+			    		log.debug('planning_processed',planning_processed);
 						//adding Planning Complete button on promotion record if it has a promotion planning lines.
 						if(
 								(promoPlanRecCount > 0 && 
@@ -213,7 +216,7 @@ define(['N/ui/serverWidget',
 							promoForm.addButton({
 								id:'custpage_planning_completed',
 								label:'Process Plan',
-								functionName:'planningComplete('+promoRec.id+')'
+								functionName:'planningComplete('+promoRec.id+','+planning_processed+')'
 							});
 							promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
 						}
@@ -865,6 +868,25 @@ define(['N/ui/serverWidget',
 		return diffDays;
 	}	
 
+	/**
+	 * @param params promoId, promoForm
+	 * @return {Object} search object.
+	 * @description search from planning processing records.
+	 */
+	function promoPlanningSearch(promoId){
+		try{
+			var ppSearch = search.create({
+				type:'customrecord_itpm_promotion_planning',
+				columns:['internalid','custrecord_itpm_pp_processed'],
+				filters:[['custrecord_itpm_pp_promotion','anyof',promoId],'and',['custrecord_itpm_pp_processed','is',false]]		    		
+			});
+			return !(ppSearch.run().getRange(0,2).length > 0);
+		}catch(ex){
+			log.debug(ex.name,ex.message);
+			log.error(ex.name,ex.message);
+			log.audit(ex.name,ex.message);
+		}
+	}
 	return {
 		beforeLoad: beforeLoad,
 		afterSubmit: afterSubmit
