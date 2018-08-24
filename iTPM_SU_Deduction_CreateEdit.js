@@ -386,6 +386,7 @@ function(serverWidget, record, search, runtime, redirect, config, format, itpm) 
     		isSelected:true
     	});
 
+    	var isDisputed = recObj.getValue('custbody_itpm_ddn_disputed')?'T':'F';
     	//setting the Disputed value
     	ddnForm.addField({
     		id : 'custom_itpm_ddn_disputed',
@@ -394,8 +395,8 @@ function(serverWidget, record, search, runtime, redirect, config, format, itpm) 
     		container:'custom_primry_information'
     	}).updateBreakType({
     		breakType : serverWidget.FieldBreakType.STARTCOL
-    	}).defaultValue = (params.type == 'create')?'F':recObj.getValue('custbody_itpm_ddn_disputed')?'T':'F';
-
+    	}).defaultValue = (params.type == 'create')? ((params.from != 'ddn')?'F':isDisputed) : isDisputed;
+    	
     	//iTPM Applied To Transaction field 				
     	var aplydToTrans = ddnForm.addField({
     		id : 'custom_itpm_ddn_appliedto',
