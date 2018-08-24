@@ -38,6 +38,9 @@ define(['N/ui/serverWidget',
 				type: 'customtransaction_itpm_deduction',
 				id: parameters.did
 			});
+			var dept = deductionRec.getValue('department'),
+				clas = deductionRec.getValue('class'),
+				loc =  deductionRec.getValue('location');
 
 			if(request.method == 'GET' && parameters.submit == 'true')
 			{
@@ -83,7 +86,7 @@ define(['N/ui/serverWidget',
 
 				if (cmAccount) jedebitaccount = cmAccount[0].getValue({name:'account'});
 
-				var jeDetails = createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid);
+				var jeDetails = createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid,dept,clas,loc);
 				
 				if (jeDetails.jeID){
 					//Set iTPM Applied To field on Credit Memo
@@ -146,9 +149,10 @@ define(['N/ui/serverWidget',
 	 * 
 	 * @description This function is used to create a Journal Entry record
 	 */
-	function createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid){
+	function createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid,dept,clas,loc){
 		try{
 			var jedetails = {};
+			
 
 			//creating JE record
 			var journalEntry = record.create({
@@ -219,6 +223,18 @@ define(['N/ui/serverWidget',
 				sublistId : 'line',
 				fieldId   : 'entity',
 				value     : jecustomer
+			}).setCurrentSublistValue({
+				sublistId : 'line',
+				fieldId   : 'department',
+				value     : dept
+			}).setCurrentSublistValue({
+				sublistId : 'line',
+				fieldId   : 'class',
+				value     : clas
+			}).setCurrentSublistValue({
+				sublistId : 'line',
+				fieldId   : 'location',
+				value     : loc
 			}).commitLine({
 				sublistId: 'line'
 			});
@@ -242,6 +258,18 @@ define(['N/ui/serverWidget',
 				sublistId : 'line',
 				fieldId   : 'entity',
 				value     : jecustomer
+			}).setCurrentSublistValue({
+				sublistId : 'line',
+				fieldId   : 'department',
+				value     : dept
+			}).setCurrentSublistValue({
+				sublistId : 'line',
+				fieldId   : 'class',
+				value     : clas
+			}).setCurrentSublistValue({
+				sublistId : 'line',
+				fieldId   : 'location',
+				value     : loc
 			}).commitLine({
 				sublistId: 'line'
 			});
