@@ -387,8 +387,8 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 			var promotionFilters = [
 			    ["custrecord_itpm_p_status","anyof",promoStatus], 
 			    "AND", 
-			    [["custrecord_itpm_p_shipstart","onorbefore",startdate],"AND",["custrecord_itpm_p_shipend","onorafter",enddate]],"OR",
-			    [["custrecord_itpm_p_shipstart","within",startdate,enddate],"OR",["custrecord_itpm_p_shipend","within",startdate,enddate]]
+			    [[["custrecord_itpm_p_shipstart","onorbefore",startdate],"AND",["custrecord_itpm_p_shipend","onorafter",enddate]],"OR",
+			    [["custrecord_itpm_p_shipstart","within",startdate,enddate],"OR",["custrecord_itpm_p_shipend","within",startdate,enddate]]]
 			];
 			
 			//If all customers checkbox not checked
