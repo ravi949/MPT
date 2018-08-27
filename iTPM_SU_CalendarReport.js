@@ -383,13 +383,16 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 			
 			log.audit('itemgroups',itemGroups);
 			
+			/*promotion filters(to show overlapped and active promotions)*/
 			var promotionFilters = [
-			   ["custrecord_itpm_p_status","anyof",promoStatus], 
-			   "AND", 
-			   ["custrecord_itpm_p_shipstart","onorafter",startdate], 
-			   "AND", 
-			   ["custrecord_itpm_p_shipend","onorbefore",enddate]
+			    ["custrecord_itpm_p_status","anyof",promoStatus], 
+			    "AND", 
+			    [
+			     [["custrecord_itpm_p_shipstart","onorbefore",startdate],"AND",["custrecord_itpm_p_shipend","onorafter",enddate]],"OR",
+			     [["custrecord_itpm_p_shipstart","within",startdate,enddate],"OR",["custrecord_itpm_p_shipend","within",startdate,enddate]]
+			    ]
 			];
+			
 			//If all customers checkbox not checked
 			if(!allCustomersChecked){
 				var customers = calendarRecLookup['custrecord_itpm_cal_customer'].map(function(e){return e.value});
