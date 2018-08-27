@@ -348,8 +348,8 @@ define(['N/config',
 			var memo = 'Applying Settlement #'+SettlementRec.getValue('tranid')+' to Deduction #'+DeductionNum;
 
 			var JELines = [
-				{recid:parameters.sid,account:dednExpAccnt,memo:memo,type:'credit',amount:JEAmount,subid:deductionRec.getValue('subsidiary'),custid:customer},
-				{recid:parameters.sid,account:accountPayable,memo:memo,type:'debit',amount:JEAmount,subid:deductionRec.getValue('subsidiary'),custid:customer}
+				{recid:parameters.sid,account:dednExpAccnt,memo:memo,type:'credit',amount:JEAmount,subid:deductionRec.getValue('subsidiary'),custid:customer,dept: (itpm.departmentsEnabled())? deductionRec.getValue('department') : undefined,loc:(itpm.locationsEnabled())?deductionRec.getValue('location'): undefined,clas:(itpm.classesEnabled())? deductionRec.getValue('class') : undefined},
+				{recid:parameters.sid,account:accountPayable,memo:memo,type:'debit',amount:JEAmount,subid:deductionRec.getValue('subsidiary'),custid:customer,dept: (itpm.departmentsEnabled())? deductionRec.getValue('department') : undefined,loc:(itpm.locationsEnabled())?deductionRec.getValue('location'): undefined,clas:(itpm.classesEnabled())? deductionRec.getValue('class') : undefined}
 				];
 
 			var JournalId = setJELines(JELines);
@@ -393,7 +393,7 @@ define(['N/config',
 	function createReverseJE(settlementRec){
 		try{
 			var lineCount = settlementRec.getLineCount('line'),JELines = [];
-
+			log.error('loc',settlementRec.getValue('location'));
 			for(var i=0;i<lineCount;i++){
 				var credit = settlementRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i}),
 				debit = settlementRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i}); 
@@ -406,7 +406,7 @@ define(['N/config',
 					subid:settlementRec.getValue('subsidiary'),
 					custid:settlementRec.getValue('custbody_itpm_customer'),
 					dept: (itpm.departmentsEnabled())? settlementRec.getValue('department') : undefined,
-					loc:(itpm.locationsEnabled())? settlementRec.getValue('location') : undefined,
+					loc:(itpm.locationsEnabled())?settlementRec.getValue('location'): undefined,
 					clas:(itpm.classesEnabled())? settlementRec.getValue('class') : undefined
 				});
 			}
@@ -503,7 +503,7 @@ define(['N/config',
 						value:JELines[i].dept
 					});
 				}
-				if(JELines[i].loc){
+		       if(JELines[i].loc){
 					journalRecord.setSublistValue({
 						sublistId: 'line',
 						fieldId:'location',
@@ -516,7 +516,7 @@ define(['N/config',
 						sublistId: 'line',
 						fieldId:'class',
 						line: i,
-						value:JELines[i].class
+						value:JELines[i].clas
 					});
 				}
 			}
