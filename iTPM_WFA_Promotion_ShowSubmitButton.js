@@ -5,7 +5,7 @@
  */
 define(['N/search'],
 
-function(search, runtime) {
+function(search) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
