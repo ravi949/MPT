@@ -345,7 +345,8 @@ function(record, redirect, runtime, search, serverWidget, url, itpm) {
 				filters:[
 					 ['custbody_itpm_ddn_openbal','greaterthanorequalto', cmAmount],'and'
 					,['mainline','is','T'],'and'
-					,['custbody_itpm_customer','anyof',cmcustomer]
+					,['custbody_itpm_customer','anyof',cmcustomer],'and'
+					,["linesequencenumber","equalto","0"]
 					]		    		
 			});
 			var searchLength = DeductionSearch.run().getRange(0,2).length;

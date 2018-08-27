@@ -176,15 +176,16 @@ define(['N/ui/serverWidget',
 					
 					//after Planing Completed showing the progress message while batch process running
 					var promoPlaningProgress = promoRec.getValue('custrecord_itpm_p_ispromoplancomplete');
+
 					if(promoPlaningProgress){
 						var msgText = "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
-						              "and made available under the subtabs by the same name. Please wait for processing to complete. "+
-						              "Any allowances by item groups will be expanded to the associated items.";
-							scriptContext.form.addField({
-								id:'custpage_planingprogress_message',
-								type:serverWidget.FieldType.INLINEHTML,
-								label:'script'
-							}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+						"and made available under the subtabs by the same name. Please wait for processing to complete. "+
+						"Any allowances by item groups will be expanded to the associated items.";						
+						scriptContext.form.addField({
+							id:'custpage_planingprogress_message',
+							type:serverWidget.FieldType.INLINEHTML,
+							label:'script'
+						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
 					}
 				}
 
@@ -773,7 +774,7 @@ define(['N/ui/serverWidget',
 		diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
 		return diffDays;
 	}	
-
+	
 	return {
 		beforeLoad: beforeLoad,
 		afterSubmit: afterSubmit
