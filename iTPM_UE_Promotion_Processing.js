@@ -265,10 +265,12 @@ define(['N/ui/serverWidget',
 
 					//after Planing Completed showing the progress message while batch process running
 					var promoPlaningProgress = promoRec.getValue('custrecord_itpm_p_ispromoplancomplete');
+
 					if(promoPlaningProgress){
 						var msgText = "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
-						"and made available under the subtabs by the same name. Please wait for processing to complete. "+
-						"Any allowances by item groups will be expanded to the associated items.";
+						"and made available under the subtabs by the same name. Please wait for processing to complete. "+ 
+            "Any allowances by item groups will be expanded to the associated items.";						
+
 						scriptContext.form.addField({
 							id:'custpage_planingprogress_message',
 							type:serverWidget.FieldType.INLINEHTML,
@@ -937,6 +939,7 @@ define(['N/ui/serverWidget',
 			log.audit(ex.name,ex.message);
 		}
 	}
+  
 	return {
 		beforeLoad: beforeLoad,
 		afterSubmit: afterSubmit

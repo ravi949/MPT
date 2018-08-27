@@ -4,10 +4,10 @@
  * @NModuleScope TargetAccount
  */
 define(['N/record',
-		'N/redirect',
-		'N/search',
-		'./iTPM_Module.js'
-		],
+	'N/redirect',
+	'N/search',
+	'./iTPM_Module.js'
+	],
 
 	function(record, redirect, search, itpm) {
 
@@ -36,10 +36,11 @@ define(['N/record',
 						message:'This settlement has been voided.'
 					};
 				}
-				
+
 				var subsidiaryExists = itpm.subsidiariesEnabled();
 				var currencyExists = itpm.currenciesEnabled();
 				var lineCount = SetRec.getLineCount('line');
+
 
 				if(lineCount > 0){
 					var JERec = record.create({
@@ -98,8 +99,7 @@ define(['N/record',
 					var lumsumType = SetRec.getSublistValue({sublistId:'line',fieldId:'custcol_itpm_lsbboi',line:i});
 
 					log.debug(i,'account ='+account+' credit='+credit+' debit='+debit+' lumsumType='+lumsumType);
-					log.debug('JERec',JERec);
-
+					log.debug('JERec',JERec);					
 					JERec.setSublistValue({
 						sublistId:'line',
 						fieldId:'account',
@@ -109,12 +109,12 @@ define(['N/record',
 						sublistId:'line',
 						fieldId:'credit',
 						value:(debit != '')?debit:0,
-						line:i
+								line:i
 					}).setSublistValue({
 						sublistId:'line',
 						fieldId:'debit',
 						value:(credit != '')?credit:0,
-						line:i
+								line:i
 					}).setSublistValue({
 						sublistId:'line',
 						fieldId:'memo',
@@ -126,6 +126,30 @@ define(['N/record',
 						value:SetRec.getValue('custbody_itpm_customer'),
 						line:i
 					});
+					if(itpm.departmentsEnabled()){
+						JERec.setSublistValue({
+							sublistId:'line',
+							fieldId:'department',
+							value:SetRec.getValue('department'),
+							line:i
+						});
+					}
+					if(itpm.classesEnabled()){
+						JERec.setSublistValue({
+							sublistId:'line',
+							fieldId:'class',
+							value:SetRec.getValue('class'),
+							line:i
+						});
+					}
+					if(itpm.locationsEnabled()){
+						JERec.setSublistValue({
+							sublistId:'line',
+							fieldId:'location',
+							value:SetRec.getValue('location'),
+							line:i
+						});
+					}
 
 				}
 
@@ -182,9 +206,9 @@ define(['N/record',
 								isDynamic: true
 							});
 							var parentJEtranid = search.lookupFields({
-							    type: 'journalentry',
-							    id: jeser[0].id,
-							    columns: ['tranid']
+								type: 'journalentry',
+								id: jeser[0].id,
+								columns: ['tranid']
 							}).tranid ;
 							log.debug('parentJEtranid ',parentJEtranid  );
 							var JEcopyMemo = 'Reversing JE '+ parentJEtranid +' for Voiding Settlement # '+SetRec.getValue('tranid');
@@ -203,12 +227,12 @@ define(['N/record',
 									sublistId:'line',
 									fieldId:'debit',
 									value:(JEcredit > 0)?JEcredit:'',
-									line:i
+											line:i
 								}).setCurrentSublistValue({
 									sublistId:'line',
 									fieldId:'credit',
 									value:(JEdebit > 0)?JEdebit:'',
-									line:i
+											line:i
 								}).setCurrentSublistValue({
 									sublistId:'line',
 									fieldId:'memo',

@@ -2161,7 +2161,7 @@ define(['N/search',
 			value:obj.refCode
 		}).setValue({
 			fieldId:'custbody_itpm_ddn_disputed',
-			value:(obj.ddnDisputed)? obj.ddnDisputed : false //when split the deduction if first one checked second set to false
+			value: parentDdnRec.getValue('custbody_itpm_ddn_disputed')//(obj.ddnDisputed)? obj.ddnDisputed : false //when split the deduction if first one checked second set to false
 		}).setValue({
 			fieldId:'custbody_itpm_amount',
 			value:remainingAmount  //setting the remaining the amount value to the Amount field

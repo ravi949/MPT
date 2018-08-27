@@ -45,7 +45,7 @@ function(message,format) {
 			if(showMsg.inValid){
 				msg += (totalAmount > openBalance)? 
 						'\nYou have entered more than the Open Balance i.e. $'+remainingAmount:
-						'\nYou have Reamining $'+maxAmount+' of Open Balance to Split';
+						'\nYou have Remaining $'+maxAmount+' of Open Balance to Split';
 				showMsg.msg = msg;				
 				return false;
 			}				
