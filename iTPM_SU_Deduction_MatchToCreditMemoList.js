@@ -38,9 +38,7 @@ define(['N/ui/serverWidget',
 				type: 'customtransaction_itpm_deduction',
 				id: parameters.did
 			});
-			var dept = deductionRec.getValue('department'),
-				clas = deductionRec.getValue('class'),
-				loc =  deductionRec.getValue('location');
+			
 
 			if(request.method == 'GET' && parameters.submit == 'true')
 			{
@@ -50,7 +48,10 @@ define(['N/ui/serverWidget',
 				var classExists = itpm.classesEnabled();
 				var departmentExists = itpm.departmentsEnabled();
 				var creditmemoid = parameters.cm;
-
+				
+				var dept = (itpm.departmentsEnabled())? deductionRec.getValue('department') : undefined,
+					loc = (itpm.locationsEnabled())? deductionRec.getValue('location'): undefined,
+					clas = (itpm.classesEnabled())? deductionRec.getValue('class'): undefined;
 				//getting remaining amount from credit memo
 				var cmLookup = search.lookupFields({
 					type    : search.Type.CREDIT_MEMO,
