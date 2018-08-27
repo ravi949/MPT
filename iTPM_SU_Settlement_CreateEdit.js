@@ -622,9 +622,9 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 	    	}).updateDisplayType({
 				displayType : serverWidget.FieldDisplayType.DISABLED
 			}).defaultValue = format.parse({value:ddnOpenBal, type: format.Type.CURRENCY}).toFixed(2);
-		    locationField.defaultValue = deductionRec.getValue('location');
-		    deptField.defaultValue = deductionRec.getValue('department');
-		    classField.defaultValue = deductionRec.getValue('class');
+		    if(departmentsExists){deptField.defaultValue = deductionRec.getValue('department');}
+		    if(locationsExists){locationField.defaultValue = deductionRec.getValue('location');}	    
+		    if(locationsExists){classField.defaultValue = deductionRec.getValue('class');}
 	    }
 	    
 	    //settlement request
