@@ -36,6 +36,7 @@ function(message,format) {
 				totalAmount += parseFloat(lineAmount);			
 			}	
 			//getting open balance from deduction record
+			totalAmount = format.parse({value:(totalAmount), type: format.Type.CURRENCY}).toFixed(2);
 			var openBalance = scriptContext.currentRecord.getValue('custrecord_itpm_split_ddnopenbal');
 			scriptContext.currentRecord.setValue('custpage_itpm_ddsplit_totallineamount',totalAmount);
 			var msg = 'Total Line amount: $'+totalAmount;
