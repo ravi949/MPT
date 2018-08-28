@@ -147,7 +147,11 @@ function(record, redirect, runtime, search, serverWidget, url, itpm) {
 	function createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid){
 		try{
 			var jedetails = {};
-
+			//Loading credit memo record
+			var cmRecord = record.load({
+				type: search.Type.CREDIT_MEMO,
+				id: creditmemoid
+			});
 			//creating JE record
 			var journalEntry = record.create({
 				type    : record.Type.JOURNAL_ENTRY,
@@ -217,7 +221,29 @@ function(record, redirect, runtime, search, serverWidget, url, itpm) {
 				sublistId : 'line',
 				fieldId   : 'entity',
 				value     : jecustomer
-			}).commitLine({
+			});
+			if(itpm.departmentsEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'department',
+					value     : cmRecord.getValue('department')
+				});
+			}
+			if(itpm.locationsEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'location',
+					value     : cmRecord.getValue('location')
+				});
+			}
+			if(itpm.classesEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'class',
+					value     : cmRecord.getValue('class')
+				});
+			}
+			journalEntry.commitLine({
 				sublistId: 'line'
 			});
 			//DEBIT LINE
@@ -240,7 +266,29 @@ function(record, redirect, runtime, search, serverWidget, url, itpm) {
 				sublistId : 'line',
 				fieldId   : 'entity',
 				value     : jecustomer
-			}).commitLine({
+			});
+			if(itpm.departmentsEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'department',
+					value     : cmRecord.getValue('department')
+				});
+			}
+			if(itpm.locationsEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'location',
+					value     : cmRecord.getValue('location')
+				});
+			}
+			if(itpm.classesEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'class',
+					value     : cmRecord.getValue('class')
+				});
+			}
+			journalEntry.commitLine({
 				sublistId: 'line'
 			});
 
@@ -409,3 +457,5 @@ function(record, redirect, runtime, search, serverWidget, url, itpm) {
     };
     
 });
+
+
