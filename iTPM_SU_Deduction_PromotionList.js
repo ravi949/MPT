@@ -67,41 +67,6 @@ define(['N/ui/serverWidget',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Ship End Date'
 				});
-				list.addColumn({
-					id : 'custpage_itpm_netlaiblity',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Net Liability'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_overpay',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Overpay'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_promoestspnd',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Est.Spend'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_lespend',
-					type : serverWidget.FieldType.TEXT,
-					label : 'LE Spend'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_maxliablity',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Max Liability'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_expliablity',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Expected Liability'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_actspend',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Actual Spend'
-				});
 
 				list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'});
 				list.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
@@ -144,7 +109,9 @@ define(['N/ui/serverWidget',
 						'custrecord_itpm_p_netpromotionalle',
 						'custrecord_itpm_p_type.custrecord_itpm_pt_validmop',
 						'custrecord_itpm_p_otherrefcode',
-						'custrecord_itpm_p_type'
+						'custrecord_itpm_p_type',
+						'custrecord_itpm_p_shipstart',
+						'custrecord_itpm_p_shipend'
 						],
 						filters:[
 							['custrecord_itpm_p_status','anyof', 3],'and', //approved
@@ -158,16 +125,14 @@ define(['N/ui/serverWidget',
 								['custrecord_itpm_p_type.custrecord_itpm_pt_validmop','is',1],'and',  //mop is bill-back
 								['isinactive','is',false]]	    		
 				});
-				var promoDealRecordSearchLength = promoDealRecordSearch.runPaged().count;
-				var promos = [];
-				var suiteltUrl = url.resolveScript({
-					scriptId: 'customscript_itpm_set_createeditsuitelet',
-					deploymentId: 'customdeploy_itpm_set_createeditsuitelet',
-					returnExternalUrl: false
-				});
-				if(promoDealRecordSearchLength > 0){
+
+				if(promoDealRecordSearch.runPaged().count > 0){
 					listcolumn.setURL({
-						url : suiteltUrl
+						url : url.resolveScript({
+							scriptId: 'customscript_itpm_set_createeditsuitelet',
+							deploymentId: 'customdeploy_itpm_set_createeditsuitelet',
+							returnExternalUrl: false
+						})
 					});
 					listcolumn.addParamToURL({
 						param : 'pid',
@@ -187,29 +152,16 @@ define(['N/ui/serverWidget',
 						value : 'ddn'
 					});
 					promoDealRecordSearch.run().each(function(e){
-						var promoRecId = e.getValue('internalid');
-						var promoRecord = record.load({
-							type:'customrecord_itpm_promotiondeal',
-							id:promoRecId
-						});	
-						promoObj = {	
-								'custpage_itpm_id':promoRecId,
+						list.addRow({
+							row :{	
+								'custpage_itpm_id':e.getValue('internalid'),
 								'custpage_itpm_prmtitle':e.getValue('name'),
 								'custpage_itpm_otherrefcode':e.getValue('custrecord_itpm_p_otherrefcode'),
 								'custpage_itpm_prmtype':e.getText('custrecord_itpm_p_type'),
-								'custpage_itpm_prmcondn':promoRecord.getText('custrecord_itpm_p_condition'),
-								'custpage_itpm_prmshipstdt':promoRecord.getText('custrecord_itpm_p_shipstart'),
-								'custpage_itpm_prmshipenddt':promoRecord.getText('custrecord_itpm_p_shipend'),
-								'custpage_itpm_netlaiblity':promoRecord.getText('custrecord_itpm_p_netpromotionalle'),
-								'custpage_itpm_overpay':promoRecord.getText('custrecord_itpm_p_promotionaloverpayamt'),
-								'custpage_itpm_promoestspnd':promoRecord.getText('custrecord_itpm_estimatedspend'),
-								'custpage_itpm_lespend':promoRecord.getText('custrecord_itpm_lespend'),
-								'custpage_itpm_maxliablity':promoRecord.getText('custrecord_itepm_p_incurredpromotionalle'),
-								'custpage_itpm_expliablity':promoRecord.getText('custrecord_itpm_p_expliabilitypromo'),
-								'custpage_itpm_actspend':promoRecord.getText('custrecord_itpm_p_promotionalactualspend')
-						};
-						list.addRow({
-							row :promoObj
+								'custpage_itpm_prmcondn':e.getText('custrecord_itpm_p_condition'),
+								'custpage_itpm_prmshipstdt':e.getValue('custrecord_itpm_p_shipstart'),
+								'custpage_itpm_prmshipenddt':e.getValue('custrecord_itpm_p_shipend')
+							}
 						});
 						return true;
 					});
