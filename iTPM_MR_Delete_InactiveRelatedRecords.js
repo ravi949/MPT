@@ -45,7 +45,6 @@ define(['N/record',
 	 */
 	function map(context) {
 		try{
-			log.debug('map');
 			var allowanceObj = JSON.parse(context.value);
 			var itemId = allowanceObj['values']['custrecord_itpm_all_item'].value;
 			var promoId = allowanceObj['values']['custrecord_itpm_all_promotiondeal'].value;
@@ -63,7 +62,6 @@ define(['N/record',
 	 */
 	function reduce(context) {
 		try{
-			log.debug('reduce');
 			var keyObj = JSON.parse(context.key);
 			context.values.forEach(function(allwid){
 				//deleting the allowance record
@@ -103,8 +101,6 @@ define(['N/record',
 					return true;
 				});
 			});
-
-
 		}catch(ex){
 			log.error('reduce '+ex.name,ex.message);
 		}
@@ -132,7 +128,7 @@ define(['N/record',
 				filters:[['isinactive','is',true]],
 				columns:['internalid']
 			}).run().each(function(result){
-				log.debug('planningrecid',result.getValue('internalid'));
+				//log.debug('planningrecid',result.getValue('internalid'));
 				record.delete({
 					type:'customrecord_itpm_promotion_planning',
 					id:result.getValue('internalid')
