@@ -273,6 +273,10 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 				promoData.forEach(function(promo){
 					fileOutput += "\n\""+promo.entity+"\","+promo.item+",\""+promo.promo_type+"\",\""+promo.promo_desc+"\",\""+promo.promo_id+"\","+promo.ship_startdate+","+promo.ship_enddate+","+promo.uom+","+promo.mop+","+promo.percent_peruom+","+promo.rate_peruom+",";
 					sundaysList.forEach(function(e){
+						//this condition for to add the statuses in for promotion which are active in between the calendar start and end dates
+						if(parseInt(e.year) < parseInt(promo.eyear)){
+							promo.eyear = e.year;
+						}
 						if(e.startMonth <= e.month && e.month <= e.endMonth){
 							if(promo.syear == promo.eyear){
 								if(promo.syear == e.year && promo.sweek <= e.week && e.week <= promo.eweek){
@@ -503,10 +507,10 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
     			});
     		
     		return {
-    				finalResults: finalResults, 
-    				arrOfMonths: arrOfMonths,
-    				sundaysList: sundaysList
-    				};
+    			finalResults: finalResults, 
+    			arrOfMonths: arrOfMonths,
+    			sundaysList: sundaysList
+    		};
     	}catch(e){
     		log.debug(e.name, e.message);
     		throw e;
