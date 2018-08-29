@@ -189,7 +189,7 @@ function(search, runtime, record, formatModule, task, itpm) {
     		estQtyCount = estQtyCount[0].getValue({name:'internalid',summary:search.Summary.COUNT});
     		
     		//calculating the LS Estimated Allocation Factor
-    		if(promoDetails.promo_status == '3' && promoDetails.promo_alltype != '4'){
+    		if(promoDetails.promo_status == '3' && (promoDetails.promo_alltype == '1' || promoDetails.promo_alltype == '2')){
             	if(resultObj.noEstTotalQty){
             		kpi_factor_estls = (1/parseFloat(estQtyCount));
             	}else{
@@ -225,6 +225,8 @@ function(search, runtime, record, formatModule, task, itpm) {
             		kpi_factor_actls = (parseFloat(kpi_item_rev)/parseFloat(promoDetails.total_rev));
             		kpi_factor_actls = isNaN(kpi_factor_actls)? 0 : kpi_factor_actls;
             	}
+        	}else if(promoDetails.promo_status == '3' && promoDetails.promo_alltype == '3'){ //Allocation Type is "Evenly"
+        		kpi_factor_actls = kpi_factor_estls = (1/parseFloat(estQtyCount));
         	}
     		
         	//if estqty search returns zero or more than one result
@@ -409,8 +411,7 @@ function(search, runtime, record, formatModule, task, itpm) {
         			}
         	}
         	
-        	//calculating the BB,OI Estimated Allocation Factor (EST allocation factor)
-        	if(promoDetails.promo_status == '3' && promoDetails.promo_alltype != '4'){
+        	if(promoDetails.promo_status == '3'){
         		//dividing the allowance items based on item MOP
             	var allowance_BB = [], allowance_OI = [];
             	var allowanceResult = search.create({
@@ -438,41 +439,62 @@ function(search, runtime, record, formatModule, task, itpm) {
             		return true;
             	});
             	
-            	contextObj['value']['item_mop_bb'] = allowance_BB.some(function(e){ return e.item == kpiDetails.kpi_item});
-            	contextObj['value']['item_mop_oi'] = allowance_OI.some(function(e){ return e.item == kpiDetails.kpi_item});
-            	
             	//calculating the BB,OI Estimated Allocation Factor (EST allocation factor)
-            	if(contextObj['value']['item_mop_bb']){
-            		
-            		promoDetails.estimated_spendbb_sum = getEstimtedSpendSummary(promoDetails.promo_id, 'custrecord_itpm_kpi_estimatedspendbb');
-            		
-            		if(promoDetails.estimated_spendbb_sum <= 0){
-                		kpiDetails['custrecord_itpm_kpi_factorestbb'] = parseFloat((1/allowance_BB.length).toFixed(6));
-                	}else{
-                		kpiDetails['custrecord_itpm_kpi_factorestbb'] = parseFloat((kpiDetails.kpi_estspendbb/promoDetails.estimated_spendbb_sum).toFixed(6));
-                	}
-            	}
-            	
-            	if(contextObj['value']['item_mop_oi']){
-            		
-            		promoDetails.estimated_spendoi_sum = getEstimtedSpendSummary(promoDetails.promo_id, 'custrecord_itpm_kpi_estimatedspendoi');
+            	if(promoDetails.promo_alltype == '1' || promoDetails.promo_alltype == '2'){
+            		contextObj['value']['item_mop_bb'] = allowance_BB.some(function(e){ return e.item == kpiDetails.kpi_item});
+                	contextObj['value']['item_mop_oi'] = allowance_OI.some(function(e){ return e.item == kpiDetails.kpi_item});
                 	
-            		if(promoDetails.estimated_spendoi_sum <= 0){
-                		kpiDetails['custrecord_itpm_kpi_factorestoi'] = parseFloat((1/allowance_OI.length).toFixed(6));
-                	}else{
-                		kpiDetails['custrecord_itpm_kpi_factorestoi'] = parseFloat((kpiDetails.kpi_estspendoi/promoDetails.estimated_spendoi_sum).toFixed(6));
+            		//calculating the BB,OI Estimated Allocation Factor (EST allocation factor)
+                	if(contextObj['value']['item_mop_bb']){
+                		
+                		promoDetails.estimated_spendbb_sum = getEstimtedSpendSummary(promoDetails.promo_id, 'custrecord_itpm_kpi_estimatedspendbb');
+                		
+                		if(promoDetails.estimated_spendbb_sum <= 0){
+                    		kpiDetails['custrecord_itpm_kpi_factorestbb'] = parseFloat((1/allowance_BB.length).toFixed(6));
+                    	}else{
+                    		kpiDetails['custrecord_itpm_kpi_factorestbb'] = parseFloat((kpiDetails.kpi_estspendbb/promoDetails.estimated_spendbb_sum).toFixed(6));
+                    	}
                 	}
-            	}
+                	
+                	if(contextObj['value']['item_mop_oi']){
+                		
+                		promoDetails.estimated_spendoi_sum = getEstimtedSpendSummary(promoDetails.promo_id, 'custrecord_itpm_kpi_estimatedspendoi');
+                    	
+                		if(promoDetails.estimated_spendoi_sum <= 0){
+                    		kpiDetails['custrecord_itpm_kpi_factorestoi'] = parseFloat((1/allowance_OI.length).toFixed(6));
+                    	}else{
+                    		kpiDetails['custrecord_itpm_kpi_factorestoi'] = parseFloat((kpiDetails.kpi_estspendoi/promoDetails.estimated_spendoi_sum).toFixed(6));
+                    	}
+                	}
+                	
+                	//calculating BB,OI Actual Allocation Factor (Actual)
+                	if(promoDetails.donotupdatelib || !promoDetails.promo_hasSales){
+                		kpiDetails['custrecord_itpm_kpi_factoractualbb'] = kpiDetails['custrecord_itpm_kpi_factorestbb'];
+                		kpiDetails['custrecord_itpm_kpi_factoractualoi'] = kpiDetails['custrecord_itpm_kpi_factorestoi'];
+                	}
+                	contextObj['value'].update_fields['custrecord_itpm_kpi_factorestbb'] = isNaN(kpiDetails['custrecord_itpm_kpi_factorestbb'])? 0 : kpiDetails['custrecord_itpm_kpi_factorestbb'];
+                	contextObj['value'].update_fields['custrecord_itpm_kpi_factorestoi'] = isNaN(kpiDetails['custrecord_itpm_kpi_factorestoi'])? 0 : kpiDetails['custrecord_itpm_kpi_factorestoi'];
+                	contextObj['value'].update_fields['custrecord_itpm_kpi_factoractualbb'] = isNaN(kpiDetails['custrecord_itpm_kpi_factoractualbb'])? 0 : kpiDetails['custrecord_itpm_kpi_factoractualbb'];
+                	contextObj['value'].update_fields['custrecord_itpm_kpi_factoractualoi'] = isNaN(kpiDetails['custrecord_itpm_kpi_factoractualoi'])? 0 : kpiDetails['custrecord_itpm_kpi_factoractualoi'];
             	
-            	//calculating BB,OI Actual Allocation Factor (Actual)
-            	if(promoDetails.donotupdatelib || !promoDetails.promo_hasSales){
-            		kpiDetails['custrecord_itpm_kpi_factoractualbb'] = kpiDetails['custrecord_itpm_kpi_factorestbb'];
-            		kpiDetails['custrecord_itpm_kpi_factoractualoi'] = kpiDetails['custrecord_itpm_kpi_factorestoi'];
+            	}else if(promoDetails.promo_alltype == '3'){ //Allocation Type is "Evenly"
+            		contextObj['value']['item_mop_bb'] = allowance_BB.some(function(e){ return e.item == kpiDetails.kpi_item});
+                	contextObj['value']['item_mop_oi'] = allowance_OI.some(function(e){ return e.item == kpiDetails.kpi_item});
+            		
+                	//calculating the BB,OI Estimated Allocation Factor (EST allocation factor)
+                	if(contextObj['value']['item_mop_bb']){
+                		kpiDetails['custrecord_itpm_kpi_factoractualbb'] = kpiDetails['custrecord_itpm_kpi_factorestbb'] = parseFloat((1/allowance_BB.length).toFixed(6));
+                	}
+                	
+                	if(contextObj['value']['item_mop_oi']){
+                		kpiDetails['custrecord_itpm_kpi_factoractualoi'] = kpiDetails['custrecord_itpm_kpi_factorestoi'] = parseFloat((1/allowance_OI.length).toFixed(6));
+                	}
+                	
+                	contextObj['value'].update_fields['custrecord_itpm_kpi_factorestbb'] = isNaN(kpiDetails['custrecord_itpm_kpi_factorestbb'])? 0 : kpiDetails['custrecord_itpm_kpi_factorestbb'];
+                	contextObj['value'].update_fields['custrecord_itpm_kpi_factorestoi'] = isNaN(kpiDetails['custrecord_itpm_kpi_factorestoi'])? 0 : kpiDetails['custrecord_itpm_kpi_factorestoi'];
+                	contextObj['value'].update_fields['custrecord_itpm_kpi_factoractualbb'] = isNaN(kpiDetails['custrecord_itpm_kpi_factoractualbb'])? 0 : kpiDetails['custrecord_itpm_kpi_factoractualbb'];
+                	contextObj['value'].update_fields['custrecord_itpm_kpi_factoractualoi'] = isNaN(kpiDetails['custrecord_itpm_kpi_factoractualoi'])? 0 : kpiDetails['custrecord_itpm_kpi_factoractualoi'];
             	}
-            	contextObj['value'].update_fields['custrecord_itpm_kpi_factorestbb'] = isNaN(kpiDetails['custrecord_itpm_kpi_factorestbb'])? 0 : kpiDetails['custrecord_itpm_kpi_factorestbb'];
-            	contextObj['value'].update_fields['custrecord_itpm_kpi_factorestoi'] = isNaN(kpiDetails['custrecord_itpm_kpi_factorestoi'])? 0 : kpiDetails['custrecord_itpm_kpi_factorestoi'];
-            	contextObj['value'].update_fields['custrecord_itpm_kpi_factoractualbb'] = isNaN(kpiDetails['custrecord_itpm_kpi_factoractualbb'])? 0 : kpiDetails['custrecord_itpm_kpi_factoractualbb'];
-            	contextObj['value'].update_fields['custrecord_itpm_kpi_factoractualoi'] = isNaN(kpiDetails['custrecord_itpm_kpi_factoractualoi'])? 0 : kpiDetails['custrecord_itpm_kpi_factoractualoi'];
         	}
         	
     		log.audit('end map usage '+resultObj.kpi_id,scriptObj.getRemainingUsage());
@@ -501,7 +523,7 @@ function(search, runtime, record, formatModule, task, itpm) {
         	//creating the kpi queue detail record
         	createKpiQueueDetailRecord(2, keyObj.kpi_queue_id, keyObj ,JSON.stringify(context.values));
         	
-        	if(keyObj.promo_status == '3' && keyObj.promo_alltype != '4'){
+        	if(keyObj.promo_status == '3' && (keyObj.promo_alltype == '1' || keyObj.promo_alltype == '2')){
         		//calculating BB,OI Actual Allocation Factor (Actual)
         		var detailsArr = context.values.map(function(e){
         			e = JSON.parse(e);
@@ -514,7 +536,7 @@ function(search, runtime, record, formatModule, task, itpm) {
         	var kpi_actualbb_sum = 0,kpi_acutaloi_sum = 0;
         	context.values.forEach(function(kpiObj){
         		kpiObj = JSON.parse(kpiObj);
-        		if(keyObj.promo_status == '3' && keyObj.promo_alltype != '4'){
+        		if(keyObj.promo_status == '3' && (keyObj.promo_alltype == '1' || keyObj.promo_alltype == '2')){
         			if(!keyObj.donotupdatelib && keyObj.promo_hasSales){
         				kpi_actualbb_sum = parseFloat((parseFloat(kpiObj.kpi_expect_bb)/parseFloat(expec_bb_sum)).toFixed(6));
         				kpi_acutaloi_sum = parseFloat((parseFloat(kpiObj.kpi_expect_oi)/parseFloat(expec_oi_sum)).toFixed(6));
