@@ -561,8 +561,10 @@ function(record, search, runtime, itpm) {
     				});
     			}
     			processedPromos.push(key);
+    			itpm.createKPIQueue(key, 2); //1.Scheduled, 2.Edited //Pushing Promotion in KPI Queue. 
     			return true;
         	});
+    		
     	}catch(ex){
     		log.error(ex.name,ex.message);
     	}
