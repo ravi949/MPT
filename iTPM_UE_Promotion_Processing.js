@@ -422,6 +422,11 @@ define(['N/ui/serverWidget',
 			var eventType = scriptContext.type;
 			var promoOldRec = scriptContext.oldRecord;
 			var promoNewRec = scriptContext.newRecord;
+			log.debug('promoOldRec',promoOldRec.getValue('sublists'));
+			log.debug('promoNewRec',promoNewRec);
+			
+			sublistChangeValidator(promoOldRec,promoNewRec);
+			
 			var oldStatus = promoOldRec.getValue('custrecord_itpm_p_status');
 			var newStatus = promoNewRec.getValue('custrecord_itpm_p_status');
 			var condition = promoNewRec.getValue('custrecord_itpm_p_condition');
@@ -939,6 +944,189 @@ define(['N/ui/serverWidget',
 			log.audit(ex.name,ex.message);
 		}
 	}
+	
+	
+	function sublistChangeValidator(oldRecord,newRecord){
+		try{
+			
+			
+			var numLines = oldRecord.getLineCount({
+				sublistId: 'recmachcustrecord_itpm_pp_promotion'
+			});
+			
+			var newNumLines = newRecord.getLineCount({
+				sublistId: 'recmachcustrecord_itpm_pp_promotion'
+			});
+			
+			if(numLines != newNumLines){
+				log.debug('NewLine ','Added');
+			}
+
+			var arrOfValues = ['custrecord_itpm_pp_item',
+				'custrecord_itpm_pp_incremental',
+				'custrecord_itpm_pp_mop',
+				'custrecord_itpm_pp_base',
+				'custrecord_itpm_pp_esteverydayprice',
+				'custrecord_itpm_pp_estmerchprice',
+				'custrecord_itpm_pp_estacvdisplay',
+				'custrecord_itpm_pp_rate',
+				'custrecord_itpm_pp_redemption',
+				'custrecord_itpm_pp_unit'];
+			
+			var length = arrOfValues.length;
+			for(var i = 0; i < numLines; i++){
+
+				//ID
+				var oldId = oldRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_item',
+					line: i
+				}); 
+				var newId = newRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_item',
+					line: i
+				}); 
+				if(oldId != newId){
+					log.debug('ERROR',"MATCH NOT FOUND");
+				}
+				//Incremental
+				var oldIncremental = oldRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_incremental',
+					line: i
+				}); 
+				var newIncremental = newRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_incremental',
+					line: i
+				}); 
+				if(oldIncremental != newIncremental){
+					log.debug('ERROR',"MATCH NOT FOUND");
+				}
+				//MOP
+				var oldMop = oldRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_mop',
+					line: i
+				}); 
+				var newMop = newRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_mop',
+					line: i
+				}); 
+				if(oldMop != newMop){
+					log.debug('ERROR',"MATCH NOT FOUND");
+				}
+				//Base Price
+				var oldBasePrice = oldRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_base',
+					line: i
+				}); 
+				var newBasePrice = newRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_base',
+					line: i
+				}); 
+				if(oldBasePrice != newBasePrice){
+					log.debug('ERROR',"MATCH NOT FOUND");
+				}
+				//Everyday Price
+				var oldEverydayPrice = oldRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_esteverydayprice',
+					line: i
+				}); 
+				var newEverydayPrice = newRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_esteverydayprice',
+					line: i
+				}); 
+				if(oldEverydayPrice != newEverydayPrice){
+					log.debug('ERROR',"MATCH NOT FOUND");
+				}
+				//Merchant Price
+				var oldMerchantPrice = oldRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_estmerchprice',
+					line: i
+				}); 
+				var newMerchantPrice = newRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_estmerchprice',
+					line: i
+				}); 
+				if(oldMerchantPrice != newMerchantPrice){
+					log.debug('ERROR',"MATCH NOT FOUND");
+				}
+				//Percentage Estimated Active Display
+				var oldPerActiveDisp = oldRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_estacvdisplay',
+					line: i
+				}); 
+				var newPerActiveDisp = newRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_estacvdisplay',
+					line: i
+				}); 
+				if(oldPerActiveDisp != newPerActiveDisp){
+					log.debug('ERROR',"MATCH NOT FOUND");
+				}
+				//Rate
+				var oldRate = oldRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_rate',
+					line: i
+				}); 
+				log.debug('oldRate',oldRate);
+				var newRate = newRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_rate',
+					line: i
+				}); 
+				log.debug('newRate',newRate);
+				if(oldRate != newRate){
+					log.debug('ERROR',"MATCH NOT FOUND");
+				}
+				//Redemption
+				var oldRate = oldRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_redemption',
+					line: i
+				}); 
+				var newRate = newRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_redemption',
+					line: i
+				}); 
+				if(oldRate != newRate){
+					log.debug('ERROR',"MATCH NOT FOUND");
+				}
+				//Unit
+				var oldUnit = oldRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_unit',
+					line: i
+				}); 
+				var newUnit = newRecord.getSublistValue({
+					sublistId: 'recmachcustrecord_itpm_pp_promotion',
+					fieldId: 'custrecord_itpm_pp_unit',
+					line: i
+				}); 
+				if(oldUnit != newUnit){
+					log.debug('ERROR',"MATCH NOT FOUND");
+				}
+
+			}	
+
+		}catch(ex){
+			log.debug(ex.name,ex.message);
+		}
+	}
+
+	
   
 	return {
 		beforeLoad: beforeLoad,
@@ -946,3 +1134,5 @@ define(['N/ui/serverWidget',
 	};
 
 });
+
+
