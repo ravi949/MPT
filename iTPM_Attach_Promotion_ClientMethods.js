@@ -206,89 +206,44 @@ function(url, message, record, dialog, search) {
 			console.log(e.name,'function name = validateLine, message = '+e.message);
 		}
     }
+    
     /**
-     * Function to be executed after sublist is inserted, removed, or edited.
-     *
-     * @param {Object} scriptContext
-     * @param {Record} scriptContext.currentRecord - Current form record
-     * @param {string} scriptContext.sublistId - Sublist name
-     *
-     * @since 2015.2
-     */    
-    function sublistChanged(scriptContext) {
-    	var promoRec = scriptContext.currentRecord;
-    	
-    	var sublistName = scriptContext.sublistId;
-    	var op = scriptContext.operation;
-
+	 * Function to be executed when field is changed.
+	 *
+	 * @param {Object} scriptContext
+	 * @param {Record} scriptContext.currentRecord - Current form record
+	 * @param {string} scriptContext.sublistId - Sublist name
+	 * @param {string} scriptContext.fieldId - Field name
+	 * @param {number} scriptContext.line - Line number. Will be undefined if not a sublist or matrix field
+	 * @param {number} scriptContext.column - Line number. Will be undefined if not a matrix field
+	 *
+	 * @since 2015.2
+	 */	
+    function fieldChanged(scriptContext) {
     	try{
-    		var lineNumber = scriptContext.currentRecord.getCurrentSublistIndex({
-    			sublistId: 'recmachcustrecord_itpm_pp_promotion'
-    		});
-    		console.log('LineNumber '+lineNumber);
-    		console.log('sublistId ' + scriptContext.sublistId);
-    		console.log('dynamic',scriptContext.currentRecord.isDynamic);
-    		console.log('sublistName',scriptContext.currentRecord);
-
-    		if (sublistName === 'recmachcustrecord_itpm_pp_promotion'){
-    			
-    			
-//    			promoRec.setCurrentSublistText({
-//    			    sublistId: 'recmachcustrecord_itpm_pp_promotion',
-//    			    fieldId: 'custrecord_itpm_pp_processed',
-//    			    text: 'No',
-//    			    ignoreFieldChange: false,
-//    			    fireSlavingSync: false
-//    			});
-//    			console.log(promoRec.getCurrentSublistValue({
-//    				sublistId: 'recmachcustrecord_itpm_pp_promotion',
-//    				fieldId: 'custrecord_itpm_pp_rate'
-//    			}))
-//    			promoRec.setCurrentSublistValue({
-//    				sublistId: 'recmachcustrecord_itpm_pp_promotion',
-//    				fieldId: 'custrecord_itpm_pp_rate',
-//    				value: 100,
-//    				ignoreFieldChange: false
-//    			});
-    			console.log('INSIDE IF BLOCK');
-    			
-    			promoRec.setValue({
-    			    fieldId: 'custrecord_itpm_p_description',
-    			    value: 'New Description',
-    			    ignoreFieldChange: true,
-    			    fireSlavingSync: true
-    			});
-    			
-//    			scriptContext.newRecord.setValue({
-//				    fieldId: 'custrecord_itpm_p_description',
-//				    value: 'New Description',
-//				    ignoreFieldChange: true
-//				});
-//    			
-    			
-    			
-    			
-//    			promoRec1.setSublistValue({
-//    			    sublistId: 'recmachcustrecord_itpm_pp_promotion',
-//    			    fieldId: 'custrecord_itpm_pp_processed',
-//    			    line: lineNumber,
-//    			    value: true
-//    			});
-//    			promoRec1.setSublistValue({
-//       				
-//    			});
-    			
-//    			var recordId = promoRec.save({
-//    			    enableSourcing: true,
-//    			    ignoreMandatoryFields: true
-//    			});
-    			
-    		}    		
+    		if(scriptContext.sublistId == 'recmachcustrecord_itpm_pp_promotion'){
+    		    var objRec = scriptContext.currentRecord;
+    		    
+    		    /* First select the line as we are using field changed function not sublistChanged.
+    		    The Context will be on record and hence we will have to select a line to change sublist value */
+    		    
+    		    objRec.selectLine({
+    		    	sublistId:scriptContext.sublistId,
+    		    	line:scriptContext.line
+    		    });
+    		    
+    		    objRec.setCurrentSublistValue({
+    		    	sublistId: 'recmachcustrecord_itpm_pp_promotion',
+    			    fieldId: 'custrecord_itpm_pp_processed',
+    			    value: false,
+    			    ignoreFieldChange: true
+    		    });
+    		}
     	}catch(ex){
-    		log.debug(ex.name,ex.message);
+    		console.log(ex,ex.value);
     	}
     }
-       
+    
 	return {
         validateLine: validateLine,
         newSettlement:newSettlement,
@@ -296,7 +251,7 @@ function(url, message, record, dialog, search) {
         bulkSettlements : bulkSettlements,
         planningComplete : planningComplete,
         redirectToBack : redirectToBack,
-        sublistChanged : sublistChanged
+        fieldChanged : fieldChanged
     };
     
 });
