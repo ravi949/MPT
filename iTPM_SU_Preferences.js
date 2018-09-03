@@ -57,7 +57,8 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			return search.create({
 				type:search.Type.ACCOUNT,
 				columns:['internalid','name'],
-				filters:['subsidiary','anyof',subid]
+				filters:[['subsidiary','anyof',subid],'and',
+					     ['isinactive','is',false]]
 			}).run();
 		}catch(ex){
 			throw {
