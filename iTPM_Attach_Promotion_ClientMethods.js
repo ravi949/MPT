@@ -206,14 +206,52 @@ function(url, message, record, dialog, search) {
 			console.log(e.name,'function name = validateLine, message = '+e.message);
 		}
     }
-       
+    
+    /**
+	 * Function to be executed when field is changed.
+	 *
+	 * @param {Object} scriptContext
+	 * @param {Record} scriptContext.currentRecord - Current form record
+	 * @param {string} scriptContext.sublistId - Sublist name
+	 * @param {string} scriptContext.fieldId - Field name
+	 * @param {number} scriptContext.line - Line number. Will be undefined if not a sublist or matrix field
+	 * @param {number} scriptContext.column - Line number. Will be undefined if not a matrix field
+	 *
+	 * @since 2015.2
+	 */	
+    function fieldChanged(scriptContext) {
+    	try{
+    		if(scriptContext.sublistId == 'recmachcustrecord_itpm_pp_promotion'){
+    		    var objRec = scriptContext.currentRecord;
+    		    
+    		    /* First select the line as we are using field changed function not sublistChanged.
+    		    The Context will be on record and hence we will have to select a line to change sublist value */
+    		    
+    		    objRec.selectLine({
+    		    	sublistId:scriptContext.sublistId,
+    		    	line:scriptContext.line
+    		    });
+    		    
+    		    objRec.setCurrentSublistValue({
+    		    	sublistId: 'recmachcustrecord_itpm_pp_promotion',
+    			    fieldId: 'custrecord_itpm_pp_processed',
+    			    value: false,
+    			    ignoreFieldChange: true
+    		    });
+    		}
+    	}catch(ex){
+    		console.log(ex,ex.value);
+    	}
+    }
+    
 	return {
         validateLine: validateLine,
         newSettlement:newSettlement,
         refreshKPIs : refreshKPIs,
         bulkSettlements : bulkSettlements,
         planningComplete : planningComplete,
-        redirectToBack : redirectToBack
+        redirectToBack : redirectToBack,
+        fieldChanged : fieldChanged
     };
     
 });

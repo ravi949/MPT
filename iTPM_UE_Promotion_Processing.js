@@ -31,7 +31,7 @@ define(['N/ui/serverWidget',
 	function beforeLoad(scriptContext) {
 		try{
 			var promoRec = scriptContext.newRecord;
-			var promoForm = scriptContext.form;
+			var promoForm = scriptContext.form;			
 			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
 
 				if(scriptContext.type == 'create'){
@@ -422,6 +422,9 @@ define(['N/ui/serverWidget',
 			var eventType = scriptContext.type;
 			var promoOldRec = scriptContext.oldRecord;
 			var promoNewRec = scriptContext.newRecord;
+			log.debug('promoOldRec',promoOldRec.getValue('sublists'));
+			log.debug('promoNewRec',promoNewRec);
+			
 			var oldStatus = promoOldRec.getValue('custrecord_itpm_p_status');
 			var newStatus = promoNewRec.getValue('custrecord_itpm_p_status');
 			var condition = promoNewRec.getValue('custrecord_itpm_p_condition');
@@ -939,10 +942,12 @@ define(['N/ui/serverWidget',
 			log.audit(ex.name,ex.message);
 		}
 	}
-  
+	
 	return {
 		beforeLoad: beforeLoad,
 		afterSubmit: afterSubmit
 	};
 
 });
+
+
