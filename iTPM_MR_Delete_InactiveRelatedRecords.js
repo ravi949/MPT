@@ -4,8 +4,8 @@
  * @NModuleScope TargetAccount
  */
 define(['N/record', 
-        'N/search'
-        ],
+	'N/search'
+	],
 	/**
 	 * @param {record} record
 	 * @param {search} search
@@ -24,14 +24,17 @@ define(['N/record',
 	 */
 	function getInputData() {
 		try{
-			return search.create({
-				type:'customrecord_itpm_promoallowance',
-				columns:['internalid','custrecord_itpm_all_item','custrecord_itpm_all_promotiondeal'],
-				filters:[['isinactive','is',true]]
-			});
+			if(deletePlanningRecords()){
+				return search.create({
+					type:'customrecord_itpm_promoallowance',
+					columns:['internalid','custrecord_itpm_all_item','custrecord_itpm_all_promotiondeal'],
+					filters:[['isinactive','is',true]]
+				});
+			}
 		}catch(ex){
 			log.error('getInputData '+ex.name,ex.message);
 		}
+
 	}
 
 	/**
@@ -42,7 +45,7 @@ define(['N/record',
 	 */
 	function map(context) {
 		try{
-	    	var allowanceObj = JSON.parse(context.value);
+			var allowanceObj = JSON.parse(context.value);
 			var itemId = allowanceObj['values']['custrecord_itpm_all_item'].value;
 			var promoId = allowanceObj['values']['custrecord_itpm_all_promotiondeal'].value;
 			context.write({key:{promoid:promoId,itemid:itemId},value:allowanceObj.id});
@@ -50,59 +53,59 @@ define(['N/record',
 			log.error('map '+ex.name,ex.message);
 		}
 	}
-	
-	   /**
-     * Executes when the reduce entry point is triggered and applies to each group.
-     *
-     * @param {ReduceSummary} context - Data collection containing the groups to process through the reduce stage
-     * @since 2015.1
-     */
-    function reduce(context) {
-    	try{
-    		var keyObj = JSON.parse(context.key);
-    		context.values.forEach(function(allwid){
-    			//deleting the allowance record
-        		record.delete({
-        			type:'customrecord_itpm_promoallowance',
-        			id:allwid
-        		});
-    		});
-    		
-        	//Array of objects with record type and field ids
-    		var searchRecs = [{
-    			type:'customrecord_itpm_estquantity',
-    			itemFieldId:'custrecord_itpm_estqty_item',
-    			promoFieldId:'custrecord_itpm_estqty_promodeal'
-    		},{
-    			type:'customrecord_itpm_promoretailevent',
-    			itemFieldId:'custrecord_itpm_rei_item',
-    			promoFieldId:'custrecord_itpm_rei_promotiondeal'
-    		},{
-    			type:'customrecord_itpm_kpi',
-    			itemFieldId:'custrecord_itpm_kpi_item',
-    			promoFieldId:'custrecord_itpm_kpi_promotiondeal'
-    		}];
-    		
-    		//Loop through the array and create the EstQty,Retail Info and kpi inactive records
-    		searchRecs.forEach(function(obj,index){
-    			search.create({
-    				type:obj.type,
-    				columns:['internalid'],
-    				filters:[[obj.itemFieldId,'anyof',keyObj.itemid],'and',
-    						 [obj.promoFieldId,'anyof',keyObj.promoid]]
-    			}).run().each(function(result){
-    				record.delete({
-    					type:obj.type,
-    					id:result.getValue('internalid')
-    				});
-    				return true;
-    			});
-    		});
-    	}catch(ex){
-    		log.error('reduce '+ex.name,ex.message);
-    	}
 
-    }
+	/**
+	 * Executes when the reduce entry point is triggered and applies to each group.
+	 *
+	 * @param {ReduceSummary} context - Data collection containing the groups to process through the reduce stage
+	 * @since 2015.1
+	 */
+	function reduce(context) {
+		try{
+			var keyObj = JSON.parse(context.key);
+			context.values.forEach(function(allwid){
+				//deleting the allowance record
+				record.delete({
+					type:'customrecord_itpm_promoallowance',
+					id:allwid
+				});
+			});
+
+			//Array of objects with record type and field ids
+			var searchRecs = [{
+				type:'customrecord_itpm_estquantity',
+				itemFieldId:'custrecord_itpm_estqty_item',
+				promoFieldId:'custrecord_itpm_estqty_promodeal'
+			},{
+				type:'customrecord_itpm_promoretailevent',
+				itemFieldId:'custrecord_itpm_rei_item',
+				promoFieldId:'custrecord_itpm_rei_promotiondeal'
+			},{
+				type:'customrecord_itpm_kpi',
+				itemFieldId:'custrecord_itpm_kpi_item',
+				promoFieldId:'custrecord_itpm_kpi_promotiondeal'
+			}];
+
+			//Loop through the array and create the EstQty,Retail Info and kpi inactive records
+			searchRecs.forEach(function(obj,index){
+				search.create({
+					type:obj.type,
+					columns:['internalid'],
+					filters:[[obj.itemFieldId,'anyof',keyObj.itemid],'and',
+						[obj.promoFieldId,'anyof',keyObj.promoid]]
+				}).run().each(function(result){
+					record.delete({
+						type:obj.type,
+						id:result.getValue('internalid')
+					});
+					return true;
+				});
+			});
+		}catch(ex){
+			log.error('reduce '+ex.name,ex.message);
+		}
+
+	}
 
 	/**
 	 * Executes when the summarize entry point is triggered and applies to the result set.
@@ -112,6 +115,31 @@ define(['N/record',
 	 */
 	function summarize(summary) {
 		log.debug('summary','completed');
+	}
+
+	/**
+	 * @description this function is for deleting planning records which are inactive
+	 */
+	function deletePlanningRecords(){
+		try{
+			//Search for inactive planning Records
+			var PlanningRecObj = search.create({
+				type:'customrecord_itpm_promotion_planning',
+				filters:[['isinactive','is',true]],
+				columns:['internalid']
+			}).run().each(function(result){
+				//log.debug('planningrecid',result.getValue('internalid'));
+				record.delete({
+					type:'customrecord_itpm_promotion_planning',
+					id:result.getValue('internalid')
+				});
+				return true;
+			});
+			return true;
+		}catch(ex){
+			log.error(ex.name,ex.message);
+			return true;
+		}
 	}
 
 	return {
