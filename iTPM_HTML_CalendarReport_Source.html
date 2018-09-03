@@ -458,7 +458,7 @@
 		}
 		
 		//validating the promotion date ranges between the weeks
-		$scope.isRangeValid = function(promo_data,obj,month){
+		$scope.isRangeValid = function(promo_data,obj,month){			
 			if(promo_data.syear == promo_data.eyear){
 				return (promo_data.syear == obj.year &&  promo_data.sweek <= obj.week && obj.week <= promo_data.eweek);
 			}else if(promo_data.syear != promo_data.eyear){

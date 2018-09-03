@@ -367,11 +367,14 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 			var promoStatus = calendarRecLookup['custrecord_itpm_cal_promotionstatus'].map(function(e){return e.value});
 			var itemGroups = calendarRecLookup['custrecord_itpm_cal_itemgroups'].map(function(e){return e.value});
 			
-			
-			var startDateYear = new Date(calendarRecLookup['custrecord_itpm_cal_startdate']).getFullYear(),
-			endDateYear = new Date(calendarRecLookup['custrecord_itpm_cal_enddate']).getFullYear();
-			var startMonth = new Date(calendarRecLookup["custrecord_itpm_cal_startdate"]).getMonth(),
-			endMonth = new Date(calendarRecLookup["custrecord_itpm_cal_enddate"]).getMonth();
+			var calStartDateObj = new Date(calendarRecLookup['custrecord_itpm_cal_startdate']),
+			calEndDateObj = new Date(calendarRecLookup['custrecord_itpm_cal_enddate']);
+			var startDateYear = calStartDateObj.getFullYear(),
+			endDateYear = calEndDateObj.getFullYear();
+			var startMonth = calStartDateObj.getMonth(),
+			endMonth = calEndDateObj.getMonth();
+			var startWeek = calStartDateObj.getWeek(),
+			endWeek = calEndDateObj.getWeek();
 
 			var sundaysList = getSundays(startDateYear, startMonth, (startDateYear != endDateYear)?11:endMonth);
 			arrOfMonths = arrOfMonths.map(function(e){ e.startMonth = startMonth;e.endMonth = (startDateYear != endDateYear)?11:endMonth;e.year = startDateYear;return e });
@@ -477,6 +480,11 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
     				}else if(status == 7){
     					status = {text:'Closed',cls:'status-blue'};
     				}
+    				
+    				//this condition for to add the statuses in for promotion which are active in between the calendar start and end dates
+    				var isPromoEndDateYearGreaterThanCalEndDate = parseInt(new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getFullYear()) > parseInt(endDateYear);
+    				var isPromoStartDateYearLessThanCalStartDate = parseInt(new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' }))) < parseInt(startDateYear);
+    				
     		        finalResults.push({
     		        	promo_desc	  : result.getValue({ name: 'name'}),
     	    		    promo_id	  : result.getValue({ name:'internalid' }),
@@ -492,21 +500,21 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
     	    		    percent_peruom: result.getValue({ name:'custrecord_itpm_all_percentperuom', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    uom			  : result.getText({ name:'custrecord_itpm_all_uom', join:'custrecord_itpm_all_promotiondeal' }),
     	    		    mop           : result.getText({ name:'custrecord_itpm_all_mop', join:'custrecord_itpm_all_promotiondeal' }),
-    	    		    sweek 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getWeek(),
-    	    		    eweek 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getWeek(),
-    	    		    smonth 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getMonth(),
-    	    		    emonth 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getMonth(),
+    	    		    sweek 		  : (isPromoStartDateYearLessThanCalStartDate)? 0 : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getWeek(),
+    	    		    eweek 		  : (isPromoEndDateYearGreaterThanCalEndDate)? 55 : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getWeek(),
+    	    		    smonth 		  : (isPromoStartDateYearLessThanCalStartDate)? startMonth : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getMonth(),
+    	    		    emonth 		  : (isPromoEndDateYearGreaterThanCalEndDate)? endMonth : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getMonth(),
     	    		    syear		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getFullYear(),
-    	    		    eyear		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getFullYear()
+    	    		    eyear		  : (isPromoEndDateYearGreaterThanCalEndDate)? endDateYear : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getFullYear()
     		        });
     			   return true;
     			});
     		
     		return {
-    				finalResults: finalResults, 
-    				arrOfMonths: arrOfMonths,
-    				sundaysList: sundaysList
-    				};
+    			finalResults: finalResults, 
+    			arrOfMonths: arrOfMonths,
+    			sundaysList: sundaysList
+    		};
     	}catch(e){
     		log.debug(e.name, e.message);
     		throw e;
