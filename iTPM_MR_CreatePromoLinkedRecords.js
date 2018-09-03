@@ -559,10 +559,11 @@ function(record, search, runtime, itpm) {
     						ignoreMandatoryFields : true
     					}
     				});
+    				itpm.createKPIQueue(key, 2); //1.Scheduled, 2.Edited //Pushing Promotion in KPI Queue. 
     			}
     			processedPromos.push(key);
     			return true;
-        	});
+        	});    		
     	}catch(ex){
     		log.error(ex.name,ex.message);
     	}
