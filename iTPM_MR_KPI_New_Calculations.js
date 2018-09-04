@@ -315,8 +315,8 @@ function(search, runtime, record, formatModule, task, itpm) {
         	case '6':	//CLOSED
         		leSpend = actualSpend;
         		
-        		//Added on 3rd September, 2018 ****************
-        		if(promoDetails.promo_condition == '3'){ //Condition: COMPLETED
+        		//Added on September, 2018 ****************
+        		if(promoDetails.promo_condition == '3'){ // Completed
         			if(promoDetails.donotupdatelib){
         				//Calculating Expected Liability for BB, OI and NB
             			expectedLiability.bb = (estQty.estTotal * estQty.estRedemptio * estQty.estRateBB).toFixed(2);
@@ -341,7 +341,7 @@ function(search, runtime, record, formatModule, task, itpm) {
             			expectedLiability.ls = maxLiability.ls = (kpi_factor_actls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
             		} 
         		}
-        		//Added on 3rd September, 2018 ****************
+        		//Added on September, 2018 ****************
         		break;
         	case '3':	//APPROVED
         		
@@ -355,7 +355,40 @@ function(search, runtime, record, formatModule, task, itpm) {
         			
         		} else if (promoDetails.promo_condition == '2') {	//condition == Active
         			
-        			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+        			//Added on 3rd September, 2018 ****************
+        			if(promoDetails.donotupdatelib){
+        				//Calculating Expected Liability for BB, OI and NB
+        				expectedLiability.bb = (estQty.estTotal * estQty.estRedemptio * estQty.estRateBB).toFixed(2);
+        				expectedLiability.oi = (estQty.estTotal * estQty.estRateOI).toFixed(2);
+        				expectedLiability.nb = (estQty.estTotal * estQty.estRateNB).toFixed(2);
+        				
+        				//Calculating Maximum Liability for BB, OI and NB
+        				maxLiability.bb = (kpi_promQuantity * estQty.estRateBB).toFixed(2);
+        				maxLiability.oi = (kpi_promQuantity * estQty.estRateOI).toFixed(2);
+        				maxLiability.nb = (kpi_promQuantity * estQty.estRateNB).toFixed(2);
+        				
+        				//Calculating Expected Liability and Maximum Liability for LS
+        				expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        				
+        			}else{
+        				//Calculating Expected Liability and Maximum Liability for BB
+        				expectedLiability.bb = (actQty * estQty.estRedemptio * estQty.estRateBB).toFixed(2);
+        				maxLiability.bb = (actQty * estQty.estRateBB).toFixed(2);
+        				
+        				//Calculating Expected Liability and Maximum Liability for OI, NB
+        				expectedLiability.oi = maxLiability.oi = (actQty * estQty.estRateOI).toFixed(2);
+        				expectedLiability.nb = maxLiability.nb = (actQty * estQty.estRateNB).toFixed(2);
+        				
+        				//Calculating Expected Liability and Maximum Liability for LS
+        				if(!promoDetails.promo_hasSales){
+        					expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        				}else{
+        					expectedLiability.ls = maxLiability.ls = (kpi_factor_actls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        				}
+        			}
+        			//expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+        			//Added on 3rd September, 2018 ****************
+        			
         			//if functions return values without any errors
         			if (!estimatedSpend.error && !expectedLiability.error && !actualSpend.error){
         				leSpend = {
@@ -369,8 +402,35 @@ function(search, runtime, record, formatModule, task, itpm) {
         			leSpend = (promoDetails.donotupdatelib)? estimatedSpend : leSpend;
         			
         		}else if (promoDetails.promo_condition == '3') {	//condition == Completed
-        			
-        			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+        			//Added on 3rd September, 2018 ****************
+        			if(promoDetails.donotupdatelib){
+        				//Calculating Expected Liability for BB, OI and NB
+        				expectedLiability.bb = (estQty.estTotal * estQty.estRedemptio * estQty.estRateBB).toFixed(2);
+        				expectedLiability.oi = (estQty.estTotal * estQty.estRateOI).toFixed(2);
+        				expectedLiability.nb = (estQty.estTotal * estQty.estRateNB).toFixed(2);
+        				
+        				//Calculating Maximum Liability for BB, OI and NB
+        				maxLiability.bb = (kpi_promQuantity * estQty.estRateBB).toFixed(2);
+        				maxLiability.oi = (kpi_promQuantity * estQty.estRateOI).toFixed(2);
+        				maxLiability.nb = (kpi_promQuantity * estQty.estRateNB).toFixed(2);
+        				
+        				//Calculating Expected Liability and Maximum Liability for LS
+        				expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        				
+        			}else{
+        				//Calculating Expected Liability and Maximum Liability for BB
+        				expectedLiability.bb = (actQty * estQty.estRedemptio * estQty.estRateBB).toFixed(2);
+        				maxLiability.bb = (actQty * estQty.estRateBB).toFixed(2);
+        				
+        				//Calculating Expected Liability and Maximum Liability for OI, NB
+        				expectedLiability.oi = maxLiability.oi = (actQty * estQty.estRateOI).toFixed(2);
+        				expectedLiability.nb = maxLiability.nb = (actQty * estQty.estRateNB).toFixed(2);
+        				
+        				//Calculating Expected Liability and Maximum Liability for LS
+        				expectedLiability.ls = maxLiability.ls = (kpi_factor_actls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        			}
+        			//expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+        			//Added on 3rd September, 2018 ****************
         			if (!actualSpend.error){
         				leSpend.oi = actualSpend.oi;
         				leSpend.nb = actualSpend.nb;
