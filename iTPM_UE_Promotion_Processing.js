@@ -424,7 +424,7 @@ define(['N/ui/serverWidget',
 			var promoNewRec = scriptContext.newRecord;
 			log.debug('promoOldRec',promoOldRec.getValue('sublists'));
 			log.debug('promoNewRec',promoNewRec);
-			log.error('type',eventType+''+scriptContext.newRecord.id+''+scriptContext.oldRecord.id);
+			log.debug('type',eventType+''+scriptContext.newRecord.id+''+scriptContext.oldRecord.id);
 
 			var oldStatus = promoOldRec.getValue('custrecord_itpm_p_status');
 			var newStatus = promoNewRec.getValue('custrecord_itpm_p_status');
@@ -438,7 +438,7 @@ define(['N/ui/serverWidget',
 					id: promoId,
 					columns: ['custrecord_itpm_p_allaccount']
 				});			
-				log.error('fieldLookUp',promoLookup.custrecord_itpm_p_allaccount[0].value);
+				log.debug('fieldLookUp',promoLookup.custrecord_itpm_p_allaccount[0].value);
 				var account = promoLookup.custrecord_itpm_p_allaccount[0].value;
 
 				//search for promotion planning records which are linked with promotion and updating account value.
