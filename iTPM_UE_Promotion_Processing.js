@@ -424,13 +424,13 @@ define(['N/ui/serverWidget',
 			var promoNewRec = scriptContext.newRecord;
 			log.debug('promoOldRec',promoOldRec.getValue('sublists'));
 			log.debug('promoNewRec',promoNewRec);
+			log.error('type',eventType+''+scriptContext.newRecord.id+''+scriptContext.oldRecord.id);
 
 			var oldStatus = promoOldRec.getValue('custrecord_itpm_p_status');
 			var newStatus = promoNewRec.getValue('custrecord_itpm_p_status');
 			var condition = promoNewRec.getValue('custrecord_itpm_p_condition');
 			var promoId = promoNewRec.id;
-			
-			if(eventType == 'edit'){
+			if(eventType == 'edit' || eventType == 'create'){
 				
 				//search lookup for getting the account value from promotion
 				var promoLookup = search.lookupFields({
@@ -461,7 +461,9 @@ define(['N/ui/serverWidget',
 					});
 					return true;
 				});
-				
+			}
+			
+			if(eventType == 'edit'){
 				log.debug('oldStatus', oldStatus);
 				log.debug('newStatus', newStatus);
 				log.debug('condition', condition);
