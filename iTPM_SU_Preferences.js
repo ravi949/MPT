@@ -254,6 +254,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		var expenseAccntField = form.addField(getFieldOptions('custpage_itpm_pref_expenseaccount', 'Default Expense Account', 'account')).updateBreakType({
 			breakType : serverWidget.FieldBreakType.STARTCOL
 		});
+		
 		expenseAccntField.isMandatory = true;
 
        //Deduction account
