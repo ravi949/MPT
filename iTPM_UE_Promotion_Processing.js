@@ -4,11 +4,11 @@
  * @NModuleScope TargetAccount
  */
 define(['N/ui/serverWidget',
-	'N/record',
-	'N/runtime',
-	'N/url',
-	'N/search',
-	'./iTPM_Module.js'
+		'N/record',
+		'N/runtime',
+		'N/url',
+		'N/search',
+		'./iTPM_Module.js'
 	],
 	/**
 	 * @param {serverWidget} serverWidget
@@ -431,7 +431,7 @@ define(['N/ui/serverWidget',
 			var condition = promoNewRec.getValue('custrecord_itpm_p_condition');
 			var promoId = promoNewRec.id;
 			if(eventType == 'edit' || eventType == 'create'){
-				
+
 				//search lookup for getting the account value from promotion
 				var promoLookup = search.lookupFields({
 					type:'customrecord_itpm_promotiondeal',
@@ -462,7 +462,7 @@ define(['N/ui/serverWidget',
 					return true;
 				});
 			}
-			
+
 			if(eventType == 'edit'){
 				log.debug('oldStatus', oldStatus);
 				log.debug('newStatus', newStatus);
