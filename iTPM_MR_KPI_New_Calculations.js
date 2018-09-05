@@ -178,18 +178,7 @@ function(search, runtime, record, formatModule, task, itpm) {
     		var kpiDetails	= resultObj['kpi_details'];
 //    		log.debug('resultObj',resultObj);
     		
-    		//Validating data required to calculate Expected & Maximum Liabilities
-    		redemption = (estQty.estRedemption == '' || estQty.estRedemption == null || !estQty.estRedemption)? 0 : parseFloat(estQty.estRedemption)/100;
-			rateBB = (estQty.estRateBB == '' || estQty.estRateBB == null || !estQty.estRateBB)? 0 : parseFloat(estQty.estRateBB);
-			rateOI = (estQty.estRateOI == '' || estQty.estRateOI == null || !estQty.estRateOI)? 0 : parseFloat(estQty.estRateOI);
-			rateNB = (estQty.estRateNB == '' || estQty.estRateNB == null || !estQty.estRateNB)? 0 : parseFloat(estQty.estRateNB);
-			log.audit('redemption', redemption);
-			log.audit('rateBB', rateBB);
-			log.audit('rateOI', rateOI);
-			log.audit('rateNB', rateNB);
-			log.audit('Do Not Update Liability Based on Actuals', promoDetails.donotupdatelib);
-    		
-        	//creating the kpi queue detail record
+    		//creating the kpi queue detail record
         	createKpiQueueDetailRecord(1, resultObj.kpi_queue_id, context.key ,context.value);
     		
     		var estQty = {};
@@ -259,7 +248,18 @@ function(search, runtime, record, formatModule, task, itpm) {
     			estQty.estRateNB = estQtyResult[0].getValue({name:'custrecord_itpm_estqty_rateperunitnb'});
     			estQty.estRedemption = estQtyResult[0].getValue({name:'custrecord_itpm_estqty_redemption'});
     		}
-        	        	
+        	
+        	//Validating data required to calculate Expected & Maximum Liabilities
+    		redemption = (estQty.estRedemption == '' || estQty.estRedemption == null || !estQty.estRedemption)? 0 : parseFloat(estQty.estRedemption)/100;
+			rateBB = (estQty.estRateBB == '' || estQty.estRateBB == null || !estQty.estRateBB)? 0 : parseFloat(estQty.estRateBB);
+			rateOI = (estQty.estRateOI == '' || estQty.estRateOI == null || !estQty.estRateOI)? 0 : parseFloat(estQty.estRateOI);
+			rateNB = (estQty.estRateNB == '' || estQty.estRateNB == null || !estQty.estRateNB)? 0 : parseFloat(estQty.estRateNB);
+			log.audit('redemption', redemption);
+			log.audit('rateBB', rateBB);
+			log.audit('rateOI', rateOI);
+			log.audit('rateNB', rateNB);
+			log.audit('Do Not Update Liability Based on Actuals', promoDetails.donotupdatelib);
+        	
         	var estimatedSpend = itpm.getSpend({
         		returnZero: false, 
         		quantity: estQty.estPromoted, 
