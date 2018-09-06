@@ -254,10 +254,10 @@ function(search, runtime, record, formatModule, task, itpm) {
 			rateBB = (estQty.estRateBB == '' || estQty.estRateBB == null || !estQty.estRateBB)? 0 : parseFloat(estQty.estRateBB);
 			rateOI = (estQty.estRateOI == '' || estQty.estRateOI == null || !estQty.estRateOI)? 0 : parseFloat(estQty.estRateOI);
 			rateNB = (estQty.estRateNB == '' || estQty.estRateNB == null || !estQty.estRateNB)? 0 : parseFloat(estQty.estRateNB);
-			log.audit('redemption', redemption);
-			log.audit('rateBB', rateBB);
-			log.audit('rateOI', rateOI);
-			log.audit('rateNB', rateNB);
+			log.audit('redemption and type', redemption+' , '+typeof redemption);
+			log.audit('rateBB and type', rateBB+' , '+typeof rateBB);
+			log.audit('rateOI and type', rateOI+' , '+typeof rateOI);
+			log.audit('rateNB and type', rateNB+' , '+typeof rateNB);
 			log.audit('Do Not Update Liability Based on Actuals', promoDetails.donotupdatelib);
         	
         	var estimatedSpend = itpm.getSpend({
@@ -324,6 +324,9 @@ function(search, runtime, record, formatModule, task, itpm) {
 				log.error(e.name, e.message);
 			}*/
         	
+        	var expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
+        	var maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
+    		
         	//logic works base on promotion status
         	switch(promoDetails.promo_status){
         	case '5': //VOIDED
@@ -339,21 +342,21 @@ function(search, runtime, record, formatModule, task, itpm) {
         		if(promoDetails.promo_condition == '3'){ // Completed
         			if(promoDetails.donotupdatelib){
         				//Calculating Expected Liability and Maximum Liability for BB
-            			expectedLiability.bb = (estQty.estTotal * parseFloat(redemption) * rateBB).toFixed(2);
-            			maxLiability.bb = (estQty.estTotal * rateBB).toFixed(2);
+            			expectedLiability.bb = (parseFloat(estQty.estTotal) * redemption * rateBB);
+            			maxLiability.bb = (parseFloat(estQty.estTotal) * rateBB);
             			
             			//Calculating Expected Liability and Maximum Liability for OI, NB and LS
-            			expectedLiability.oi = maxLiability.oi = (estQty.estTotal * rateOI).toFixed(2);
-            			expectedLiability.nb = maxLiability.nb = (estQty.estTotal * rateNB).toFixed(2);
+            			expectedLiability.oi = maxLiability.oi = (parseFloat(estQty.estTotal) * rateOI);
+            			expectedLiability.nb = maxLiability.nb = (parseFloat(estQty.estTotal) * rateNB);
             			expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
             		}else{
             			//Calculating Expected Liability and Maximum Liability for BB
-            			expectedLiability.bb = (actQty * parseFloat(redemption) * rateBB).toFixed(2);
-            			maxLiability.bb = (actQty * rateBB).toFixed(2);
+            			expectedLiability.bb = (parseFloat(actQty) * redemption * rateBB2);
+            			maxLiability.bb = (parseFloat(actQty) * rateBB);
             			
             			//Calculating Expected Liability and Maximum Liability for OI, NB and LS
-            			expectedLiability.oi = maxLiability.oi = (actQty * rateOI).toFixed(2);
-            			expectedLiability.nb = maxLiability.nb = (actQty * rateNB).toFixed(2);
+            			expectedLiability.oi = maxLiability.oi = (parseFloat(actQty) * rateOI);
+            			expectedLiability.nb = maxLiability.nb = (parseFloat(actQty) * rateNB);
             			expectedLiability.ls = maxLiability.ls = (kpi_factor_actls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
             		} 
         		}
@@ -365,8 +368,8 @@ function(search, runtime, record, formatModule, task, itpm) {
         			
         			leSpend = estimatedSpend;
         			actualSpend = itpm.getSpend({returnZero:true});				//should return object zero
-        			expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
-        			maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
+        			//expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
+        			//maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
         			//expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
         			expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
         			
@@ -374,22 +377,21 @@ function(search, runtime, record, formatModule, task, itpm) {
         			//Added on 3rd September, 2018 ****************
         			if(promoDetails.donotupdatelib){
         				//Calculating Expected Liability and Maximum Liability for BB
-        				expectedLiability.bb = (estQty.estTotal * parseFloat(redemption) * rateBB).toFixed(2);
-        				maxLiability.bb = (estQty.estTotal * rateBB).toFixed(2);
+        				expectedLiability.bb = (parseFloat(estQty.estTotal) * redemption * rateBB);
+        				maxLiability.bb = (parseFloat(estQty.estTotal) * rateBB);
         				
         				//Calculating Expected Liability and Maximum Liability for OI, NB and LS
-        				expectedLiability.oi = maxLiability.oi = (estQty.estTotal * rateOI).toFixed(2);
-        				expectedLiability.nb = maxLiability.nb = (estQty.estTotal * rateNB).toFixed(2);
+        				expectedLiability.oi = maxLiability.oi = (parseFloat(estQty.estTotal) * rateOI);
+        				expectedLiability.nb = maxLiability.nb = (parseFloat(estQty.estTotal) * rateNB);
         				expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
-        				
         			}else{
         				//Calculating Expected Liability and Maximum Liability for BB
-        				expectedLiability.bb = (actQty * parseFloat(redemption) * rateBB).toFixed(2);
-        				maxLiability.bb = (actQty * rateBB).toFixed(2);
+        				expectedLiability.bb = (parseFloat(actQty) * redemption * rateBB);
+        				maxLiability.bb = (parseFloat(actQty) * rateBB);
         				
         				//Calculating Expected Liability and Maximum Liability for OI, NB
-        				expectedLiability.oi = maxLiability.oi = (actQty * rateOI).toFixed(2);
-        				expectedLiability.nb = maxLiability.nb = (actQty * rateNB).toFixed(2);
+        				expectedLiability.oi = maxLiability.oi = (parseFloat(actQty) * rateOI);
+        				expectedLiability.nb = maxLiability.nb = (parseFloat(actQty) * rateNB);
         				
         				//Calculating Expected Liability and Maximum Liability for LS
         				if(!promoDetails.promo_hasSales){
@@ -415,24 +417,23 @@ function(search, runtime, record, formatModule, task, itpm) {
         			
         		}else if (promoDetails.promo_condition == '3') {	//condition == Completed
         			//Added on 3rd September, 2018 ****************
-        			log.Error('Do Not Update Liability Based on Actuals', promoDetails.donotupdatelib);
         			if(promoDetails.donotupdatelib){
         				//Calculating Expected Liability and Maximum Liability for BB
-        				expectedLiability.bb = (estQty.estTotal * parseFloat(redemption) * rateBB).toFixed(2);
-        				maxLiability.bb = (estQty.estTotal * rateBB).toFixed(2);
+        				expectedLiability.bb = (parseFloat(estQty.estTotal) * redemption * rateBB);
+        				maxLiability.bb = (parseFloat(estQty.estTotal) * rateBB);
         				
         				//Calculating Expected Liability and Maximum Liability for OI, NB and LS
-        				expectedLiability.oi = maxLiability.oi = (estQty.estTotal * rateOI).toFixed(2);
-        				expectedLiability.nb = maxLiability.nb =(estQty.estTotal * rateNB).toFixed(2);
-        				expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        				expectedLiability.oi = maxLiability.oi = (parseFloat(estQty.estTotal) * rateOI);
+        				expectedLiability.nb = maxLiability.nb =(parseFloat(estQty.estTotal) * rateNB);
+        				expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum));
         			}else{
         				//Calculating Expected Liability and Maximum Liability for BB
-        				expectedLiability.bb = (actQty * parseFloat(redemption) * rateBB).toFixed(2);
-        				maxLiability.bb = (actQty * rateBB).toFixed(2);
+        				expectedLiability.bb = (parseFloat(actQty) * redemption * rateBB);
+        				maxLiability.bb = (parseFloat(actQty) * rateBB);
         				
         				//Calculating Expected Liability and Maximum Liability for OI, NB and LS
-        				expectedLiability.oi = maxLiability.oi = (actQty * rateOI).toFixed(2);
-        				expectedLiability.nb = maxLiability.nb = (actQty * rateNB).toFixed(2);
+        				expectedLiability.oi = maxLiability.oi = (parseFloat(actQty) * rateOI);
+        				expectedLiability.nb = maxLiability.nb = (parseFloat(actQty) * rateNB);
         				expectedLiability.ls = maxLiability.ls = (kpi_factor_actls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
         			}
         			//expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
