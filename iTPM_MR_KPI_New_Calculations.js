@@ -335,7 +335,7 @@ function(search, runtime, record, formatModule, task, itpm) {
         		expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
         		maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
         		break;
-        	case '6':	//CLOSED
+        	case '7':	//CLOSED
         		leSpend = actualSpend;
         		
         		//Added on September, 2018 ****************
