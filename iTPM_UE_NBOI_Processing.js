@@ -7,7 +7,9 @@ define(['N/redirect',
         'N/search', 
         'N/runtime', 
         'N/record',
-        'N/ui/serverWidget'],
+        'N/ui/serverWidget',
+        './iTPM_Module.js'        
+        ],
 	/**
 	* @param {redirect} redirect
 	* @param {search} search
@@ -15,7 +17,7 @@ define(['N/redirect',
 	* @param {record} record
 	* @param {serverWidget} serverWidget
 	*/
-	function(redirect, search, runtime, record, serverWidget) {
+	function(redirect, search, runtime, record, serverWidget, itpm) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -171,15 +173,18 @@ define(['N/redirect',
 	 * @return {object} searchObject
 	 */
 	function getAllowanceItems(prefDatesType, item, customer, trandate, allowanceType){
+		//Create hierarchical customers array		
+		var subCustIds = itpm.getParentCustomers(customer);
+		log.debug('Realted Customers',subCustIds);
 		var tranFilters = [
-		                   ['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_status','anyof','3'], //here 3 means status is Approved
-		                   'AND', 
-		                   ['custrecord_itpm_all_mop','anyof',allowanceType], //here  means Method of Payment is  Net Bill/Off Invoice
-		                   'AND', 
-		                   ['custrecord_itpm_all_item','anyof',item], //item from transaction line
-		                   'AND', 
-		                   ['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_customer','anyof',customer] //customer from transaction
-		                   ];
+			['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_status','anyof','3'], //here 3 means status is Approved
+			'AND', 
+			['custrecord_itpm_all_mop','anyof',allowanceType], //here  means Method of Payment is  Net Bill/Off Invoice
+			'AND', 
+			['custrecord_itpm_all_item','anyof',item], //item from transaction line
+			'AND', 
+			['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_customer','anyof',subCustIds] //customer from transaction
+			];
 
 		//Adding the filters to the tranFilters array
 		switch(prefDatesType){
@@ -193,30 +198,30 @@ define(['N/redirect',
 			break;
 		case '3':
 			tranFilters.push('AND',[
-			                        [['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipend','onorafter',trandate]],
-			                        'AND',
-			                        [['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderend','onorafter',trandate]]
-			                        ]);
+				[['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipend','onorafter',trandate]],
+				'AND',
+				[['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderend','onorafter',trandate]]
+				]);
 			break;
 		case '4':
 			tranFilters.push('AND',[
-			                        [['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipend','onorafter',trandate]],
-			                        'OR',
-			                        [['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderend','onorafter',trandate]]
-			                        ]);	
+				[['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipend','onorafter',trandate]],
+				'OR',
+				[['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderend','onorafter',trandate]]
+				]);	
 			break;
 		}
 		var tranColumns = [
-		                   "custrecord_itpm_all_item",
-		                   "CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.name",
-		                   "CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.internalid",
-		                   "id",
-		                   "custrecord_itpm_all_mop",
-		                   "custrecord_itpm_all_type",
-		                   "custrecord_itpm_all_rateperuom",
-		                   "custrecord_itpm_all_percentperuom",
-		                   "custrecord_itpm_all_uom"
-		                   ];
+			"custrecord_itpm_all_item",
+			"CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.name",
+			"CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.internalid",
+			"id",
+			"custrecord_itpm_all_mop",
+			"custrecord_itpm_all_type",
+			"custrecord_itpm_all_rateperuom",
+			"custrecord_itpm_all_percentperuom",
+			"custrecord_itpm_all_uom"
+			];
 
 		var searchObj = search.create({
 			type: 'customrecord_itpm_promoallowance',
