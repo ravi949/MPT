@@ -349,6 +349,7 @@ function(search, record, runtime, itpm) {
 			var lineAmount = (lineAmount)?parseFloat(lineAmount):0;
 			//Fetching allowances related to the each item which is coming from Transaction Line
 			var itemResults = getAllowanceItems(nbProcessData.prefDatesType, nbProcessData.lineItem, nbProcessData.tranCustomer, nbProcessData.trandate, 2);
+			log.debug('itemResults', itemResults);
 			var j = 0;
 			var tranItemFinalRate = 0;
 			var tranItemFinalRatePer = 0;
@@ -434,6 +435,7 @@ function(search, record, runtime, itpm) {
 			var lineAmount = (lineAmount)?parseFloat(lineAmount):0;
 			//Fetching allowances related to the each item which is coming from Transaction Line
 			var perItemResults = getAllowanceItems(oiProcessData.prefDatesType, oiProcessData.lineItem, oiProcessData.tranCustomer, oiProcessData.trandate, 3);
+			log.debug('perItemResults', perItemResults);
 			var j = 0;
 			var tranItemFinalRate = 0;
 			var tranItemFinalAmount = 0;

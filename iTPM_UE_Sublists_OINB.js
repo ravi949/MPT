@@ -491,12 +491,14 @@ function(runtime, serverWidget, search, record, itpm) {
      */
     function getSearchResults(customerId,type,prefDatesType,trandate,transhipdate){
     	try{
+    		var subCustIds = itpm.getParentCustomers(customerId);
+    		log.debug('Realted Customers',subCustIds);
     		var tranColumns = [  
  				"internalid"
  			 ];
     		
     		var tranFilters = [  
- 				["custrecord_itpm_p_customer","anyof",customerId],
+ 				["custrecord_itpm_p_customer","anyof",subCustIds],
 				 "AND",
 				["custrecord_itpm_p_status","anyof","3"]   //Approved - 3
 			 ];

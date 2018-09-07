@@ -103,6 +103,7 @@ define(['N/record',
 //					log.debug('transconversionRate', transconversionRate);
 					//Fetching allowances related to the each item which is coming from Transaction Line
 					var itemResults = getAllowanceItems(prefDatesType, lineItem, tranCustomer, trandate);
+					log.debug('itemResults', itemResults);
 //					log.debug('Usage: After getAllowanceItems ', runtime.getCurrentScript().getRemainingUsage());
 					var j = 0;
 					var tranItemFinalRate = 0;

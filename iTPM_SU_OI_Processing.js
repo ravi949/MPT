@@ -107,6 +107,7 @@ define(['N/search',
 
 					//Fetching allowances related to the each item which is coming from Transaction Line
 					var perItemResults = getAllowanceItems(prefDatesType, lineItem, customer, trandate);
+					log.debug('perItemResults', perItemResults);
 					var j = 0;
 
 					perItemResults.each(function(result){
