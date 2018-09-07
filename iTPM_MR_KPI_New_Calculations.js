@@ -351,7 +351,7 @@ function(search, runtime, record, formatModule, task, itpm) {
             			expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
             		}else{
             			//Calculating Expected Liability and Maximum Liability for BB
-            			expectedLiability.bb = (parseFloat(actQty) * redemption * rateBB2);
+            			expectedLiability.bb = (parseFloat(actQty) * redemption * rateBB);
             			maxLiability.bb = (parseFloat(actQty) * rateBB);
             			
             			//Calculating Expected Liability and Maximum Liability for OI, NB and LS
