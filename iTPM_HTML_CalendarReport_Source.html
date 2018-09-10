@@ -283,6 +283,7 @@
     <br/>
     <div class="ReportInfoMsg" ng-if="::!loading" ng-cloak>
     		<ul>
+    			<li class="pull-left" ng-if="pages.length > 0"><span class="smallgraytextnolink" style="font-size: 12px;">ROWS:</span></label> <select ng-options="page as page.label for page in pages track by page.index" ng-model="pageno" ng-change="indexChanged(pageno)"></select></li>
                 <li class="orange">Draft</li>
                 <li class="yellow">Pending Approval</li>
                 <li class="green">Approved</li>
@@ -430,6 +431,9 @@
 		$scope.loading = true;
 		$scope.promo_data = ${promotionData.list};
 		$scope.weeks = ${weeks.list};
+		$scope.pages = ${pageRanges.list};
+		console.log($scope.pages);
+		$scope.pageno = $scope.pages.filter(function(e){return e.index == new URLSearchParams(location.href).get('index')})[0];
 		/* console.log($scope.weeks); */
 		/* $scope.startMonth = ${datesObj.startMonth};
 		$scope.endMonth = ${datesObj.endMonth}; */
@@ -455,6 +459,10 @@
 			 if (down) {
 				 document.getElementById('CalTableScroll').scrollLeft = scrollLeft + x - e.clientX;
 			 }
+		}
+		
+		$scope.indexChanged = function(pageno){
+			location.search = location.search.replace(/index=[^&$]*/i, 'index='+pageno.index);
 		}
 		
 		//validating the promotion date ranges between the weeks

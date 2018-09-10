@@ -117,7 +117,7 @@ function(url, message, record, format) {
 				scriptId:'customscript_itpm_calendar_report',
 				deploymentId:'customdeploy_itpm_calendar_report',
 				returnExternalUrl: false,
-				params:{cid:cid,rectype:calendarRecType}
+				params:{cid:cid,rectype:calendarRecType,index:0}
 			});
 			window.open(outputURL,'_blank');
 		}catch(e){
