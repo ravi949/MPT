@@ -250,10 +250,11 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		}); 
 		discountItemField.isMandatory = true;
 
-		//Expense account
-		var expenseAccntField = form.addField(getFieldOptions('custpage_itpm_pref_expenseaccount', 'Expense Account', 'account')).updateBreakType({
+		//Default Expense account
+		var expenseAccntField = form.addField(getFieldOptions('custpage_itpm_pref_expenseaccount', 'Default Expense Account', 'account')).updateBreakType({
 			breakType : serverWidget.FieldBreakType.STARTCOL
 		});
+		
 		expenseAccntField.isMandatory = true;
 
        //Deduction account
@@ -511,7 +512,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		prefSublist.addField({
 			id : 'custpage_itpm_expaccount',
 			type : serverWidget.FieldType.SELECT,
-			label : 'Expense Account',
+			label : 'Default Expense Account',
 			source:'account'
 		}).updateDisplayType({
 		    displayType : serverWidget.FieldDisplayType.INLINE
