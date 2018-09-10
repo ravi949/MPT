@@ -2270,6 +2270,43 @@ define(['N/search',
     	}
     }
     
+
+    /**
+     * @param custId
+     * @returns parent-customers ID's of a customer 
+     */
+    function getParentCustomers(custId){
+    	try{
+    		//Create hierarchical promotions
+			var iteratorVal = false;
+			var custRange = 4;//Variable to limit the customer relations to a maximum of 4. 
+			var custRecId = custId;
+			var custRecIds = [];
+			custRecIds.push(custRecId); 
+			do{
+				//loading the customer record to get the parent customer
+				var customerRecord = record.load({
+					type: record.Type.CUSTOMER,
+					id: custRecId
+				});
+				custRecId = customerRecord.getValue('parent');
+				if(custRecId){ 
+					iteratorVal = true;
+					custRecIds.push(custRecId);
+				}
+				else{
+					iteratorVal = false;
+				}
+				custRange--;
+			}while(iteratorVal && custRange > 0);
+			
+			return custRecIds;			
+    	} catch(ex){
+    		log.error ('module_getParentCustomers', ex.name +'; ' + ex.message + '; ');
+    		return [custId];
+    	}
+    }
+    
     /**
      * @param {String} promId
      * @param {Number} requestType
@@ -2664,6 +2701,7 @@ define(['N/search',
 		applyCreditMemo 					: 	applyCreditMemo,
 		createCustomerPayment 				: 	createCustomerPayment,
 		getSubCustomers 					: 	getSubCustomers,
+		getParentCustomers					:	getParentCustomers,
 		createKPIQueue 						: 	createKPIQueue,
 		createDiscountLog					: 	createDiscountLog,
 		createDiscountLogLine				: 	createDiscountLogLine,

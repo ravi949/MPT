@@ -64,11 +64,11 @@ define(['N/record',
 						id:lineItem,
 						columns:['recordtype']
 					}).recordtype;
-					
-					if(itemType == "discountitem"){
+					log.debug('itemType ======', itemType);
+					if(itemType == "discountitem" || itemType == "itemgroup" || !itemType){
 						continue;
 					}
-					
+					log.debug('after continue itemType ======', itemType);
 					var quantity = transRec.getSublistValue({
 						sublistId : 'item',
 						fieldId   : 'quantity',
@@ -103,6 +103,7 @@ define(['N/record',
 //					log.debug('transconversionRate', transconversionRate);
 					//Fetching allowances related to the each item which is coming from Transaction Line
 					var itemResults = getAllowanceItems(prefDatesType, lineItem, tranCustomer, trandate);
+					log.debug('itemResults', itemResults);
 //					log.debug('Usage: After getAllowanceItems ', runtime.getCurrentScript().getRemainingUsage());
 					var j = 0;
 					var tranItemFinalRate = 0;
@@ -234,15 +235,18 @@ define(['N/record',
 	 * @return {Array} searchResults (allowance)
 	 */
 	function getAllowanceItems(prefDatesType, item, customer, trandate){
+		//Create hierarchical customers array		
+		var subCustIds = itpm.getParentCustomers(customer);
+		log.debug('Realted Customers',subCustIds);
 		var tranFilters = [
-		                   ['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_status','anyof','3'], //here 3 means status is Approved
-		                   'AND', 
-		                   ['custrecord_itpm_all_mop','anyof','2'], //here 2 means Method of Payment is  Net Bill
-		                   'AND', 
-		                   ['custrecord_itpm_all_item','anyof',item], //item from transaction line
-		                   'AND', 
-		                   ['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_customer','anyof',customer] //customer from transaction
-		                   ];
+			['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_status','anyof','3'], //here 3 means status is Approved
+			'AND', 
+			['custrecord_itpm_all_mop','anyof','2'], //here 2 means Method of Payment is  Net Bill
+			'AND', 
+			['custrecord_itpm_all_item','anyof',item], //item from transaction line
+			'AND', 
+			['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_customer','anyof',subCustIds] //customer from transaction
+			];
 
 		//Adding the filters to the tranFilters array
 		switch(prefDatesType){
@@ -256,30 +260,30 @@ define(['N/record',
 			break;
 		case '3':
 			tranFilters.push('AND',[
-			                        [['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipend','onorafter',trandate]],
-			                        'AND',
-			                        [['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderend','onorafter',trandate]]
-			                        ]);
+				[['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipend','onorafter',trandate]],
+				'AND',
+				[['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderend','onorafter',trandate]]
+				]);
 			break;
 		case '4':
 			tranFilters.push('AND',[
-			                        [['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipend','onorafter',trandate]],
-			                        'OR',
-			                        [['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderend','onorafter',trandate]]
-			                        ]);	
+				[['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_shipend','onorafter',trandate]],
+				'OR',
+				[['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderstart','onorbefore',trandate],'AND',['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_orderend','onorafter',trandate]]
+				]);	
 			break;
 		}
 		var tranColumns = [
-		                   "custrecord_itpm_all_item",
-		                   "CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.name",
-		                   "CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.internalid",
-		                   "id",
-		                   "custrecord_itpm_all_mop",
-		                   "custrecord_itpm_all_type",
-		                   "custrecord_itpm_all_rateperuom",
-		                   "custrecord_itpm_all_percentperuom",
-		                   "custrecord_itpm_all_uom"
-		                   ];
+			"custrecord_itpm_all_item",
+			"CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.name",
+			"CUSTRECORD_ITPM_ALL_PROMOTIONDEAL.internalid",
+			"id",
+			"custrecord_itpm_all_mop",
+			"custrecord_itpm_all_type",
+			"custrecord_itpm_all_rateperuom",
+			"custrecord_itpm_all_percentperuom",
+			"custrecord_itpm_all_uom"
+			];
 
 		var searchObj = search.create({
 			type: 'customrecord_itpm_promoallowance',

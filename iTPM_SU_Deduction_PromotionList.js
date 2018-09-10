@@ -9,10 +9,11 @@ define(['N/ui/serverWidget',
 		'N/search',
 		'N/record',
 		'N/url',
-		'N/ui/message'
+		'N/ui/message',
+		'./iTPM_Module.js'
 	],
 
-	function(serverWidget,redirect,search,record,url,message) {
+	function(serverWidget, redirect, search, record, url, message, itpm) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -78,27 +79,8 @@ define(['N/ui/serverWidget',
 					columns:['custbody_itpm_customer']
 				});
 				//Create hierarchical promotions
-				var iteratorVal = false;
-				var custRange = 4;//Variable to limit the customer relations to a maximum of 4. 
-				var CustId = deductionRec.custbody_itpm_customer[0].value;
-				var custrecIds = [];
-				custrecIds.push(CustId); 
-				do{
-					//loading the customer record to get the parent customer
-					var customerRecord = record.load({
-						type: record.Type.CUSTOMER,
-						id: CustId
-					});
-					CustId = customerRecord.getValue('parent');
-					if(CustId){ 
-						iteratorVal = true;
-						custrecIds.push(CustId);
-					}
-					else{
-						iteratorVal = false;
-					}
-					custRange--;
-				}while(iteratorVal && custRange > 0);
+				var custrecIds = itpm.getParentCustomers(deductionRec.custbody_itpm_customer[0].value);
+				log.debug('Realted Customers',custrecIds);
 				var promoDealRecordSearch = search.create({
 					type:'customrecord_itpm_promotiondeal',
 					columns:['internalid',
