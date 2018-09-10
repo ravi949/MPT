@@ -143,7 +143,8 @@ function(search, runtime, record, formatModule, task, itpm) {
         						kpi_estspendbb:   promo.getValue({name:'custrecord_itpm_kpi_estimatedspendbb',join:'custrecord_itpm_kpi_promotiondeal'}),
         						kpi_estspendoi:   promo.getValue({name:'custrecord_itpm_kpi_estimatedspendoi',join:'custrecord_itpm_kpi_promotiondeal'}),
         						kpi_factor_estls :   promo.getValue({name:'custrecord_itpm_kpi_factorestls',join:'custrecord_itpm_kpi_promotiondeal'}),
-        						kpi_factor_actls : 	 promo.getValue({name:'custrecord_itpm_kpi_factoractualls',join:'custrecord_itpm_kpi_promotiondeal'})
+        						kpi_factor_actls : 	 promo.getValue({name:'custrecord_itpm_kpi_factoractualls',join:'custrecord_itpm_kpi_promotiondeal'}),
+        						kpi_promQuantity :   promo.getValue({name:'custrecord_itpm_kpi_esttotalqty',join:'custrecord_itpm_kpi_promotiondeal'})
         				}
         			});
         			log.audit('per kpi getinput usage',scriptObj.getRemainingUsage());
@@ -177,7 +178,7 @@ function(search, runtime, record, formatModule, task, itpm) {
     		var kpiDetails	= resultObj['kpi_details'];
 //    		log.debug('resultObj',resultObj);
     		
-        	//creating the kpi queue detail record
+    		//creating the kpi queue detail record
         	createKpiQueueDetailRecord(1, resultObj.kpi_queue_id, context.key ,context.value);
     		
     		var estQty = {};
@@ -247,7 +248,18 @@ function(search, runtime, record, formatModule, task, itpm) {
     			estQty.estRateNB = estQtyResult[0].getValue({name:'custrecord_itpm_estqty_rateperunitnb'});
     			estQty.estRedemption = estQtyResult[0].getValue({name:'custrecord_itpm_estqty_redemption'});
     		}
-        	        	
+        	
+        	//Validating data required to calculate Expected & Maximum Liabilities
+    		redemption = (estQty.estRedemption == '' || estQty.estRedemption == null || !estQty.estRedemption)? 0 : parseFloat(estQty.estRedemption)/100;
+			rateBB = (estQty.estRateBB == '' || estQty.estRateBB == null || !estQty.estRateBB)? 0 : parseFloat(estQty.estRateBB);
+			rateOI = (estQty.estRateOI == '' || estQty.estRateOI == null || !estQty.estRateOI)? 0 : parseFloat(estQty.estRateOI);
+			rateNB = (estQty.estRateNB == '' || estQty.estRateNB == null || !estQty.estRateNB)? 0 : parseFloat(estQty.estRateNB);
+			log.audit('redemption and type', redemption+' , '+typeof redemption);
+			log.audit('rateBB and type', rateBB+' , '+typeof rateBB);
+			log.audit('rateOI and type', rateOI+' , '+typeof rateOI);
+			log.audit('rateNB and type', rateNB+' , '+typeof rateNB);
+			log.audit('Do Not Update Liability Based on Actuals', promoDetails.donotupdatelib);
+        	
         	var estimatedSpend = itpm.getSpend({
         		returnZero: false, 
         		quantity: estQty.estPromoted, 
@@ -282,27 +294,39 @@ function(search, runtime, record, formatModule, task, itpm) {
 			});
         	
         	//calculating expected and maximum liabilities
-			var expectedLiability = itpm.getLiability({
-				returnZero: false, 
-//				quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty,
-				quantity: actQty,
-				rateBB: estQty.estRateBB, 
-				rateOI: estQty.estRateOI, 
-				rateNB: estQty.estRateNB, 
-				redemption: estQty.estRedemption
-			});
+        	/*try{
+        		var expectedLiability = itpm.getLiability({
+    				returnZero: false, 
+//    				quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty,
+    				quantity: actQty,
+    				rateBB: estQty.estRateBB, 
+    				rateOI: estQty.estRateOI, 
+    				rateNB: estQty.estRateNB, 
+    				redemption: estQty.estRedemption
+    			});
+			}catch(e){
+				log.error(e.name, e.message);
+			}
+        	
 			log.debug('expectedlib '+resultObj.kpi_id,expectedLiability);
 			
-			var maxLiability = itpm.getLiability({
-				returnZero: false, 
-//				quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty, 
-				quantity: actQty,
-				rateBB: estQty.estRateBB, 
-				rateOI: estQty.estRateOI, 
-				rateNB: estQty.estRateNB, 
-				redemption: '100%'
-			});
+			try{
+				var maxLiability = itpm.getLiability({
+					returnZero: false, 
+//					quantity: (promoDetails.donotupdatelib)? estQty.estTotal : actQty, 
+					quantity: actQty,
+					rateBB: estQty.estRateBB, 
+					rateOI: estQty.estRateOI, 
+					rateNB: estQty.estRateNB, 
+					redemption: '100%'
+				});
+			}catch(e){
+				log.error(e.name, e.message);
+			}*/
         	
+        	var expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
+        	var maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
+    		
         	//logic works base on promotion status
         	switch(promoDetails.promo_status){
         	case '5': //VOIDED
@@ -311,13 +335,32 @@ function(search, runtime, record, formatModule, task, itpm) {
         		expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
         		maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
         		break;
-        	case '6':	//CLOSED
+        	case '7':	//CLOSED
         		leSpend = actualSpend;
-        		if(promoDetails.donotupdatelib){
-        			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
-        		}else{
-        			expectedLiability.ls = maxLiability.ls = (kpi_factor_actls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        		
+        		//Added on September, 2018 ****************
+        		if(promoDetails.promo_condition == '3'){ // Completed
+        			if(promoDetails.donotupdatelib){
+        				//Calculating Expected Liability and Maximum Liability for BB
+            			expectedLiability.bb = (parseFloat(estQty.estTotal) * redemption * rateBB);
+            			maxLiability.bb = (parseFloat(estQty.estTotal) * rateBB);
+            			
+            			//Calculating Expected Liability and Maximum Liability for OI, NB and LS
+            			expectedLiability.oi = maxLiability.oi = (parseFloat(estQty.estTotal) * rateOI);
+            			expectedLiability.nb = maxLiability.nb = (parseFloat(estQty.estTotal) * rateNB);
+            			expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+            		}else{
+            			//Calculating Expected Liability and Maximum Liability for BB
+            			expectedLiability.bb = (parseFloat(actQty) * redemption * rateBB);
+            			maxLiability.bb = (parseFloat(actQty) * rateBB);
+            			
+            			//Calculating Expected Liability and Maximum Liability for OI, NB and LS
+            			expectedLiability.oi = maxLiability.oi = (parseFloat(actQty) * rateOI);
+            			expectedLiability.nb = maxLiability.nb = (parseFloat(actQty) * rateNB);
+            			expectedLiability.ls = maxLiability.ls = (kpi_factor_actls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+            		} 
         		}
+        		//Added on September, 2018 ****************
         		break;
         	case '3':	//APPROVED
         		
@@ -325,13 +368,41 @@ function(search, runtime, record, formatModule, task, itpm) {
         			
         			leSpend = estimatedSpend;
         			actualSpend = itpm.getSpend({returnZero:true});				//should return object zero
-        			expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
-        			maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
-        			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+        			//expectedLiability = itpm.getLiability({returnZero: true});	//should return object zero
+        			//maxLiability = itpm.getLiability({returnZero: true});		//should return object zero
+        			//expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+        			expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
         			
         		} else if (promoDetails.promo_condition == '2') {	//condition == Active
+        			//Added on 3rd September, 2018 ****************
+        			if(promoDetails.donotupdatelib){
+        				//Calculating Expected Liability and Maximum Liability for BB
+        				expectedLiability.bb = (parseFloat(estQty.estTotal) * redemption * rateBB);
+        				maxLiability.bb = (parseFloat(estQty.estTotal) * rateBB);
+        				
+        				//Calculating Expected Liability and Maximum Liability for OI, NB and LS
+        				expectedLiability.oi = maxLiability.oi = (parseFloat(estQty.estTotal) * rateOI);
+        				expectedLiability.nb = maxLiability.nb = (parseFloat(estQty.estTotal) * rateNB);
+        				expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        			}else{
+        				//Calculating Expected Liability and Maximum Liability for BB
+        				expectedLiability.bb = (parseFloat(actQty) * redemption * rateBB);
+        				maxLiability.bb = (parseFloat(actQty) * rateBB);
+        				
+        				//Calculating Expected Liability and Maximum Liability for OI, NB
+        				expectedLiability.oi = maxLiability.oi = (parseFloat(actQty) * rateOI);
+        				expectedLiability.nb = maxLiability.nb = (parseFloat(actQty) * rateNB);
+        				
+        				//Calculating Expected Liability and Maximum Liability for LS
+        				if(!promoDetails.promo_hasSales){
+        					expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        				}else{
+        					expectedLiability.ls = maxLiability.ls = (kpi_factor_actls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        				}
+        			}
+        			//expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+        			//Added on 3rd September, 2018 ****************
         			
-        			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
         			//if functions return values without any errors
         			if (!estimatedSpend.error && !expectedLiability.error && !actualSpend.error){
         				leSpend = {
@@ -345,8 +416,28 @@ function(search, runtime, record, formatModule, task, itpm) {
         			leSpend = (promoDetails.donotupdatelib)? estimatedSpend : leSpend;
         			
         		}else if (promoDetails.promo_condition == '3') {	//condition == Completed
-        			
-        			expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+        			//Added on 3rd September, 2018 ****************
+        			if(promoDetails.donotupdatelib){
+        				//Calculating Expected Liability and Maximum Liability for BB
+        				expectedLiability.bb = (parseFloat(estQty.estTotal) * redemption * rateBB);
+        				maxLiability.bb = (parseFloat(estQty.estTotal) * rateBB);
+        				
+        				//Calculating Expected Liability and Maximum Liability for OI, NB and LS
+        				expectedLiability.oi = maxLiability.oi = (parseFloat(estQty.estTotal) * rateOI);
+        				expectedLiability.nb = maxLiability.nb =(parseFloat(estQty.estTotal) * rateNB);
+        				expectedLiability.ls = maxLiability.ls = (kpi_factor_estls * parseFloat(promoDetails.promo_lumpsum));
+        			}else{
+        				//Calculating Expected Liability and Maximum Liability for BB
+        				expectedLiability.bb = (parseFloat(actQty) * redemption * rateBB);
+        				maxLiability.bb = (parseFloat(actQty) * rateBB);
+        				
+        				//Calculating Expected Liability and Maximum Liability for OI, NB and LS
+        				expectedLiability.oi = maxLiability.oi = (parseFloat(actQty) * rateOI);
+        				expectedLiability.nb = maxLiability.nb = (parseFloat(actQty) * rateNB);
+        				expectedLiability.ls = maxLiability.ls = (kpi_factor_actls * parseFloat(promoDetails.promo_lumpsum)).toFixed(2);
+        			}
+        			//expectedLiability.ls = maxLiability.ls = estimatedSpend.ls;
+        			//Added on 3rd September, 2018 ****************
         			if (!actualSpend.error){
         				leSpend.oi = actualSpend.oi;
         				leSpend.nb = actualSpend.nb;
