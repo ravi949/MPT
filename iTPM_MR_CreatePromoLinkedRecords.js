@@ -81,7 +81,8 @@ function(record, search, runtime, itpm) {
 	    				search.createColumn({name: "custrecord_itpm_pp_esteverydayprice"}),
 	    				search.createColumn({name: "custrecord_itpm_pp_estmerchprice"}),
 	    				search.createColumn({name: "custrecord_itpm_pp_estacvdisplay"}),
-	    				search.createColumn({name: "custrecord_itpm_pp_activity"})
+	    				search.createColumn({name: "custrecord_itpm_pp_activity"}),
+	    				search.createColumn({name: "custrecord_itpm_pp_account"})
     				],
     				filters: [
     					["custrecord_itpm_pp_promotion","anyof",promoID], 
@@ -122,6 +123,7 @@ function(record, search, runtime, itpm) {
     			var estMerchPrice = result.getValue({name: 'custrecord_itpm_pp_estmerchprice'});
     			var estAcvDisplay = result.getValue({name: 'custrecord_itpm_pp_estacvdisplay'});
     			var ReatailActivity = result.getValue({name: 'custrecord_itpm_pp_activity'});
+    			var coaAccount = result.getValue({name: 'custrecord_itpm_pp_account'});
     			log.debug('map promoPlanRecId',promoPlanRecId);
     			log.debug('map itemId',itemId);
     			
@@ -143,7 +145,8 @@ function(record, search, runtime, itpm) {
         				estEverydayPrice: estEverydayPrice,
         				estMerchPrice	: estMerchPrice,
         				estAcvDisplay	: estAcvDisplay,
-        				ReatailActivity	: ReatailActivity
+        				ReatailActivity	: ReatailActivity,
+        				coaAccount      : coaAccount
         			}
         		});
     			return true;
@@ -628,7 +631,7 @@ function(record, search, runtime, itpm) {
 			value:(allowAddinalDiscounts)?true:false
 		}).setValue({
 			fieldId:"custrecord_itpm_all_account",
-			value:promoPlanValues.promoTypeLookupForAccount
+			value:promoPlanValues.coaAccount
 		}).setValue({
 			fieldId:"custrecord_itpm_all_type",
 			value:allType

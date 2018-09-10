@@ -4,11 +4,11 @@
  * @NModuleScope TargetAccount
  */
 define(['N/ui/serverWidget',
-	'N/record',
-	'N/runtime',
-	'N/url',
-	'N/search',
-	'./iTPM_Module.js'
+		'N/record',
+		'N/runtime',
+		'N/url',
+		'N/search',
+		'./iTPM_Module.js'
 	],
 	/**
 	 * @param {serverWidget} serverWidget
@@ -269,7 +269,7 @@ define(['N/ui/serverWidget',
 					if(promoPlaningProgress){
 						var msgText = "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
 						"and made available under the subtabs by the same name. Please wait for processing to complete. "+ 
-            "Any allowances by item groups will be expanded to the associated items.";						
+						"Any allowances by item groups will be expanded to the associated items.";						
 
 						scriptContext.form.addField({
 							id:'custpage_planingprogress_message',
@@ -424,11 +424,44 @@ define(['N/ui/serverWidget',
 			var promoNewRec = scriptContext.newRecord;
 			log.debug('promoOldRec',promoOldRec.getValue('sublists'));
 			log.debug('promoNewRec',promoNewRec);
-			
+			log.debug('type',eventType+''+scriptContext.newRecord.id+''+scriptContext.oldRecord.id);
+
 			var oldStatus = promoOldRec.getValue('custrecord_itpm_p_status');
 			var newStatus = promoNewRec.getValue('custrecord_itpm_p_status');
 			var condition = promoNewRec.getValue('custrecord_itpm_p_condition');
 			var promoId = promoNewRec.id;
+			if(eventType == 'edit' || eventType == 'create'){
+
+				//search lookup for getting the account value from promotion
+				var promoLookup = search.lookupFields({
+					type:'customrecord_itpm_promotiondeal',
+					id: promoId,
+					columns: ['custrecord_itpm_p_allaccount']
+				});			
+				log.debug('fieldLookUp',promoLookup.custrecord_itpm_p_allaccount[0].value);
+				var account = promoLookup.custrecord_itpm_p_allaccount[0].value;
+
+				//search for promotion planning records which are linked with promotion and updating account value.
+				var promoplanningSearchObj = search.create({
+					type:'customrecord_itpm_promotion_planning',
+					columns:['internalid'],
+					filters:['custrecord_itpm_pp_promotion','anyof',promoId]
+				}).run().each(function(e){
+					log.debug('a',e.getValue('internalid'));
+					var id = record.submitFields({
+						type: 'customrecord_itpm_promotion_planning',
+						id: e.getValue('internalid'),
+						values: {
+							'custrecord_itpm_pp_account': account
+						},
+						options: {
+							enableSourcing: true,
+							ignoreMandatoryFields : true
+						}
+					});
+					return true;
+				});
+			}
 
 			if(eventType == 'edit'){
 				log.debug('oldStatus', oldStatus);
@@ -686,7 +719,7 @@ define(['N/ui/serverWidget',
 			return true;
 		});
 		var uniquepromos = [];
-		
+
 
 		var i = 0,k = 0;
 		log.debug('promos',getOverlappedPromos(params));
@@ -704,7 +737,7 @@ define(['N/ui/serverWidget',
 			if(overlappedDays == 0){
 				overlappedDays = getOverlappingDays(promoStartDate,promotEndDate,params.start,params.end);
 			}
-			
+
 			//setting PromotionsSublist  Values	
 			Summarysublist.setSublistValue({
 				id : 'custpage_summary_overlappromo_id',
@@ -747,14 +780,14 @@ define(['N/ui/serverWidget',
 				value : e.getValue({name:'internalid',join:'custrecord_itpm_p_type'})
 			});
 			k++;
-			
+
 			log.debug('promoDealSearchId',promoDealSearchId);
 			log.debug('start',e.getValue('custrecord_itpm_p_shipstart'));
 			log.debug('end',promoDealSearchId);
 			log.debug('promoDealSearchId',e.getValue('custrecord_itpm_p_shipend'));
 			log.debug('days',overlappedDays.toString());
 			log.debug('s',promoDealStatus);
-			
+
 			var promos = []; 
 			//if estqty have items then only it going to search for the results
 			if(estQtyItems.length>0){
@@ -772,7 +805,7 @@ define(['N/ui/serverWidget',
 							['custrecord_itpm_estqty_item','anyof',estQtyItems]
 							]
 				}).run().each(function(estQty){
-					
+
 					//Setting Allowances Sublist Values
 					sublist.setSublistValue({
 						id : 'custpage_overlappromo_item',
@@ -942,7 +975,7 @@ define(['N/ui/serverWidget',
 			log.audit(ex.name,ex.message);
 		}
 	}
-	
+
 	return {
 		beforeLoad: beforeLoad,
 		afterSubmit: afterSubmit
