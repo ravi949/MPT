@@ -64,11 +64,11 @@ define(['N/record',
 						id:lineItem,
 						columns:['recordtype']
 					}).recordtype;
-					
-					if(itemType == "discountitem"){
+					log.debug('itemType ======', itemType);
+					if(itemType == "discountitem" || itemType == "itemgroup" || !itemType){
 						continue;
 					}
-					
+					log.debug('after continue itemType ======', itemType);
 					var quantity = transRec.getSublistValue({
 						sublistId : 'item',
 						fieldId   : 'quantity',

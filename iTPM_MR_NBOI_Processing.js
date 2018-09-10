@@ -99,7 +99,7 @@ function(search, record, runtime, itpm) {
 				columns:['recordtype']
 			}).recordtype;
 			
-			if(itemType == "discountitem"){
+			if(itemType == "discountitem" || itemType == "itemgroup" || !itemType){
 				return;
 			}
     		
