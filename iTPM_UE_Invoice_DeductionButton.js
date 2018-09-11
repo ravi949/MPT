@@ -5,10 +5,10 @@
  * Adding the Deduction button on invoice if invoice has atlease on payment and dont have any deduction records(Open and Pending)
  */
 define(['N/search',
-		'N/ui/serverWidget',
-		'N/runtime',
-		'./iTPM_Module.js'
-		],
+	'N/ui/serverWidget',
+	'N/runtime',
+	'./iTPM_Module.js'
+	],
 	/**
 	 * @param {search} search
 	 * @param {serverWidget} serverWidget
@@ -26,19 +26,19 @@ define(['N/search',
 	 */
 	function beforeLoad(scriptContext) {
 		try{
-			
+
 			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE && scriptContext.type == 'view'){
 				var recordType = scriptContext.newRecord.type;
 				//Deduction record type id
 				var ddnRecTypeId = runtime.getCurrentScript().getParameter('custscript_itpm_inv_ddn_rectypeid');
 				log.debug('recordType',recordType);
 				log.debug('ddnRecTypeId',ddnRecTypeId);
-				
+
 				var functionObjects = {
 						'invoice':addButtonOnInvoice,
 						'creditmemo':addButtonOnCreditMemo
 				}
-				
+
 				functionObjects[recordType](scriptContext, ddnRecTypeId);
 			}
 		}catch(e){
@@ -61,8 +61,35 @@ define(['N/search',
 		var invoiceDeductionsAreEmpty = deductionsAreEmpty(scriptContext.newRecord.id, deductionStatuses);
 		var ddnPermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscript_itpm_inv_ddn_permsn_rectypeid'));
 		log.debug('ddnPermission',ddnPermission);
-		
-		if(invStatus == 'Open' && invoiceDeductionsAreEmpty){
+		var postingPeriod = scriptContext.newRecord.getText({fieldId:'postingperiod'});
+
+		//search for account period is closed or not
+
+		var accountingperiodSearchObj = search.create({
+			type: "accountingperiod",
+			filters:
+				[
+					["alllocked","is","T"], 
+					"AND", 
+					["periodname","startswith",postingPeriod]
+					],
+					columns:['internalid']
+		});
+		var isAcntngprdClosed = accountingperiodSearchObj.runPaged().count;
+		log.debug("accountingperiodSearchObj result count",isAcntngprdClosed);
+
+		//if Accounting period is closed, we are showing banner to the user.
+		if(isAcntngprdClosed){
+			scriptContext.form.addField({
+				id	  : 'custpage_inv_accntgprd',
+				type  : serverWidget.FieldType.INLINEHTML,
+				label : 'script'
+			}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Information",message:"This Invoice Posting Period is Closed",type: msg.Type.INFORMATION}).show()})</script>'
+
+		}
+		log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
+
+		if(invStatus == 'Open' && invoiceDeductionsAreEmpty && !isAcntngprdClosed){
 			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
 			//itpm deduction permission should be create or edit or full
 			if(ddnPermission >= 2){
@@ -74,7 +101,7 @@ define(['N/search',
 			}
 		}
 	}
-	
+
 	/**
 	 * @param scriptContext
 	 * @description Adding the Deduction button on credit memo record
@@ -92,7 +119,33 @@ define(['N/search',
 		log.debug('ddnPermission',ddnPermission);
 		log.debug('itpmAppliedTo',!itpmAppliedTo);
 		var JEPermission = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
-		
+		var postingPeriod = scriptContext.newRecord.getText({fieldId:'postingperiod'});
+
+		//search for account period is closed or not
+
+		var accountingperiodSearchObj = search.create({
+			type: "accountingperiod",
+			filters:
+				[
+					["alllocked","is","T"], 
+					"AND", 
+					["periodname","startswith",postingPeriod]
+					],
+					columns:['internalid']
+		});
+		var isAcntngprdClosed = accountingperiodSearchObj.runPaged().count;
+		log.debug("accountingperiodSearchObj result count",isAcntngprdClosed);
+
+		//if Accounting period is closed, we are showing banner to the user.
+		if(isAcntngprdClosed){
+			scriptContext.form.addField({
+				id	  : 'custpage_cm_accntgprd',
+				type  : serverWidget.FieldType.INLINEHTML,
+				label : 'script'
+			}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Information",message:"This Credit Memo Posting Period is Closed",type: msg.Type.INFORMATION}).show()})</script>'
+
+		}
+
 		//Credit Memo dont have any ITPM DEDUCTION records which is not Open,Pending and Resolved
 		var ddnStatus = true;
 		if(itpmAppliedTo){
@@ -103,9 +156,9 @@ define(['N/search',
 			})['status'][0].value;
 			ddnStatus = (ddnStatus != 'statusA' && ddnStatus != 'statusB' && ddnStatus != 'statusC');
 		}
-		
+
 		log.debug('ddnStatus',ddnStatus);
-		if(creditMemoStatus && ddnStatus){
+		if(creditMemoStatus && ddnStatus && !isAcntngprdClosed){
 			scriptContext.form.clientScriptModulePath = './iTPM_Attach_CreditMemo_ClientMethods.js';
 			//itpm deduction permission should be create or edit or full
 			if(ddnPermission >= 2 && JEPermission >= 2){
@@ -126,7 +179,7 @@ define(['N/search',
 			}
 		}
 	}
-	
+
 	/**
 	 * @param recordId invoice or creditmemo id
 	 * @param statuses deduction statusses
@@ -141,7 +194,7 @@ define(['N/search',
 				['status','anyof',statuses]]
 		}).run().getRange(0,5).length == 0;
 	}
-	
+
 	return {
 		beforeLoad: beforeLoad
 	};

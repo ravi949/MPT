@@ -4,10 +4,10 @@
  * @NModuleScope TargetAccount
  */
 define(['N/runtime',
-		'N/redirect',
-		'N/search',
-		'N/ui/serverWidget',
-		'./iTPM_Module.js'
+	'N/redirect',
+	'N/search',
+	'N/ui/serverWidget',
+	'./iTPM_Module.js'
 	],
 
 	function(runtime, redirect, search, serverWidget, itpm) {
@@ -31,10 +31,10 @@ define(['N/runtime',
 					message:'Copying a deduction is not allowed.'
 				};
 			}
-			
+
 			var status = sc.newRecord.getValue({fieldId:'transtatus'});
 			var contextType = contextType = runtime.executionContext;
-			
+
 			//Restrict the user edit deduction record if status is Processing
 			if(contextType == 'USERINTERFACE' && sc.type == 'edit' && status == 'E'){
 				throw{
@@ -42,7 +42,7 @@ define(['N/runtime',
 					message:'The Deduction is in Processing status, It cannot be Edited.'
 				};
 			}
-			
+
 			//Getting the Internal Id's of custom records through script parameters
 			var scriptObj = runtime.getCurrentScript();
 			//Getting the Deduction permissions
@@ -62,7 +62,32 @@ define(['N/runtime',
 			var clientScriptPath = './iTPM_Attach_Deduction_Buttons.js';
 			var eventType = sc.type;
 			var runtimeContext = runtime.executionContext; 
+			var postingPeriod = sc.newRecord.getText({fieldId:'postingperiod'});
 
+			//search for account period is closed or not
+
+			var accountingperiodSearchObj = search.create({
+				type: "accountingperiod",
+				filters:
+					[
+						["alllocked","is","T"], 
+						"AND", 
+						["periodname","startswith",postingPeriod]
+						],
+						columns:['internalid']
+			});
+			var isAcntngprdClosed = accountingperiodSearchObj.runPaged().count;
+			log.debug("accountingperiodSearchObj result count",isAcntngprdClosed);
+			
+			//if Accounting period is closed, we are showing banner to the user.
+			if(isAcntngprdClosed){
+				sc.form.addField({
+					id	  : 'custpage_accntgprd',
+					type  : serverWidget.FieldType.INLINEHTML,
+					label : 'script'
+				}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Information",message:"This Deduction Posting Period is Closed",type: msg.Type.INFORMATION}).show()})</script>'
+
+			}
 			log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
 
 			if(
@@ -70,41 +95,41 @@ define(['N/runtime',
 					runtimeContext == runtime.ContextType.USER_INTERFACE &&
 					openBalance != 0 &&
 					status == 'A' && 
-					clientScriptPath
+					clientScriptPath 			
 			){				
 				log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
 				sc.form.clientScriptModulePath = clientScriptPath;
-				
+
 				//Show banner on the Deduction when Resolution Queue is filled with this deduction
 				try{
 					var resolutionQueue = search.create({
 						type : 'customrecord_itpm_resolutionqueue',
 						columns: ['internalid'],
 						filters: [
-						          ["custrecord_itpm_rq_deduction","anyof",sc.newRecord.id], 
-						          "AND", 
-						          ["custrecord_itpm_rq_processingnotes","isempty",""], 
-						          "AND", 
-						          ["custrecord_itpm_rq_settlement","anyof","@NONE@"]
-						         ]
+							["custrecord_itpm_rq_deduction","anyof",sc.newRecord.id], 
+							"AND", 
+							["custrecord_itpm_rq_processingnotes","isempty",""], 
+							"AND", 
+							["custrecord_itpm_rq_settlement","anyof","@NONE@"]
+							]
 					});
-					
+
 					var expenseQueue = search.create({
 						type : 'customrecord_itpm_expensequeue',
 						columns: ['internalid'],
 						filters: [
-						          ["custrecord_itpm_eq_deduction","anyof",sc.newRecord.id], 
-						          "AND", 
-						          ["custrecord_itpm_eq_processingnotes","isempty",""], 
-						          "AND", 
-						          ["custrecord_itpm_eq_journalentry","anyof","@NONE@"]
-						         ],
+							["custrecord_itpm_eq_deduction","anyof",sc.newRecord.id], 
+							"AND", 
+							["custrecord_itpm_eq_processingnotes","isempty",""], 
+							"AND", 
+							["custrecord_itpm_eq_journalentry","anyof","@NONE@"]
+							],
 					});
-					
+
 					if((resolutionQueue.runPaged().count != 0) || (expenseQueue.runPaged().count != 0)){
 						var msgText = "To prevent errors, please do NOT edit this deduction, or use this deduction for any other process "+
-						              "until after processing is completed. This deduction is queued up in the <b>Resolution or Expense Queues</b> "+
-						              "and processing is pending.";
+						"until after processing is completed. This deduction is queued up in the <b>Resolution or Expense Queues</b> "+
+						"and processing is pending.";
 						sc.form.addField({
 							id	  : 'custpage_warn_message',
 							type  : serverWidget.FieldType.INLINEHTML,
@@ -114,35 +139,35 @@ define(['N/runtime',
 				}catch(e){
 					log.debug(e.name, e.message);
 				}
-				
+
 				//Get JE with Pending Approval, if there is any open deduction created a JE
 				var count = jeSearchToShowDeductionButtons(sc.newRecord.id);
-				
-				//show button only when user have EDIT or FULL permission on -iTPM Deduction Permission custom record
-				if(ddnPermission >= 3 && count == 0){ 
-          
+
+				//show button only when user have EDIT or FULL permission on -iTPM Deduction Permission custom record and if accounting period is not closed
+				if(ddnPermission >= 3 && count == 0 && !isAcntngprdClosed){ 
+
 					var ddnSplitRecTypeId = scriptObj.getParameter('custscript_itpm_ddn_split_rectypeid');
-          
+
 					var btn_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
 						label: 'Quick Split',
 						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"DEFAULT")'
 					});
-					
+
 					var btn_split_csv = sc.form.addButton({
 						id: 'custpage_itpm_split',
 						label: 'Split (CSV)',
 						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"CSV")'
 					});
-					
+
 					var btn_quick_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
 						label: 'Split',
 						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"RECORD",' + ddnSplitRecTypeId + ')'
 					});
-					
-					//show button only when user have permissions greater than or equal to CREATE for Deductions and Journal Entry
-					if(JE_Permssion >= 2){
+
+					//show button only when user have permissions greater than or equal to CREATE for Deductions and Journal Entry  and if accounting period is not closed
+					if(JE_Permssion >= 2 && !isAcntngprdClosed){
 						var btn_invoice = sc.form.addButton({
 							id: 'custpage_itpm_invoice',
 							label: 'Re-Invoice',
@@ -165,24 +190,24 @@ define(['N/runtime',
 				}
 
 				//show button only when user have CREATE or EDIT or FULL permission on -iTPM Settlement Permission custom record
-				if(setPermission >= 2 && count == 0){
+				if(setPermission >= 2 && count == 0 && !isAcntngprdClosed){
 					var btn_settlement = sc.form.addButton({
 						id: 'custpage_itpm_settlement',
 						label: 'Settlement',
 						functionName: 'iTPMsettlement(' + sc.newRecord.id + ')'
 					});
 				}				
-				
+
 				log.audit('JE_Permssion, ddnPermission', JE_Permssion+' & '+ddnPermission);  
-	    		log.audit('Openbal, itpmAmount and parentDeduction', openBalance+' & '+itpmAmount+' & '+parentDeduction);
-				if(JE_Permssion == 4 && ddnPermission == 4 && openBalance == itpmAmount && !parentDeduction){
+				log.audit('Openbal, itpmAmount and parentDeduction', openBalance+' & '+itpmAmount+' & '+parentDeduction);
+				if(JE_Permssion == 4 && ddnPermission == 4 && openBalance == itpmAmount && !parentDeduction ){
 					var btn_delete = sc.form.addButton({
 						id: 'custpage_itpm_delete',
 						label: 'Delete',
 						functionName: 'iTPMDeleteDeduction(' + sc.newRecord.id + ')'
 					});
 				}
-				
+
 			} else if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
 				redirect.toSuitelet({
 					scriptId:'customscript_itpm_ddn_createeditsuitelet',
@@ -242,7 +267,7 @@ define(['N/runtime',
 			log.error(ex.name, ex.message + '; RecordId: ' + sc.newRecord.id);
 		}
 	}
-	
+
 	/**
 	 * @param {String} deductionId
 	 * 
@@ -266,13 +291,14 @@ define(['N/runtime',
 					]
 		});
 		log.debug('count',jeSearchObj.runPaged().count);
-		
+
 		return jeSearchObj.runPaged().count;
 	}
-	
+
 	return {
 		beforeLoad: beforeLoad,
 		beforeSubmit:beforeSubmit
 	};
 
 });
+
