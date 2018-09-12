@@ -61,35 +61,22 @@ define(['N/search',
 		var invoiceDeductionsAreEmpty = deductionsAreEmpty(scriptContext.newRecord.id, deductionStatuses);
 		var ddnPermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscript_itpm_inv_ddn_permsn_rectypeid'));
 		log.debug('ddnPermission',ddnPermission);
-		var postingPeriod = scriptContext.newRecord.getText({fieldId:'postingperiod'});
+		var postingPeriodId = scriptContext.newRecord.getValue({fieldId:'postingperiod'});
 
-		//search for account period is closed or not
 
-		var accountingperiodSearchObj = search.create({
-			type: "accountingperiod",
-			filters:
-				[
-					["alllocked","is","T"], 
-					"AND", 
-					["periodname","startswith",postingPeriod]
-					],
-					columns:['internalid']
-		});
-		var isAcntngprdClosed = accountingperiodSearchObj.runPaged().count;
-		log.debug("accountingperiodSearchObj result count",isAcntngprdClosed);
+		scriptContext.form.addField({
+			id	  : 'custpage_inv_accntgprd',
+			type  : serverWidget.FieldType.INLINEHTML,
+			label : 'script'
+		}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
+		'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
+		'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"This Invoice Posting Period is Closed",type: msg.Type.WARNING}).show(); }'+
+		'})</script>';
 
-		//if Accounting period is closed, we are showing banner to the user.
-		if(isAcntngprdClosed){
-			scriptContext.form.addField({
-				id	  : 'custpage_inv_accntgprd',
-				type  : serverWidget.FieldType.INLINEHTML,
-				label : 'script'
-			}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Information",message:"This Invoice Posting Period is Closed",type: msg.Type.INFORMATION}).show()})</script>'
 
-		}
 		log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
 
-		if(invStatus == 'Open' && invoiceDeductionsAreEmpty && !isAcntngprdClosed){
+		if(invStatus == 'Open' && invoiceDeductionsAreEmpty ){
 			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
 			//itpm deduction permission should be create or edit or full
 			if(ddnPermission >= 2){
@@ -119,32 +106,17 @@ define(['N/search',
 		log.debug('ddnPermission',ddnPermission);
 		log.debug('itpmAppliedTo',!itpmAppliedTo);
 		var JEPermission = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
-		var postingPeriod = scriptContext.newRecord.getText({fieldId:'postingperiod'});
+		var postingPeriodId = scriptContext.newRecord.getValue({fieldId:'postingperiod'});
 
-		//search for account period is closed or not
-
-		var accountingperiodSearchObj = search.create({
-			type: "accountingperiod",
-			filters:
-				[
-					["alllocked","is","T"], 
-					"AND", 
-					["periodname","startswith",postingPeriod]
-					],
-					columns:['internalid']
-		});
-		var isAcntngprdClosed = accountingperiodSearchObj.runPaged().count;
-		log.debug("accountingperiodSearchObj result count",isAcntngprdClosed);
-
-		//if Accounting period is closed, we are showing banner to the user.
-		if(isAcntngprdClosed){
-			scriptContext.form.addField({
-				id	  : 'custpage_cm_accntgprd',
-				type  : serverWidget.FieldType.INLINEHTML,
-				label : 'script'
-			}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Information",message:"This Credit Memo Posting Period is Closed",type: msg.Type.INFORMATION}).show()})</script>'
-
-		}
+		//Showing the banner if the accounting period is closed
+		scriptContext.form.addField({
+			id	  : 'custpage_cm_accntgprd',
+			type  : serverWidget.FieldType.INLINEHTML,
+			label : 'script'
+		}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
+		'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
+		'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"This Credit Memo Posting Period is Closed",type: msg.Type.WARNING}).show(); }'+
+		'})</script>';
 
 		//Credit Memo dont have any ITPM DEDUCTION records which is not Open,Pending and Resolved
 		var ddnStatus = true;
@@ -158,7 +130,7 @@ define(['N/search',
 		}
 
 		log.debug('ddnStatus',ddnStatus);
-		if(creditMemoStatus && ddnStatus && !isAcntngprdClosed){
+		if(creditMemoStatus && ddnStatus){
 			scriptContext.form.clientScriptModulePath = './iTPM_Attach_CreditMemo_ClientMethods.js';
 			//itpm deduction permission should be create or edit or full
 			if(ddnPermission >= 2 && JEPermission >= 2){

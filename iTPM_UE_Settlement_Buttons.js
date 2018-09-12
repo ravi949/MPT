@@ -49,33 +49,19 @@ define(['N/runtime',
 				log.debug('JE Permission',JEPermission);
 				log.debug('ddn Permission',ddnPermission);
 				log.debug('ddn Permission',setPermission);
-				var postingPeriod = settlementRec.getText({fieldId:'postingperiod'});
+				var postingPeriodId = settlementRec.getValue({fieldId:'postingperiod'});
 
-				//search for account period is closed or not
-
-				var accountingperiodSearchObj = search.create({
-					type: "accountingperiod",
-					filters:
-						[
-							["alllocked","is","T"], 
-							"AND", 
-							["periodname","startswith",postingPeriod]
-							],
-							columns:['internalid']
-				});
-				var isAcntngprdClosed = accountingperiodSearchObj.runPaged().count;
-				log.debug("accountingperiodSearchObj result count",isAcntngprdClosed);
-
-				//if Accounting period is closed, we are showing banner to the user.
-				if(isAcntngprdClosed){
-					scriptContext.form.addField({
-						id	  : 'custpage_set_accntgprd',
-						type  : serverWidget.FieldType.INLINEHTML,
-						label : 'script'
-					}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Information",message:"This Settlement Posting Period is Closed",type: msg.Type.INFORMATION}).show()})</script>'
-
-				}
-
+				// Showing the banner to the user if the accounting period is closed
+				
+				settlementRec.form.addField({
+					id	  : 'custpage_accntgprd',
+					type  : serverWidget.FieldType.INLINEHTML,
+					label : 'script'
+				}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
+				'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
+				'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"This Settlement Posting Period is Closed",type: msg.Type.WARNING}).show(); }'+
+				'})</script>';
+				
 				if(setStatus == 'A' && setReqAmount > 0 && (setLumSum > 0 || setBB > 0 || setOffInv > 0)){
 					//-iTPM Settlement Permission and -iTPM Deduction Permission = Edit or greater and Journal Entry permission = CREATE or FULL
 					if(setPermission >= 3 && ddnPermission >= 3 && JEPermission >= 2){

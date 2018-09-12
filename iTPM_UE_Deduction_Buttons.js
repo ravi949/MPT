@@ -62,32 +62,19 @@ define(['N/runtime',
 			var clientScriptPath = './iTPM_Attach_Deduction_Buttons.js';
 			var eventType = sc.type;
 			var runtimeContext = runtime.executionContext; 
-			var postingPeriod = sc.newRecord.getText({fieldId:'postingperiod'});
+			var postingPeriodId = sc.newRecord.getValue({fieldId:'postingperiod'});
 
-			//search for account period is closed or not
 
-			var accountingperiodSearchObj = search.create({
-				type: "accountingperiod",
-				filters:
-					[
-						["alllocked","is","T"], 
-						"AND", 
-						["periodname","startswith",postingPeriod]
-						],
-						columns:['internalid']
-			});
-			var isAcntngprdClosed = accountingperiodSearchObj.runPaged().count;
-			log.debug("accountingperiodSearchObj result count",isAcntngprdClosed);
-			
-			//if Accounting period is closed, we are showing banner to the user.
-			if(isAcntngprdClosed){
-				sc.form.addField({
-					id	  : 'custpage_accntgprd',
-					type  : serverWidget.FieldType.INLINEHTML,
-					label : 'script'
-				}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Information",message:"This Deduction Posting Period is Closed",type: msg.Type.INFORMATION}).show()})</script>'
+			sc.form.addField({
+				id	  : 'custpage_accntgprd',
+				type  : serverWidget.FieldType.INLINEHTML,
+				label : 'script'
+			}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
+			'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
+			'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"This Deduction Posting Period is Closed",type: msg.Type.WARNING}).show(); }'+
+			'})</script>';
 
-			}
+
 			log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
 
 			if(
@@ -144,7 +131,7 @@ define(['N/runtime',
 				var count = jeSearchToShowDeductionButtons(sc.newRecord.id);
 
 				//show button only when user have EDIT or FULL permission on -iTPM Deduction Permission custom record and if accounting period is not closed
-				if(ddnPermission >= 3 && count == 0 && !isAcntngprdClosed){ 
+				if(ddnPermission >= 3 && count == 0){ 
 
 					var ddnSplitRecTypeId = scriptObj.getParameter('custscript_itpm_ddn_split_rectypeid');
 
@@ -167,7 +154,7 @@ define(['N/runtime',
 					});
 
 					//show button only when user have permissions greater than or equal to CREATE for Deductions and Journal Entry  and if accounting period is not closed
-					if(JE_Permssion >= 2 && !isAcntngprdClosed){
+					if(JE_Permssion >= 2 ){
 						var btn_invoice = sc.form.addButton({
 							id: 'custpage_itpm_invoice',
 							label: 'Re-Invoice',
@@ -190,7 +177,7 @@ define(['N/runtime',
 				}
 
 				//show button only when user have CREATE or EDIT or FULL permission on -iTPM Settlement Permission custom record
-				if(setPermission >= 2 && count == 0 && !isAcntngprdClosed){
+				if(setPermission >= 2 && count == 0){
 					var btn_settlement = sc.form.addButton({
 						id: 'custpage_itpm_settlement',
 						label: 'Settlement',
