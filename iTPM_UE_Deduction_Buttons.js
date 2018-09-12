@@ -130,7 +130,7 @@ define(['N/runtime',
 				//Get JE with Pending Approval, if there is any open deduction created a JE
 				var count = jeSearchToShowDeductionButtons(sc.newRecord.id);
 
-				//show button only when user have EDIT or FULL permission on -iTPM Deduction Permission custom record and if accounting period is not closed
+				//show button only when user have EDIT or FULL permission on -iTPM Deduction Permission custom record 
 				if(ddnPermission >= 3 && count == 0){ 
 
 					var ddnSplitRecTypeId = scriptObj.getParameter('custscript_itpm_ddn_split_rectypeid');
@@ -153,7 +153,7 @@ define(['N/runtime',
 						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"RECORD",' + ddnSplitRecTypeId + ')'
 					});
 
-					//show button only when user have permissions greater than or equal to CREATE for Deductions and Journal Entry  and if accounting period is not closed
+					//show button only when user have permissions greater than or equal to CREATE for Deductions and Journal Entry 
 					if(JE_Permssion >= 2 ){
 						var btn_invoice = sc.form.addButton({
 							id: 'custpage_itpm_invoice',
