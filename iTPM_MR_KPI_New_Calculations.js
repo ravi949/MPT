@@ -807,7 +807,8 @@ function(search, runtime, record, formatModule, task, itpm) {
      */
     function getKpiQueueSearch(kpiProcessType){
     	var searchFilters = [['custrecord_itpm_kpiq_start','isempty',null],'and',
-    				         ['custrecord_itpm_kpiq_end','isempty',null]];
+    				         ['custrecord_itpm_kpiq_end','isempty',null],'and',
+    				         ['custrecord_itpm_kpiq_pendingcontribution','is',false]];
     	if(kpiProcessType == 1){
     		searchFilters.push('and',['custrecord_itpm_kpiq_queuerequest','anyof',1]);
     	}else{
