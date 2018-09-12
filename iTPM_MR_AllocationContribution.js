@@ -153,9 +153,21 @@ function(record, search, itpm) {
     			sumOfAllContribution = (parseInt(sumOfAllContribution.toFixed(6)*100000))/100000;
     		});
     		
-    		//changing the promotion allocation contribution status to false
-    		context.write({key:JSON.parse(context.key)['promoId'], value:0});
-
+    		//if in promotion allowance allocation contribution sholud be greater than zero
+    		//then we are passing the promotion to summarize state
+    		//to change allocation contribution status to false
+    		var allContrbutionResultLength = search.create({
+    			type:'customrecord_itpm_promoallowance',
+    			columns:['custrecord_itpm_all_contribution'],
+    			filters:[
+    			     ['custrecord_itpm_all_promotiondeal','anyof',JSON.parse(context.key)['promoId']],'and',
+    			     ['custrecord_itpm_all_contribution','lessthanorequalto',0]
+    			]
+    		}).run().getRange(0,10).length;
+    		
+    		if(allContrbutionResultLength <= 0){
+    			context.write({key:JSON.parse(context.key)['promoId'], value:0});
+    		}
     	}catch(ex){
     		log.error(ex.name,ex.messsage);
     	}

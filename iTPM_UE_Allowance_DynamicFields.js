@@ -223,14 +223,15 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
             	}
         	}
         	
+        	var promoId = sc.newRecord.getValue('custrecord_itpm_all_promotiondeal');
+        	var promDetails = search.lookupFields({
+				type:'customrecord_itpm_promotiondeal',
+				id:promoId,
+				columns:['custrecord_itpm_p_status', 'custrecord_itpm_p_condition']
+			});
+        	
         	if(sc.type == 'edit'){
-        		var promoId = sc.newRecord.getValue('custrecord_itpm_all_promotiondeal');
         		log.debug('Promotion ID', promoId);
-        		var promDetails = search.lookupFields({
-    				type:'customrecord_itpm_promotiondeal',
-    				id:promoId,
-    				columns:['custrecord_itpm_p_status', 'custrecord_itpm_p_condition']
-    			});
         		var promStatus = promDetails.custrecord_itpm_p_status[0].value;
         		var promCondition = promDetails.custrecord_itpm_p_condition[0].value;
         		log.debug('promStatus & promCondition', promStatus+' & '+promCondition);
@@ -253,13 +254,12 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         	}
         	
         	/*Set Allocation Contribution check box false*/
-        	var promoStatus = sc.newRecord.getValue('custrecord_itpm_p_status');
-        	if(promoStatus == 3){
+        	if(promDetails.custrecord_itpm_p_status[0].value == 3){
         		record.submitFields({
         			type:'customrecord_itpm_promotiondeal',
         			id:sc.newRecord.getValue('custrecord_itpm_all_promotiondeal'),
         			values:{
-        				'custrecord_itpm_promo_allocationcontrbtn':false
+        				'custrecord_itpm_promo_allocationcontrbtn':true
         			},
         			options:{
         				enableSourcing:false,
