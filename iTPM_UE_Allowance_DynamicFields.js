@@ -251,6 +251,22 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
     				}
     			}
         	}
+        	
+        	/*Set Allocation Contribution check box false*/
+        	var promoStatus = sc.newRecord.getValue('custrecord_itpm_p_status');
+        	if(promoStatus == 3){
+        		record.submitFields({
+        			type:'customrecord_itpm_promotiondeal',
+        			id:sc.newRecord.getValue('custrecord_itpm_all_promotiondeal'),
+        			values:{
+        				'custrecord_itpm_promo_allocationcontrbtn':false
+        			},
+        			options:{
+        				enableSourcing:false,
+        				ignoreMandatoryFields:true
+        			}
+        		});
+        	}
     	}catch(ex){
     		log.error(ex.name,ex.message);
     	}
