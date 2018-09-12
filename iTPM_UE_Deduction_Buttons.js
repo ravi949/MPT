@@ -4,10 +4,10 @@
  * @NModuleScope TargetAccount
  */
 define(['N/runtime',
-	'N/redirect',
-	'N/search',
-	'N/ui/serverWidget',
-	'./iTPM_Module.js'
+		'N/redirect',
+		'N/search',
+		'N/ui/serverWidget',
+		'./iTPM_Module.js'
 	],
 
 	function(runtime, redirect, search, serverWidget, itpm) {

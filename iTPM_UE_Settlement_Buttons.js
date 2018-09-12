@@ -5,9 +5,9 @@
  * This script add the Apply To Deduction button on settlement based on conditions.
  */
 define(['N/runtime',
-	'N/ui/serverWidget',
-	'./iTPM_Module.js',
-	'N/search'
+		'N/ui/serverWidget',
+		'./iTPM_Module.js',
+		'N/search'
 	],
 	/**
 	 * @param {runtime} runtime
