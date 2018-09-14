@@ -141,8 +141,9 @@ function(record, search, itpm) {
 				    type: 'customrecord_itpm_promoallowance',
 				    id: obj.allwId,
 				    values: {
-				        'custrecord_itpm_all_contribution': (arrLength > 1 && index == lastItemIndex)?(1-sumOfAllContribution):obj.allContribution,
-				        'custrecord_itpm_all_contributionadjusted':(arrLength > 1 && index == lastItemIndex)		
+				        'custrecord_itpm_all_contribution': (arrLength == 1)? 1 : ((arrLength > 1 && index == lastItemIndex)?(1-sumOfAllContribution):obj.allContribution),
+				        'custrecord_itpm_all_contributionadjusted':(arrLength > 1 && index == lastItemIndex),		
+				        'custrecord_itpm_all_pendingcontribution':false
 				    },
 				    options: {
 				        enableSourcing: false,
@@ -161,7 +162,8 @@ function(record, search, itpm) {
     			columns:['custrecord_itpm_all_contribution'],
     			filters:[
     			     ['custrecord_itpm_all_promotiondeal','anyof',JSON.parse(context.key)['promoId']],'and',
-    			     ['custrecord_itpm_all_contribution','lessthanorequalto',0]
+    			     ['custrecord_itpm_all_pendingcontribution','is',true],'and',
+    			     ['isinactive','is',false]
     			]
     		}).run().getRange(0,10).length;
     		

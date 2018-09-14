@@ -141,6 +141,9 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         			fieldId:"custrecord_itpm_all_uomprice",
         			value:parseFloat(priceObj.price)*(rate/itemUnitRate)
         		}).setValue({
+        			fieldId:"custrecord_itpm_all_pendingcontribution",
+        			value:true
+        		}).setValue({
         			fieldId:"custrecord_itpm_all_allowaddnaldiscounts",
         			value:search.create({
         				type:'customrecord_itpm_promoallowance',
@@ -165,6 +168,10 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         		});
         	}else{
         		if(recordType == search.Type.ITEM_GROUP) return;
+        		sc.newRecord.setValue({
+        			fieldId:"custrecord_itpm_all_pendingcontribution",
+        			value:true
+        		});
         		var itemLookup = search.lookupFields({
         			type:search.Type.ITEM,
         			id:selectedItem,
@@ -223,14 +230,14 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
             	}
         	}
         	
-        	var promoId = sc.newRecord.getValue('custrecord_itpm_all_promotiondeal');
+        	var promoId = (sc.type == 'delete')?sc.oldRecord.getValue('custrecord_itpm_all_promotiondeal'):sc.newRecord.getValue('custrecord_itpm_all_promotiondeal');
         	var promDetails = search.lookupFields({
 				type:'customrecord_itpm_promotiondeal',
 				id:promoId,
 				columns:['custrecord_itpm_p_status', 'custrecord_itpm_p_condition']
 			});
         	
-        	if(sc.type == 'edit'){
+        	if(sc.type == 'edit' || sc.type == 'delete'){
         		log.debug('Promotion ID', promoId);
         		var promStatus = promDetails.custrecord_itpm_p_status[0].value;
         		var promCondition = promDetails.custrecord_itpm_p_condition[0].value;
