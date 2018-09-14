@@ -53,13 +53,13 @@ define(['N/runtime',
 
 				// Showing the banner to the user if the accounting period is closed
 				
-				settlementRec.form.addField({
+				scriptContext.form.addField({
 					id	  : 'custpage_accntgprd',
 					type  : serverWidget.FieldType.INLINEHTML,
 					label : 'script'
 				}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
 				'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
-				'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"This Settlement Posting Period is Closed",type: msg.Type.WARNING}).show(); }'+
+				'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"<b>iTPM</b> is not able to perform your request. The Posting Period of Settlement is Closed.",type: msg.Type.WARNING}).show(); }'+
 				'})</script>';
 				
 				if(setStatus == 'A' && setReqAmount > 0 && (setLumSum > 0 || setBB > 0 || setOffInv > 0)){

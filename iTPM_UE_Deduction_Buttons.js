@@ -71,7 +71,7 @@ define(['N/runtime',
 				label : 'script'
 			}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
 			'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
-			'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"This Deduction Posting Period is Closed",type: msg.Type.WARNING}).show(); }'+
+			'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"<b>iTPM</b> is not able to perform your request. The Posting Period of Deduction is Closed.",type: msg.Type.WARNING}).show(); }'+
 			'})</script>';
 
 

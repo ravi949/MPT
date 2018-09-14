@@ -70,7 +70,7 @@ define(['N/search',
 			label : 'script'
 		}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
 		'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
-		'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"This Invoice Posting Period is Closed",type: msg.Type.WARNING}).show(); }'+
+		'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"<b>iTPM</b> is not able to perform your request. The Posting Period of Invoice is Closed.",type: msg.Type.WARNING}).show(); }'+
 		'})</script>';
 
 
@@ -115,7 +115,7 @@ define(['N/search',
 			label : 'script'
 		}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
 		'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
-		'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"This Credit Memo Posting Period is Closed",type: msg.Type.WARNING}).show(); }'+
+		'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"<b>iTPM</b>  is not able to perform your request. The Posting Period of Credit Memo is Closed.",type: msg.Type.WARNING}).show(); }'+
 		'})</script>';
 
 		//Credit Memo dont have any ITPM DEDUCTION records which is not Open,Pending and Resolved
