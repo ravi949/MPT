@@ -474,12 +474,9 @@ define(['N/ui/serverWidget',
 						(oldStatus == 3 && (newStatus == 7 || newStatus == 5) && (condition == 2 || condition == 3))
 				){
 					log.debug('promoId', promoId);
-
-					if(searchCount == 0){
-						var queueType = (oldStatus == 3 && newStatus == 3 && (condition == 2 || condition == 3)) ? 2 : 3;
-						//Creating New KPI Queue Record
-						itpm.createKPIQueue(promoId, queueType); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
-					}
+					var queueType = (oldStatus == 3 && newStatus == 3 && (condition == 2 || condition == 3)) ? 2 : 3;
+					//Creating New KPI Queue Record
+					itpm.createKPIQueue(promoId, queueType); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
 				}
 			}
 		}catch(e){

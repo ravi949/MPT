@@ -242,13 +242,11 @@ function(runtime, sWidget, search, record, cache, redirect, itpm) {
         		var promStatus = promDetails.custrecord_itpm_p_status[0].value;
         		var promCondition = promDetails.custrecord_itpm_p_condition[0].value;
         		log.debug('promStatus & promCondition', promStatus+' & '+promCondition);
-    			
-    			if(searchCount == 0){
-    				if(promStatus == 3 && (promCondition == 2 || promCondition == 3)){
-    					//Creating New KPI Queue Record
-    					itpm.createKPIQueue(promoId, 2); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
-    				}
-    			}
+
+        		if(promStatus == 3 && (promCondition == 2 || promCondition == 3)){
+        			//Creating New KPI Queue Record
+        			itpm.createKPIQueue(promoId, 2); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+        		}
         	}
         	
         	/*Set Allocation Contribution check box false*/
