@@ -2315,25 +2315,37 @@ define(['N/search',
      * Used Scripts: iTPM_UE_Promotion_Processing.js, iTPM_Attach_Promotion_ClientMethods.js, iTPM_UE_Settlement_Edit.js
      *  iTPM_UE_Allowance_Dynamic_Fields.js, iTPM_WFA_KPI_Calculations.js
      */
-    function createKPIQueue(promId, requestType){
+    function createKPIQueue(promoId, requestType){
     	try{
-    		var recObj = record.create({
-    			type: 'customrecord_itpm_kpiqueue',
-    			isDynamic: true
-    		});
-    		recObj.setValue({
-    			fieldId: 'custrecord_itpm_kpiq_promotion',
-    			value: promId
-    		});
-    		recObj.setValue({
-    			fieldId: 'custrecord_itpm_kpiq_queuerequest',
-    			value: requestType  //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
-    		});
+    		var searchCount = search.create({
+    			type : 'customrecord_itpm_kpiqueue',
+    			filters : [
+    			           ['custrecord_itpm_kpiq_promotion', 'is', promoId],'and',
+    			           ['custrecord_itpm_kpiq_start','isempty',null],'and',
+    			           ['custrecord_itpm_kpiq_end','isempty',null]
+    			           ]
+    		}).runPaged().count;
+    		log.debug('searchCount', searchCount);
 
-    		var recordId = recObj.save({
-    			enableSourcing: false,
-    			ignoreMandatoryFields: true
-    		});
+    		if(searchCount == 0){
+    			var recObj = record.create({
+    				type: 'customrecord_itpm_kpiqueue',
+    				isDynamic: true
+    			});
+    			recObj.setValue({
+    				fieldId: 'custrecord_itpm_kpiq_promotion',
+    				value: promoId
+    			});
+    			recObj.setValue({
+    				fieldId: 'custrecord_itpm_kpiq_queuerequest',
+    				value: requestType  //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+    			});
+
+    			var recordId = recObj.save({
+    				enableSourcing: false,
+    				ignoreMandatoryFields: true
+    			});
+    		}
     		log.debug('KPI Queue record ID: '+recordId);
     	} catch(ex){
     		log.error ('module_createKPIQueue', ex.name +'; ' + ex.message + '; ');

@@ -105,15 +105,6 @@ function(search, record, runtime, itpm) {
         		
         		//Trigger KPI Queue logic when Est. Qty record on edit
         		if(eqPromStatus == 3 && (eqPromCondition == 2 || eqPromCondition == 3)){
-        			var searchCount = search.create({
-        				type : 'customrecord_itpm_kpiqueue',
-        				filters : [
-        				           ['custrecord_itpm_kpiq_promotion', 'is', promotionIdEQ],'and',
-                                   ['custrecord_itpm_kpiq_start','isempty',null],'and',
-                                   ['custrecord_itpm_kpiq_end','isempty',null]
-        				]
-        			}).runPaged().count;
-        			log.debug('EQ: searchCount', searchCount);
         			
         			if(searchCount == 0){
         				//Creating New KPI Queue Record

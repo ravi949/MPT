@@ -156,15 +156,6 @@ function(redirect,runtime,search,ST_Module, itpm) {
 			var promoId = settlementNewRec.getValue('custbody_itpm_set_promo');
 			
     		if(eventType == 'edit'){
-    			var searchCount = search.create({
-    				type : 'customrecord_itpm_kpiqueue',
-    				filters : [
-    				           ['custrecord_itpm_kpiq_promotion', 'is', promoId],'and',
-                               ['custrecord_itpm_kpiq_start','isempty',null],'and',
-                               ['custrecord_itpm_kpiq_end','isempty',null]
-    				]
-    			}).runPaged().count;
-    			log.debug('searchCount', searchCount);
     			log.debug('Old Status & New Status', oldStatus+' & '+newStatus);
     			
     			if(searchCount == 0){
