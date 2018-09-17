@@ -2308,7 +2308,7 @@ define(['N/search',
     }
     
     /**
-     * @param {String} promId
+     * @param {String} promoId
      * @param {Number} requestType
      * 
      * @description This function is used to create KPI Queue record based on the trigger conditions
