@@ -311,7 +311,7 @@ define(['N/config',
 			var subsidiaryID = (itpm.subsidiariesEnabled())? deductionRec.getValue('subsidiary') : undefined;
 			var prefObj = itpm.getPrefrenceValues(subsidiaryID);
 			var dednExpAccnt = prefObj.dednExpAccnt,
-			accountPayable = prefObj.accountPayable;
+			settlementAccnt = prefObj.settlementAccnt;
 
 			//if(loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: 0}) == '1')
 			var linecount = SettlementRec.getLineCount({sublistId:'line'});
@@ -349,7 +349,7 @@ define(['N/config',
 
 			var JELines = [
 				{recid:parameters.sid,account:dednExpAccnt,memo:memo,type:'credit',amount:JEAmount,subid:deductionRec.getValue('subsidiary'),custid:customer,dept: (itpm.departmentsEnabled())? deductionRec.getValue('department') : undefined,loc:(itpm.locationsEnabled())?deductionRec.getValue('location'): undefined,clas:(itpm.classesEnabled())? deductionRec.getValue('class') : undefined},
-				{recid:parameters.sid,account:accountPayable,memo:memo,type:'debit',amount:JEAmount,subid:deductionRec.getValue('subsidiary'),custid:customer,dept: (itpm.departmentsEnabled())? deductionRec.getValue('department') : undefined,loc:(itpm.locationsEnabled())?deductionRec.getValue('location'): undefined,clas:(itpm.classesEnabled())? deductionRec.getValue('class') : undefined}
+				{recid:parameters.sid,account:settlementAccnt,memo:memo,type:'debit',amount:JEAmount,subid:deductionRec.getValue('subsidiary'),custid:customer,dept: (itpm.departmentsEnabled())? deductionRec.getValue('department') : undefined,loc:(itpm.locationsEnabled())?deductionRec.getValue('location'): undefined,clas:(itpm.classesEnabled())? deductionRec.getValue('class') : undefined}
 				];
 
 			var JournalId = setJELines(JELines);
@@ -614,7 +614,7 @@ define(['N/config',
 			var setlCust = loadedSettlementRec.getValue('custbody_itpm_customer');
 			var lineObj = {
 					promoDealLumsumAccnt:promoDealLumsumAccnt,
-					accountPayable:loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'account',line: linecount-1}),
+					settlementAccnt:loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'account',line: linecount-1}),
 					promoTypeDefaultAccnt:promoTypeDefaultAccnt,
 					lumsumSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqls'),
 					billbackSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqbb'),
@@ -694,7 +694,7 @@ define(['N/config',
 		},{
 			lineType:'ls',
 			id:'1',
-			account:lineObj.accountPayable,
+			account:lineObj.settlementAccnt,
 			type:'credit',
 			amount:lineObj.lumsumSetReq
 		},{
@@ -706,7 +706,7 @@ define(['N/config',
 		},{
 			lineType:'bb',
 			id:'2',
-			account:lineObj.accountPayable,
+			account:lineObj.settlementAccnt,
 			type:'credit',
 			amount:lineObj.billbackSetReq
 		},{
@@ -718,7 +718,7 @@ define(['N/config',
 		},{
 			lineType:'inv',
 			id:'3',
-			account:lineObj.accountPayable,
+			account:lineObj.settlementAccnt,
 			type:'credit',
 			amount:lineObj.offinvoiceSetReq
 		}];

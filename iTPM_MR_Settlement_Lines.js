@@ -187,7 +187,7 @@ function(record, search, runtime, itpm) {
 //    		log.debug('setIsApplied in Reduce',setCreditMemo); 
     		
     		var subsidiaryID = (itpm.subsidiariesEnabled())? settlementRec.getValue('subsidiary') : undefined;
-    		var accountPayable = itpm.getPrefrenceValues(subsidiaryID).accountPayable;
+    		var settlementAccnt = itpm.getPrefrenceValues(subsidiaryID).settlementAccnt;
     		
     		var promoLineSearchForKPI = search.create({
     			type:'customrecord_itpm_promotiondeal',
@@ -401,7 +401,7 @@ function(record, search, runtime, itpm) {
     				lineType:'ls',
     				id:'1',
     				item:'',
-    				account:accountPayable,
+    				account:settlementAccnt,
     				type:'credit',
     				memo:setCreditMemo,
     				amount:lumsumSetReq,
@@ -416,7 +416,7 @@ function(record, search, runtime, itpm) {
     				lineType:'bb',
     				id:'2',
     				item:'',
-    				account:accountPayable,
+    				account:settlementAccnt,
     				type:'credit',
     				memo:setCreditMemo,
     				amount:billbackSetReq,
@@ -431,7 +431,7 @@ function(record, search, runtime, itpm) {
     				lineType:'inv',
     				id:'3',
     				item:'',
-    				account:accountPayable,
+    				account:settlementAccnt,
     				type:'credit',
     				memo:setCreditMemo,
     				amount:offinvoiceSetReq,
