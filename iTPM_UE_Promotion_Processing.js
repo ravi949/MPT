@@ -120,7 +120,7 @@ define(['N/ui/serverWidget',
 						}).runPaged().count;
 						log.debug('REFRESH KPIs button: searchCount', searchCount);
 
-						if((status == 3 || status == 7) && searchCount == 0){
+						if((status == 3 || status == 7) && condition != 1 && searchCount == 0){
 							promoForm.addButton({
 								id:'custpage_refresh_kpis',
 								label:'Refresh KPIs',
