@@ -77,7 +77,7 @@ function(config, task, search, record, runtime) {
     	log.error('version after install',params);
     	
     	//script to modify status filter on all iTPM saved searches
-    	updateSearchFilters();
+    	//updateSearchFilters();
     	//create preference records
     	createPreferenceRecords(params.version);
     }
@@ -129,7 +129,7 @@ function(config, task, search, record, runtime) {
     	}).submit();
     	
     	//script to modify status filter on all iTPM saved searches
-    	updateSearchFilters();
+    	//updateSearchFilters();
     	
     	//create and update the preference records
     	createPreferenceRecords(params.toVersion);
