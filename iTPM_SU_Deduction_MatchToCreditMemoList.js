@@ -9,11 +9,10 @@ define(['N/ui/serverWidget',
 	'N/redirect',
 	'N/record',
 	'N/runtime',
-	'./iTPM_Module.js',
-	'N/ui/dialog'
+	'./iTPM_Module.js'
 	],
 
-	function(serverWidget, search, url, redirect, record, runtime, itpm,dialog) {
+	function(serverWidget, search, url, redirect, record, runtime, itpm) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -43,10 +42,6 @@ define(['N/ui/serverWidget',
 
 			if(request.method == 'GET' && parameters.submit == 'true')
 			{
-				dialog.create({
-					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Credit Memo Accounting Period is either closed, or locked."
-				});
 				log.debug('GET METHOD(parameters.submit)', parameters.submit);
 				var subsidiaryExists = itpm.subsidiariesEnabled();
 				var locationExists = itpm.locationsEnabled();
