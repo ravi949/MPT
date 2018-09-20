@@ -9,10 +9,11 @@ define(['N/ui/serverWidget',
 	'N/redirect',
 	'N/record',
 	'N/runtime',
-	'./iTPM_Module.js'
+	'./iTPM_Module.js',
+	'N/ui/dialog'
 	],
 
-	function(serverWidget, search, url, redirect, record, runtime, itpm) {
+	function(serverWidget, search, url, redirect, record, runtime, itpm,dialog) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -42,6 +43,10 @@ define(['N/ui/serverWidget',
 
 			if(request.method == 'GET' && parameters.submit == 'true')
 			{
+				dialog.create({
+					title:"Warning!",
+					message:"<b>iTPM</b> cannot perform the requested action because the Credit Memo Accounting Period is either closed, or locked."
+				});
 				log.debug('GET METHOD(parameters.submit)', parameters.submit);
 				var subsidiaryExists = itpm.subsidiariesEnabled();
 				var locationExists = itpm.locationsEnabled();
@@ -50,8 +55,9 @@ define(['N/ui/serverWidget',
 				var creditmemoid = parameters.cm;
 
 				var dept = (itpm.departmentsEnabled())? deductionRec.getValue('department') : undefined,
-						loc = (itpm.locationsEnabled())? deductionRec.getValue('location'): undefined,
-								clas = (itpm.classesEnabled())? deductionRec.getValue('class'): undefined;
+					loc = (itpm.locationsEnabled())? deductionRec.getValue('location'): undefined,
+					clas = (itpm.classesEnabled())? deductionRec.getValue('class'): undefined;
+					
 								//getting remaining amount from credit memo
 								var cmLookup = search.lookupFields({
 									type    : search.Type.CREDIT_MEMO,
@@ -343,7 +349,7 @@ define(['N/ui/serverWidget',
 			var list = serverWidget.createList({
 				title : 'Credit Memo List'
 			});
-
+			log.debug('id',creditMemoSearchObj)
 			list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'});
 			list.clientScriptModulePath = './iTPM_Attach_Deduction_Buttons.js';
 
@@ -352,6 +358,7 @@ define(['N/ui/serverWidget',
 			var ids = [];
 			//adding column headers dynamically
 			creditMemoSearchObj.columns.forEach(function(result){
+				
 				if(result.name == 'internalid'){
 					listcolumn=list.addColumn({
 						id : 'custpage_'+result.name,
@@ -368,6 +375,7 @@ define(['N/ui/serverWidget',
 
 				listIds.push('custpage_'+result.name);
 				ids.push(result.name);
+				log.debug('ids',ids);
 
 			});
 

@@ -30,7 +30,9 @@ define(['N/search'],
 						[
 							["alllocked","is","T"], 
 							"AND", 
-							["internalid","anyof",postingPeriodId]
+							["internalid","anyof",postingPeriodId],
+							"AND",
+							["allownonglchanges","is","F"]
 							],
 							columns:['internalid']
 				});

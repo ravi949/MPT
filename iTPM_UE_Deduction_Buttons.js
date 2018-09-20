@@ -63,18 +63,6 @@ define(['N/runtime',
 			var eventType = sc.type;
 			var runtimeContext = runtime.executionContext; 
 			var postingPeriodId = sc.newRecord.getValue({fieldId:'postingperiod'});
-
-
-			sc.form.addField({
-				id	  : 'custpage_accntgprd',
-				type  : serverWidget.FieldType.INLINEHTML,
-				label : 'script'
-			}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
-			'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
-			'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"<b>iTPM</b> is not able to perform your request. The Posting Period of Deduction is Closed.",type: msg.Type.WARNING}).show(); }'+
-			'})</script>';
-
-
 			log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
 
 			if(
@@ -138,19 +126,19 @@ define(['N/runtime',
 					var btn_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
 						label: 'Quick Split',
-						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"DEFAULT")'
+						functionName: 'iTPMsplit('+postingPeriodId + ','+sc.newRecord.id + ',"DEFAULT")'
 					});
 
 					var btn_split_csv = sc.form.addButton({
 						id: 'custpage_itpm_split',
 						label: 'Split (CSV)',
-						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"CSV")'
+						functionName: 'iTPMsplit('+postingPeriodId + ',' + sc.newRecord.id + ',"CSV")'
 					});
 
 					var btn_quick_split = sc.form.addButton({
 						id: 'custpage_itpm_split',
 						label: 'Split',
-						functionName: 'iTPMsplit(' + sc.newRecord.id + ',"RECORD",' + ddnSplitRecTypeId + ')'
+						functionName: 'iTPMsplit(' +postingPeriodId + ','+ sc.newRecord.id + ',"RECORD",' + ddnSplitRecTypeId + ')'
 					});
 
 					//show button only when user have permissions greater than or equal to CREATE for Deductions and Journal Entry 
@@ -158,20 +146,20 @@ define(['N/runtime',
 						var btn_invoice = sc.form.addButton({
 							id: 'custpage_itpm_invoice',
 							label: 'Re-Invoice',
-							functionName: 'iTPMinvoice(' + sc.newRecord.id + ','+openBalance+')'
+							functionName: 'iTPMinvoice(' + sc.newRecord.id + ','+openBalance+',' + postingPeriodId +')'
 						});			
 						var customer = sc.newRecord.getValue({fieldId:'custbody_itpm_customer'});
 						if(customer){
 							var btn_creditmemo = sc.form.addButton({
 								id: 'custpage_itpm_match_creditmemo',
 								label: 'Match To Credit Memo',
-								functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ')'
+								functionName: 'iTPMcreditmemo(' + sc.newRecord.id + ',' + customer + ','+ postingPeriodId+')'
 							});
 						}
 						var btn_expense = sc.form.addButton({
 							id: 'custpage_itpm_expense',
 							label: 'Expense',
-							functionName: 'iTPMexpense(' + sc.newRecord.id + ',' + openBalance + ')'
+							functionName: 'iTPMexpense('+postingPeriodId + ',' + sc.newRecord.id + ',' + openBalance + ')'
 						});
 					}
 				}
@@ -181,7 +169,7 @@ define(['N/runtime',
 					var btn_settlement = sc.form.addButton({
 						id: 'custpage_itpm_settlement',
 						label: 'Settlement',
-						functionName: 'iTPMsettlement(' + sc.newRecord.id + ')'
+						functionName: 'iTPMsettlement(' + sc.newRecord.id + ','+ postingPeriodId+')'
 					});
 				}				
 
@@ -191,7 +179,7 @@ define(['N/runtime',
 					var btn_delete = sc.form.addButton({
 						id: 'custpage_itpm_delete',
 						label: 'Delete',
-						functionName: 'iTPMDeleteDeduction(' + sc.newRecord.id + ')'
+						functionName: 'iTPMDeleteDeduction(' + sc.newRecord.id + ','+ postingPeriodId+')'
 					});
 				}
 

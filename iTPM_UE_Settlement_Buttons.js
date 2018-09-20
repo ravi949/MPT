@@ -51,24 +51,14 @@ define(['N/runtime',
 				log.debug('ddn Permission',setPermission);
 				var postingPeriodId = settlementRec.getValue({fieldId:'postingperiod'});
 
-				// Showing the banner to the user if the accounting period is closed
-				
-				scriptContext.form.addField({
-					id	  : 'custpage_accntgprd',
-					type  : serverWidget.FieldType.INLINEHTML,
-					label : 'script'
-				}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
-				'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
-				'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"<b>iTPM</b> is not able to perform your request. The Posting Period of Settlement is Closed.",type: msg.Type.WARNING}).show(); }'+
-				'})</script>';
-				
+								
 				if(setStatus == 'A' && setReqAmount > 0 && (setLumSum > 0 || setBB > 0 || setOffInv > 0)){
 					//-iTPM Settlement Permission and -iTPM Deduction Permission = Edit or greater and Journal Entry permission = CREATE or FULL
 					if(setPermission >= 3 && ddnPermission >= 3 && JEPermission >= 2){
 						scriptContext.form.addButton({
 							id:'custpage_itpm_applytoddn',
 							label:'Apply To Deduction',
-							functionName:'redirectToDeductionList('+scriptContext.newRecord.id+')'
+							functionName:'redirectToDeductionList('+scriptContext.newRecord.id+','+ postingPeriodId+')'
 						});
 					}
 
@@ -77,7 +67,7 @@ define(['N/runtime',
 						scriptContext.form.addButton({
 							id:'custpage_itpm_applytocheck',
 							label:'Apply To Check',
-							functionName:'redirectToCheck('+scriptContext.newRecord.id+')'
+							functionName:'redirectToCheck('+scriptContext.newRecord.id+','+ postingPeriodId+')'
 						});
 					}
 				}
@@ -87,7 +77,7 @@ define(['N/runtime',
 					scriptContext.form.addButton({
 						id:'custpage_itpm_settlemevoid',
 						label:'Void',
-						functionName:'voidSettlement('+scriptContext.newRecord.id+')'
+						functionName:'voidSettlement('+scriptContext.newRecord.id+','+ postingPeriodId+')'
 					});
 				}
 

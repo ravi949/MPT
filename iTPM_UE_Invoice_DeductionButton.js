@@ -62,20 +62,7 @@ define(['N/search',
 		var ddnPermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscript_itpm_inv_ddn_permsn_rectypeid'));
 		log.debug('ddnPermission',ddnPermission);
 		var postingPeriodId = scriptContext.newRecord.getValue({fieldId:'postingperiod'});
-
-
-		scriptContext.form.addField({
-			id	  : 'custpage_inv_accntgprd',
-			type  : serverWidget.FieldType.INLINEHTML,
-			label : 'script'
-		}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
-		'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
-		'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"<b>iTPM</b> is not able to perform your request. The Posting Period of Invoice is Closed.",type: msg.Type.WARNING}).show(); }'+
-		'})</script>';
-
-
-		log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
-
+		
 		if(invStatus == 'Open' && invoiceDeductionsAreEmpty ){
 			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
 			//itpm deduction permission should be create or edit or full
@@ -83,7 +70,7 @@ define(['N/search',
 				scriptContext.form.addButton({
 					id:'custpage_itpm_newddn',
 					label:'Deduction',
-					functionName:'iTPMDeduction('+scriptContext.newRecord.id+')'
+					functionName:'iTPMDeduction('+postingPeriodId+','+scriptContext.newRecord.id+')'
 				});
 			}
 		}
@@ -107,17 +94,7 @@ define(['N/search',
 		log.debug('itpmAppliedTo',!itpmAppliedTo);
 		var JEPermission = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
 		var postingPeriodId = scriptContext.newRecord.getValue({fieldId:'postingperiod'});
-
-		//Showing the banner if the accounting period is closed
-		scriptContext.form.addField({
-			id	  : 'custpage_cm_accntgprd',
-			type  : serverWidget.FieldType.INLINEHTML,
-			label : 'script'
-		}).defaultValue = '<script language="javascript">require(["N/ui/message","N/https"],function(msg,https){'+
-		'var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid='+postingPeriodId+'"});console.log(JSON.parse(response.body));'+
-		'if(JSON.parse(response.body).period_closed){ msg.create({title:"Warning!",message:"<b>iTPM</b>  is not able to perform your request. The Posting Period of Credit Memo is Closed.",type: msg.Type.WARNING}).show(); }'+
-		'})</script>';
-
+		
 		//Credit Memo dont have any ITPM DEDUCTION records which is not Open,Pending and Resolved
 		var ddnStatus = true;
 		if(itpmAppliedTo){
@@ -137,7 +114,7 @@ define(['N/search',
 				scriptContext.form.addButton({
 					id:'custpage_itpm_newddn',
 					label:'Deduction',
-					functionName:'iTPMDeduction('+scriptContext.newRecord.id+')'
+					functionName:'iTPMDeduction('+scriptContext.newRecord.id+','+postingPeriodId+')'
 				});
 				var JE_Permssion = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
 				log.debug('JE_Permssion',JE_Permssion);
@@ -145,7 +122,7 @@ define(['N/search',
 					scriptContext.form.addButton({
 						id:'custpage_itpm_matchtoddn',
 						label:'Match to Deduction',
-						functionName:'iTPMMatchToDdn('+scriptContext.newRecord.id+')'
+						functionName:'iTPMMatchToDdn('+scriptContext.newRecord.id+','+postingPeriodId+')'
 					});
 				}
 			}
