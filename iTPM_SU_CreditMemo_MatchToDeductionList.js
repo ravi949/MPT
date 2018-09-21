@@ -394,7 +394,8 @@ function(record, redirect, runtime, search, serverWidget, url, itpm) {
 					 ['custbody_itpm_ddn_openbal','greaterthanorequalto', cmAmount],'and'
 					,['mainline','is','T'],'and'
 					,['custbody_itpm_customer','anyof',cmcustomer],'and'
-					,["linesequencenumber","equalto","0"]
+					,["linesequencenumber","equalto","0"],'and'
+					,[[["accountingperiod.alllocked","is","F"]],"OR",[["accountingperiod.alllocked","is","T"],"AND",["accountingperiod.allownonglchanges","is","T"]]]
 					]		    		
 			});
 			var searchLength = DeductionSearch.run().getRange(0,2).length;

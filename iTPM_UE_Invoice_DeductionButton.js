@@ -8,7 +8,7 @@ define(['N/search',
 		'N/ui/serverWidget',
 		'N/runtime',
 		'./iTPM_Module.js'
-		],
+	],
 	/**
 	 * @param {search} search
 	 * @param {serverWidget} serverWidget
@@ -26,19 +26,19 @@ define(['N/search',
 	 */
 	function beforeLoad(scriptContext) {
 		try{
-			
+
 			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE && scriptContext.type == 'view'){
 				var recordType = scriptContext.newRecord.type;
 				//Deduction record type id
 				var ddnRecTypeId = runtime.getCurrentScript().getParameter('custscript_itpm_inv_ddn_rectypeid');
 				log.debug('recordType',recordType);
 				log.debug('ddnRecTypeId',ddnRecTypeId);
-				
+
 				var functionObjects = {
 						'invoice':addButtonOnInvoice,
 						'creditmemo':addButtonOnCreditMemo
 				}
-				
+
 				functionObjects[recordType](scriptContext, ddnRecTypeId);
 			}
 		}catch(e){
@@ -61,20 +61,21 @@ define(['N/search',
 		var invoiceDeductionsAreEmpty = deductionsAreEmpty(scriptContext.newRecord.id, deductionStatuses);
 		var ddnPermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscript_itpm_inv_ddn_permsn_rectypeid'));
 		log.debug('ddnPermission',ddnPermission);
+		var postingPeriodId = scriptContext.newRecord.getValue({fieldId:'postingperiod'});
 		
-		if(invStatus == 'Open' && invoiceDeductionsAreEmpty){
+		if(invStatus == 'Open' && invoiceDeductionsAreEmpty ){
 			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
 			//itpm deduction permission should be create or edit or full
 			if(ddnPermission >= 2){
 				scriptContext.form.addButton({
 					id:'custpage_itpm_newddn',
 					label:'Deduction',
-					functionName:'iTPMDeduction('+scriptContext.newRecord.id+')'
+					functionName:'iTPMDeduction('+postingPeriodId+','+scriptContext.newRecord.id+')'
 				});
 			}
 		}
 	}
-	
+
 	/**
 	 * @param scriptContext
 	 * @description Adding the Deduction button on credit memo record
@@ -92,6 +93,7 @@ define(['N/search',
 		log.debug('ddnPermission',ddnPermission);
 		log.debug('itpmAppliedTo',!itpmAppliedTo);
 		var JEPermission = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
+		var postingPeriodId = scriptContext.newRecord.getValue({fieldId:'postingperiod'});
 		
 		//Credit Memo dont have any ITPM DEDUCTION records which is not Open,Pending and Resolved
 		var ddnStatus = true;
@@ -103,7 +105,7 @@ define(['N/search',
 			})['status'][0].value;
 			ddnStatus = (ddnStatus != 'statusA' && ddnStatus != 'statusB' && ddnStatus != 'statusC');
 		}
-		
+
 		log.debug('ddnStatus',ddnStatus);
 		if(creditMemoStatus && ddnStatus){
 			scriptContext.form.clientScriptModulePath = './iTPM_Attach_CreditMemo_ClientMethods.js';
@@ -112,7 +114,7 @@ define(['N/search',
 				scriptContext.form.addButton({
 					id:'custpage_itpm_newddn',
 					label:'Deduction',
-					functionName:'iTPMDeduction('+scriptContext.newRecord.id+')'
+					functionName:'iTPMDeduction('+scriptContext.newRecord.id+','+postingPeriodId+')'
 				});
 				var JE_Permssion = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
 				log.debug('JE_Permssion',JE_Permssion);
@@ -120,13 +122,13 @@ define(['N/search',
 					scriptContext.form.addButton({
 						id:'custpage_itpm_matchtoddn',
 						label:'Match to Deduction',
-						functionName:'iTPMMatchToDdn('+scriptContext.newRecord.id+')'
+						functionName:'iTPMMatchToDdn('+scriptContext.newRecord.id+','+postingPeriodId+')'
 					});
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * @param recordId invoice or creditmemo id
 	 * @param statuses deduction statusses
@@ -141,7 +143,7 @@ define(['N/search',
 				['status','anyof',statuses]]
 		}).run().getRange(0,5).length == 0;
 	}
-	
+
 	return {
 		beforeLoad: beforeLoad
 	};
