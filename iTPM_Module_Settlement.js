@@ -393,7 +393,7 @@ define(['N/config',
 	function createReverseJE(settlementRec){
 		try{
 			var lineCount = settlementRec.getLineCount('line'),JELines = [];
-			log.error('loc',settlementRec.getValue('location'));
+//			log.error('loc',settlementRec.getValue('location'));
 			for(var i=0;i<lineCount;i++){
 				var credit = settlementRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i}),
 				debit = settlementRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i}); 
