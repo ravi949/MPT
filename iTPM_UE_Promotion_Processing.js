@@ -120,7 +120,7 @@ define(['N/ui/serverWidget',
 						}).runPaged().count;
 						log.debug('REFRESH KPIs button: searchCount', searchCount);
 
-						if((status == 3 || status == 7) && searchCount == 0){
+						if((status == 3 || status == 7) && condition != 1 && searchCount == 0){
 							promoForm.addButton({
 								id:'custpage_refresh_kpis',
 								label:'Refresh KPIs',
@@ -474,21 +474,9 @@ define(['N/ui/serverWidget',
 						(oldStatus == 3 && (newStatus == 7 || newStatus == 5) && (condition == 2 || condition == 3))
 				){
 					log.debug('promoId', promoId);
-					var searchCount = search.create({
-						type : 'customrecord_itpm_kpiqueue',
-						filters : [
-							['custrecord_itpm_kpiq_promotion', 'is', promoNewRec.id],'and',
-							['custrecord_itpm_kpiq_start','isempty',null],'and',
-							['custrecord_itpm_kpiq_end','isempty',null]
-							]
-					}).runPaged().count;
-					log.debug('searchCount', searchCount);
-
-					if(searchCount == 0){
-						var queueType = (oldStatus == 3 && newStatus == 3 && (condition == 2 || condition == 3)) ? 2 : 3;
-						//Creating New KPI Queue Record
-						itpm.createKPIQueue(promoId, queueType); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
-					}
+					var queueType = (oldStatus == 3 && newStatus == 3 && (condition == 2 || condition == 3)) ? 2 : 3;
+					//Creating New KPI Queue Record
+					itpm.createKPIQueue(promoId, queueType); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
 				}
 			}
 		}catch(e){

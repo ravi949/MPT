@@ -155,25 +155,13 @@ function(redirect,runtime,search,ST_Module, itpm) {
 			var newStatus = settlementNewRec.getValue('transtatus');
 			var promoId = settlementNewRec.getValue('custbody_itpm_set_promo');
 			
-    		if(eventType == 'edit'){
-    			var searchCount = search.create({
-    				type : 'customrecord_itpm_kpiqueue',
-    				filters : [
-    				           ['custrecord_itpm_kpiq_promotion', 'is', promoId],'and',
-                               ['custrecord_itpm_kpiq_start','isempty',null],'and',
-                               ['custrecord_itpm_kpiq_end','isempty',null]
-    				]
-    			}).runPaged().count;
-    			log.debug('searchCount', searchCount);
-    			log.debug('Old Status & New Status', oldStatus+' & '+newStatus);
-    			
-    			if(searchCount == 0){
-    				if((oldStatus == 'E' && (newStatus == 'A' || newStatus == 'B')) || ((oldStatus == 'A' || oldStatus == 'B') && newStatus == 'C')){
-    					//Creating New KPI Queue Record
-    					itpm.createKPIQueue(promoId, 5); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
-    				}
-    			}
-    		}
+			if(eventType == 'edit'){
+				log.debug('Old Status & New Status', oldStatus+' & '+newStatus);
+				if((oldStatus == 'E' && (newStatus == 'A' || newStatus == 'B')) || ((oldStatus == 'A' || oldStatus == 'B') && newStatus == 'C')){
+					//Creating New KPI Queue Record
+					itpm.createKPIQueue(promoId, 5); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+				}
+			}
     	}catch(e){
     		log.error(e.name,'function name = aftersubmit, message = '+e.message);
     	}
