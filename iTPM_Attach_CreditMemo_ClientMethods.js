@@ -29,7 +29,13 @@ define(['N/url',
 	function iTPMDeduction(creditmemoId,postingPeriodId){
 		
 		//Checking Accounting period status
-		var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+		var postingPeriodURL = url.resolveScript({
+		    scriptId: 'customscript_itpm_getaccntngprd_status',
+		    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+		    params:{popid:postingPeriodId},
+		    returnExternalUrl: true
+		});
+		var response = https.get({url:postingPeriodURL});
 		console.log(response);
 		console.log(JSON.parse(response.body));
 		if(JSON.parse(response.body).period_closed){ 
@@ -53,7 +59,13 @@ define(['N/url',
 	 * function creditmemoId
 	 */
 	function iTPMMatchToDdn(creditmemoId,postingPeriodId){
-		var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+		var postingPeriodURL = url.resolveScript({
+		    scriptId: 'customscript_itpm_getaccntngprd_status',
+		    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+		    params:{popid:postingPeriodId},
+		    returnExternalUrl: true
+		});
+		var response = https.get({url:postingPeriodURL});
 		console.log(response);
 		console.log(JSON.parse(response.body));
 		if(JSON.parse(response.body).period_closed){ 

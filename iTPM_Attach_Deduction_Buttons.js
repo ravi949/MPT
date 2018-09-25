@@ -13,6 +13,12 @@ define(['N/url',
 
 	function(url, https, message, dialog) {
 
+	var postingPeriodURL = url.resolveScript({
+	    scriptId: 'customscript_itpm_getaccntngprd_status',
+	    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+	    returnExternalUrl: false
+	});
+
 	/**
 	 * @param type
 	 * @param title
@@ -42,7 +48,7 @@ define(['N/url',
 		try{
 
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
@@ -93,7 +99,7 @@ define(['N/url',
 	function iTPMexpense(postingPeriodId,id, openbal) {
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
@@ -133,7 +139,7 @@ define(['N/url',
 	function iTPMinvoice(id, openBalance,postingPeriodId) {
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
@@ -192,7 +198,7 @@ define(['N/url',
 	function iTPMsettlement(id, postingPeriodId) {
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
@@ -222,7 +228,7 @@ define(['N/url',
 	function iTPMcreditmemo(id, customerid, postingPeriodId) {
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
@@ -260,7 +266,7 @@ define(['N/url',
 	function iTPMDeleteDeduction(id,postingPeriodId){
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({

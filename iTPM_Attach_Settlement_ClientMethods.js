@@ -16,6 +16,12 @@ define(['N/ui/message',
   */
   function(message, record, url, https, dialog) {
 
+	var postingPeriodURL = url.resolveScript({
+	    scriptId: 'customscript_itpm_getaccntngprd_status',
+	    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+	    returnExternalUrl: false
+	});
+
 	/**
 	 * Function to be executed when field is changed.
 	 *
@@ -149,7 +155,7 @@ define(['N/ui/message',
 	function redirectToDeductionList(settlementId,postingPeriodId){
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
@@ -175,7 +181,7 @@ define(['N/ui/message',
 	function redirectToCheck(settlementId,postingPeriodId){
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
@@ -201,7 +207,13 @@ define(['N/ui/message',
 	function voidSettlement(settlementId, postingPeriodId){
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var postingPeriodURL = url.resolveScript({
+			    scriptId: 'customscript_itpm_getaccntngprd_status',
+			    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+			    params:{popid:postingPeriodId},
+			    returnExternalUrl: false
+			});
+			var response = https.get({url:postingPeriodURL});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({

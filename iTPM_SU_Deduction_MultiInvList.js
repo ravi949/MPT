@@ -27,8 +27,10 @@ function(ui, search, url, record) {
     			var invoiceFieldsLookUp = search.lookupFields({
     			    type: search.Type.INVOICE,
     			    id: params.fid,
-    			    columns: ['entity', 'trandate', 'amount', 'amountremaining']
+    			    columns: ['entity', 'trandate', 'amount', 'amountremaining','postingperiod']
     			});
+    			
+    			var postingPeriod = invoiceFieldsLookUp['postingperiod'][0].value;
     			
     			log.debug('invoiceFieldsLookUp', invoiceFieldsLookUp);
     			log.debug('entity', invoiceFieldsLookUp.entity[0].value);
@@ -223,13 +225,13 @@ function(ui, search, url, record) {
     			form.addButton({
     			    id : 'custpage_button_yes',
     			    label : 'Yes',
-    			    functionName : 'iTPMDeduction('+params.fid+', "yes")'
+    			    functionName : 'iTPMDeduction("'+postingPeriod+'",'+params.fid+', "yes")'
     			});
     			
     			form.addButton({
     			    id : 'custpage_button_no',
     			    label : 'No',
-    			    functionName : 'iTPMDeduction('+params.fid+', "no")'
+    			    functionName : 'iTPMDeduction("'+postingPeriod+'",'+params.fid+', "no")'
     			});
     			
     			form.addButton({
