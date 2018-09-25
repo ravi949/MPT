@@ -137,7 +137,9 @@ define(['N/runtime',
 
 					if(tranType == 'CustInvc'){
 						if(multi){
-							multiInvoicesList(tranIds[0]).each(function(result){
+							var tranId = tranIds[0];
+							tranIds = [];
+							multiInvoicesList(tranId).each(function(result){
 								tranIds.push(result.getValue({name: "internalid", join: "appliedToTransaction"}));
 								itpmAmount += parseFloat(result.getValue({name: "amountremaining", join: "appliedToTransaction"}));
 								return true;
@@ -612,7 +614,8 @@ define(['N/runtime',
     	
     	log.error('receivbaleAccntsList',receivbaleAccntsList);
     	var lineCount = ddnRec.getLineCount('line');
-    	for(var i = lineCount-1; i >= 0 ; i++){
+    	log.error('lineCOunt',lineCount);
+    	for(var i = lineCount-1; i >= 0 ; i--){
     		ddnRec.removeLine({
     			sublistId:'line',
     			line:i
