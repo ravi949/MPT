@@ -672,6 +672,14 @@ function(record, search, runtime, itpm) {
 		if(tempIncrementalQty>0) 
 			incrementalQty = Math.floor(tempIncrementalQty/itemCount);
 		if(isLast){
+			//Removing the current Item Id from the groupItems Array 
+			log.debug('groupItems in EstQty',groupItems);
+			for( var i = 0; i < groupItems.length; i++){ 				
+			   if ( groupItems[i] == item.memberid) {
+				   groupItems.splice(i, 1); 
+			   }
+			}
+			log.debug('groupItems in EstQty after for loop',groupItems);
 			var estQtyTotal = search.create({
 			   type: "customrecord_itpm_estquantity",
 			   filters:
