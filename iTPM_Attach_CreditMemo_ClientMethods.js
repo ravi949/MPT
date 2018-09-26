@@ -33,7 +33,7 @@ define(['N/url',
 		    scriptId: 'customscript_itpm_getaccntngprd_status',
 		    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
 		    params:{popid:postingPeriodId},
-		    returnExternalUrl: true
+		    returnExternalUrl: false
 		});
 		var response = https.get({url:postingPeriodURL});
 		console.log(response);
@@ -46,12 +46,17 @@ define(['N/url',
 		}else{
 			var msg = displayMessage('New Deduction','Please wait while you are redirected to the new deduction screen.');
 			msg.show();
-			var ddnSuiteletURL = url.resolveScript({
-				scriptId:'customscript_itpm_ddn_createeditsuitelet',
-				deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
-				params:{fid:creditmemoId,from:'creditmemo',type:'create', multi:'no'}
+			var ddnRecordURL = url.resolveRecord({
+				recordType: 'customtransaction_itpm_deduction',
+				recordId: 0,
+				params:{
+					tran_ids : encodeURIComponent(JSON.stringify([creditmemoId])), 
+					multi : false
+				},
+				isEditMode: true
 			});
-			window.open(ddnSuiteletURL,'_self');
+			console.log(ddnRecordURL);
+			window.open(ddnRecordURL,'_self');
 		}
 	}
 	/**
@@ -63,7 +68,7 @@ define(['N/url',
 		    scriptId: 'customscript_itpm_getaccntngprd_status',
 		    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
 		    params:{popid:postingPeriodId},
-		    returnExternalUrl: true
+		    returnExternalUrl: false
 		});
 		var response = https.get({url:postingPeriodURL});
 		console.log(response);

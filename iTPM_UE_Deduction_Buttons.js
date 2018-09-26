@@ -48,27 +48,12 @@ define(['N/runtime',
 			//adding the Expense,Re-Invoice,Delete,Match To Creditmemo and SPlit buttons.
 			addDeductionButtons(sc);
 
-//			if (eventType == sc.UserEventType.EDIT && runtimeContext == runtime.ContextType.USER_INTERFACE) {
-//				redirect.toSuitelet({
-//					scriptId:'customscript_itpm_ddn_createeditsuitelet',
-//					deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
-//					returnExternalUrl: false,
-//					parameters:{fid:sc.newRecord.id,from:'ddn',type:'edit'}
-//				}); 
-//			}
 			
 			//Deduction Create or Edit Process
 			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
-				switch(sc.type){
-					case sc.UserEventType.CREATE:
-						var parentDDN = sc.newRecord.getValue('custbody_itpm_ddn_parentddn');
-						var from = sc.request.parameters.from;
-						if(!parentDDN){
-							deductionCreateOrEdit(sc);
-						}else{
-							deductionCreateSplit();
-						}
-					  break;
+				if(sc.type == sc.UserEventType.CREATE){
+					var createFrom = sc.request.parameters.from;
+					deductionCreateOrEdit(sc, createFrom);
 				}
 			}
 		} catch(ex) {
@@ -119,7 +104,9 @@ define(['N/runtime',
 				}
 			}
 			
-			if (sc.type == sc.UserEventType.CREATE || sc.type == sc.UserEventType.EDIT){
+			if (runtime.executionContext == runtime.ContextType.USER_INTERFACE && 
+				sc.type == sc.UserEventType.CREATE
+			){
 				var parentDDN = sc.newRecord.getValue('custbody_itpm_ddn_parentddn');
 				log.error('transactions',sc.newRecord.getValue('custbody_itpm_ddn_invoice'));
 				if(!parentDDN){
@@ -150,7 +137,15 @@ define(['N/runtime',
 								id:tranIds[0]
 							}).getValue('amountremainingtotalbox');
 						}
+					}else if(tranType == "CustCred"){
+						if(!multi){
+							itpmAmount = record.load({
+								type:record.Type.CREDIT_MEMO,
+								id:tranIds[0]
+							}).getValue('total');
+						}
 					}
+
 					//getting the line value for the deduction
 					var subsidiaryID = (itpm.subsidiariesEnabled())? sc.newRecord.getValue('subsidiary') : undefined;
 					var prefObj = itpm.getPrefrenceValues(subsidiaryID);
@@ -164,13 +159,112 @@ define(['N/runtime',
 						expenseId:prefObj.dednExpAccnt
 					});
 				}else if(parentDDN){
-					
+					log.error('parentDDN',parentDDN);
+					log.error('open bal',sc.newRecord.getValue('custbody_itpm_ddn_openbal'));
+					if(sc.type == sc.UserEventType.EDIT){
+						sc.newRecord.setValue({
+							fieldId:'custbody_itpm_amount',
+							value:sc.newRecord.getValue('custbody_itpm_ddn_openbal')
+						});
+					}
+					setDeductionLines(sc.newRecord,{
+						tranType : 'ddn', 
+						customerId : sc.newRecord.getValue('custbody_itpm_customer'),
+						tranIds: [sc.newRecord.getValue('custbody_itpm_ddn_parentddn')],
+						multi:false,
+						itpmAmount:sc.newRecord.getValue('custbody_itpm_ddn_openbal'),
+						expenseId:undefined
+					});
 				}
 			}
 		} catch(ex) {
 			log.error(ex.name, ex.message + '; RecordId: ' + sc.newRecord.id);
 		}
 	}
+	
+	
+	/**
+	 * Function definition to be triggered before record is loaded.
+	 * @param {Object} sc
+	 * @param {Record} sc.newRecord - New record
+	 * @param {Record} sc.oldRecord - Old record
+	 * @param {string} sc.type - Trigger type
+	 * @Since 2015.2
+	 */
+	function afterSubmit(sc) {
+		try{
+			if(sc.type == sc.UserEventType.CREATE){
+				var ddnRec = sc.newRecord;
+				if(ddnRec.getValue('custbody_itpm_ddn_parentddn')){
+					log.error('triggered','created parent deduction');
+					//loading the parent record again why because parentDeductionRec already save 
+					//thats why we are loading the record newly	
+					var parentRec = record.load({
+						type:'customtransaction_itpm_deduction',
+						id:sc.newRecord.getValue('custbody_itpm_ddn_parentddn')
+					});
+					var parentDDNAmount = parentRec.getValue('custbody_itpm_ddn_openbal');
+					var parentAmount = parseFloat(parentRec.getValue('custbody_itpm_ddn_openbal'));
+					var childAmount = parseFloat(ddnRec.getValue('custbody_itpm_ddn_openbal'));
+					//getting the line value for the deduction
+					var subsidiaryID = (itpm.subsidiariesEnabled())? sc.newRecord.getValue('subsidiary') : undefined;
+					var prefObj = itpm.getPrefrenceValues(subsidiaryID);
+					log.error('amount condition',parentAmount > childAmount);
+					if(parentAmount > childAmount){
+						itpm.createSplitDeduction(parentRec,{
+							amount : (parentAmount - childAmount).toFixed(2),
+							ddnExpenseId : ddnRec.getSublistValue({sublistId:'line',fieldId:'account',line:ddnRec.getLineCount('line') - 1}),
+							removeCustomer : prefObj.removeCustomer,
+							memo : undefined,
+							refCode : '',
+							ddnDisputed : false
+						});
+
+						parentRec.setValue({
+							fieldId:'custbody_itpm_ddn_openbal',
+							value:0 
+						}).setValue({ // Setting open balance value to split off while creating deduction
+							fieldId:'custbody_itpm_ddn_splitoff',
+							value: parentDDNAmount
+						}).setValue({
+							fieldId: 'transtatus',
+							value: 'C'
+						}).save({
+							enableSourcing: false,
+							ignoreMandatoryFields : true
+						});
+					}
+				}else{
+					//setting the self value as original deduction value if create from invoice or credit memo
+					record.load({
+						type:'customtransaction_itpm_deduction',
+						id:ddnRec.id
+					}).setValue({
+						fieldId:'custbody_itpm_ddn_originalddn',
+						value:sc.newRecord.id
+					}).save({
+						enableSourcing:false,
+						ignoreMandatoryFields:true
+					});
+					//Creating customer payments for Invoices
+					var tranIds = sc.newRecord.getValue('custbody_itpm_ddn_invoice');
+					var tranType = search.lookupFields({
+						type:search.Type.TRANSACTION,
+						id:tranIds[0],
+						columns:['type']
+					}).type[0].value;
+					log.error('trantype in aftersubmit',tranType);
+					
+					if(tranType == "CustInvc"){
+						createCustomerPayment(sc.newRecord, tranIds, sc.newRecord.getValue('memo') , ddnRec.id);
+					}
+				}
+			}
+		}catch(ex){
+			log.error(ex.name,ex.message);
+		}
+	}
+	
 	
 	/**
 	 * @param {context} scriptContext
@@ -323,7 +417,7 @@ define(['N/runtime',
 	 * @param {context} scriptContext
 	 * @param {string} evenType
 	 */
-	function deductionCreateOrEdit(sc){
+	function deductionCreateOrEdit(sc, createFrom){
 		
 		var subsidiariesEnabled = itpm.subsidiariesEnabled();
 		var currenciesEnabled = itpm.currenciesEnabled();
@@ -334,15 +428,23 @@ define(['N/runtime',
 		var tranSearch;
 		var transObj = {'itpm_amount':0,'total_nonpromotional_expense':0};
 		var tranSearchCol = ['type'];
+		var ddnRec = sc.newRecord;
 		
-		if(sc.type == sc.UserEventType.CREATE){
+//		if(sc.type == sc.UserEventType.CREATE){
 			log.debug('parameters',sc.request.parameters);
 			var multi = (sc.request.parameters.multi === "true");
 			var tranIds = JSON.parse(decodeURIComponent(sc.request.parameters.tran_ids));			
 			log.debug('tranIds',tranIds);
 			
-			//Created the column for search and push the columns based on subs,cur,loc,dept and class.
-			tranSearchCol.push('entity');
+			if(createFrom != 'ddn'){
+				//Created the column for search and push the columns based on subs,cur,loc,dept and class.
+				tranSearchCol.push('entity');
+			}else{
+				tranSearchCol.push('custbody_itpm_ddn_parentddn');
+				tranSearchCol.push('custbody_itpm_customer');
+				tranSearchCol.push('custbody_itpm_ddn_invoice');
+				tranSearchCol.push('custbody_itpm_ddn_openbal');
+			}
 			
 			if(subsidiariesEnabled){
 				tranSearchCol.push('subsidiary');
@@ -367,10 +469,11 @@ define(['N/runtime',
 				columns:tranSearchCol
 			});
 			log.error('tranSearch',tranSearch);
-			var tranType = tranSearch.type[0].value;
+			var tranType = (createFrom)? createFrom : tranSearch.type[0].value;
 			
 			//Getting the remaining total amount from Invoice record
-			if(tranType == 'CustInvc'){
+			switch(tranType){
+			case "CustInvc":
 				if(multi){
 					var tranId = tranIds[0];
 					tranIds = [];
@@ -385,12 +488,42 @@ define(['N/runtime',
 		    			id:tranIds[0]
 		    		}).getValue('amountremainingtotalbox');
 				}
+				transObj['customer'] = tranSearch.entity[0].value;
+				break;
+			case "CustCred":
+				if(!multi){
+					transObj['itpm_amount'] = record.load({
+						type:record.Type.CREDIT_MEMO,
+						id:tranIds[0]
+					}).getValue('total');
+				}
+				transObj['customer'] = tranSearch.entity[0].value;
+				break;
+			case "ddn":
+				tranType = 'ddn';
+				ddnRec.setValue({
+					fieldId:'custbody_itpm_ddn_originalddn',
+					value:record.load({
+						type:'customtransaction_itpm_deduction',
+						id:tranIds[0]
+					}).getValue('custbody_itpm_ddn_originalddn')
+				}).setValue({
+					fieldId:'custbody_itpm_ddn_parentddn',
+					value:tranIds[0]
+				}).setValue({
+					fieldId:'custbody_itpm_appliedto',
+					value:tranIds[0]
+				});
+				tranIds = tranSearch.custbody_itpm_ddn_invoice.map(function(e){return e.value});
+				transObj['customer'] = tranSearch.custbody_itpm_customer[0].value;
+				transObj['itpm_amount'] = tranSearch.custbody_itpm_ddn_openbal;
+				break;
 			}
-
-			transObj['customer'] = tranSearch.entity[0].value;
+			
 			transObj['assginto'] = runtime.getCurrentUser().id;
 			transObj['trandate'] = new Date();
 			transObj['followup'] = (new Date(new Date().setDate(new Date().getDate()+14)));
+			
 			if(subsidiariesEnabled){
 				transObj['subsidiary'] = tranSearch.subsidiary[0].value;
 			}
@@ -410,7 +543,6 @@ define(['N/runtime',
 			log.error('transObj',transObj);
 			
 			//setting the deduction record values
-			var ddnRec = sc.newRecord;
 			ddnRec.setValue({
 				fieldId:'custbody_itpm_ddn_invoice',
 				value:tranIds
@@ -472,15 +604,17 @@ define(['N/runtime',
 			var subsidiaryID = (subsidiariesEnabled)? transObj['subsidiary'] : undefined;
 			var prefObj = itpm.getPrefrenceValues(subsidiaryID);
 			
+			//it will set the lines on deductions 
 			setDeductionLines(ddnRec, {
 				tranType : tranType, 
 				customerId : transObj['customer'],
-				tranIds: tranIds,
+				tranIds: (tranType == 'ddn')? [sc.newRecord.getValue('custbody_itpm_ddn_parentddn')] : tranIds,
 				multi:multi,
 				itpmAmount:transObj['itpm_amount'],
-				expenseId:prefObj.dednExpAccnt
+				expenseId:prefObj.dednExpAccnt,
+				removeCustFromSplit:(tranType == 'ddn')?prefObj.removeCustomer:false
 			});
-		}
+//		}
 	}
 	
 	/**
@@ -578,6 +712,9 @@ define(['N/runtime',
      * @param {object} obj
      */
     function setDeductionLines(ddnRec, obj){
+    	var lineMemo;
+    	var receivbaleAccntsList = [];
+    	log.error('obj',obj);
     	if(obj.tranType == 'CustInvc'){
     		var defaultRecvAccnt = record.load({
 				type:record.Type.CUSTOMER,
@@ -599,7 +736,7 @@ define(['N/runtime',
 				defaultRecvAccnt = (defaultRecvAccnt)?defaultRecvAccnt : recievableAccntId;
 			}
 			
-			var receivbaleAccntsList = [{
+			receivbaleAccntsList = [{
 				accountId:defaultRecvAccnt,
 				amount:obj.itpmAmount,
 				fid:'credit',
@@ -610,6 +747,34 @@ define(['N/runtime',
 				fid:'debit',
 				memo:lineMemo
 			}];
+    	}else if(obj.tranType == "CustCred"){
+    		lineMemo = 'Deduction applied on CreditMemo '+obj.tranIds.join(',');
+			search.create({
+				type:search.Type.CREDIT_MEMO,	 //if you want to create search on custom record type, please use the internalid.
+				columns:['account','debitamount','creditamount','taxline'],
+				filters:[['internalid','is',obj.tranIds[0]],'and',
+						 ['cogs','is',false],'and',
+						 ['accounttype','noneof','AcctRec']]
+			}).run().each(function(r){
+				if(r.getValue('account') && (r.getValue('debitamount') > 0 || r.getValue('creditamount') > 0)){
+					receivbaleAccntsList.push({
+						accountId:r.getValue('account'),
+						amount:(r.getValue('debitamount'))?r.getValue('debitamount'):r.getValue('creditamount'),
+						fid:(r.getValue('debitamount'))?'credit':'debit',
+						memo:lineMemo
+					});
+				}
+				return true;
+			});
+			receivbaleAccntsList.push({accountId:obj.expenseId,amount:obj.itpmAmount,fid:'debit',memo:lineMemo});
+    	}else if(obj.tranType == 'ddn'){
+    		var parentDDNRec = record.load({
+				type:'customtransaction_itpm_deduction',
+				id:obj.tranIds[0]
+			});		
+			lineMemo = 'Deduction split from Deduction #'+parentDDNRec.getText({fieldId:'tranid'});
+			expenseId = parentDDNRec.getSublistValue({sublistId:'line',fieldId:'account',line:parentDDNRec.getLineCount('line') - 1});
+			receivbaleAccntsList = [{accountId:expenseId,amount:obj.itpmAmount,fid:'credit',memo:lineMemo},{accountId:expenseId,amount:obj.itpmAmount,fid:'debit',memo:lineMemo}];
     	}
     	
     	log.error('receivbaleAccntsList',receivbaleAccntsList);
@@ -641,9 +806,84 @@ define(['N/runtime',
 			}).setSublistValue({
 				sublistId:'line',
 				fieldId:'entity',
-				value:obj.customerId,
+				value:(obj.removeCustFromSplit)?'':obj.customerId,
 				line:index
 			});
+		});
+    }
+    
+    /**
+     * @param {String} result
+     * @param {String} memo
+     * @param {Number} deductionId
+     * @param {Boolean} multiInv
+     */
+    function createCustomerPayment(ddnRec, tranIds, memo, deductionId){
+    	log.debug('invoiceIds',tranIds);
+    	var subsidiariesEnabled = itpm.subsidiariesEnabled();
+		var currenciesEnabled = itpm.currenciesEnabled();
+		var locationsEnabled = itpm.locationsEnabled();
+		var classesEnabled = itpm.classesEnabled();
+		var departmentsEnabled = itpm.departmentsEnabled();
+		
+		tranIds.forEach(function(invoiceid){
+			//Customer Payment process for each invoice
+	    	var invTransformRec = record.transform({
+	    		fromType: record.Type.INVOICE,
+	    		fromId: invoiceid,
+	    		toType: record.Type.CUSTOMER_PAYMENT
+	    	});
+
+	    	var transFormRecLineCount = invTransformRec.getLineCount('credit');
+	    	
+	    	if(classesEnabled){
+	    		invTransformRec.setValue({
+	        		fieldId:'class',
+	        		value:ddnRec.getValue('class')
+	        	});
+	    	}
+	    	
+	    	if(locationsEnabled){
+	    		invTransformRec.setValue({
+	        		fieldId:'location',
+	        		value:ddnRec.getValue('location')
+	        	});
+	    	}
+	    	
+	    	if(departmentsEnabled){
+	    		invTransformRec.setValue({
+	        		fieldId:'department',
+	        		value:ddnRec.getValue('department')
+	        	});
+	    	}
+	    	
+	    	invTransformRec.setValue({
+	    		fieldId:'memo',
+	    		value:memo
+	    	});
+
+	    	for(var v = 0; v < transFormRecLineCount;v++){
+	    		var ddId = invTransformRec.getSublistValue({
+	    			sublistId: 'credit',
+	    			fieldId: 'internalid',
+	    			line: v
+	    		});
+
+	    		if(deductionId == ddId){
+	    			invTransformRec.setSublistValue({
+	    				sublistId: 'credit',
+	    				fieldId: 'apply',
+	    				line: v,
+	    				value: true
+	    			});
+
+	    			var lastId = invTransformRec.save({
+	    				enableSourcing: false,
+	    				ignoreMandatoryFields: true
+	    			});
+	    			//log.debug('invTransformRecId ',lastId );
+	    		}
+	    	}
 		});
     }
 	
@@ -677,7 +917,8 @@ define(['N/runtime',
 
 	return {
 		beforeLoad: beforeLoad,
-		beforeSubmit:beforeSubmit
+		beforeSubmit:beforeSubmit,
+		afterSubmit: afterSubmit
 	};
 
 });

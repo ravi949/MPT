@@ -56,21 +56,31 @@ define(['N/url',
 					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
 				});
 			}else{
-				var suiteletUrl;
+				var redirectURL;
 				switch(splitMethod){
 				case "DEFAULT":
 					var msg = displayMessage('info','Splitting Deduction','Please wait while you are redirected to the split deduction screen.');
 					msg.show();
-					suiteletUrl = url.resolveScript({
-						scriptId:'customscript_itpm_ddn_createeditsuitelet',
-						deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
-						params:{fid:id,from:'ddn',type:'create'}
+//					suiteletUrl = url.resolveScript({
+//						scriptId:'customscript_itpm_ddn_createeditsuitelet',
+//						deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
+//						params:{fid:id,from:'ddn',type:'create'}
+//					});
+					redirectURL = url.resolveRecord({
+						recordType: 'customtransaction_itpm_deduction',
+						recordId: 0,
+						params:{
+							tran_ids : encodeURIComponent(JSON.stringify([id])),
+							from:'ddn',
+							multi : false
+						},
+						isEditMode: true
 					});
 					break;
 				case "CSV":
 					var msg = displayMessage('info','CSV Split Record','Please wait while you are redirected to the CSV split record screen.');
 					msg.show();
-					suiteletUrl = url.resolveScript({
+					redirectURL = url.resolveScript({
 						scriptId:'customscript_itpm_ddn_csvsplit',
 						deploymentId:'customdeploy_itpm_ddn_csvsplit',
 						params:{ddn:id}
@@ -79,13 +89,13 @@ define(['N/url',
 				case "RECORD":
 					var msg = displayMessage('info','Split Record','Please wait while you are redirected to the split record screen.');
 					msg.show();
-					suiteletUrl = url.resolveTaskLink({
+					redirectURL = url.resolveTaskLink({
 						id:'EDIT_CUST_'+ddnSplitTypeID,
 						params:{ddn:id}
 					});
 					break;
 				}
-				window.open(suiteletUrl, '_self');
+				window.open(redirectURL, '_self');
 			}
 		} catch(ex) {
 			console.log(ex.name,'function name = iTPMsplit, message'+ex.message);

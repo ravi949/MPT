@@ -144,11 +144,6 @@ define(['N/url',
 					console.log(true);
 					var msg = displayMessage('New Deduction','Please wait while you are redirected to the new deduction screen.');
 					msg.show();
-//					var ddnSuiteletURL = url.resolveScript({
-//						scriptId:'customscript_itpm_ddn_createeditsuitelet',
-//						deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
-//						params:{fid:invId,from:'inv',type:'create', multi:(!multiInv)?'no':multiInv}
-//					});
 					var ddnRecordURL = url.resolveRecord({
 						recordType: 'customtransaction_itpm_deduction',
 						recordId: 0,
