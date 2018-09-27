@@ -109,6 +109,7 @@ define(['N/runtime',
 				}
 			}
 			
+			//on create over write the lines on the deduction record 
 			if (runtime.executionContext == runtime.ContextType.USER_INTERFACE && 
 				sc.type == sc.UserEventType.CREATE
 			){
@@ -204,6 +205,8 @@ define(['N/runtime',
 	 */
 	function afterSubmit(sc) {
 		try{
+			//if its from deduction creating the extra split record 
+			//and set the original deduction value and update the parent deduction status and open balance value
 			if(sc.type == sc.UserEventType.CREATE){
 				var ddnRec = sc.newRecord;
 				if(ddnRec.getValue('custbody_itpm_ddn_parentddn')){
