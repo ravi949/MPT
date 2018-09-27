@@ -434,189 +434,187 @@ define(['N/runtime',
 	 * @param {string} evenType
 	 */
 	function deductionCreateOrEdit(sc, createFrom){
-		
+
 		var subsidiariesEnabled = itpm.subsidiariesEnabled();
 		var currenciesEnabled = itpm.currenciesEnabled();
 		var locationsEnabled = itpm.locationsEnabled();
 		var classesEnabled = itpm.classesEnabled();
 		var departmentsEnabled = itpm.departmentsEnabled();
-		
+
 		var tranSearch;
 		var transObj = {'itpm_amount':0,'total_nonpromotional_expense':0};
 		var tranSearchCol = ['type'];
 		var ddnRec = sc.newRecord;
-		
-//		if(sc.type == sc.UserEventType.CREATE){
-			log.debug('parameters',sc.request.parameters);
-			var multi = (sc.request.parameters.multi === "true");
-			var tranIds = JSON.parse(decodeURIComponent(sc.request.parameters.tran_ids));			
-			log.debug('tranIds',tranIds);
-			
-			if(createFrom != 'ddn'){
-				//Created the column for search and push the columns based on subs,cur,loc,dept and class.
-				tranSearchCol.push('entity');
+
+		log.debug('parameters',sc.request.parameters);
+		var multi = (sc.request.parameters.multi === "true");
+		var tranIds = JSON.parse(decodeURIComponent(sc.request.parameters.tran_ids));			
+		log.debug('tranIds',tranIds);
+
+		if(createFrom != 'ddn'){
+			//Created the column for search and push the columns based on subs,cur,loc,dept and class.
+			tranSearchCol.push('entity');
+		}else{
+			tranSearchCol.push('custbody_itpm_ddn_parentddn');
+			tranSearchCol.push('custbody_itpm_customer');
+			tranSearchCol.push('custbody_itpm_ddn_invoice');
+			tranSearchCol.push('custbody_itpm_ddn_openbal');
+		}
+
+		if(subsidiariesEnabled){
+			tranSearchCol.push('subsidiary');
+		}
+		if(currenciesEnabled){
+			tranSearchCol.push('currency');
+		}
+		if(locationsEnabled){
+			tranSearchCol.push('location');
+		}
+		if(classesEnabled){
+			tranSearchCol.push('class');
+		}
+		if(departmentsEnabled){
+			tranSearchCol.push('department');
+		}
+
+		//getting the invoice or credit memo field values
+		tranSearch = search.lookupFields({
+			type:search.Type.TRANSACTION,
+			id:tranIds[0],
+			columns:tranSearchCol
+		});
+		log.debug('tranSearch',tranSearch);
+		var tranType = (createFrom)? createFrom : tranSearch.type[0].value;
+
+		//Getting the remaining total amount from Invoice record
+		switch(tranType){
+		case "CustInvc":
+			if(multi){
+				var tranId = tranIds[0];
+				tranIds = [];
+				multiInvoicesList(tranId).each(function(result){
+					tranIds.push(result.getValue({name: "internalid", join: "appliedToTransaction"}));
+					transObj['itpm_amount'] += parseFloat(result.getValue({name: "amountremaining", join: "appliedToTransaction"}));
+					return true;
+				});
 			}else{
-				tranSearchCol.push('custbody_itpm_ddn_parentddn');
-				tranSearchCol.push('custbody_itpm_customer');
-				tranSearchCol.push('custbody_itpm_ddn_invoice');
-				tranSearchCol.push('custbody_itpm_ddn_openbal');
+				transObj['itpm_amount'] = record.load({
+					type:record.Type.INVOICE,
+					id:tranIds[0]
+				}).getValue('amountremainingtotalbox');
 			}
-			
-			if(subsidiariesEnabled){
-				tranSearchCol.push('subsidiary');
+			transObj['customer'] = tranSearch.entity[0].value;
+			break;
+		case "CustCred":
+			if(!multi){
+				transObj['itpm_amount'] = record.load({
+					type:record.Type.CREDIT_MEMO,
+					id:tranIds[0]
+				}).getValue('total');
 			}
-			if(currenciesEnabled){
-				tranSearchCol.push('currency');
-			}
-			if(locationsEnabled){
-				tranSearchCol.push('location');
-			}
-			if(classesEnabled){
-				tranSearchCol.push('class');
-			}
-			if(departmentsEnabled){
-				tranSearchCol.push('department');
-			}
-			
-			//getting the invoice or credit memo field values
-			tranSearch = search.lookupFields({
-				type:search.Type.TRANSACTION,
-				id:tranIds[0],
-				columns:tranSearchCol
-			});
-			log.debug('tranSearch',tranSearch);
-			var tranType = (createFrom)? createFrom : tranSearch.type[0].value;
-			
-			//Getting the remaining total amount from Invoice record
-			switch(tranType){
-			case "CustInvc":
-				if(multi){
-					var tranId = tranIds[0];
-					tranIds = [];
-					multiInvoicesList(tranId).each(function(result){
-						tranIds.push(result.getValue({name: "internalid", join: "appliedToTransaction"}));
-						transObj['itpm_amount'] += parseFloat(result.getValue({name: "amountremaining", join: "appliedToTransaction"}));
-						return true;
-					});
-				}else{
-					transObj['itpm_amount'] = record.load({
-		    			type:record.Type.INVOICE,
-		    			id:tranIds[0]
-		    		}).getValue('amountremainingtotalbox');
-				}
-				transObj['customer'] = tranSearch.entity[0].value;
-				break;
-			case "CustCred":
-				if(!multi){
-					transObj['itpm_amount'] = record.load({
-						type:record.Type.CREDIT_MEMO,
-						id:tranIds[0]
-					}).getValue('total');
-				}
-				transObj['customer'] = tranSearch.entity[0].value;
-				break;
-			case "ddn":
-				tranType = 'ddn';
-				ddnRec.setValue({
-					fieldId:'custbody_itpm_ddn_originalddn',
-					value:record.load({
-						type:'customtransaction_itpm_deduction',
-						id:tranIds[0]
-					}).getValue('custbody_itpm_ddn_originalddn')
-				}).setValue({
-					fieldId:'custbody_itpm_ddn_parentddn',
-					value:tranIds[0]
-				}).setValue({
-					fieldId:'custbody_itpm_appliedto',
-					value:tranIds[0]
-				});
-				tranIds = tranSearch.custbody_itpm_ddn_invoice.map(function(e){return e.value});
-				transObj['customer'] = tranSearch.custbody_itpm_customer[0].value;
-				transObj['itpm_amount'] = tranSearch.custbody_itpm_ddn_openbal;
-				break;
-			}
-			
-			transObj['assginto'] = runtime.getCurrentUser().id;
-			transObj['trandate'] = new Date();
-			transObj['followup'] = (new Date(new Date().setDate(new Date().getDate()+14)));
-			
-			//setting the classification values based on features
-			if(subsidiariesEnabled){
-				ddnRec.setValue({
-					fieldId:'subsidiary',
-					value:tranSearch.subsidiary[0].value
-				});
-			}
-			if(currenciesEnabled){
-				ddnRec.setValue({
-					fieldId:'currency',
-					value:tranSearch.currency[0].value
-				});
-			}
-			if(locationsEnabled && tranSearch.location.length > 0){
-				ddnRec.setValue({
-					fieldId:'location',
-					value:tranSearch.location[0].value
-				});
-			}
-			if(classesEnabled && tranSearch.class.length > 0){
-				ddnRec.setValue({
-					fieldId:'class',
-					value:tranSearch.class[0].value
-				});
-			}
-			if(departmentsEnabled && tranSearch.department.lenth > 0){
-				ddnRec.setValue({
-					fieldId:'department',
-					value: tranSearch.department[0].value
-				});
-			}
-			
-			log.debug('transObj',transObj);
-			
-			//setting the deduction record values
+			transObj['customer'] = tranSearch.entity[0].value;
+			break;
+		case "ddn":
+			tranType = 'ddn';
 			ddnRec.setValue({
-				fieldId:'custbody_itpm_ddn_invoice',
-				value:tranIds
+				fieldId:'custbody_itpm_ddn_originalddn',
+				value:record.load({
+					type:'customtransaction_itpm_deduction',
+					id:tranIds[0]
+				}).getValue('custbody_itpm_ddn_originalddn')
 			}).setValue({
-				fieldId:'custbody_itpm_customer',
-				value:transObj['customer']
+				fieldId:'custbody_itpm_ddn_parentddn',
+				value:tranIds[0]
 			}).setValue({
-				fieldId:'trandate',
-				value:transObj['trandate']
-			}).setValue({
-				fieldId:'custbody_itpm_ddn_nextaction',
-				value:transObj['followup']
-			}).setValue({
-				fieldId:'custbody_itpm_ddn_assignedto',
-				value:transObj['assginto']
-			}).setValue({
-				fieldId:'custbody_itpm_amount',
-				value:transObj['itpm_amount']
-			}).setValue({
-				fieldId:'custbody_itpm_ddn_openbal',
-				value:transObj['itpm_amount']
-			}).setValue({
-				fieldId:'custbody_itpm_ddn_totexp',
-				value:transObj['total_nonpromotional_expense']
+				fieldId:'custbody_itpm_appliedto',
+				value:tranIds[0]
 			});
-			
-			
-			//getting the line value for the deduction
-			var subsidiaryID = (subsidiariesEnabled)? transObj['subsidiary'] : undefined;
-			var prefObj = itpm.getPrefrenceValues(subsidiaryID);
-			
-			//it will set the lines on deductions 
-			setDeductionLines(ddnRec, {
-				tranType : tranType, 
-				customerId : transObj['customer'],
-				tranIds: (tranType == 'ddn')? [sc.newRecord.getValue('custbody_itpm_ddn_parentddn')] : tranIds,
-				multi:multi,
-				itpmAmount:transObj['itpm_amount'],
-				expenseId:prefObj.dednExpAccnt,
-				removeCustFromSplit:(tranType == 'ddn')?prefObj.removeCustomer:false
+			tranIds = tranSearch.custbody_itpm_ddn_invoice.map(function(e){return e.value});
+			transObj['customer'] = tranSearch.custbody_itpm_customer[0].value;
+			transObj['itpm_amount'] = tranSearch.custbody_itpm_ddn_openbal;
+			break;
+		}
+
+		transObj['assginto'] = runtime.getCurrentUser().id;
+		transObj['trandate'] = new Date();
+		transObj['followup'] = (new Date(new Date().setDate(new Date().getDate()+14)));
+
+		//setting the classification values based on features
+		if(subsidiariesEnabled){
+			ddnRec.setValue({
+				fieldId:'subsidiary',
+				value:tranSearch.subsidiary[0].value
 			});
-//		}
+		}
+		if(currenciesEnabled){
+			ddnRec.setValue({
+				fieldId:'currency',
+				value:tranSearch.currency[0].value
+			});
+		}
+		if(locationsEnabled && tranSearch.location.length > 0){
+			ddnRec.setValue({
+				fieldId:'location',
+				value:tranSearch.location[0].value
+			});
+		}
+		if(classesEnabled && tranSearch.class.length > 0){
+			ddnRec.setValue({
+				fieldId:'class',
+				value:tranSearch.class[0].value
+			});
+		}
+		if(departmentsEnabled && tranSearch.department.lenth > 0){
+			ddnRec.setValue({
+				fieldId:'department',
+				value: tranSearch.department[0].value
+			});
+		}
+
+		log.debug('transObj',transObj);
+
+		//setting the deduction record values
+		ddnRec.setValue({
+			fieldId:'custbody_itpm_ddn_invoice',
+			value:tranIds
+		}).setValue({
+			fieldId:'custbody_itpm_customer',
+			value:transObj['customer']
+		}).setValue({
+			fieldId:'trandate',
+			value:transObj['trandate']
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_nextaction',
+			value:transObj['followup']
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_assignedto',
+			value:transObj['assginto']
+		}).setValue({
+			fieldId:'custbody_itpm_amount',
+			value:transObj['itpm_amount']
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_openbal',
+			value:transObj['itpm_amount']
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_totexp',
+			value:transObj['total_nonpromotional_expense']
+		});
+
+
+		//getting the line value for the deduction
+		var subsidiaryID = (subsidiariesEnabled)? transObj['subsidiary'] : undefined;
+		var prefObj = itpm.getPrefrenceValues(subsidiaryID);
+
+		//it will set the lines on deductions 
+		setDeductionLines(ddnRec, {
+			tranType : tranType, 
+			customerId : transObj['customer'],
+			tranIds: (tranType == 'ddn')? [sc.newRecord.getValue('custbody_itpm_ddn_parentddn')] : tranIds,
+			multi:multi,
+			itpmAmount:transObj['itpm_amount'],
+			expenseId:prefObj.dednExpAccnt,
+			removeCustFromSplit:(tranType == 'ddn')?prefObj.removeCustomer:false
+		});
 	}
 	
 	/**
