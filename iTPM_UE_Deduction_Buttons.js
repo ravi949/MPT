@@ -180,16 +180,13 @@ define(['N/runtime',
 				}
 			}
 			
-			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE && 
-				sc.type == sc.UserEventType.EDIT
-			){
+			//setting the deduction lines with itpm amount and previous old account values
+			if(sc.type == sc.UserEventType.EDIT){
 				setDeductionLines(sc.newRecord,{
 					tranType:'override_lines_onedit',
 					oldRec:sc.oldRecord
 				});
 			}
-			
-			
 		} catch(ex) {
 			log.error(ex.name, ex.message + '; RecordId: ' + sc.newRecord.id);
 		}
@@ -802,7 +799,7 @@ define(['N/runtime',
 				var isDebitAmount = obj.oldRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i});
 				receivbaleAccntsList.push({
 					accountId:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'account',line:i}),
-					amount:(isDebitAmount)? obj.oldRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i}) : obj.oldRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i}),
+					amount:ddnRec.getValue('custbody_itpm_amount'),
 					fid:(isDebitAmount)?'debit':'credit',
 					memo:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'memo',line:i})
 				});
