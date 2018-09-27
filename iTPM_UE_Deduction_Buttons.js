@@ -541,19 +541,34 @@ define(['N/runtime',
 			transObj['followup'] = (new Date(new Date().setDate(new Date().getDate()+14)));
 			
 			if(subsidiariesEnabled){
-				transObj['subsidiary'] = tranSearch.subsidiary[0].value;
+				ddnRec.setValue({
+					fieldId:'subsidiary',
+					value:tranSearch.subsidiary[0].value
+				});
 			}
 			if(currenciesEnabled){
-				transObj['currency'] = tranSearch.currency[0].value;
+				ddnRec.setValue({
+					fieldId:'currency',
+					value:tranSearch.currency[0].value
+				});
 			}
 			if(locationsEnabled && tranSearch.location.length > 0){
-				transObj['location'] = tranSearch.location[0].value;
+				ddnRec.setValue({
+					fieldId:'location',
+					value:tranSearch.location[0].value
+				});
 			}
 			if(classesEnabled && tranSearch.class.length > 0){
-				transObj['class'] = tranSearch.class[0].value;
+				ddnRec.setValue({
+					fieldId:'class',
+					value:tranSearch.class[0].value
+				});
 			}
 			if(departmentsEnabled && tranSearch.department.lenth > 0){
-				transObj['department'] = tranSearch.department[0].value;
+				ddnRec.setValue({
+					fieldId:'department',
+					value: tranSearch.department[0].value
+				});
 			}
 			
 			log.error('transObj',transObj);
@@ -585,43 +600,13 @@ define(['N/runtime',
 				value:transObj['total_nonpromotional_expense']
 			});
 			
-			if(subsidiariesEnabled){
-				ddnRec.setValue({
-					fieldId:'subsidiary',
-					value:transObj['subsidiary']
-				});
-			}
-			if(currenciesEnabled){
-				ddnRec.setValue({
-					fieldId:'currency',
-					value:transObj['currency']
-				});
-			}
-			if(locationsEnabled && transObj['location']){
-				ddnRec.setValue({
-					fieldId:'location',
-					value:transObj['location']
-				});
-			}
-			if(classesEnabled && transObj['class']){
-				ddnRec.setValue({
-					fieldId:'class',
-					value:transObj['class']
-				});
-			}
-			if(departmentsEnabled && transObj['department']){
-				ddnRec.setValue({
-					fieldId:'department',
-					value:transObj['department']
-				});
-			}
 			
 			//getting the line value for the deduction
 			var subsidiaryID = (subsidiariesEnabled)? transObj['subsidiary'] : undefined;
 			var prefObj = itpm.getPrefrenceValues(subsidiaryID);
 			
 			//it will set the lines on deductions 
-			setDeductionLines(sc.newRecord, {
+			setDeductionLines(ddnRec, {
 				tranType : tranType, 
 				customerId : transObj['customer'],
 				tranIds: (tranType == 'ddn')? [sc.newRecord.getValue('custbody_itpm_ddn_parentddn')] : tranIds,
