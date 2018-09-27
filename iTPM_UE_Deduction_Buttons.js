@@ -53,7 +53,7 @@ define(['N/runtime',
 			//Deduction Create or Edit Process
 			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
 				if(sc.type == sc.UserEventType.CREATE){
-					log.error('parameters',sc.request.parameters);
+					log.debug('parameters',sc.request.parameters);
 					var createFrom = sc.request.parameters.from;
 					validateTransaction(sc, createFrom);
 					deductionCreateOrEdit(sc, createFrom);
@@ -114,7 +114,7 @@ define(['N/runtime',
 				sc.type == sc.UserEventType.CREATE
 			){
 				var parentDDN = sc.newRecord.getValue('custbody_itpm_ddn_parentddn');
-				log.error('transactions',sc.newRecord.getValue('custbody_itpm_ddn_invoice'));
+				log.debug('transactions',sc.newRecord.getValue('custbody_itpm_ddn_invoice'));
 				if(!parentDDN){
 					var tranIds = sc.newRecord.getValue('custbody_itpm_ddn_invoice');
 					//getting the invoice or credit memo field values
@@ -123,7 +123,7 @@ define(['N/runtime',
 						id:tranIds[0],
 						columns:['type','entity']
 					});
-					log.error('tranSearch',tranSearch);
+					log.debug('tranSearch',tranSearch);
 					var tranType = tranSearch.type[0].value;
 					var multi = tranIds.length > 1;
 					var itpmAmount = 0;
@@ -165,8 +165,8 @@ define(['N/runtime',
 						expenseId:prefObj.dednExpAccnt
 					});
 				}else if(parentDDN){
-					log.error('parentDDN',parentDDN);
-					log.error('open bal',sc.newRecord.getValue('custbody_itpm_ddn_openbal'));
+					log.debug('parentDDN',parentDDN);
+					log.debug('open bal',sc.newRecord.getValue('custbody_itpm_ddn_openbal'));
 					sc.newRecord.setValue({
 						fieldId:'custbody_itpm_amount',
 						value:sc.newRecord.getValue('custbody_itpm_ddn_openbal')
@@ -210,7 +210,7 @@ define(['N/runtime',
 			if(sc.type == sc.UserEventType.CREATE){
 				var ddnRec = sc.newRecord;
 				if(ddnRec.getValue('custbody_itpm_ddn_parentddn')){
-					log.error('triggered','created parent deduction');
+					log.debug('triggered','created parent deduction');
 					//loading the parent record again why because parentDeductionRec already save 
 					//thats why we are loading the record newly	
 					var parentRec = record.load({
@@ -223,7 +223,7 @@ define(['N/runtime',
 					//getting the line value for the deduction
 					var subsidiaryID = (itpm.subsidiariesEnabled())? sc.newRecord.getValue('subsidiary') : undefined;
 					var prefObj = itpm.getPrefrenceValues(subsidiaryID);
-					log.error('amount condition',parentAmount > childAmount);
+					log.debug('amount condition',parentAmount > childAmount);
 					if(parentAmount > childAmount){
 						itpm.createSplitDeduction(parentRec,{
 							amount : (parentAmount - childAmount).toFixed(2),
@@ -269,7 +269,7 @@ define(['N/runtime',
 						id:tranIds[0],
 						columns:['type']
 					}).type[0].value;
-					log.error('trantype in aftersubmit',tranType);
+					log.debug('trantype in aftersubmit',tranType);
 					
 					if(tranType == "CustInvc"){
 						createCustomerPayment(sc.newRecord, tranIds, sc.newRecord.getValue('memo') , ddnRec.id);
@@ -484,7 +484,7 @@ define(['N/runtime',
 				id:tranIds[0],
 				columns:tranSearchCol
 			});
-			log.error('tranSearch',tranSearch);
+			log.debug('tranSearch',tranSearch);
 			var tranType = (createFrom)? createFrom : tranSearch.type[0].value;
 			
 			//Getting the remaining total amount from Invoice record
@@ -540,6 +540,7 @@ define(['N/runtime',
 			transObj['trandate'] = new Date();
 			transObj['followup'] = (new Date(new Date().setDate(new Date().getDate()+14)));
 			
+			//setting the classification values based on features
 			if(subsidiariesEnabled){
 				ddnRec.setValue({
 					fieldId:'subsidiary',
@@ -571,7 +572,7 @@ define(['N/runtime',
 				});
 			}
 			
-			log.error('transObj',transObj);
+			log.debug('transObj',transObj);
 			
 			//setting the deduction record values
 			ddnRec.setValue({
@@ -715,7 +716,7 @@ define(['N/runtime',
     function setDeductionLines(ddnRec, obj){
     	var lineMemo;
     	var receivbaleAccntsList = [];
-    	log.error('obj',obj);
+    	log.debug('obj',obj);
     	
     	switch(obj.tranType){
     	case "CustInvc":
@@ -796,9 +797,9 @@ define(['N/runtime',
     		break;
     	}
     	
-    	log.error('receivbaleAccntsList',receivbaleAccntsList);
+    	log.debug('receivbaleAccntsList',receivbaleAccntsList);
     	var lineCount = ddnRec.getLineCount('line');
-    	log.error('lineCOunt',lineCount);
+    	log.debug('lineCOunt',lineCount);
     	for(var i = lineCount-1; i >= 0 ; i--){
     		ddnRec.removeLine({
     			sublistId:'line',
@@ -941,7 +942,7 @@ define(['N/runtime',
 	 */
 	function validateTransaction(sc, createFrom){
 		var tranIds = JSON.parse(decodeURIComponent(sc.request.parameters.tran_ids));
-		log.error('tranIds validateTransactions',tranIds);
+		log.debug('tranIds validateTransactions',tranIds);
 		if(createFrom == 'ddn'){
 			itpm.validateDeduction(tranIds[0]);
 		}else{
@@ -965,7 +966,7 @@ define(['N/runtime',
 						['status','anyof',["Custom"+sc.request.parameters.customtype+":A","Custom"+sc.request.parameters.customtype+":B"]]
 						]
 				}).run().getRange(0,5).length == 0;
-				log.error('invsatus',invStatus);
+				log.debug('invsatus',invStatus);
 				if(invStatus == 'Paid In Full' && !invoiceDeductionsAreEmpty){
 					throw {
 						name: 'INVALID_STATUS',
