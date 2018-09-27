@@ -27,7 +27,7 @@ define(['N/runtime',
 		try{
 
 			//prevent copy of the deduction record
-			if(sc.type == 'copy'){
+			if(sc.type == sc.UserEventType.COPY){
 				throw{
 					name:'COPY_NOT_ALLOWED',
 					message:'Copying a deduction is not allowed.'
@@ -38,7 +38,8 @@ define(['N/runtime',
 			var contextType = contextType = runtime.executionContext;
 
 			//Restrict the user edit deduction record if status is Processing
-			if(contextType == 'USERINTERFACE' && sc.type == 'edit' && status == 'E'){
+			if(contextType == runtime.ContextType.USER_INTERFACE && 
+			   sc.type == sc.UserEventType.EDIT && status == 'E'){
 				throw{
 					name:'INVALID_EDIT',
 					message:'The Deduction is in Processing status, It cannot be Edited.'
