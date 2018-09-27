@@ -798,16 +798,15 @@ define(['N/runtime',
     		break;
     	case "override_lines_onedit":
 			var oldRecLineCount = obj.oldRec.getLineCount('line');
-				receivbaleAccntsList = [
-				     {accountId:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'account',line:0}),
-					  amount:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'credit',line:0}),
-					  fid:'credit',
-					   memo:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'memo',line:0})},
-					 {accountId:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'account',line:1}),
-					  amount:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'debit',line:1}),
-					  fid:'debit',
-					  memo:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'memo',line:1})}
-				];
+			for(var i = 0; i < oldRecLineCount; i++){
+				var isDebitAmount = obj.oldRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i});
+				receivbaleAccntsList.push({
+					accountId:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'account',line:i}),
+					amount:(isDebitAmount)? obj.oldRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i}) : obj.oldRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i}),
+					fid:(isDebitAmount)?'debit':'credit',
+					memo:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'memo',line:i})
+				});
+			}
     		break;
     	}
     	
@@ -956,6 +955,7 @@ define(['N/runtime',
 	 */
 	function validateTransaction(sc, createFrom){
 		var tranIds = JSON.parse(decodeURIComponent(sc.request.parameters.tran_ids));
+		log.error('tranIds validateTransactions',tranIds);
 		if(createFrom == 'ddn'){
 			itpm.validateDeduction(tranIds[0]);
 		}else{
@@ -963,7 +963,7 @@ define(['N/runtime',
 				type:search.Type.TRANSACTION,
 				id:tranIds[0],
 				columns:['type']
-			});
+			}).type[0].value;
 			if(tranType == "CustInvc"){
 				var invStatus = record.load({
 					type:record.Type.INVOICE,
@@ -979,7 +979,7 @@ define(['N/runtime',
 						['status','anyof',["Custom"+sc.request.parameters.customtype+":A","Custom"+sc.request.parameters.customtype+":B"]]
 						]
 				}).run().getRange(0,5).length == 0;
-
+				log.error('invsatus',invStatus);
 				if(invStatus == 'Paid In Full' && !invoiceDeductionsAreEmpty){
 					throw {
 						name: 'INVALID_STATUS',
