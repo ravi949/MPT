@@ -35,7 +35,14 @@ function(url, message, record, dialog, search) {
 				returnExternalUrl: false,
 				params:{pid:pid,from:'promo'}
 			});
-			window.open(outputURL,'_self');
+			var setUrl = url.resolveRecord({
+			    recordType: 'customtransaction_itpm_settlement',
+			    recordId: 0,
+			    isEditMode: true,
+				params:{promoid:pid,from:'promo'}
+			});
+			//window.open(outputURL,'_self');
+			window.open(setUrl,'_self');
 		}catch(e){
 			console.log(e.name,'function name = new Settlement, message = '+e.message);
 		}

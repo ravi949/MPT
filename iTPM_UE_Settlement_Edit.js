@@ -4,14 +4,16 @@
  * @NModuleScope TargetAccount
  * Calling suitelet to edit settlement and validate then saving the settlement 
  */
-define(['N/redirect',
+define(['N/record',
+		'N/redirect',
 		'N/runtime',
 		'N/search',
+		'N/format',
 		'./iTPM_Module_Settlement.js',
 		'./iTPM_Module.js'
 		],
 
-function(redirect,runtime,search,ST_Module, itpm) {
+function(record, redirect, runtime, search, format, ST_Module, itpm) {
    
     /**
      * Function definition to be triggered before record is loaded.
@@ -24,9 +26,12 @@ function(redirect,runtime,search,ST_Module, itpm) {
      */
     function beforeLoad(scriptContext) {
     	try{
-    		var eventType = scriptContext.type,contextType = runtime.executionContext
+    		
+    		var eventType = scriptContext.type;
+    		var contextType = runtime.executionContext;
+    		var settlementRec = scriptContext.newRecord;
     		if(contextType == 'USERINTERFACE' && eventType == 'edit'){
-    			var settlementRec = scriptContext.newRecord;
+    			//var settlementRec = scriptContext.newRecord;
     			//restrict the user to editing an Processed Settlement 
     			var setlStatus = settlementRec.getValue('transtatus');
     			if(setlStatus == 'E'){
@@ -41,6 +46,9 @@ function(redirect,runtime,search,ST_Module, itpm) {
 	    				parameters:{sid:settlementRec.id,from:'setrec',type:'edit'}
 	    			});
 				}    			
+    		}
+    		if(contextType == 'USERINTERFACE' && eventType == 'create'){
+    			createSettlement(scriptContext.request.parameters, settlementRec)    			
     		}
     	}catch (e) {
     		if(e.error == 'custom')
@@ -66,8 +74,11 @@ function(redirect,runtime,search,ST_Module, itpm) {
     		var settlementRec = scriptContext.newRecord,settlementOldRec;
     		var settlementReq = parseFloat(settlementRec.getValue('custbody_itpm_amount'));
 			var lumsumSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqls'));
+			lumsumSetReq = (lumsumSetReq)?lumsumSetReq:0
 			var billbackSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqbb'));
+			billbackSetReq = (billbackSetReq)?billbackSetReq:0
 			var offInvSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqoi'));
+			offInvSetReq = (offInvSetReq)?offInvSetReq:0
 			var promoId = settlementRec.getValue('custbody_itpm_set_promo');
 			var promoDealRec = search.lookupFields({
         		type:'customrecord_itpm_promotiondeal',
@@ -166,7 +177,205 @@ function(redirect,runtime,search,ST_Module, itpm) {
     		log.error(e.name,'function name = aftersubmit, message = '+e.message);
     	}
     }
+    /**
+	 * function createSettlement(params)
+	 * 
+	 *  @param {Object} scriptParms
+	 *   @param {Object} settlementRec
+	 */
+	function createSettlement(scriptParms, settlementRec){
+		try{
+			log.debug('scriptParms', scriptParms);
+        	var promoId = scriptParms.promoid;
+        	var createdFromDDN = false;
+			//Adding values to the Settlement fields
+			//loading the record for NET PROMOTIONAL LIABLIITY, INCURRED PROMOTIONAL LIABILITY fields(These are did not return a value in lookupFields method)
+    		var promotionRec = record.load({
+				type:'customrecord_itpm_promotiondeal',
+				id: promoId
+			});
+    		
+    		var promoTypeRecLookup = search.lookupFields({
+        		type:'customrecord_itpm_promotiontype',
+        		id:promotionRec.getValue({fieldId:'custrecord_itpm_p_type'}),
+        		columns:['custrecord_itpm_pt_defaultaccount']
+    		});
+    		var subsidiaryExists = itpm.subsidiariesEnabled();
+    		var customerId = promotionRec.getValue({fieldId:'custrecord_itpm_p_customer'});
+    		var promoNetLiabilityLS = promotionRec.getValue({fieldId:'custrecord_itpm_p_netlsle'});
+    		promoNetLiabilityLS = format.parse({value:promoNetLiabilityLS, type: format.Type.CURRENCY}).toFixed(2);        	
+			var promoOverpayLS = promotionRec.getValue({fieldId:'custrecord_itpm_p_lsoverpayamount'});
+			promoOverpayLS = format.parse({value:promoOverpayLS, type: format.Type.CURRENCY}).toFixed(2);
+        	var promoNetLiabilityBB = parseFloat(promotionRec.getValue({fieldId:'custrecord_itpm_p_netbillbackle'}));
+        	promoNetLiabilityBB = format.parse({value:promoNetLiabilityBB, type: format.Type.CURRENCY}).toFixed(2);
+        	var promoOverpayBB = promotionRec.getValue({fieldId:'custrecord_itpm_p_billbackoverpayamount'});
+        	promoOverpayBB = format.parse({value:promoOverpayBB, type: format.Type.CURRENCY}).toFixed(2);
+        	var promoNetLiabilityOI = promotionRec.getValue({fieldId:'custrecord_itpm_netliabilityoi'});
+        	promoNetLiabilityOI = format.parse({value:promoNetLiabilityOI, type: format.Type.CURRENCY}).toFixed(2);
+        	var promoOverpayOI = promotionRec.getValue({fieldId:'custrecord_itpm_p_missedoioverpayamount'});
+        	promoOverpayOI = format.parse({value:promoOverpayOI, type: format.Type.CURRENCY}).toFixed(2);
+        	var promoTypeDefaultAccnt = promoTypeRecLookup['custrecord_itpm_pt_defaultaccount'][0].value;
+			var promoDealLumsumAccnt = promotionRec.getValue({fieldId:'custrecord_itpm_p_account'});
+        	var promoName = promotionRec.getValue({fieldId:'name'});
+        	var currencyExists = itpm.currenciesEnabled();
 
+			/*  
+			var incrdPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itepm_p_incurredpromotionalle'});
+			var netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'});
+        	var promoLumSum = parseFloat(promotionRec.getValue({fieldId:'custrecord_itpm_p_lumpsum'}));            	
+        	var customerText = promotionRec.getValue({fieldId:'custrecord_itpm_p_customer'});
+        	var promotionDesc = promotionRec.getValue({fieldId:'custrecord_itpm_p_description'});
+        	var promoShipStDate = promotionRec.getValue({fieldId:'custrecord_itpm_p_shipstart'});
+        	var promoShipEdDate = promotionRec.getValue({fieldId:'custrecord_itpm_p_shipend'});
+        	var promoHasAllBB = ST_Module.getAllowanceMOP(promoId,1);
+        	var promoHasAllOI = ST_Module.getAllowanceMOP(promoId,3);
+        	var promoHasAllNB = ST_Module.getAllowanceMOP(promoId,2);    
+    		var locationsExists = itpm.locationsEnabled();
+    		var departmentsExists = itpm.departmentsEnabled();
+    		var classesExists = itpm.classesEnabled();
+    		*/	
+    		var subsid = undefined;
+    		if(subsidiaryExists){
+        		subsid = promotionRec.getValue({fieldId:'custrecord_itpm_p_subsidiary'});
+            	var subsText = promotionRec.getValue({fieldId:'custrecord_itpm_p_subsidiary'});
+            	settlementRec.setValue({
+            	    fieldId: 'subsidiary',
+            	    value: subsid
+            	});
+        	}
+    		if(currencyExists){
+        		var currencyId = promotionRec.getValue({fieldId:'custrecord_itpm_p_currency'});
+        		settlementRec.setValue({
+            	    fieldId: 'currency',
+            	    value: currencyId
+            	});
+        	}
+        	settlementRec.setValue({
+        	    fieldId: 'custbody_itpm_customer',
+        	    value: customerId
+        	});
+        	if(scriptParms.from == 'promo'){
+        		settlementRec.setValue({
+            	    fieldId: 'transtatus',
+            	    value: 'E'
+            	});
+        	}
+        	settlementRec.setValue({
+        	    fieldId: 'custbody_itpm_set_promo',
+        	    value: promoId
+        	});
+        	settlementRec.setValue({
+        	    fieldId: 'custbody_itpm_set_netliabilityls',
+        	    value: promoNetLiabilityLS
+        	});
+        	settlementRec.setValue({
+        	    fieldId: 'custbody_itpm_set_paidls',
+        	    value: promoOverpayLS
+        	});
+        	settlementRec.setValue({
+        	    fieldId: 'custbody_itpm_set_netliabilitybb',
+        	    value: promoNetLiabilityBB
+        	});
+        	settlementRec.setValue({
+        	    fieldId: 'custbody_itpm_set_paidbb',
+        	    value: promoOverpayBB
+        	});
+        	settlementRec.setValue({
+        	    fieldId: 'custbody_itpm_set_netliabilityoi',
+        	    value: promoNetLiabilityOI
+        	});
+        	settlementRec.setValue({
+        	    fieldId: 'custbody_itpm_set_paidoi',
+        	    value: promoOverpayOI
+        	});
+        	var prefObj = itpm.getPrefrenceValues(subsid);
+        	prefObj.lumsumSetReq = 0;//lumsumSetReq;
+        	prefObj.billbackSetReq = 0;//billbackSetReq;
+        	prefObj.offinvoiceSetReq = 0;//offinvoiceSetReq;
+        	prefObj.promoTypeDefaultAccnt = promoTypeDefaultAccnt;
+        	prefObj.promoDealLumsumAccnt = promoDealLumsumAccnt;
+        	prefObj.promotionId = promoId;
+
+			getSettlementLines(prefObj).forEach(function(e, index){
+				//if(e.amount == 0){
+					settlementRec.setSublistValue({
+						sublistId:'line',
+						fieldId:'account',
+						value:e.account,
+						line:index
+					}).setSublistValue({
+						sublistId:'line',
+						fieldId:e.type,
+						value:e.amount,
+						line:index
+					}).setSublistValue({
+						sublistId:'line',
+						fieldId:'custcol_itpm_lsbboi',
+						value:e.id,
+						line:index
+					}).setSublistValue({
+						sublistId:'line',
+						fieldId:'memo',
+						value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+promoName,
+    					line:index
+					}).setSublistValue({
+						sublistId:'line',
+						fieldId:'entity',
+						value:customerId,
+						line:index
+					});
+				//}				
+			});
+		}catch(e){
+    		log.error(e.name,'function name = createSettlement, message = '+e.message);
+    	}
+	}
+
+	/**
+	 * @param lineObj
+	 * @description
+	 */
+	function getSettlementLines(lineObj){
+		log.debug('lineObj.  ',lineObj);
+		return [{
+			lineType:'ls',
+			id:'1',
+			account:lineObj.promoDealLumsumAccnt,
+			type:'debit',
+			amount:lineObj.lumsumSetReq
+		},{
+			lineType:'ls',
+			id:'1',
+			account:lineObj.settlementAccnt,
+			type:'credit',
+			amount:lineObj.lumsumSetReq
+		},{
+			lineType:'bb',
+			id:'2',
+			account:lineObj.promoTypeDefaultAccnt,
+			type:'debit',
+			amount:lineObj.billbackSetReq
+		},{
+			lineType:'bb',
+			id:'2',
+			account:lineObj.settlementAccnt,
+			type:'credit',
+			amount:lineObj.billbackSetReq
+		},{
+			lineType:'inv',
+			id:'3',
+			account:lineObj.promoTypeDefaultAccnt,
+			type:'debit',
+			amount:lineObj.offinvoiceSetReq
+		},{
+			lineType:'inv',
+			id:'3',
+			account:lineObj.settlementAccnt,
+			type:'credit',
+			amount:lineObj.offinvoiceSetReq
+		}];
+
+	}
     return {
         beforeLoad: beforeLoad,
         beforeSubmit: beforeSubmit,
