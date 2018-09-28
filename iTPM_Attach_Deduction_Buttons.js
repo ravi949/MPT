@@ -61,11 +61,6 @@ define(['N/url',
 				case "DEFAULT":
 					var msg = displayMessage('info','Splitting Deduction','Please wait while you are redirected to the split deduction screen.');
 					msg.show();
-//					suiteletUrl = url.resolveScript({
-//						scriptId:'customscript_itpm_ddn_createeditsuitelet',
-//						deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
-//						params:{fid:id,from:'ddn',type:'create'}
-//					});
 					redirectURL = url.resolveRecord({
 						recordType: 'customtransaction_itpm_deduction',
 						recordId: 0,
