@@ -71,7 +71,8 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
     	try{
     		log.debug('type',scriptContext.type)
     		//not getting the Thousands in the values of currency fields 
-    		var settlementRec = scriptContext.newRecord,settlementOldRec;
+    		var settlementRec = scriptContext.newRecord;
+    		var settlementOldRec;
     		var settlementReq = parseFloat(settlementRec.getValue('custbody_itpm_amount'));
 			var lumsumSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqls'));
 			lumsumSetReq = (lumsumSetReq)?lumsumSetReq:0
@@ -106,6 +107,32 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
     		}
     		
     		if(scriptContext.type == 'edit' || scriptContext.type == 'create'){
+    			
+    			if(scriptContext.type == 'create'){
+    				getSettlementLines({lumsumSetReq:lumsumSetReq,billbackSetReq:billbackSetReq,offinvoiceSetReq:offInvSetReq}).forEach(function(e, index){
+    					if(e.amount > 0){
+    						settlementRec.setSublistValue({
+    							sublistId:'line',
+    							fieldId:e.type,
+    							value:e.amount,
+    							line:index
+    						});
+    					}				
+    				});
+    				var numLines = settlementRec.getLineCount({
+    				    sublistId: 'line'
+    				});
+    				log.debug('numLines ',numLines);
+    				/*for(var v = numLines - 1 ; v >= 0; v--){
+    					settlementRec.removeLine({
+    					    sublistId: 'line',
+    					    line: v,
+    					    ignoreRecalc: true
+    					})
+    				}*/
+    			}
+    			
+    			
     			// All settlement request values MUST be greater than zero. (Do NOT allow Lump Sum AND Bill Back to be zero during submit, on EDIT. Either of the fields can individually be zero, but not both.)
     			/*if(promoLS <= 0 && !promoHasAllNB){
 					if(lumsumSetReq > 0){
@@ -139,6 +166,7 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
     			if(settlementReq.toFixed(2) != (lumsumSetReq+billbackSetReq+offInvSetReq).toFixed(2)){
 					throw {error:'custom',message:"settlement request must be equal to the sum of bill back, off-invoice and lump sum"};
 				}
+    			 			
     		}
     	}catch(e){
     		if(e.error == 'custom')
@@ -162,17 +190,19 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
     		var eventType = scriptContext.type;
     		var settlementOldRec = scriptContext.oldRecord;
 			var settlementNewRec = scriptContext.newRecord;
-			var oldStatus = settlementOldRec.getValue('transtatus');
-			var newStatus = settlementNewRec.getValue('transtatus');
-			var promoId = settlementNewRec.getValue('custbody_itpm_set_promo');
-			
+			if(eventType == 'create'){
+				ST_Module.applyToDeduction({sid:settlementNewRec.id,ddn:settlementNewRec.getValue('custbody_itpm_appliedto')},'D');//Here 'D' indicating Deduction.
+			} 		
 			if(eventType == 'edit'){
+				var oldStatus = settlementOldRec.getValue('transtatus');
+				var newStatus = settlementNewRec.getValue('transtatus');
+				var promoId = settlementNewRec.getValue('custbody_itpm_set_promo');	
 				log.debug('Old Status & New Status', oldStatus+' & '+newStatus);
 				if((oldStatus == 'E' && (newStatus == 'A' || newStatus == 'B')) || ((oldStatus == 'A' || oldStatus == 'B') && newStatus == 'C')){
 					//Creating New KPI Queue Record
 					itpm.createKPIQueue(promoId, 5); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
 				}
-			}
+			}  
     	}catch(e){
     		log.error(e.name,'function name = aftersubmit, message = '+e.message);
     	}
@@ -186,8 +216,8 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
 	function createSettlement(scriptParms, settlementRec){
 		try{
 			log.debug('scriptParms', scriptParms);
-        	var promoId = scriptParms.promoid;
-        	var createdFromDDN = false;
+        	var promoId = scriptParms.custom_promoid;
+        	var createdFromDDN = (scriptParms.custom_from == 'ddn');
 			//Adding values to the Settlement fields
 			//loading the record for NET PROMOTIONAL LIABLIITY, INCURRED PROMOTIONAL LIABILITY fields(These are did not return a value in lookupFields method)
     		var promotionRec = record.load({
@@ -218,7 +248,7 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
 			var promoDealLumsumAccnt = promotionRec.getValue({fieldId:'custrecord_itpm_p_account'});
         	var promoName = promotionRec.getValue({fieldId:'name'});
         	var currencyExists = itpm.currenciesEnabled();
-
+        	
 			/*  
 			var incrdPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itepm_p_incurredpromotionalle'});
 			var netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'});
@@ -230,9 +260,6 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
         	var promoHasAllBB = ST_Module.getAllowanceMOP(promoId,1);
         	var promoHasAllOI = ST_Module.getAllowanceMOP(promoId,3);
         	var promoHasAllNB = ST_Module.getAllowanceMOP(promoId,2);    
-    		var locationsExists = itpm.locationsEnabled();
-    		var departmentsExists = itpm.departmentsEnabled();
-    		var classesExists = itpm.classesEnabled();
     		*/	
     		var subsid = undefined;
     		if(subsidiaryExists){
@@ -254,11 +281,45 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
         	    fieldId: 'custbody_itpm_customer',
         	    value: customerId
         	});
-        	if(scriptParms.from == 'promo'){
+        	settlementRec.setValue({
+        		fieldId: 'transtatus',
+        		value: 'E'
+        	});
+        	if(createdFromDDN){
+        		var locationsExists = itpm.locationsEnabled();
+        		var departmentsExists = itpm.departmentsEnabled();
+        		var classesExists = itpm.classesEnabled();
+        		
         		settlementRec.setValue({
-            	    fieldId: 'transtatus',
-            	    value: 'E'
+            	    fieldId: 'custbody_itpm_appliedto',
+            	    value: scriptParms.custom_ddn
             	});
+        		var ddnLookUp = search.lookupFields({
+            		type:'customtransaction_itpm_deduction',
+            		id: scriptParms.custom_ddn,
+            		columns:['tranid','department','class','location','custbody_itpm_ddn_openbal']
+        		});   
+        		log.debug('ddnLookUp ',ddnLookUp);
+        		
+        		if(locationsExists){
+        			settlementRec.setValue({
+                	    fieldId: 'location',
+                	    value: ddnLookUp.location[0].value
+                	});
+        		}
+        		if(departmentsExists){
+            		settlementRec.setValue({
+                	    fieldId: 'department',
+                	    value: ddnLookUp.department[0].value
+                	});
+        		}
+        		if(classesExists){
+        			var classDdn = settlementRec.getValue('');
+        			settlementRec.setValue({
+                	    fieldId: 'class',
+                	    value: ddnLookUp.class[0].value
+                	});
+        		}
         	}
         	settlementRec.setValue({
         	    fieldId: 'custbody_itpm_set_promo',
@@ -316,7 +377,7 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
 					}).setSublistValue({
 						sublistId:'line',
 						fieldId:'memo',
-						value:(createdFromDDN)?'Settlement Created From Deduction #'+deductionRec.getValue('tranid'):'Settlement Created From Promotion # '+promoName,
+						value:(createdFromDDN)?'Settlement Created From Deduction #'+ddnLookUp.tranid:'Settlement Created From Promotion # '+promoName,
     					line:index
 					}).setSublistValue({
 						sublistId:'line',

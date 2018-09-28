@@ -109,28 +109,40 @@ define(['N/ui/serverWidget',
 				});
 
 				if(promoDealRecordSearch.runPaged().count > 0){
-					listcolumn.setURL({
+					/*var setUrl = url.resolveRecord({
+					    recordType: 'customtransaction_itpm_settlement',
+					    recordId: 0,
+					    isEditMode: true
+					});*/
+					/*listcolumn.setURL({
 						url : url.resolveScript({
 							scriptId: 'customscript_itpm_set_createeditsuitelet',
 							deploymentId: 'customdeploy_itpm_set_createeditsuitelet',
 							returnExternalUrl: false
 						})
+					});*/
+					listcolumn.setURL({
+						url :url.resolveRecord({
+						    recordType: 'customtransaction_itpm_settlement',
+						    recordId: 0,
+						    isEditMode: true
+						})
 					});
 					listcolumn.addParamToURL({
-						param : 'pid',
+						param : 'custom_promoid',//'pid',
 						value : 'custpage_itpm_id',
 						dynamic:true
 					});
-					listcolumn.addParamToURL({
-						param : 'type',
+					/*listcolumn.addParamToURL({
+						param : 'custom_type',
 						value : 'create'
-					});
+					});*/
 					listcolumn.addParamToURL({
-						param : 'ddn',
+						param : 'custom_ddn',
 						value : params.ddn
 					});
 					listcolumn.addParamToURL({
-						param : 'from',
+						param : 'custom_from',
 						value : 'ddn'
 					});
 					promoDealRecordSearch.run().each(function(e){
