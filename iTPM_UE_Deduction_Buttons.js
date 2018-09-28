@@ -53,8 +53,8 @@ define(['N/runtime',
 			//Deduction Create or Edit Process
 			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
 				if(sc.type == sc.UserEventType.CREATE){
-					log.debug('parameters',sc.request.parameters);
-					var createFrom = sc.request.parameters.from;
+					log.error('parameters',sc.request.parameters);
+					var createFrom = sc.request.parameters.custom_from;
 					validateTransaction(sc, createFrom);
 					deductionCreateOrEdit(sc, createFrom);
 				}
@@ -447,8 +447,8 @@ define(['N/runtime',
 		var ddnRec = sc.newRecord;
 
 		log.debug('parameters',sc.request.parameters);
-		var multi = (sc.request.parameters.multi === "true");
-		var tranIds = JSON.parse(decodeURIComponent(sc.request.parameters.tran_ids));			
+		var multi = (sc.request.parameters.custom_multi === "true");
+		var tranIds = JSON.parse(decodeURIComponent(sc.request.parameters.custom_tranids));			
 		log.debug('tranIds',tranIds);
 
 		if(createFrom != 'ddn'){
@@ -483,7 +483,7 @@ define(['N/runtime',
 			id:tranIds[0],
 			columns:tranSearchCol
 		});
-		log.error('tranSearch',tranSearch);
+		log.debug('tranSearch',tranSearch);
 		var tranType = (createFrom)? createFrom : tranSearch.type[0].value;
 
 		//Getting the remaining total amount from Invoice record
@@ -564,7 +564,7 @@ define(['N/runtime',
 				value:tranSearch.class[0].value
 			});
 		}
-		if(departmentsEnabled && tranSearch.department.length > 0){
+		if(departmentsEnabled && tranSearch.department.lenth > 0){
 			ddnRec.setValue({
 				fieldId:'department',
 				value: tranSearch.department[0].value
@@ -939,7 +939,7 @@ define(['N/runtime',
 	 * @description validating the 
 	 */
 	function validateTransaction(sc, createFrom){
-		var tranIds = JSON.parse(decodeURIComponent(sc.request.parameters.tran_ids));
+		var tranIds = JSON.parse(decodeURIComponent(sc.request.parameters.custom_tranids));
 		log.debug('tranIds validateTransactions',tranIds);
 		if(createFrom == 'ddn'){
 			itpm.validateDeduction(tranIds[0]);

@@ -65,9 +65,9 @@ define(['N/url',
 						recordType: 'customtransaction_itpm_deduction',
 						recordId: 0,
 						params:{
-							tran_ids : encodeURIComponent(JSON.stringify([id])),
-							from:'ddn',
-							multi : false
+							custom_tranids : encodeURIComponent(JSON.stringify([id])),
+							custom_from:'ddn',
+							custom_multi : false
 						},
 						isEditMode: true
 					});
