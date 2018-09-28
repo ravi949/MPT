@@ -483,7 +483,7 @@ define(['N/runtime',
 			id:tranIds[0],
 			columns:tranSearchCol
 		});
-		log.debug('tranSearch',tranSearch);
+		log.error('tranSearch',tranSearch);
 		var tranType = (createFrom)? createFrom : tranSearch.type[0].value;
 
 		//Getting the remaining total amount from Invoice record
@@ -564,7 +564,7 @@ define(['N/runtime',
 				value:tranSearch.class[0].value
 			});
 		}
-		if(departmentsEnabled && tranSearch.department.lenth > 0){
+		if(departmentsEnabled && tranSearch.department.length > 0){
 			ddnRec.setValue({
 				fieldId:'department',
 				value: tranSearch.department[0].value
