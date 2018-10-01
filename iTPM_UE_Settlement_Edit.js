@@ -39,12 +39,12 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
 				}else if(setlStatus == 'C'){
 					throw {error:'custom',message:" The settlement is Voided, It cannot be Edited"};
 				}else{
-					redirect.toSuitelet({
+					/*redirect.toSuitelet({
 	    				scriptId:'customscript_itpm_set_createeditsuitelet',
 	    				deploymentId:'customdeploy_itpm_set_createeditsuitelet',
 	    				returnExternalUrl: false,
 	    				parameters:{sid:settlementRec.id,from:'setrec',type:'edit'}
-	    			});
+	    			});*/
 				}    			
     		}
     		if(contextType == 'USERINTERFACE' && eventType == 'create'){
@@ -106,9 +106,9 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
     				throw {error:'custom',message:"The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."}
     		}
     		
-    		if(scriptContext.type == 'edit' || scriptContext.type == 'create'){
-    			
+    		if(scriptContext.type == 'edit' || scriptContext.type == 'create'){    			
     			if(scriptContext.type == 'create'){
+    				log.debug("Val5465u465es", getSettlementLines({lumsumSetReq:lumsumSetReq,billbackSetReq:billbackSetReq,offinvoiceSetReq:offInvSetReq}));
     				getSettlementLines({lumsumSetReq:lumsumSetReq,billbackSetReq:billbackSetReq,offinvoiceSetReq:offInvSetReq}).forEach(function(e, index){
     					if(e.amount > 0){
     						settlementRec.setSublistValue({
@@ -123,33 +123,36 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
     				    sublistId: 'line'
     				});
     				log.debug('numLines ',numLines);
-    				/*for(var v = numLines - 1 ; v >= 0; v--){
-    					settlementRec.removeLine({
+    				for(var v = numLines - 1 ; v >= 0; v--){
+    					log.debug('v ', v);
+    					var lineCreditValue = settlementRec.getSublistValue({
     					    sublistId: 'line',
-    					    line: v,
-    					    ignoreRecalc: true
-    					})
-    				}*/
+    					    fieldId: 'credit',
+    					    line: v
+    					});
+    					lineCreditValue = (lineCreditValue)?lineCreditValue:0
+    					var lineDebitValue = settlementRec.getSublistValue({
+    					    sublistId: 'line',
+    					    fieldId: 'debit',
+    					    line: v
+    					});
+    					lineDebitValue = (lineDebitValue)?lineDebitValue:0
+    							
+    					if(parseFloat(lineCreditValue) <= 0 && parseFloat(lineDebitValue) <= 0){
+    						settlementRec.removeLine({
+        					    sublistId: 'line',
+        					    line: v
+        					});
+    					}
+    				}
     			}
-    			
-    			
-    			// All settlement request values MUST be greater than zero. (Do NOT allow Lump Sum AND Bill Back to be zero during submit, on EDIT. Either of the fields can individually be zero, but not both.)
-    			/*if(promoLS <= 0 && !promoHasAllNB){
-					if(lumsumSetReq > 0){
-						throw {error:'custom',message:"Lump sum request value should be zero"};
-					}
-				}*/
+    			    			
     			//If Lump sum value in settlement record have a value and LS Amount on promotion is zero then we throw error 
     			if(lumsumSetReq > 0 && !promoHasAllNB){
     				if(promoLS <= 0){
     					throw {error:'custom',message:" Promotion: "+promoDealRec['name']+" Lump sum should be greater than Zero"};
     				}
     			}
-//    			if(lumsumSetReq <= 0 && billbackSetReq <= 0){
-//    				throw {error:'custom',message:"Lump Sum AND Bill Back Either of the fields can individually be zero, but not both"};
-//    			}else if(settlementReq <= 0 && offInvSetReq <= 0){
-//    				throw {error:'custom',message:"All settlement request values MUST be greater than zero"}
-//    			} 
     			if(lumsumSetReq <= 0 && billbackSetReq <= 0 && offInvSetReq <= 0){
     				throw {error:'custom',message:"Atleast any one settlement request value MUST be greater than zero"}
     			}
@@ -247,20 +250,8 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
         	var promoTypeDefaultAccnt = promoTypeRecLookup['custrecord_itpm_pt_defaultaccount'][0].value;
 			var promoDealLumsumAccnt = promotionRec.getValue({fieldId:'custrecord_itpm_p_account'});
         	var promoName = promotionRec.getValue({fieldId:'name'});
-        	var currencyExists = itpm.currenciesEnabled();
-        	
-			/*  
-			var incrdPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itepm_p_incurredpromotionalle'});
-			var netPromotionLiablty = promotionRec.getValue({fieldId:'custrecord_itpm_p_netpromotionalle'});
-        	var promoLumSum = parseFloat(promotionRec.getValue({fieldId:'custrecord_itpm_p_lumpsum'}));            	
-        	var customerText = promotionRec.getValue({fieldId:'custrecord_itpm_p_customer'});
-        	var promotionDesc = promotionRec.getValue({fieldId:'custrecord_itpm_p_description'});
-        	var promoShipStDate = promotionRec.getValue({fieldId:'custrecord_itpm_p_shipstart'});
-        	var promoShipEdDate = promotionRec.getValue({fieldId:'custrecord_itpm_p_shipend'});
-        	var promoHasAllBB = ST_Module.getAllowanceMOP(promoId,1);
-        	var promoHasAllOI = ST_Module.getAllowanceMOP(promoId,3);
-        	var promoHasAllNB = ST_Module.getAllowanceMOP(promoId,2);    
-    		*/	
+        	var currencyExists = itpm.currenciesEnabled();       	
+				
     		var subsid = undefined;
     		if(subsidiaryExists){
         		subsid = promotionRec.getValue({fieldId:'custrecord_itpm_p_subsidiary'});
