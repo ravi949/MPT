@@ -205,7 +205,7 @@ define(['N/ui/serverWidget',
 						if(
 								(promoPlanRecCount > 0 && 
 										promoRec.getValue('custrecord_itpm_p_ispromoplancomplete')== false && 
-										(status == 1 || status == 2 || status == 3) && 
+										(status == 1 || status == 2) && 
 										(
 												promoPermission == 4 || promoTypePermission >= 3 ||(promoPermission >= 2 && 
 														owner == user.id && 
