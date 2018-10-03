@@ -83,21 +83,33 @@ function() {
     	try{
     		var currentRec = scriptContext.currentRecord;
         	var url = new URLSearchParams(window.location.search);
+        	console.log(url.get('custom_from'));
         	if(url.get('custom_from') == 'ddn'){
         		if(!currentRec.getValue('custbody_itpm_ddn_parentddn')){
-        			return false;
         			alert('Parent Deduction cannot be empty.');
+        			return false;
         		}else if(!currentRec.getValue('custbody_itpm_ddn_originalddn')){
-        			return false;
         			alert('Original Deduction cannot be empty.');
-        		}else if(!currentRec.getValue('custbody_itpm_appliedto')){
         			return false;
+        		}else if(!currentRec.getValue('custbody_itpm_appliedto')){
         			alert('iTPM Applied To cannot be empty.');
+        			return false;
+        		}
+        	}else if(url.get('custom_from') == null){
+        		if(currentRec.getValue('custbody_itpm_ddn_parentddn')){
+        			alert('Parent Deduction should be empty.');
+        			return false;
+        		}else if(currentRec.getValue('custbody_itpm_ddn_originalddn')){
+        			alert('Original Deduction should be empty.');
+        			return false;
+        		}else if(currentRec.getValue('custbody_itpm_appliedto')){
+        			alert('iTPM Applied To should be empty.');
+        			return false;
         		}
         	}else if(url.get('custom_multi') == "true"){
         		if(currentRec.getValue('custbody_itpm_ddn_invoice').length <= 1){
-        			return false;
         			alert("TRANSACTION field should contain more than one value.");
+        			return false;
         		}
         	}
         	

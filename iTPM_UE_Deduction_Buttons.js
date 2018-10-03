@@ -53,9 +53,12 @@ define(['N/runtime',
 			//Deduction Create or Edit Process
 			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
 				if(sc.type == sc.UserEventType.CREATE){
-					log.error('parameters',sc.request.parameters);
+					log.debug('parameters',sc.request.parameters);
+					//this variable indicate from where deduction is creating
 					var createFrom = sc.request.parameters.custom_from;
+					//validating the split deduction, Invoice and Credit memos
 					validateTransaction(sc, createFrom);
+					//set the default values while loading the deduction record
 					deductionCreateOrEdit(sc, createFrom);
 				}
 			}
@@ -109,12 +112,22 @@ define(['N/runtime',
 				}
 			}
 			
-			//on create over write the lines on the deduction record 
+			//on create overwrite the lines on the deduction record 
 			if (runtime.executionContext == runtime.ContextType.USER_INTERFACE && 
 				sc.type == sc.UserEventType.CREATE
 			){
 				var parentDDN = sc.newRecord.getValue('custbody_itpm_ddn_parentddn');
 				log.debug('transactions',sc.newRecord.getValue('custbody_itpm_ddn_invoice'));
+				log.debug('open bal',sc.newRecord.getValue('custbody_itpm_ddn_openbal'));
+				
+				//on create beforesubmit, repalcing the iTPM Amount with Open Balance
+				sc.newRecord.setValue({
+					fieldId:'custbody_itpm_amount',
+					value:sc.newRecord.getValue('custbody_itpm_ddn_openbal')
+				});
+				
+				//if parentDDN is defined that means it creating from the deduction 
+				//if not defined it is creating  from the invoice or credit memo
 				if(!parentDDN){
 					var tranIds = sc.newRecord.getValue('custbody_itpm_ddn_invoice');
 					//getting the invoice or credit memo field values
@@ -127,8 +140,9 @@ define(['N/runtime',
 					var tranType = tranSearch.type[0].value;
 					var multi = tranIds.length > 1;
 					var itpmAmount = 0;
-
-					if(tranType == 'CustInvc'){
+					
+					//these below conditions will get the iTPM Amount from the related transactions
+					if(tranType == 'CustInvc'){	
 						if(multi){
 							var tranId = tranIds[0];
 							tranIds = [];
@@ -155,7 +169,8 @@ define(['N/runtime',
 					//getting the line value for the deduction
 					var subsidiaryID = (itpm.subsidiariesEnabled())? sc.newRecord.getValue('subsidiary') : undefined;
 					var prefObj = itpm.getPrefrenceValues(subsidiaryID);
-
+					
+					//this function will set the lines on the deductions
 					setDeductionLines(sc.newRecord,{
 						tranType : tranType, 
 						customerId : tranSearch.entity[0].value,
@@ -166,11 +181,7 @@ define(['N/runtime',
 					});
 				}else if(parentDDN){
 					log.debug('parentDDN',parentDDN);
-					log.debug('open bal',sc.newRecord.getValue('custbody_itpm_ddn_openbal'));
-					sc.newRecord.setValue({
-						fieldId:'custbody_itpm_amount',
-						value:sc.newRecord.getValue('custbody_itpm_ddn_openbal')
-					});
+					//this function will set the lines on the deductions
 					setDeductionLines(sc.newRecord,{
 						tranType : 'ddn', 
 						customerId : sc.newRecord.getValue('custbody_itpm_customer'),
