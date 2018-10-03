@@ -48,7 +48,7 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
 				}    			
     		}
     		if(contextType == 'USERINTERFACE' && eventType == 'create'){
-    			createSettlement(scriptContext.request.parameters, settlementRec)    			
+    			createSettlement(scriptContext.request.parameters, settlementRec);    			
     		}
     	}catch (e) {
     		if(e.error == 'custom')
