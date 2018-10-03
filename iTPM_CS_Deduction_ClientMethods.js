@@ -16,8 +16,10 @@ function() {
      *
      * @since 2015.2
      */
+	var mode;
     function pageInit(scriptContext) {
     	try{
+    		mode = scriptContext.mode;
     		//set first line with same existed value to avoid transaction line alert popup
         	var currentRec = scriptContext.currentRecord; 
         	console.log(currentRec);
@@ -83,7 +85,7 @@ function() {
     	try{
     		var currentRec = scriptContext.currentRecord;
         	var url = new URLSearchParams(window.location.search);
-        	console.log(url.get('custom_from'));
+        	//console.log(url.get('custom_from'));
         	if(url.get('custom_from') == 'ddn'){
         		if(!currentRec.getValue('custbody_itpm_ddn_parentddn')){
         			alert('Parent Deduction cannot be empty.');
@@ -95,7 +97,7 @@ function() {
         			alert('iTPM Applied To cannot be empty.');
         			return false;
         		}
-        	}else if(url.get('custom_from') == null){
+        	}else if(mode == 'create' && url.get('custom_from') == null){
         		if(currentRec.getValue('custbody_itpm_ddn_parentddn')){
         			alert('Parent Deduction should be empty.');
         			return false;
