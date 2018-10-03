@@ -3,9 +3,9 @@
  * @NScriptType ClientScript
  * @NModuleScope TargetAccount
  */
-define([],
+define(['N/search'],
 
-function() {
+function(search) {
     
     /**
      * Function to be executed after page is initialized.
@@ -97,6 +97,25 @@ function() {
         			alert('iTPM Applied To cannot be empty.');
         			return false;
         		}
+        		
+        		/*var currentRecOpenBal = parseFloat(currentRec.getValue('custbody_itpm_ddn_openbal'));
+        		var iTPMAmount = parseFloat(currentRec.getValue('custbody_itpm_ddn_amount'));
+        		var parentDDNOpenBal = search.lookupFields({
+        			type:'customtransaction_itpm_deduction',
+        			id:currentRec.getValue('custbody_itpm_ddn_parentddn'),
+        			columns:['custbody_itpm_ddn_openbal']
+        		}).custbody_itpm_ddn_openbal;
+
+        		if(currentRecOpenBal > parseFloat(parentDDNOpenBal)){
+        			alert('Open Balance should be less than or equal to Parent Deduction Open Balance');
+        			return false;
+        		}
+        		
+        		if(iTPMAmount > parseFloat(parentDDNOpenBal)){
+        			alert('Open Balance should be less than or equal to Parent Deduction Open Balance');
+        			return false;
+        		}*/
+        		
         	}else if(mode == 'create' && url.get('custom_from') == null){
         		if(currentRec.getValue('custbody_itpm_ddn_parentddn')){
         			alert('Parent Deduction should be empty.');
@@ -108,6 +127,7 @@ function() {
         			alert('iTPM Applied To should be empty.');
         			return false;
         		}
+        		
         	}else if(url.get('custom_multi') == "true"){
         		if(currentRec.getValue('custbody_itpm_ddn_invoice').length <= 1){
         			alert("TRANSACTION field should contain more than one value.");
