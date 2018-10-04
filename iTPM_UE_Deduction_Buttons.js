@@ -284,6 +284,18 @@ define(['N/runtime',
 					
 					if(tranType == "CustInvc"){
 						createCustomerPayment(sc.newRecord, tranIds, sc.newRecord.getValue('memo') , ddnRec.id);
+					}else if(tranType == "CustCred"){
+						record.submitFields({
+							type:record.Type.CREDIT_MEMO,
+							id:tranIds[0],
+							values:{
+								"custbody_itpm_appliedto":sc.newRecord.id
+							},
+							options:{
+								enableSourcing: false,
+								ignoreMandatoryFields : true
+							}
+						});
 					}
 				}
 			}
