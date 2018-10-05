@@ -69,7 +69,8 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
      */
     function beforeSubmit(scriptContext) {
     	try{
-			if(scriptContext.type == 'edit' || scriptContext.type == 'create'){ 
+    		var contextType = runtime.executionContext;
+			if(contextType == 'USERINTERFACE' && (scriptContext.type == 'edit' || scriptContext.type == 'create')){ 
 	    		log.debug('type',scriptContext.type)
 	    		//not getting the Thousands in the values of currency fields 
 	    		var settlementRec = scriptContext.newRecord;
@@ -227,13 +228,16 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
      */
     function afterSubmit(scriptContext) {
     	try{
+    		var contextType = runtime.executionContext;
     		var eventType = scriptContext.type;
     		var settlementOldRec = scriptContext.oldRecord;
 			var settlementNewRec = scriptContext.newRecord;
-			if(eventType == 'create'){
-				ST_Module.applyToDeduction({sid:settlementNewRec.id,ddn:settlementNewRec.getValue('custbody_itpm_appliedto')},'D');//Here 'D' indicating Deduction.
+			if(contextType == 'USERINTERFACE' && eventType == 'create'){
+				var ddnId = settlementNewRec.getValue('custbody_itpm_appliedto');
+				if(ddnId)
+					ST_Module.applyToDeduction({sid:settlementNewRec.id,ddn:ddnId},'D');//Here 'D' indicating Deduction.
 			} 		
-			if(eventType == 'edit'){
+			if(contextType == 'USERINTERFACE' && eventType == 'edit'){
 				var oldStatus = settlementOldRec.getValue('transtatus');
 				var newStatus = settlementNewRec.getValue('transtatus');
 				var promoId = settlementNewRec.getValue('custbody_itpm_set_promo');	
