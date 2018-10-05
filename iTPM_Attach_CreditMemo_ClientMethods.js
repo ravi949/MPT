@@ -41,7 +41,7 @@ define(['N/url',
 		if(JSON.parse(response.body).period_closed){ 
 			dialog.create({
 				title:"Warning!",
-				message:"<b>iTPM</b> cannot perform the requested action because the Credit Memo Accounting Period is either closed, or locked."
+				message:"<b>iTPM</b> cannot perform the requested action because the Credit Memo Accounting Period is either closed, or locked. <br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 			});
 		}else{
 			var msg = displayMessage('New Deduction','Please wait while you are redirected to the new deduction screen.');
@@ -76,7 +76,7 @@ define(['N/url',
 		if(JSON.parse(response.body).period_closed){ 
 			dialog.create({
 				title:"Warning!",
-				message:"<b>iTPM</b> cannot perform the requested action because the Credit Memo Accounting Period is either closed, or locked."
+				message:"<b>iTPM</b> cannot perform the requested action because the Credit Memo Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 			});
 		}else{
 			console.log(" client script attachment "+creditmemoId);
