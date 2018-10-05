@@ -202,6 +202,7 @@ function(record, search, runtime, itpm) {
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualbb'
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualoi'
     				,'custrecord_itpm_kpi_promotiondeal.custrecord_itpm_kpi_factoractualls'
+                    ,'custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount'
     				],
     				filters:[
     							['internalid','anyof',key.promoId], 'and', 
@@ -290,7 +291,8 @@ function(record, search, runtime, itpm) {
         						memo:setlmemo,
         						amount:parseFloat(lineAmount),
         						adjustmemo:adjustSetlmemo,
-        						allocationFactor:factorBB
+        						allocationFactor:factorBB,
+        						allId:allValues.allid
         					});
     					}
     					//Creating the Off-Invoice lines to the settlement record based on the OI allowance lines in the promotion
@@ -312,7 +314,8 @@ function(record, search, runtime, itpm) {
     							memo:setlmemo,
     							amount: parseFloat(lineAmount),
         						adjustmemo:adjustSetlmemo,
-        						allocationFactor:factorOI
+        						allocationFactor:factorOI,
+        						allId:allValues.allid
     						});
     					}
     				}
@@ -335,18 +338,23 @@ function(record, search, runtime, itpm) {
     				tempAmountLS += parseFloat(lsLineAmount);
     				var kpisitem = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'});
     				if(lsLineAmount > 0){
+    					var promoLsAcc = promoLineSearchForKPI[i].getValue('custrecord_itpm_p_account');
+    					if(promoLsAcc == ''){
+    						promoLsAcc = promoLineSearchForKPI[i].getValue({join:'custrecord_itpm_p_type',name:'custrecord_itpm_pt_defaultaccount'});
+    					}
     					lsLines.push({ 
     						lineType:'ls',
     						id:'1',
     						item:kpisitem,
-    						account:promoLineSearchForKPI[i].getValue('custrecord_itpm_p_account'),
+    						account:promoLsAcc,
     						type:'debit',
     						memo:"LS Settlement for Item : "
     							 +promoLineSearchForKPI[i].getText({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'})
     						     +" on Promotion "+promoLineSearchForKPI[i].getValue('name'),
     						amount:parseFloat(lsLineAmount),
             				adjustmemo:'',
-            				allocationFactor:parseFloat(factorLs)
+            				allocationFactor:parseFloat(factorLs),
+    						allId:''
     					});
     				}
     			}
@@ -407,7 +415,8 @@ function(record, search, runtime, itpm) {
     				amount:lumsumSetReq,
 //    				adjustItem:0,
 					adjustmemo:'',
-					allocationFactor:0
+					allocationFactor:0,
+					allId:''
     			});
     		}
 //    		log.debug('lsLines  in Reduce',lsLines);
@@ -422,7 +431,8 @@ function(record, search, runtime, itpm) {
     				amount:billbackSetReq,
 //    				adjustItem:0,
 					adjustmemo:'',
-					allocationFactor:0
+					allocationFactor:0,
+					allId:''
     			});
     		}
 //    		log.debug('bbLines  in Reduce',bbLines);
@@ -437,7 +447,8 @@ function(record, search, runtime, itpm) {
     				amount:offinvoiceSetReq,
 //    				adjustItem:0,
 					adjustmemo:'',
-					allocationFactor:0
+					allocationFactor:0,
+					allId:''
     			});
     		}		
 //    		log.error('oiLines  in Reduce',oiLines);
@@ -494,6 +505,11 @@ function(record, search, runtime, itpm) {
     					sublistId:'line',
     					fieldId:'entity',
     					value:setCust,
+    					line:v
+    				}).setSublistValue({
+    					sublistId:'line',
+    					fieldId:'custcol_itpm_set_allowance',
+    					value:setlLines[i].allId,
     					line:v
     				});
     				v++;
