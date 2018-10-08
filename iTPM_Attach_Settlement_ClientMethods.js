@@ -149,6 +149,12 @@ define(['N/ui/message',
 	function redirectToDeductionList(settlementId,postingPeriodId){
 		try{
 			//checking postingperiod status
+			var postingPeriodURL = url.resolveScript({
+			    scriptId: 'customscript_itpm_getaccntngprd_status',
+			    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+			    params:{popid:postingPeriodId},
+			    returnExternalUrl: false
+			});
 			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
@@ -175,6 +181,12 @@ define(['N/ui/message',
 	function redirectToCheck(settlementId,postingPeriodId){
 		try{
 			//checking postingperiod status
+			var postingPeriodURL = url.resolveScript({
+			    scriptId: 'customscript_itpm_getaccntngprd_status',
+			    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+			    params:{popid:postingPeriodId},
+			    returnExternalUrl: false
+			});
 			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
