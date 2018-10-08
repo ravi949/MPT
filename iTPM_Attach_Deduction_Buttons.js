@@ -13,6 +13,12 @@ define(['N/url',
 
 	function(url, https, message, dialog) {
 
+	var postingPeriodURL = url.resolveScript({
+	    scriptId: 'customscript_itpm_getaccntngprd_status',
+	    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+	    returnExternalUrl: false
+	});
+
 	/**
 	 * @param type
 	 * @param title
@@ -42,29 +48,34 @@ define(['N/url',
 		try{
 
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
-				var suiteletUrl;
+				var redirectURL;
 				switch(splitMethod){
 				case "DEFAULT":
 					var msg = displayMessage('info','Splitting Deduction','Please wait while you are redirected to the split deduction screen.');
 					msg.show();
-					suiteletUrl = url.resolveScript({
-						scriptId:'customscript_itpm_ddn_createeditsuitelet',
-						deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
-						params:{fid:id,from:'ddn',type:'create'}
+					redirectURL = url.resolveRecord({
+						recordType: 'customtransaction_itpm_deduction',
+						recordId: 0,
+						params:{
+							custom_tranids : encodeURIComponent(JSON.stringify([id])),
+							custom_from:'ddn',
+							custom_multi : false
+						},
+						isEditMode: true
 					});
 					break;
 				case "CSV":
 					var msg = displayMessage('info','CSV Split Record','Please wait while you are redirected to the CSV split record screen.');
 					msg.show();
-					suiteletUrl = url.resolveScript({
+					redirectURL = url.resolveScript({
 						scriptId:'customscript_itpm_ddn_csvsplit',
 						deploymentId:'customdeploy_itpm_ddn_csvsplit',
 						params:{ddn:id}
@@ -73,13 +84,13 @@ define(['N/url',
 				case "RECORD":
 					var msg = displayMessage('info','Split Record','Please wait while you are redirected to the split record screen.');
 					msg.show();
-					suiteletUrl = url.resolveTaskLink({
+					redirectURL = url.resolveTaskLink({
 						id:'EDIT_CUST_'+ddnSplitTypeID,
 						params:{ddn:id}
 					});
 					break;
 				}
-				window.open(suiteletUrl, '_self');
+				window.open(redirectURL, '_self');
 			}
 		} catch(ex) {
 			console.log(ex.name,'function name = iTPMsplit, message'+ex.message);
@@ -93,12 +104,12 @@ define(['N/url',
 	function iTPMexpense(postingPeriodId,id, openbal) {
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var popMessage = "Click CONTINUE to expense <b>$"+openbal+'</b><br><br>To expense less, CANCEL and SPLIT this deduction.'
@@ -133,12 +144,12 @@ define(['N/url',
 	function iTPMinvoice(id, openBalance,postingPeriodId) {
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				dialog.create({
@@ -192,12 +203,12 @@ define(['N/url',
 	function iTPMsettlement(id, postingPeriodId) {
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var msg = displayMessage('info','New Settlement','Please wait while the iTPM Settlement screen is loaded.');
@@ -222,12 +233,12 @@ define(['N/url',
 	function iTPMcreditmemo(id, customerid, postingPeriodId) {
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var msg = displayMessage('info','Credit Memo List','Please wait while you are redirected to the Credit Memo list screen.');
@@ -260,12 +271,12 @@ define(['N/url',
 	function iTPMDeleteDeduction(id,postingPeriodId){
 		try{
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var msg = displayMessage('info','Deleting Deduction','Please wait while deleting the Deduction.');

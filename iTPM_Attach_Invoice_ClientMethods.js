@@ -14,6 +14,15 @@ define(['N/url',
 	 * @param {url} url
 	 */
 	function(url,message,search,https,dialog) {
+	
+	/**
+	 * @description Global api call to resolve and get the url
+	 */
+	var postingPeriodURL = url.resolveScript({
+	    scriptId: 'customscript_itpm_getaccntngprd_status',
+	    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+	    returnExternalUrl: false
+	});
 
 	function displayMessage(title,text){
 		try{
@@ -103,16 +112,22 @@ define(['N/url',
 			console.log(e);
 		}
 	}
-
+	
+	/**
+	 * @param {number} postingPeriodId
+	 * @param {number} invId
+	 * @param {array} multiInv
+	 */
 	function iTPMDeduction(postingPeriodId, invId, multiInv){
 		try{
+			console.log(postingPeriodId);
 			//checking postingperiod status
-			var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Invoice Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Invoice Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				//Checking for multiple Invoice
@@ -129,12 +144,17 @@ define(['N/url',
 					console.log(true);
 					var msg = displayMessage('New Deduction','Please wait while you are redirected to the new deduction screen.');
 					msg.show();
-					var ddnSuiteletURL = url.resolveScript({
-						scriptId:'customscript_itpm_ddn_createeditsuitelet',
-						deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
-						params:{fid:invId,from:'inv',type:'create', multi:(!multiInv)?'no':multiInv}
+					var ddnRecordURL = url.resolveRecord({
+						recordType: 'customtransaction_itpm_deduction',
+						recordId: 0,
+						params:{
+							custom_tranids : encodeURIComponent(JSON.stringify([invId])), 
+							custom_multi : (multiInv == "yes")
+						},
+						isEditMode: true
 					});
-					window.open(ddnSuiteletURL,'_self');					
+					console.log(ddnRecordURL);
+					window.open(ddnRecordURL,'_self');					
 				}
 			}
 		}catch(e){
@@ -142,6 +162,9 @@ define(['N/url',
 		}
 	}
 
+	/**
+	 * @description redirect the user to back
+	 */
 	function iTPMDeductionRedirectToHome(){
 		try{
 			history.go(-1);

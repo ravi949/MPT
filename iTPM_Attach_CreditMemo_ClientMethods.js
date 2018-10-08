@@ -29,23 +29,34 @@ define(['N/url',
 	function iTPMDeduction(creditmemoId,postingPeriodId){
 		
 		//Checking Accounting period status
-		var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+		var postingPeriodURL = url.resolveScript({
+		    scriptId: 'customscript_itpm_getaccntngprd_status',
+		    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+		    params:{popid:postingPeriodId},
+		    returnExternalUrl: false
+		});
+		var response = https.get({url:postingPeriodURL});
 		console.log(response);
 		console.log(JSON.parse(response.body));
 		if(JSON.parse(response.body).period_closed){ 
 			dialog.create({
 				title:"Warning!",
-				message:"<b>iTPM</b> cannot perform the requested action because the Credit Memo Accounting Period is either closed, or locked."
+				message:"<b>iTPM</b> cannot perform the requested action because the Credit Memo Accounting Period is either closed, or locked. <br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 			});
 		}else{
 			var msg = displayMessage('New Deduction','Please wait while you are redirected to the new deduction screen.');
 			msg.show();
-			var ddnSuiteletURL = url.resolveScript({
-				scriptId:'customscript_itpm_ddn_createeditsuitelet',
-				deploymentId:'customdeploy_itpm_ddn_createeditsuitelet',
-				params:{fid:creditmemoId,from:'creditmemo',type:'create', multi:'no'}
+			var ddnRecordURL = url.resolveRecord({
+				recordType: 'customtransaction_itpm_deduction',
+				recordId: 0,
+				params:{
+					custom_tranids : encodeURIComponent(JSON.stringify([creditmemoId])), 
+					custom_multi : false
+				},
+				isEditMode: true
 			});
-			window.open(ddnSuiteletURL,'_self');
+			console.log(ddnRecordURL);
+			window.open(ddnRecordURL,'_self');
 		}
 	}
 	/**
@@ -53,13 +64,19 @@ define(['N/url',
 	 * function creditmemoId
 	 */
 	function iTPMMatchToDdn(creditmemoId,postingPeriodId){
-		var response = https.get({url:"/app/site/hosting/scriptlet.nl?script=1123&deploy=1&popid="+postingPeriodId});
+		var postingPeriodURL = url.resolveScript({
+		    scriptId: 'customscript_itpm_getaccntngprd_status',
+		    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+		    params:{popid:postingPeriodId},
+		    returnExternalUrl: false
+		});
+		var response = https.get({url:postingPeriodURL});
 		console.log(response);
 		console.log(JSON.parse(response.body));
 		if(JSON.parse(response.body).period_closed){ 
 			dialog.create({
 				title:"Warning!",
-				message:"<b>iTPM</b> cannot perform the requested action because the Credit Memo Accounting Period is either closed, or locked."
+				message:"<b>iTPM</b> cannot perform the requested action because the Credit Memo Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 			});
 		}else{
 			console.log(" client script attachment "+creditmemoId);
