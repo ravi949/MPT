@@ -148,11 +148,6 @@ define(['N/ui/message',
 	//When user clicks on apply to Deduction button then it redirects to Deduction create suitelet.
 	function redirectToDeductionList(settlementId,postingPeriodId){
 		try{
-			var postingPeriodURL = url.resolveScript({
-			    scriptId: 'customscript_itpm_getaccntngprd_status',
-			    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
-			    returnExternalUrl: false
-			});
 			//checking postingperiod status
 			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
@@ -179,11 +174,6 @@ define(['N/ui/message',
 	//When user clicks on apply to Check button then it redirects to Check record.
 	function redirectToCheck(settlementId,postingPeriodId){
 		try{
-			var postingPeriodURL = url.resolveScript({
-			    scriptId: 'customscript_itpm_getaccntngprd_status',
-			    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
-			    returnExternalUrl: false
-			});
 			//checking postingperiod status
 			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
@@ -210,11 +200,6 @@ define(['N/ui/message',
 	//When user clicks on Void button then it redirects to Settlement suitelet to void the Settlement.
 	function voidSettlement(settlementId, postingPeriodId){
 		try{
-			var postingPeriodURL = url.resolveScript({
-			    scriptId: 'customscript_itpm_getaccntngprd_status',
-			    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
-			    returnExternalUrl: false
-			});
 			//checking postingperiod status
 			var postingPeriodURL = url.resolveScript({
 			    scriptId: 'customscript_itpm_getaccntngprd_status',
