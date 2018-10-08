@@ -750,7 +750,8 @@ define(['N/config',
 		editSettlement		:	editSettlement,
 		applyToDeduction	:	applyToDeduction,
 		createReverseJE		:	createReverseJE,
-		getAllowanceMOP		:	getAllowanceMOP
+		getAllowanceMOP		:	getAllowanceMOP,
+		getSettlementLines  :   getSettlementLines
 	};
 
 });

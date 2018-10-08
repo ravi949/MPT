@@ -29,13 +29,20 @@ function(url, message, record, dialog, search) {
 		try{
 			var msgObj = displayMessage('New Settlement','Please wait while you are redirected to the new settlement screen.');
 			msgObj.show();
-			var outputURL = url.resolveScript({
+			/*var outputURL = url.resolveScript({
 				scriptId:'customscript_itpm_set_createeditsuitelet',
 				deploymentId:'customdeploy_itpm_set_createeditsuitelet',
 				returnExternalUrl: false,
 				params:{pid:pid,from:'promo'}
+			});*/
+			var setUrl = url.resolveRecord({
+			    recordType: 'customtransaction_itpm_settlement',
+			    recordId: 0,
+			    isEditMode: true,
+				params:{custom_promoid:pid,custom_from:'promo'}
 			});
-			window.open(outputURL,'_self');
+			//window.open(outputURL,'_self');
+			window.open(setUrl,'_self');
 		}catch(e){
 			console.log(e.name,'function name = new Settlement, message = '+e.message);
 		}
