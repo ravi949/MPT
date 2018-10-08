@@ -53,7 +53,7 @@ define(['N/url',
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var redirectURL;
@@ -109,7 +109,7 @@ define(['N/url',
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var popMessage = "Click CONTINUE to expense <b>$"+openbal+'</b><br><br>To expense less, CANCEL and SPLIT this deduction.'
@@ -149,7 +149,7 @@ define(['N/url',
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				dialog.create({
@@ -208,7 +208,7 @@ define(['N/url',
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var msg = displayMessage('info','New Settlement','Please wait while the iTPM Settlement screen is loaded.');
@@ -238,7 +238,7 @@ define(['N/url',
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var msg = displayMessage('info','Credit Memo List','Please wait while you are redirected to the Credit Memo list screen.');
@@ -276,7 +276,7 @@ define(['N/url',
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Deduction Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var msg = displayMessage('info','Deleting Deduction','Please wait while deleting the Deduction.');

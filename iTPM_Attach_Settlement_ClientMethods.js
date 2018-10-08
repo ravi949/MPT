@@ -16,12 +16,6 @@ define(['N/ui/message',
   */
   function(message, record, url, https, dialog) {
 
-	var postingPeriodURL = url.resolveScript({
-	    scriptId: 'customscript_itpm_getaccntngprd_status',
-	    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
-	    returnExternalUrl: false
-	});
-
 	/**
 	 * Function to be executed when field is changed.
 	 *
@@ -155,12 +149,18 @@ define(['N/ui/message',
 	function redirectToDeductionList(settlementId,postingPeriodId){
 		try{
 			//checking postingperiod status
+			var postingPeriodURL = url.resolveScript({
+			    scriptId: 'customscript_itpm_getaccntngprd_status',
+			    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+			    params:{popid:postingPeriodId},
+			    returnExternalUrl: false
+			});
 			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Settlement Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Settlement Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var msg = displayMessage('Deducitons List','Please wait while you are redirected to the deductions list screen.');
@@ -181,12 +181,18 @@ define(['N/ui/message',
 	function redirectToCheck(settlementId,postingPeriodId){
 		try{
 			//checking postingperiod status
+			var postingPeriodURL = url.resolveScript({
+			    scriptId: 'customscript_itpm_getaccntngprd_status',
+			    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+			    params:{popid:postingPeriodId},
+			    returnExternalUrl: false
+			});
 			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
 			console.log(response)
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Settlement Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Settlement Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var msg = displayMessage('Applying to Check','Please wait while the check is created and applied.');
@@ -218,7 +224,7 @@ define(['N/ui/message',
 			if(JSON.parse(response.body).period_closed){ 
 				dialog.create({
 					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Settlement Accounting Period is either closed, or locked."
+					message:"<b>iTPM</b> cannot perform the requested action because the Settlement Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
 				var msg = displayMessage('Voiding the settlement','Please wait while void the settlement and redirect to JE.');
@@ -238,10 +244,10 @@ define(['N/ui/message',
 	return {
 		fieldChanged: fieldChanged,
 		saveRecord: saveRecord,
-		redirectToBack:redirectToBack,
-		redirectToDeductionList:redirectToDeductionList,
-		redirectToCheck:redirectToCheck,
-		voidSettlement:voidSettlement
+		redirectToBack: redirectToBack,
+		redirectToDeductionList: redirectToDeductionList,
+		redirectToCheck: redirectToCheck,
+		voidSettlement: voidSettlement
 	};
 
 });
