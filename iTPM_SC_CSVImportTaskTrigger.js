@@ -43,14 +43,18 @@ function(file, search, task) {
                 		 ['custrecord_itpm_ddn_splitprocesscompletd','is',false],'and',
                 		 ["custrecord_itpm_import_completed","is",false]]
              }).run().each(function(e){
-            	log.debug('file id',e.getValue({name:'internalid',join:'file',summary:search.Summary.GROUP}));
-                var csvTaskStatus = task.create({
-                    taskType: task.TaskType.CSV_IMPORT,
-                    mappingId: 'CUSTIMPORT_ITPM_DDN_SPLITIMPRT',
-                    importFile: file.load({id:e.getValue({name:'internalid',join:'file',summary:search.Summary.GROUP})})
-                }).submit();
-                log.debug('csvTaskStatus ',csvTaskStatus);
-                return true;
+            	 try{
+            		 log.debug('file id',e.getValue({name:'internalid',join:'file',summary:search.Summary.GROUP}));
+            		 var csvTaskStatus = task.create({
+            			 taskType: task.TaskType.CSV_IMPORT,
+            			 mappingId: 'CUSTIMPORT_ITPM_DDN_SPLITIMPRT',
+            			 importFile: file.load({id:e.getValue({name:'internalid',join:'file',summary:search.Summary.GROUP})})
+            		 }).submit();
+            		 log.debug('csvTaskStatus ',csvTaskStatus);
+            	 }catch(ex){
+            		 log.error('task trigger error ',ex.message);
+            	 }
+            	 return true;
              });
     	}catch(ex){
     		log.error(ex.name,ex.message);
