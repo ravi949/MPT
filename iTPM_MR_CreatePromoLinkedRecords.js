@@ -533,6 +533,19 @@ function(record, search, runtime, itpm) {
         	context.write({key:promoId, value:0});
     	}catch(ex){
 			log.error(ex.name, ex.message);
+			record.submitFields({
+				type: 'customrecord_itpm_promotion_planning',
+				id: promoPlanRecId,
+				values: {
+					'custrecord_itpm_pp_response': "There was a problem while creating the records with the Item/Item-Group. Delete the Planning record and process the promotion. ",
+					'custrecord_itpm_pp_processed': 'F'
+				},
+				options: {
+					enableSourcing: false,
+					ignoreMandatoryFields : true
+				}
+			});
+			context.write({key:promoId, value:0});
 		}
     }
 
@@ -680,31 +693,36 @@ function(record, search, runtime, itpm) {
 			   }
 			}
 			log.audit('groupItems in EstQty after for loop',groupItems);
-			var estQtyTotal = search.create({
-			   type: "customrecord_itpm_estquantity",
-			   filters:
-			   [
-			      ["custrecord_itpm_estqty_promodeal","anyof",promoPalnKey.promoID], 
-			      "AND", 
-			      ["custrecord_itpm_estqty_item","anyof",groupItems]
-			   ],
-			   columns:
-			   [
-			      search.createColumn({
-			         name: "custrecord_itpm_estqty_baseqty",
-			         summary: "SUM"
-			      }),
-			      search.createColumn({
-			         name: "custrecord_itpm_estqty_incrementalqty",
-			         summary: "SUM"
-			      })
-			   ]
-			}).run().getRange(0,1);
-			var baseQtyTotal = estQtyTotal[0].getValue({name:'custrecord_itpm_estqty_baseqty',summary:search.Summary.SUM});
-			var incrQtyTotal = estQtyTotal[0].getValue({name:'custrecord_itpm_estqty_incrementalqty',summary:search.Summary.SUM});
-			log.debug("baseQtyTotal for promoId: "+promoPalnKey.promoID,baseQtyTotal );
-			log.debug("incrQtyTotal for promoId: "+promoPalnKey.promoID,incrQtyTotal );
-
+			var estQtyTotal;
+			var baseQtyTotal = 0;
+			var incrQtyTotal = 0;
+			if(groupItems.length > 0){
+				estQtyTotal = search.create({
+					   type: "customrecord_itpm_estquantity",
+					   filters:
+					   [
+					      ["custrecord_itpm_estqty_promodeal","anyof",promoPalnKey.promoID], 
+					      "AND", 
+					      ["custrecord_itpm_estqty_item","anyof",groupItems]
+					   ],
+					   columns:
+					   [
+					      search.createColumn({
+					         name: "custrecord_itpm_estqty_baseqty",
+					         summary: "SUM"
+					      }),
+					      search.createColumn({
+					         name: "custrecord_itpm_estqty_incrementalqty",
+					         summary: "SUM"
+					      })
+					   ]
+					}).run().getRange(0,1);	
+				
+				baseQtyTotal = estQtyTotal[0].getValue({name:'custrecord_itpm_estqty_baseqty',summary:search.Summary.SUM});
+				incrQtyTotal = estQtyTotal[0].getValue({name:'custrecord_itpm_estqty_incrementalqty',summary:search.Summary.SUM});
+				log.debug("baseQtyTotal for promoId: "+promoPalnKey.promoID,baseQtyTotal );
+				log.debug("incrQtyTotal for promoId: "+promoPalnKey.promoID,incrQtyTotal );
+			}
 			baseQty = tempBaseQty - parseFloat(baseQtyTotal);
 			incrementalQty = tempIncrementalQty - parseFloat(incrQtyTotal);
 		}
