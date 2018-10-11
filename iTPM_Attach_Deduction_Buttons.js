@@ -269,7 +269,8 @@ define(['N/url',
 	 * @description delete the deduction
 	 */
 	function iTPMDeleteDeduction(id,postingPeriodId){
-		try{			
+		try{
+			
 				var msg = displayMessage('info','Deleting Deduction','Please wait while deleting the Deduction.');
 				msg.show();
 
@@ -282,7 +283,6 @@ define(['N/url',
 				https.get.promise({
 					url: suiteletUrl
 				}).then(function(response){
-					console.log(response);
 					var responseBody = JSON.parse(response.body);
 					if(responseBody.success){
 						window.location.href = window.location.origin+'/app/common/search/searchresults.nl?searchid='+responseBody.searchid;
@@ -295,6 +295,7 @@ define(['N/url',
 				.catch(function onRejected(reason) {
 					console.log(reason);
 				});
+			
 
 		}catch(ex) {
 			console.log(ex.name, 'function name = deleteDeduction, message'+ex.message);
