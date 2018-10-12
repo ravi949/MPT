@@ -147,10 +147,9 @@ define(['N/runtime',
 						if(multi){
 							var tranId = tranIds[0];
 							tranIds = [];
-							multiInvoicesList(tranId).each(function(result){
-								tranIds.push(result.getValue({name: "internalid", join: "appliedToTransaction"}));
-								itpmAmount += parseFloat(result.getValue({name: "amountremaining", join: "appliedToTransaction"}));
-								return true;
+							itpm.getMultiInvoiceList(tranId).forEacheach(function(result){
+								tranIds.push(result.inv_id);
+								itpmAmount += parseFloat(result.result.inv_remaining_amount);
 							});
 						}else{
 							itpmAmount = record.load({
