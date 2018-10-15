@@ -43,21 +43,6 @@ function(file, search, record, redirect, runtime, serverWidget, itpm) {
     		
     	}catch(ex){
     		log.error(ex.name,ex);
-//    		if(ex.name == 'INVALID_FILE'){
-//    			throw Error(ex.message);
-//    		}else if(ex.name == 'ZERO_AMOUNT_FOUND'){
-//    			throw Error(ex.message);
-//    		}else if(ex.name == 'INVALID_TOTAL'){
-//    			throw Error(ex.message);
-//    		}else if(ex.name == 'INVALID_STATUS'){
-//    			throw Error(ex.message);
-//    		}else if(ex.name == 'INVALID_DEDUCTIONID'){
-//    			throw Error(ex.message);
-//    		}else if(ex.name == 'LINES_NOT_FOUND'){
-//    			throw Error(ex.message);
-//    		}else if(ex.name == 'MISSING_HEADER'){
-//    			throw Error(ex.message);
-//    		}
     		throw Error(ex.message);
     	}
     }
