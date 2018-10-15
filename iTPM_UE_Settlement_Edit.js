@@ -342,7 +342,7 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
                 	    value: ddnLookUp.location[0].value
                 	});
         		}
-        		if(departmentsExists){
+        		/*if(departmentsExists){
             		settlementRec.setValue({
                 	    fieldId: 'department',
                 	    value: ddnLookUp.department[0].value
@@ -354,7 +354,7 @@ function(record, redirect, runtime, search, format, ST_Module, itpm) {
                 	    fieldId: 'class',
                 	    value: ddnLookUp.class[0].value
                 	});
-        		}
+        		}*/
         	}
         	settlementRec.setValue({
         	    fieldId: 'custbody_itpm_set_promo',
