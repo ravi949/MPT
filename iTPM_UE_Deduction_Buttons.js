@@ -147,7 +147,7 @@ define(['N/runtime',
 						if(multi){
 							var tranId = tranIds[0];
 							tranIds = [];
-							itpm.getMultiInvoiceList(tranId).forEacheach(function(result){
+							itpm.getMultiInvoiceList(tranId).forEach(function(result){
 								tranIds.push(result.inv_id);
 								itpmAmount += parseFloat(result.result.inv_remaining_amount);
 							});
