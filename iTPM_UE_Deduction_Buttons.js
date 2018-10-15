@@ -37,22 +37,22 @@ define(['N/runtime',
 			var status = sc.newRecord.getValue({fieldId:'transtatus'});
 			var contextType = contextType = runtime.executionContext;
 
-			//Restrict the user edit deduction record if status is Processing
-			if(contextType == runtime.ContextType.USER_INTERFACE && 
-			   sc.type == sc.UserEventType.EDIT && status == 'E'){
-				throw{
-					name:'INVALID_EDIT',
-					message:'The Deduction is in Processing status, It cannot be Edited.'
-				};
-			}
-			
-			//adding the Expense,Re-Invoice,Delete,Match To Creditmemo and SPlit buttons.
-			addDeductionButtons(sc);
-
-			
-			//Deduction Create or Edit Process
 			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
-				if(sc.type == sc.UserEventType.CREATE){
+				switch(sc.type){
+				case sc.UserEventType.EDIT:
+					//Restrict the user edit deduction record if status is Processing
+					if(status == 'E'){
+						throw{
+							name:'INVALID_EDIT',
+							message:'The Deduction is in Processing status, It cannot be Edited.'
+						};
+					}
+					break;
+				case sc.UserEventType.VIEW:
+					//adding the Expense,Re-Invoice,Delete,Match To Creditmemo and SPlit buttons.
+					addDeductionButtons(sc);
+					break;
+				case sc.UserEventType.CREATE:
 					log.debug('parameters',sc.request.parameters);
 					//this variable indicate from where deduction is creating
 					var createFrom = sc.request.parameters.custom_from;
@@ -60,6 +60,7 @@ define(['N/runtime',
 					validateTransaction(sc, createFrom);
 					//set the default values while loading the deduction record
 					deductionCreateOrEdit(sc, createFrom);
+					break;
 				}
 			}
 		} catch(ex) {
@@ -146,10 +147,9 @@ define(['N/runtime',
 						if(multi){
 							var tranId = tranIds[0];
 							tranIds = [];
-							multiInvoicesList(tranId).each(function(result){
-								tranIds.push(result.getValue({name: "internalid", join: "appliedToTransaction"}));
-								itpmAmount += parseFloat(result.getValue({name: "amountremaining", join: "appliedToTransaction"}));
-								return true;
+							itpm.getMultiInvoiceList(tranId).forEach(function(result){
+								tranIds.push(result.inv_id);
+								itpmAmount += parseFloat(result.result.inv_remaining_amount);
 							});
 						}else{
 							itpmAmount = record.load({
@@ -216,9 +216,11 @@ define(['N/runtime',
 	 */
 	function afterSubmit(sc) {
 		try{
+			//we set the USER_INTERFACE for not trigger for map/reduce and other contexts
 			//if its from deduction creating the extra split record 
 			//and set the original deduction value and update the parent deduction status and open balance value
-			if(sc.type == sc.UserEventType.CREATE){
+			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE && 
+			   sc.type == sc.UserEventType.CREATE){
 				var ddnRec = sc.newRecord;
 				if(ddnRec.getValue('custbody_itpm_ddn_parentddn')){
 					log.debug('triggered','created parent deduction');
@@ -242,7 +244,8 @@ define(['N/runtime',
 							removeCustomer : prefObj.removeCustomer,
 							memo : undefined,
 							refCode : '',
-							ddnDisputed : false
+							ddnDisputed : false,
+							automaticSplit:true
 						});
 					}
 					

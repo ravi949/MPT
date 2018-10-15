@@ -1014,7 +1014,8 @@ function(serverWidget, record, search, runtime, redirect, config, format, itpm) 
 						removeCustomer : removeCustFromSplit,
 						memo : undefined,
 						refCode : '',
-						ddnDisputed : false
+						ddnDisputed : false,
+						automaticSplit:true
 					});
 				}
 

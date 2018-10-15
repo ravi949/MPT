@@ -1125,7 +1125,7 @@ define(['N/search',
 			value:obj.refCode
 		}).setValue({
 			fieldId:'custbody_itpm_ddn_disputed',
-			value: parentDdnRec.getValue('custbody_itpm_ddn_disputed')//(obj.ddnDisputed)? obj.ddnDisputed : false //when split the deduction if first one checked second set to false
+			value: (obj.automaticSplit)?parentDdnRec.getValue('custbody_itpm_ddn_disputed'):obj.ddnDisputed//(obj.ddnDisputed)? obj.ddnDisputed : false //when split the deduction if first one checked second set to false
 		}).setValue({
 			fieldId:'custbody_itpm_amount',
 			value:remainingAmount  //setting the remaining the amount value to the Amount field
@@ -1610,6 +1610,116 @@ define(['N/search',
 
 	    return objArray;
 	}
+	
+	 /**
+     * @param {String} invId
+     * 
+     * @return {Integer} count
+     */
+    function getMultiInvoiceList(invId){
+    	try{
+    		var custPayId;
+        	log.debug('invId', invId);
+        	var invoiceSearchObj = search.create({
+        		type: search.Type.INVOICE,
+        		filters: [
+        			["internalid","anyof",invId], 
+        			"AND", 
+        			["applyingtransaction","noneof","@NONE@"], 
+        			"AND", 
+        			["applyingtransaction.type","anyof","CustPymt"], 
+        			"AND", 
+        			["mainline","is","T"], 
+        			"AND", 
+        			["status","noneof","CustInvc:B"]
+        			],
+        		columns: [
+        			search.createColumn({
+        				name: "type",
+        				join: "applyingTransaction"
+        			}),
+        			search.createColumn({
+        				name: "trandate",
+        				join: "applyingTransaction",
+        				sort: search.Sort.DESC
+        			}),
+        			search.createColumn({
+        				name: "internalid",
+        				join: "applyingTransaction",
+        				sort: search.Sort.DESC
+        			})
+        		]
+        	});
+
+        	invoiceSearchObj.run().each(function(result){
+        		custPayId = result.getValue({name:'internalid', join:'applyingTransaction'});
+        	});
+        	log.debug('custPayId', custPayId);
+        	
+        	var customerpaymentSearchObj = search.create({
+        		type: "customerpayment",
+        		filters: [
+        			["type","anyof","CustPymt"], 
+        			"AND", 
+        			["internalid","anyof",custPayId], 
+        			"AND", 
+        			["mainline","is","F"],
+        			"AND",
+        			["taxline","is","F"],
+        			"AND",
+        			["shipping","is","F"],
+        			"AND",
+        			["cogs","is","F"],
+        			"AND", 
+        			["appliedtotransaction.status","anyof","CustInvc:A"]
+        			],
+        		columns: [
+        			search.createColumn({
+        				name: "internalid",
+        				sort: search.Sort.ASC
+        			}),
+        			search.createColumn({
+        				name: "type",
+        				join: "appliedToTransaction"
+        			}),
+        			search.createColumn({
+        				name: "trandate",
+       					join: "appliedToTransaction"
+       				}),
+       				search.createColumn({
+       					name: "internalid",
+       					join: "appliedToTransaction"
+       				}),
+       				search.createColumn({
+       					name: "amount",
+       					join: "appliedToTransaction"
+       				}),
+       				search.createColumn({
+       					name: "amountremaining",
+       					join: "appliedToTransaction"
+       				})
+       			]
+        	});
+
+        	var invoiceList = [];
+        	customerpaymentSearchObj.run().each(function(result){
+        		if(invoiceList.length <=0 ||
+        		  !invoiceList.some(function(e){ return e.inv_id ==  result.getValue({name: "internalid", join: "appliedToTransaction"})})
+        		  ){
+        			invoiceList.push({
+            			inv_id: result.getValue({name: "internalid", join: "appliedToTransaction"}),
+            			inv_date: result.getValue({name: "trandate", join: "appliedToTransaction"}),
+            			inv_total: result.getValue({name: "amount", join: "appliedToTransaction"}),
+            			inv_remaining_amount: result.getValue({name: "amountremaining", join: "appliedToTransaction"})
+            		});
+        		}
+        		return true;
+        	});
+        	return invoiceList;
+    	}catch(e){
+    		log.error(e.name, e.message);
+    	}
+    }
     
 
 	return {
@@ -1658,6 +1768,7 @@ define(['N/search',
 		createDiscountLogLine				: 	createDiscountLogLine,
 		validateDiscountLog					:	validateDiscountLog,
 		Base64								:	Base64,
-		CSV2JSON							:	CSV2JSON
+		CSV2JSON							:	CSV2JSON,
+		getMultiInvoiceList					: 	getMultiInvoiceList
 	};
 });
