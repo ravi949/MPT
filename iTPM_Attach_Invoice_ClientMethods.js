@@ -119,17 +119,7 @@ define(['N/url',
 	 * @param {array} multiInv
 	 */
 	function iTPMDeduction(postingPeriodId, invId, multiInv){
-		try{
-			console.log(postingPeriodId);
-			//checking postingperiod status
-			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
-			console.log(response)
-			if(JSON.parse(response.body).period_closed){ 
-				dialog.create({
-					title:"Warning!",
-					message:"<b>iTPM</b> cannot perform the requested action because the Invoice Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
-				});
-			}else{
+		try{			
 				//Checking for multiple Invoice
 				var invCount =(!multiInv)?multiInvoices(invId):0;
 
@@ -156,7 +146,7 @@ define(['N/url',
 					console.log(ddnRecordURL);
 					window.open(ddnRecordURL,'_self');					
 				}
-			}
+			
 		}catch(e){
 			console.log(e.name,' record type = invoice, record id='+invId+', function name = iTPMDeduction, message='+e.message);
 		}

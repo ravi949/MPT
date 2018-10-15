@@ -39,6 +39,11 @@ define(['N/ui/serverWidget',
 					label : 'Apply To'
 				});
 				list.addColumn({
+					id : 'custpage_itpm_prmid',
+					type : serverWidget.FieldType.INTEGER,
+					label : 'Promotion Id'
+				});
+				list.addColumn({
 					id : 'custpage_itpm_prmtitle',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion Title'
@@ -60,12 +65,12 @@ define(['N/ui/serverWidget',
 				});
 				list.addColumn({
 					id : 'custpage_itpm_prmshipstdt',
-					type : serverWidget.FieldType.TEXT,
+					type : serverWidget.FieldType.DATE,
 					label : 'Ship Start Date'
 				});
 				list.addColumn({
 					id : 'custpage_itpm_prmshipenddt',
-					type : serverWidget.FieldType.TEXT,
+					type : serverWidget.FieldType.DATE,
 					label : 'Ship End Date'
 				});
 
@@ -83,7 +88,7 @@ define(['N/ui/serverWidget',
 				log.debug('Realted Customers',custrecIds);
 				var promoDealRecordSearch = search.create({
 					type:'customrecord_itpm_promotiondeal',
-					columns:['internalid',
+					columns:[
 						'name',
 						'custrecord_itpm_p_status',
 						'custrecord_itpm_p_condition',
@@ -93,7 +98,11 @@ define(['N/ui/serverWidget',
 						'custrecord_itpm_p_otherrefcode',
 						'custrecord_itpm_p_type',
 						'custrecord_itpm_p_shipstart',
-						'custrecord_itpm_p_shipend'
+						'custrecord_itpm_p_shipend',
+						search.createColumn({
+							name: 'internalid',
+							sort: search.Sort.ASC
+						})
 						],
 						filters:[
 							['custrecord_itpm_p_status','anyof', 3],'and', //approved
@@ -148,6 +157,7 @@ define(['N/ui/serverWidget',
 					promoDealRecordSearch.run().each(function(e){
 						list.addRow({
 							row :{	
+								'custpage_itpm_prmid':e.getValue('internalid'),
 								'custpage_itpm_id':e.getValue('internalid'),
 								'custpage_itpm_prmtitle':e.getValue('name'),
 								'custpage_itpm_otherrefcode':e.getValue('custrecord_itpm_p_otherrefcode'),
