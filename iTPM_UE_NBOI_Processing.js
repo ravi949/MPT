@@ -8,6 +8,7 @@ define(['N/redirect',
         'N/runtime', 
         'N/record',
         'N/ui/serverWidget',
+        'N/ui/message',
         './iTPM_Module.js'        
         ],
 	/**
@@ -17,7 +18,7 @@ define(['N/redirect',
 	* @param {record} record
 	* @param {serverWidget} serverWidget
 	*/
-	function(redirect, search, runtime, record, serverWidget, itpm) {
+	function(redirect, search, runtime, record, serverWidget, message, itpm) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -35,14 +36,24 @@ define(['N/redirect',
 			var tranItpmDiscount = tranRec.getValue('custbody_itpm_applydiscounts');
 			var tranItpmDisApplied = tranRec.getValue('custbody_itpm_discounts_applied');
 			if((scriptContext.type == 'view' || scriptContext.type == 'edit') && 
-				tranItpmDiscount && !tranItpmDisApplied){
-				var msgText = "Please wait! iTPM is processing off-invoice and net-bill allowances for this sales order."+
-				" To prevent invoicing errors, wait to approve and/or fulfill this order until processing is completed. This process runs every 15 minutes. ";
-				scriptContext.form.addField({
-					id:'custpage_nboiprocessing_message',
-					type:serverWidget.FieldType.INLINEHTML,
-					label:'script'
-				}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+					tranItpmDiscount && !tranItpmDisApplied){
+
+//				var msgText = "Please wait! iTPM is processing off-invoice and net-bill allowances for this sales order."+
+//				" To prevent invoicing errors, wait to approve and/or fulfill this order until processing is completed. This process runs every 15 minutes. ";
+//				scriptContext.form.addField({
+//				id:'custpage_nboiprocessing_message',
+//				type:serverWidget.FieldType.INLINEHTML,
+//				label:'script'
+//				}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+
+
+				var msgText = message.create({
+					title: "Please wait...", 
+					message: "Please wait! iTPM is processing off-invoice and net-bill allowances for this sales order."+
+					" To prevent invoicing errors, wait to approve and/or fulfill this order until processing is completed. This process runs every 15 minutes. ", 
+					type: message.Type.INFORMATION
+				});
+				scriptContext.form.addPageInitMessage({message: msgText});
 			}
 		} catch(ex) {
 			log.error('NBOI_UE_BeforeLoad', ex.name + '; message: ' + ex.message +'; Id:' + scriptContext.newRecord.id);

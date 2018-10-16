@@ -8,6 +8,7 @@ define(['N/ui/serverWidget',
 		'N/runtime',
 		'N/url',
 		'N/search',
+		'N/ui/message',
 		'./iTPM_Module.js'
 	],
 	/**
@@ -17,7 +18,7 @@ define(['N/ui/serverWidget',
 	 * @param {url} url
 	 * @param {search} search
 	 */
-	function(serverWidget,record,runtime,url,search,itpm) {
+	function(serverWidget, record, runtime, url, search, message, itpm) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -224,16 +225,25 @@ define(['N/ui/serverWidget',
 						log.error(nex.name+' For "Process Plan" button',nex.message);
 					}
 
-					//after copy and save the record it will show the copy in progress message
+					//Show message while the after the promotion is being saved & copy is in progess.
 					var copyInProgress = promoRec.getValue('custrecord_itpm_p_copyinprogress');
 					var copyRelatedRecords = promoRec.getValue('custrecord_itpm_p_copy');
 					if(copyInProgress && copyRelatedRecords){
-						var msgText = "This Promotion is queued for copying and cannot be edited until the linked records (Allowances, Estimated Quantities, and Retail Info) are copied over from the original promotion, Please be patient."
-							scriptContext.form.addField({
-								id:'custpage_copyinprg_message',
-								type:serverWidget.FieldType.INLINEHTML,
-								label:'script'
-							}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Copy is in progress",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+					
+//						var msgText = "This Promotion is queued for copying and cannot be edited until the linked records (Allowances, Estimated Quantities, and Retail Info) are copied over from the original promotion, Please be patient."
+//							scriptContext.form.addField({
+//								id:'custpage_copyinprg_message',
+//								type:serverWidget.FieldType.INLINEHTML,
+//								label:'script'
+//							}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Copy is in progress",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+					
+						var msgText = message.create({
+							title: "Copy is in progress", 
+							message: "This Promotion is queued for copying and cannot be edited until the linked records (Allowances, Estimated Quantities, and Retail Info) are copied over from the original promotion, Please be patient.",
+							type: message.Type.INFORMATION
+						});
+						scriptContext.form.addPageInitMessage({message: msgText});
+					
 					}
 
 					//Showing banner message to users on the promotion which used to copy promotion, and show up-to completion of the copy process
@@ -252,30 +262,53 @@ define(['N/ui/serverWidget',
 						return true;
 					});
 
+					// Show Message on the Original Promotion form where the promotion is being copied.
 					if(copyProcess && childRecCopyProcess){
-						var msgText = "To prevent errors, please don't edit this promotion until completion of the copy process. "+
-						"This promotion is being used to create one or more new promotions. <br>"+
-						"You can still make more copies of this promotion while the copy is in process.";
-						scriptContext.form.addField({
-							id	  : 'custpage_copywarn_message',
-							type  : serverWidget.FieldType.INLINEHTML,
-							label : 'script'
-						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please Do NOT edit this promotion.",message:"'+msgText+'",type: msg.Type.WARNING}).show()})</script>'
+
+//						var msgText = "To prevent errors, please don't edit this promotion until completion of the copy process. "+
+//						"This promotion is being used to create one or more new promotions. <br>"+
+//						"You can still make more copies of this promotion while the copy is in process.";
+//						scriptContext.form.addField({
+//						id	  : 'custpage_copywarn_message',
+//						type  : serverWidget.FieldType.INLINEHTML,
+//						label : 'script'
+//						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please Do NOT edit this promotion.",message:"'+msgText+'",type: msg.Type.WARNING}).show()})</script>'
+
+						var msgText = message.create({
+							title: "Please Do NOT edit this promotion.", 
+							message: "To prevent errors, please don't edit this promotion until completion of the copy process. "+
+							"This promotion is being used to create one or more new promotions. <br>"+
+							"You can still make more copies of this promotion while the copy is in process.",
+							type: message.Type.WARNING
+						});
+						scriptContext.form.addPageInitMessage({message: msgText});
+
 					}
 
-					//after Planing Completed showing the progress message while batch process running
+					//after Planning Completed showing the progress message while batch process running(newly copied promotion)
 					var promoPlaningProgress = promoRec.getValue('custrecord_itpm_p_ispromoplancomplete');
 
 					if(promoPlaningProgress){
-						var msgText = "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
-						"and made available under the subtabs by the same name. Please wait for processing to complete. "+ 
-						"Any allowances by item groups will be expanded to the associated items.";						
 
-						scriptContext.form.addField({
-							id:'custpage_planingprogress_message',
-							type:serverWidget.FieldType.INLINEHTML,
-							label:'script'
-						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+//						var msgText = "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
+//						"and made available under the subtabs by the same name. Please wait for processing to complete. "+ 
+//						"Any allowances by item groups will be expanded to the associated items.";						
+
+//						scriptContext.form.addField({
+//						id:'custpage_planingprogress_message',
+//						type:serverWidget.FieldType.INLINEHTML,
+//						label:'script'
+//						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
+
+						var msgText = message.create({
+							title: "Please wait...", 
+							message: "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
+							"and made available under the subtabs by the same name. Please wait for processing to complete. "+ 
+							"Any allowances by item groups will be expanded to the associated items.",
+							type: message.Type.INFORMATION
+						});
+						scriptContext.form.addPageInitMessage({message: msgText});
+
 					}
 				}
 
