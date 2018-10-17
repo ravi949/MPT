@@ -125,7 +125,7 @@ function(search, record, runtime, format, itpm) {
             				}
             			};
         			log.debug('Shipment: map constructed object', mapObj);
-        			context.write(mapObj);
+        			//context.write(mapObj);
         				
         			return true;
         		});
@@ -215,25 +215,41 @@ function(search, record, runtime, format, itpm) {
                 		dataObj.accrual_amount = parseFloat(dataObj.shipment_quantity * dataObj.redemption * dataObj.all_rate * dataObj.conversion_amount);
                 		log.audit('dataObj', dataObj);
                 		
+                		//NOTE: we should not consider the reversal record while searching the existing accruals, we need to figure-out at the end
                 		//Searching for Existing Accrual Log
                 		var accrualSearch = search.create({
                 			type	: 'customrecord_itpm_accruallog',
                 			filters	: [['custrecord_itpm_acc_transaction', 'is', dataObj.tranid],'AND',
                 			       	   ['custrecord_itpm_acc_item', 'is', dataObj.all_item],'AND',
-                			       	   ['custrecord_itpm_acc_reverse','is', false]
+                			       	   ['custrecord_itpm_acc_allowance', 'is', dataObj.allowance]
                 			],
                 			columns	: [
                 			       	   search.createColumn({
                 			       		   name: 'internalid',
                 			       		   sort: search.Sort.DESC
+                			       	   }),
+                			       	   search.createColumn({
+                			       		   name: 'custrecord_itpm_acc_amount'
+                			       	   }),
+                			       	   search.createColumn({
+                			       		   name: 'custrecord_itpm_acc_allowancerate'
                 			       	   })
                 			]
                 		});
                 		
                 		//If record exists create a reverse accrual else create accrual
                 		log.audit('Accrual Count', accrualSearch.runPaged().count);
-                		var accid = (accrualSearch.runPaged().count) ? createNewAccrualLog(dataObj, true, true) :  createNewAccrualLog(dataObj, false, false);
-                		log.audit('Shipment: New Accrual Log ID', accid);
+                		if(accrualSearch.runPaged().count > 0){
+                			dataObj.old_accrual_amount = accrualSearch.run().getRange(0,1)[0].getValue('custrecord_itpm_acc_amount');
+                			//dataObj.old_allowance = accrualSearch.run().getRange(0,1)[0].getValue('custrecord_itpm_acc_item');
+                			var reverse_accid = createNewAccrualLog(dataObj, true, true);
+                			log.audit('Shipment: New Reversal Accrual Log ID', reverse_accid);
+                			var accid = createNewAccrualLog(dataObj, false, false);
+                			log.audit('Shipment: New Accrual Log ID', accid);
+                		}else{
+                			var accid = createNewAccrualLog(dataObj, false, false);
+                			log.audit('Shipment: New Accrual Log ID', accid);
+                		}
                 	}
             	}else{ //Accrual process for settlements
             		if(itpm.subsidiariesEnabled()){
@@ -253,9 +269,7 @@ function(search, record, runtime, format, itpm) {
     				log.audit('dataObj', dataObj);
 					//Searching for Existing Accrual Log
             		var acc_filters = [['custrecord_itpm_acc_transaction', 'is', dataObj.tranid],'AND',
-                			       	   ['custrecord_itpm_acc_item', 'is', dataObj.all_item],'AND',
-                			       	   
-                			       	   ['custrecord_itpm_acc_reverse','is', false]
+                			       	   ['custrecord_itpm_acc_item', 'is', dataObj.all_item]
                 			];
     				if(dataObj.item_type == '2'){ //only for Bill-Back
     					acc_filters.push('AND',['custrecord_itpm_acc_allowance', 'is', dataObj.allowance]);
@@ -270,17 +284,23 @@ function(search, record, runtime, format, itpm) {
             			       	   }),
             			       	   search.createColumn({
             			       		   name: 'custrecord_itpm_acc_amount'
+            			       	   }),
+            			       	   search.createColumn({
+            			       		   name: 'custrecord_itpm_acc_allowancerate'
             			       	   })
             			]
             		});
     				
             		log.audit('Accrual Count & Settlement Status(Void means statusC)', accrualSearch.runPaged().count+' & '+dataObj.transtatus);
             		//If status id Applied/Void AND accrual count exists
-            		if((dataObj.transtatus != 'statusC' || dataObj.transtatus != 'statusC') && accrualSearch.runPaged().count){
+            		if((dataObj.transtatus != 'statusC' || dataObj.transtatus != 'statusC') && accrualSearch.runPaged().count > 0){
             			dataObj.accrual_amount = accrualSearch.run().getRange(0,1)[0].getValue('custrecord_itpm_acc_amount');
-            			var accid = createNewAccrualLog(dataObj, true, true);
+            			//dataObj.old_allowance = accrualSearch.run().getRange(0,1)[0].getValue('custrecord_itpm_acc_item');
+            			var reverse_accid = createNewAccrualLog(dataObj, true, true);
+            			log.audit('Settlement (Applied/Void, count exists): New Reversal Accrual Log ID', reverse_accid);
+            			var accid = createNewAccrualLog(dataObj, true, false);
                 		log.audit('Settlement(Applied/Void, count exists): New Accrual Log ID', accid);
-            		}else if(dataObj.transtatus != 'statusC' && !(accrualSearch.runPaged().count)){ //If Applied status and no accrual log count
+            		}else if(dataObj.transtatus != 'statusC' && accrualSearch.runPaged().count == 0){ //If Applied status and no accrual log count
             			var accid = createNewAccrualLog(dataObj, true, false);
                 		log.audit('Settlement(Applied, No count): New Accrual Log ID', accid);
             		}
@@ -314,7 +334,8 @@ function(search, record, runtime, format, itpm) {
      */
     function createNewAccrualLog(accObj, isNegativeAmount, isReversal){
     	try{
-    		var accruedAmount = parseFloat(accObj.accrual_amount).toFixed(2);
+    		var accruedAmount = (isReversal)? parseFloat(accObj.old_accrual_amount).toFixed(2) : parseFloat(accObj.accrual_amount).toFixed(2);
+    		//var allowanceid = (isReversal) ? accObj.old_allowance : accObj.allowance;
     		var finalAmount = (isNegativeAmount) ? accruedAmount*(-1) : accruedAmount;
     		log.debug('finalAmount', finalAmount+' for '+accObj.trantype);
     		
