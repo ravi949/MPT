@@ -148,7 +148,7 @@ function(search, record, runtime, format, itpm) {
         				}
         			};
     			log.debug('Settlement: map constructed object', mapObj);
-    			//context.write(mapObj);
+    			context.write(mapObj);
     		}
     	}catch(ex){
     		log.error('Map :- '+ex.name, ex);
