@@ -172,8 +172,17 @@ function(ui, search, url, record, itpm) {
     			
     			//Adding values to the sublist
     			var results = itpm.getMultiInvoiceList(params.fid);
+    			log.error('results',results.length);
     			var i = 0;
-    			
+    			if(results.length > 25){
+    				var msgText = "There are more than 25 Invoices associated with this customer.Please create creditmemo and then create a deduction from creditmemo"
+    					form.addField({
+    						id:'custpage_copyinprg_message',
+    						type:ui.FieldType.INLINEHTML,
+    						label:'script'
+    					}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Too many Invoices associated with this customer.",message:"'+msgText+'",type: msg.Type.WARNING}).show()})</script>'
+    			}
+			
 //    			var domain = url.resolveDomain({
 //				    hostType: url.HostType.APPLICATION
 //				});
