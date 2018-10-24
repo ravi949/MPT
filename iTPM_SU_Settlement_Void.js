@@ -351,7 +351,64 @@ define(['N/record',
 							}).save({
 								enableSourcing:false,
 								ignoreMandatoryFields:true
-							});							
+							});	
+							//getting the Journal Entry record which created when the settlement is created from Deduction
+							var jeser = search.create({
+								type:'journalentry',
+								column:['tranid'],
+								filters:[['custbody_itpm_appliedto','is',SetID]]
+							}).run().getRange(0,1);
+							log.debug('jeserlenngth',jeser.length);
+							if(jeser.length > 0){
+								var JEcopy = record.copy({
+									type: 'journalentry',
+									id: jeser[0].id,
+									isDynamic: true
+								});
+								var parentJEtranid = search.lookupFields({
+									type: 'journalentry',
+									id: jeser[0].id,
+									columns: ['tranid']
+								}).tranid ;
+								log.debug('parentJEtranid ',parentJEtranid );
+								var JEcopyMemo = 'Reversing JE '+ parentJEtranid +' for Voiding Settlement # '+SetRec.getValue('tranid');
+								JEcopy.setValue({
+									fieldId:'memo',
+									value:JEcopyMemo
+								});
+								log.debug('JEcopyMemo   ',JEcopyMemo);
+								var JElineCount = JEcopy.getLineCount('line');
+								for(var i = 0;i < JElineCount;i++){
+									var JEcredit = JEcopy.getSublistValue({sublistId:'line',fieldId:'credit',line:i});
+									var JEdebit = JEcopy.getSublistValue({sublistId:'line',fieldId:'debit',line:i});
+									var selectJELine = JEcopy.selectLine({ sublistId: 'line', line: i });
+
+									selectJELine.setCurrentSublistValue({
+										sublistId:'line',
+										fieldId:'debit',
+										value:(JEcredit > 0)?JEcredit:'',
+												line:i
+									}).setCurrentSublistValue({
+										sublistId:'line',
+										fieldId:'credit',
+										value:(JEdebit > 0)?JEdebit:'',
+												line:i
+									}).setCurrentSublistValue({
+										sublistId:'line',
+										fieldId:'memo',
+										value:JEcopyMemo,
+										line:i
+									});
+									JEcopy.commitLine({
+										sublistId: 'line'
+									});
+								}
+								var JECopyRecId = JEcopy.save({
+									enableSourcing:false,
+									ignoreMandatoryFields:true
+								});
+								log.debug('JECopyRecId',JECopyRecId);
+							}
 						}        				
 					}
 				}
