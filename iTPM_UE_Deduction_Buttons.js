@@ -371,9 +371,7 @@ define(['N/runtime',
 						["custrecord_itpm_eq_journalentry","anyof","@NONE@"]
 						],
 				});
-
 				if((resolutionQueue.runPaged().count != 0) || (expenseQueue.runPaged().count != 0)){
-					log.debug("resloutionQueue","True");
 
 //					var msgText = "To prevent errors, please do NOT edit this deduction, or use this deduction for any other process "+
 //					"until after processing is completed. This deduction is queued up in the <b>Resolution or Expense Queues</b> "+
@@ -391,7 +389,7 @@ define(['N/runtime',
 						"and processing is pending.", 
 						type: message.Type.INFORMATION
 					});
-					scriptContext.form.addPageInitMessage({message: msgText});
+					sc.form.addPageInitMessage({message: msgText});
 
 				}
 			}catch(e){
