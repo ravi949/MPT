@@ -227,7 +227,7 @@ define(['N/ui/message',
 					message:"<b>iTPM</b> cannot perform the requested action because the Settlement Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
 				});
 			}else{
-				var msg = displayMessage('Voiding the settlement','Please wait while void the settlement and redirect to JE.');
+				var msg = displayMessage('Voiding the settlement','Please wait while void the settlement and creating another settlement.');
 				msg.show();
 				var voidSetlmntURL = url.resolveScript({
 					scriptId:'customscript_itpm_set_void',
