@@ -83,7 +83,6 @@ define(['N/search',
 	function addButtonOnCreditMemo(scriptContext, ddnRecTypeId){
 		//invoice status not equal to PAID IN FULL
 		var creditMemoStatus = scriptContext.newRecord.getValue('status');
-		//creditMemoStatus = (creditMemoStatus == 'Open' || creditMemoStatus == 'Fully Applied');
 		//gettting the iTPM Applied To value
 		var itpmAppliedTo = scriptContext.newRecord.getValue('custbody_itpm_appliedto');
 		log.debug('creditMemoStatus',creditMemoStatus);
