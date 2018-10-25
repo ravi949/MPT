@@ -138,7 +138,8 @@ define(['N/url',
 						params:{fid:invId}
 					});
 					window.open(ddnMultiInvSuiteletURL,'_self');
-				}else{
+				}
+				if(invCount <= 1 || invCount == undefined){
 					console.log(true);
 					var msg = displayMessage('New Deduction','Please wait while you are redirected to the new deduction screen.');
 					msg.show();
