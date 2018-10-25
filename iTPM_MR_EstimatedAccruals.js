@@ -208,7 +208,7 @@ function(record, search, runtime, task, itpm) {
 			         'custrecord_itpm_acc_unit'
 				],
 				filters:[
-				    ['custrecord_itpm_acc_transaction','anyof','@NONE@'],'and',
+				    ['custrecord_itpm_acc_event','anyof',3],'and',
 				    ['custrecord_itpm_acc_promotion','anyof',keyObj.promo_id],'and',
 				    ['custrecord_itpm_acc_allowance','anyof',keyObj.all_id],'and',
 				    ['isinactive','is',false]
@@ -308,6 +308,9 @@ function(record, search, runtime, task, itpm) {
         	
         	newAccrualId = record.create({
         		type:'customrecord_itpm_accruallog'
+        	}).setValue({
+        		fieldId:'custrecord_itpm_acc_event',
+        		value:3
         	}).setValue({
         		fieldId:'custrecord_itpm_acc_promotion',
         		value:keyObj.promo_id
