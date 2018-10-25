@@ -83,7 +83,7 @@ define(['N/search',
 	function addButtonOnCreditMemo(scriptContext, ddnRecTypeId){
 		//invoice status not equal to PAID IN FULL
 		var creditMemoStatus = scriptContext.newRecord.getValue('status');
-		creditMemoStatus = (creditMemoStatus == 'Open' || creditMemoStatus == 'Fully Applied');
+		//creditMemoStatus = (creditMemoStatus == 'Open' || creditMemoStatus == 'Fully Applied');
 		//gettting the iTPM Applied To value
 		var itpmAppliedTo = scriptContext.newRecord.getValue('custbody_itpm_appliedto');
 		log.debug('creditMemoStatus',creditMemoStatus);
@@ -107,7 +107,9 @@ define(['N/search',
 		}
 
 		log.debug('ddnStatus',ddnStatus);
-		if(creditMemoStatus && ddnStatus){
+		
+		//for deduction button credit memo status should be open or full applied
+		if((creditMemoStatus == 'Open' || creditMemoStatus == 'Fully Applied') && ddnStatus){
 			scriptContext.form.clientScriptModulePath = './iTPM_Attach_CreditMemo_ClientMethods.js';
 			//itpm deduction permission should be create or edit or full
 			if(ddnPermission >= 2 && JEPermission >= 2){
@@ -118,14 +120,16 @@ define(['N/search',
 				});
 				var JE_Permssion = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
 				log.debug('JE_Permssion',JE_Permssion);
-				if(JE_Permssion >= 2){
-					scriptContext.form.addButton({
-						id:'custpage_itpm_matchtoddn',
-						label:'Match to Deduction',
-						functionName:'iTPMMatchToDdn('+scriptContext.newRecord.id+','+postingPeriodId+')'
-					});
-				}
 			}
+		}
+		
+		//for match to deduction buttion credit memo status should be open and JE permission >= create
+		if(creditMemoStatus == 'Open' && JE_Permssion >= 2){
+			scriptContext.form.addButton({
+				id:'custpage_itpm_matchtoddn',
+				label:'Match to Deduction',
+				functionName:'iTPMMatchToDdn('+scriptContext.newRecord.id+','+postingPeriodId+')'
+			});
 		}
 	}
 

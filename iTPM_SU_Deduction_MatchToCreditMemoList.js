@@ -53,73 +53,73 @@ define(['N/ui/serverWidget',
 					loc = (itpm.locationsEnabled())? deductionRec.getValue('location'): undefined,
 					clas = (itpm.classesEnabled())? deductionRec.getValue('class'): undefined;
 					
-								//getting remaining amount from credit memo
-								var cmLookup = search.lookupFields({
-									type    : search.Type.CREDIT_MEMO,
-									id      : creditmemoid,
-									columns : ['amountremaining','tranid']
-								});
-
-								var deductionid = parameters.did;
-								var jememo = 'Match To Credit Memo '+cmLookup.tranid+' on - iTPM Deduction #'+deductionRec.getValue('tranid');
-								var jesubsidiary = deductionRec.getValue('subsidiary');
-								var jeamount = cmLookup.amountremaining;
-								var jecustomer = parameters.customer;
-								var jecreditaccount;
-								var jedebitaccount;
-								var recordDedId;
-
-								//fetching JE credit account from deduction record header
-								ddnAccount = search.create({
-									type    : search.Type.TRANSACTION,
-									filters : [['internalid', 'anyof', deductionid],'and',
-										['debitamount', 'greaterthan', '0']],
-										columns : [{name:'account'}]
-								}).run().getRange(0,1);
-
-								if (ddnAccount) jecreditaccount = ddnAccount[0].getValue({name:'account'});
-
-								//fetching JE credit account from credit memo record header
-								cmAccount = search.create({
-									type    : search.Type.CREDIT_MEMO,
-									filters : [['internalid', 'anyof', creditmemoid]],
-									columns : [{name:'account'}]
-								}).run().getRange(0,1);
-
-								if (cmAccount) jedebitaccount = cmAccount[0].getValue({name:'account'});
-
-								var jeDetails = createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid,dept,clas,loc);
-
-								if (jeDetails.jeID){
-									//Set iTPM Applied To field on Credit Memo
-									var cmRecId = record.submitFields({
-										type: record.Type.CREDIT_MEMO,
-										id: creditmemoid,
-										values: {
-											'custbody_itpm_appliedto': deductionid
-										}, 
-										options: {enablesourcing: true, ignoreMandatoryFields: true}
-									});
-									log.debug('cmRecId',cmRecId);
-
-									if(jeDetails.jePreference){
-										//Redirect To Journal Entry
-										redirect.toRecord({
-											type : record.Type.JOURNAL_ENTRY,
-											id : jeDetails.jeID					
-										});
-									}else{
-										log.audit('From jeDetails.jePreference', jeDetails.jePreference);
-										//Applying Credit Memo
-										itpm.applyCreditMemo(jecustomer, deductionRec.getValue('custbody_itpm_ddn_openbal'), jeamount, jeDetails.jeID, creditmemoid, deductionid, locationExists, classExists, departmentExists);
-									}
-								} else {
-									throw {
-										name: 'SU_DDN_JECM',
-										message: 'Journal Entry was not created. Journal ID is empty.'
-									}
-								}
-								response.write(JSON.stringify({success:true,journalId:jeDetails.jeID}));
+				//getting remaining amount from credit memo
+				var cmLookup = search.lookupFields({
+					type    : search.Type.CREDIT_MEMO,
+					id      : creditmemoid,
+					columns : ['amountremaining','tranid']
+				});
+	
+				var deductionid = parameters.did;
+				var jememo = 'Match To Credit Memo '+cmLookup.tranid+' on - iTPM Deduction #'+deductionRec.getValue('tranid');
+				var jesubsidiary = deductionRec.getValue('subsidiary');
+				var jeamount = cmLookup.amountremaining;
+				var jecustomer = parameters.customer;
+				var jecreditaccount;
+				var jedebitaccount;
+				var recordDedId;
+	
+				//fetching JE credit account from deduction record header
+				ddnAccount = search.create({
+					type    : search.Type.TRANSACTION,
+					filters : [['internalid', 'anyof', deductionid],'and',
+						['debitamount', 'greaterthan', '0']],
+						columns : [{name:'account'}]
+				}).run().getRange(0,1);
+	
+				if (ddnAccount) jecreditaccount = ddnAccount[0].getValue({name:'account'});
+	
+				//fetching JE credit account from credit memo record header
+				cmAccount = search.create({
+					type    : search.Type.CREDIT_MEMO,
+					filters : [['internalid', 'anyof', creditmemoid]],
+					columns : [{name:'account'}]
+				}).run().getRange(0,1);
+	
+				if (cmAccount) jedebitaccount = cmAccount[0].getValue({name:'account'});
+	
+				var jeDetails = createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid,dept,clas,loc);
+	
+				if (jeDetails.jeID){
+					//Set iTPM Applied To field on Credit Memo
+					var cmRecId = record.submitFields({
+						type: record.Type.CREDIT_MEMO,
+						id: creditmemoid,
+						values: {
+							'custbody_itpm_appliedto': deductionid
+						}, 
+						options: {enablesourcing: true, ignoreMandatoryFields: true}
+					});
+					log.debug('cmRecId',cmRecId);
+	
+					if(jeDetails.jePreference){
+						//Redirect To Journal Entry
+						redirect.toRecord({
+							type : record.Type.JOURNAL_ENTRY,
+							id : jeDetails.jeID					
+						});
+					}else{
+						log.audit('From jeDetails.jePreference', jeDetails.jePreference);
+						//Applying Credit Memo
+						itpm.applyCreditMemo(jecustomer, deductionRec.getValue('custbody_itpm_ddn_openbal'), jeamount, jeDetails.jeID, creditmemoid, deductionid, locationExists, classExists, departmentExists);
+					}
+				} else {
+					throw {
+						name: 'SU_DDN_JECM',
+						message: 'Journal Entry was not created. Journal ID is empty.'
+					}
+				}
+				response.write(JSON.stringify({success:true,journalId:jeDetails.jeID}));
 
 			}else if(request.method == 'GET' && parameters.submit == 'false') {
 				log.debug('GET METHOD(parameters.submit)', parameters.submit);
