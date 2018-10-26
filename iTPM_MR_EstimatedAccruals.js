@@ -47,7 +47,7 @@ function(record, search, runtime, task, itpm) {
 					filters:[
 					    ['lastmodified','on','yesterday'],'and',
 					    ['custrecord_itpm_estqty_promodeal.custrecord_itpm_p_status','anyof','3'],'and',
-		                ['custrecord_itpm_estqty_promodeal.custrecord_itpm_p_condition','anyof','3'],'and',
+		                ['custrecord_itpm_estqty_promodeal.custrecord_itpm_p_condition','anyof',['2','3']],'and',
 					    ['isinactive','is',false]
 					]
 				});
@@ -66,7 +66,7 @@ function(record, search, runtime, task, itpm) {
 			        filters:[
 	                  ['lastmodified','on','yesterday'],'and',
 	                  ['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_status','anyof','3'],'and',
-	                  ['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_condition','anyof','3'],'and',
+	                  ['custrecord_itpm_all_promotiondeal.custrecord_itpm_p_condition','anyof',['2','3']],'and',
 	                  ['custrecord_itpm_all_mop','anyof',1],'and',
 	                  ['isinactive','is',false]
 			        ]
