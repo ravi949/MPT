@@ -59,6 +59,7 @@ function(search, record, runtime, format, itpm) {
     		var tsr_amount = (tsr_tran_type == 'ItemShip') ? 0 : obj["amount"];
     		var tsr_allowance = obj["custcol_itpm_set_allowance"].value;
     		var tsr_item_type = (tsr_tran_type == 'Custom') ? obj["custcol_itpm_lsbboi"].value : '';
+    		var tsr_appliedto_id = (tsr_tran_type == 'Custom') ? obj["custbody_itpm_appliedto"].value : '';
     		
     		if(tsr_tran_type == 'ItemShip'){
     			log.debug('tsr_tran_type', tsr_tran_type);
@@ -147,8 +148,25 @@ function(search, record, runtime, format, itpm) {
         					acc_tsr_subsidiary		: (itpm.subsidiariesEnabled())?obj["subsidiary"].value:''
         				}
         			};
-    			log.debug('Settlement: map constructed object', mapObj);
-    			context.write(mapObj);
+    			
+    			//Need to get "iTPM Applied To" field Settlement status to skip reversal settlements which were created through void settlement process
+    			if(tsr_appliedto_id){
+    				var sdata = search.lookupFields({
+        				type: 'transaction',
+        				id	: tsr_appliedto_id,
+        				columns: ['recordtype', 'status']
+        			});
+        			log.debug('sdata', sdata);
+        			
+        			if(sdata.recordtype == 'customtransaction_itpm_settlement' && sdata.status[0].value == 'statusC'){
+        				return;
+        			}
+        			log.debug('Settlement (if): map constructed object', mapObj);
+        			context.write(mapObj);
+    			}else{
+    				log.debug('Settlement (else): map constructed object', mapObj);
+        			context.write(mapObj);
+    			}
     		}
     	}catch(ex){
     		log.error('Map :- '+ex.name, ex);
