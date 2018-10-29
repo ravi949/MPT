@@ -171,9 +171,9 @@ function(ui, search, url, record, itpm) {
             	});
     			
     			//Adding values to the sublist
-    			var results = itpm.getMultiInvoiceList(params.fid);
+    			var results = itpm.getMultiInvoiceList(params.fid);    			
     			var i = 0;
-    			
+    						
 //    			var domain = url.resolveDomain({
 //				    hostType: url.HostType.APPLICATION
 //				});

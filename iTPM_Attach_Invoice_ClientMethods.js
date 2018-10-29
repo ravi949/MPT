@@ -122,15 +122,24 @@ define(['N/url',
 		try{			
 				//Checking for multiple Invoice
 				var invCount =(!multiInv)?multiInvoices(invId):0;
+				console.log('invCount',invCount);
+				
+				if(invCount > 25){
+					dialog.create({
+						title:"Warning!",
+						message:"There are more than 25 open invoices associated with the payment corresponding to this invoice. Please create one or more credit memos to close the invoices and then create a deduction from the credit memo(s)."
+					});
+				}
 
-				if(invCount >= 2){
+				if(invCount >= 2 && invCount <= 25){
 					var ddnMultiInvSuiteletURL = url.resolveScript({
 						scriptId:'customscript_itpm_ddn_mulinvlist',
 						deploymentId:'customdeploy_itpm_ddn_mulinvlist',
 						params:{fid:invId}
 					});
 					window.open(ddnMultiInvSuiteletURL,'_self');
-				}else{
+				}
+				if(invCount <= 1 || invCount == undefined){
 					console.log(true);
 					var msg = displayMessage('New Deduction','Please wait while you are redirected to the new deduction screen.');
 					msg.show();
