@@ -312,8 +312,10 @@ define(['N/record',
 						}
 
 					}
-
-					var SettlementRecId = SettelementRec.save({
+					var SettlementRecId = SettelementRec.setValue({
+						fieldId: 'custpage_itpm_set_contexttype',
+						value : 'Reverasal Settlement'
+					}).save({
 						enableSourcing:false,
 						ignoreMandatoryFields:true
 					});
