@@ -37,16 +37,6 @@ define(['N/redirect',
 			var tranItpmDisApplied = tranRec.getValue('custbody_itpm_discounts_applied');
 			if((scriptContext.type == 'view' || scriptContext.type == 'edit') && 
 					tranItpmDiscount && !tranItpmDisApplied){
-
-//				var msgText = "Please wait! iTPM is processing off-invoice and net-bill allowances for this sales order."+
-//				" To prevent invoicing errors, wait to approve and/or fulfill this order until processing is completed. This process runs every 15 minutes. ";
-//				scriptContext.form.addField({
-//				id:'custpage_nboiprocessing_message',
-//				type:serverWidget.FieldType.INLINEHTML,
-//				label:'script'
-//				}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
-
-
 				var msgText = message.create({
 					title: "Please wait...", 
 					message: "Please wait! iTPM is processing off-invoice and net-bill allowances for this sales order."+
@@ -58,7 +48,6 @@ define(['N/redirect',
 		} catch(ex) {
 			log.error('NBOI_UE_BeforeLoad', ex.name + '; message: ' + ex.message +'; Id:' + scriptContext.newRecord.id);
 		}
-
 	}
 	
 	

@@ -372,16 +372,6 @@ define(['N/runtime',
 						],
 				});
 				if((resolutionQueue.runPaged().count != 0) || (expenseQueue.runPaged().count != 0)){
-
-//					var msgText = "To prevent errors, please do NOT edit this deduction, or use this deduction for any other process "+
-//					"until after processing is completed. This deduction is queued up in the <b>Resolution or Expense Queues</b> "+
-//					"and processing is pending.";
-//					sc.form.addField({
-//					id	  : 'custpage_warn_message',
-//					type  : serverWidget.FieldType.INLINEHTML,
-//					label : 'script'
-//					}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please DO NOT modify this Deduction.",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
-
 					var msgText = message.create({
 						title: "Please DO NOT modify this Deduction.", 
 						message: "To prevent errors, please do NOT edit this deduction, or use this deduction for any other process "+

@@ -229,14 +229,6 @@ define(['N/ui/serverWidget',
 					var copyInProgress = promoRec.getValue('custrecord_itpm_p_copyinprogress');
 					var copyRelatedRecords = promoRec.getValue('custrecord_itpm_p_copy');
 					if(copyInProgress && copyRelatedRecords){
-					
-//						var msgText = "This Promotion is queued for copying and cannot be edited until the linked records (Allowances, Estimated Quantities, and Retail Info) are copied over from the original promotion, Please be patient."
-//							scriptContext.form.addField({
-//								id:'custpage_copyinprg_message',
-//								type:serverWidget.FieldType.INLINEHTML,
-//								label:'script'
-//							}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Copy is in progress",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
-					
 						var msgText = message.create({
 							title: "Copy is in progress", 
 							message: "This Promotion is queued for copying and cannot be edited until the linked records (Allowances, Estimated Quantities, and Retail Info) are copied over from the original promotion, Please be patient.",
@@ -264,16 +256,6 @@ define(['N/ui/serverWidget',
 
 					// Show Message on the Original Promotion form where the promotion is being copied.
 					if(copyProcess && childRecCopyProcess){
-
-//						var msgText = "To prevent errors, please don't edit this promotion until completion of the copy process. "+
-//						"This promotion is being used to create one or more new promotions. <br>"+
-//						"You can still make more copies of this promotion while the copy is in process.";
-//						scriptContext.form.addField({
-//						id	  : 'custpage_copywarn_message',
-//						type  : serverWidget.FieldType.INLINEHTML,
-//						label : 'script'
-//						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please Do NOT edit this promotion.",message:"'+msgText+'",type: msg.Type.WARNING}).show()})</script>'
-
 						var msgText = message.create({
 							title: "Please Do NOT edit this promotion.", 
 							message: "To prevent errors, please don't edit this promotion until completion of the copy process. "+
@@ -289,17 +271,6 @@ define(['N/ui/serverWidget',
 					var promoPlaningProgress = promoRec.getValue('custrecord_itpm_p_ispromoplancomplete');
 
 					if(promoPlaningProgress){
-
-//						var msgText = "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
-//						"and made available under the subtabs by the same name. Please wait for processing to complete. "+ 
-//						"Any allowances by item groups will be expanded to the associated items.";						
-
-//						scriptContext.form.addField({
-//						id:'custpage_planingprogress_message',
-//						type:serverWidget.FieldType.INLINEHTML,
-//						label:'script'
-//						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Please wait...",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
-
 						var msgText = message.create({
 							title: "Please wait...", 
 							message: "Please wait while your planned allowances, estimated quantities, and retail information is processed "+
