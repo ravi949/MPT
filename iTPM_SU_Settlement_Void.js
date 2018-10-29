@@ -39,133 +39,299 @@ define(['N/record',
 
 				var subsidiaryExists = itpm.subsidiariesEnabled();
 				var currencyExists = itpm.currenciesEnabled();
+				var locationexists = itpm.locationsEnabled();
 				var lineCount = SetRec.getLineCount('line');
 
 
 				if(lineCount > 0){
-					var JERec = record.create({
-						type:record.Type.JOURNAL_ENTRY
+					var SettelementRec = record.create({
+						type:'customtransaction_itpm_settlement'
 					});
+
+					//Setting primary information field group values
+
+					var setRefCode = SetRec.getValue('custbody_itpm_otherrefcode');
+					var customer = SetRec.getValue('custbody_itpm_customer');
+					SettelementRec.setValue({
+						fieldId:'custbody_itpm_otherrefcode',
+						value: setRefCode
+					}).setValue({
+						fieldId:'trandate',
+						value: new Date()
+					}).setValue({
+						fieldId:'custbody_itpm_customer',
+						value: customer
+					}).setValue({
+						fieldId:'custbody_itpm_appliedto',
+						value: SetID
+					}).setValue({
+						fieldId:'transtatus',
+						value: 'B'
+					});
+
+					// Setting Classification field group values
 
 					if(subsidiaryExists){
 						var subsidiary = SetRec.getValue('subsidiary');
-
-						JERec.setValue({
+						SettelementRec.setValue({
 							fieldId:'subsidiary',
 							value:subsidiary
 						});
 					}
-
-					if(currencyExists){
-						var currency = SetRec.getValue('currency');
-
-						JERec.setValue({
-							fieldId:'currency',
-							value:currency
+					if(locationexists){
+						var location = SetRec.getValue('location');
+						SettelementRec.setValue({
+							fieldId:'location',
+							value:location
 						});
 					}
 
-					//Checking for JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
-					var prefJE = itpm.getJEPreferences();
-					if(prefJE.featureEnabled){
-						if(prefJE.featureName == 'Approval Routing'){
-							log.debug('prefJE.featureName', prefJE.featureName);
-							JERec.setValue({
-								fieldId:'approvalstatus',
-								value:1
-							});
-						}else if(prefJE.featureName == 'General'){
-							log.debug('prefJE.featureName', prefJE.featureName);
-							JERec.setValue({
-								fieldId:'approved',
-								value:false
-							});
-						}
+					// Setting Promotion Detail field group values
+
+					var promotion = SetRec.getValue('custbody_itpm_set_promo'),
+						promotionNo = SetRec.getValue('custbody_itpm_set_promonum'),
+						promoDesc = SetRec.getValue('custbody_itpm_set_promodesc'),
+						shipStart = SetRec.getValue('custbody_itpm_set_promoshipstart'),
+						shiEnd = SetRec.getValue('custbody_itpm_set_promoshipend'),
+						netpromoLiability = SetRec.getValue('custbody_itpm_set_netliability'),
+						maxpromoLiability = SetRec.getValue('custbody_itpm_set_incrd_promoliability');
+
+					if(promotion){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_promo',
+							value:promotion
+						}).setValue({
+							fieldId:'custbody_itpm_set_promonum',
+							value:promotionNo
+						}).setValue({
+							fieldId:'custbody_itpm_set_promoshipstart',
+							value:shipStart
+						}).setValue({
+							fieldId:'custbody_itpm_set_promoshipend',
+							value:shiEnd
+						});						
 					}
 
-					JERec.setValue({
-						fieldId:'custbody_itpm_appliedto',
-						value:SetRec.id
+					if(promoDesc){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_promodesc',
+							value:promoDesc
+						});
+					}
+					if(netpromoLiability){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_netliability',
+							value:netpromoLiability
+						});
+					}
+					if(maxpromoLiability){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_incrd_promoliability',
+							value:maxpromoLiability
+						});
+					}
+
+					//Setting transaction Detail field group values
+
+					var itpmAmount = SetRec.getValue('custbody_itpm_amount'),
+						netliabilityLS = SetRec.getValue('custbody_itpm_set_netliabilityls'),
+						setReqLS = SetRec.getValue('custbody_itpm_set_reqls'),
+						underpaidLS = SetRec.getValue('custbody_itpm_set_paidls'),
+						netliabilityBB = SetRec.getValue('custbody_itpm_set_netliabilitybb'),
+						setReqBB = SetRec.getValue('custbody_itpm_set_reqbb'),
+						underpaidBB = SetRec.getValue('custbody_itpm_set_paidbb'),
+						netliabilityOI = SetRec.getValue('custbody_itpm_set_netliabilityoi'),
+						setReqOI = SetRec.getValue('custbody_itpm_set_reqoi'),
+						underpaidOI = SetRec.getValue('custbody_itpm_set_paidoi')
+
+
+					SettelementRec.setValue({
+						fieldId:'custbody_itpm_amount',
+						value:(itpmAmount)?itpmAmount:0
 					}).setValue({
 						fieldId:'memo',
 						value:'Voiding Settlement # '+SetRec.getValue('tranid')
 					});
-				}
 
-				for(var i = 0;i < lineCount;i++){
-					var account = SetRec.getSublistValue({sublistId:'line',fieldId:'account',line:i});
-					var credit = SetRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i});
-					var debit = SetRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i});
-					var lumsumType = SetRec.getSublistValue({sublistId:'line',fieldId:'custcol_itpm_lsbboi',line:i});
+					log.debug('netliabilityLS,setReqLS,underpaidLS',typeof netliabilityLS+','+setReqLS+','+underpaidLS);
+					if(netliabilityLS){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_netliabilityls',
+							value:netliabilityLS
+						});
+					}
+					if(setReqLS){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_reqls',
+							value:setReqLS
+						});
+					}
+					if(underpaidLS){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_paidls',
+							value:underpaidLS
+						});
+					}
+					if(netliabilityBB){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_netliabilitybb',
+							value:netliabilityBB
+						});
+					}
+					if(setReqBB){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_reqbb',
+							value:setReqBB
+						});
+					}
+					if(underpaidBB){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_paidbb',
+							value:underpaidBB
+						});
+					}
+					if(netliabilityOI){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_netliabilityoi',
+							value:netliabilityOI
+						});
+					}
+					if(setReqOI){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_reqoi',
+							value:setReqOI
+						});
+					}
+					if(underpaidOI){
+						SettelementRec.setValue({
+							fieldId:'custbody_itpm_set_paidoi',
+							value:underpaidOI
+						});
+					}
 
-					log.debug(i,'account ='+account+' credit='+credit+' debit='+debit+' lumsumType='+lumsumType);
-					log.debug('JERec',JERec);					
-					JERec.setSublistValue({
-						sublistId:'line',
-						fieldId:'account',
-						value:account,
-						line:i
-					}).setSublistValue({
-						sublistId:'line',
-						fieldId:'credit',
-						value:(debit != '')?debit:0,
+
+
+					//Setting line level values						
+
+
+					for(var i = 0;i < lineCount;i++){
+						var account = SetRec.getSublistValue({sublistId:'line',fieldId:'account',line:i});
+						var credit = SetRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i});
+						var debit = SetRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i});
+						var memo = SetRec.getSublistValue({sublistId:'line',fieldId:'memo',line:i});
+						var department = SetRec.getSublistValue({sublistId:'line',fieldId:'department',line:i});
+						var Class = SetRec.getSublistValue({sublistId:'line',fieldId:'class',line:i});
+						var department = SetRec.getSublistValue({sublistId:'line',fieldId:'department',line:i});
+						var lumsumType = SetRec.getSublistValue({sublistId:'line',fieldId:'custcol_itpm_lsbboi',line:i});
+						var itpmItem = SetRec.getSublistValue({sublistId:'line',fieldId:'custcol_itpm_set_item',line:i});
+						var allocationFactor = SetRec.getSublistValue({sublistId:'line',fieldId:'custcol_itpm_set_allocationfactor',line:i});
+						var itpmAllowance = SetRec.getSublistValue({sublistId:'line',fieldId:'custcol_itpm_set_allowance',line:i});
+
+						log.debug(i,'account ='+account+' credit='+credit+' debit='+debit+' lumsumType='+lumsumType);
+						log.debug('SettelementRec',SettelementRec);					
+						SettelementRec.setSublistValue({
+							sublistId:'line',
+							fieldId:'account',
+							value:account,
+							line:i
+						}).setSublistValue({
+							sublistId:'line',
+							fieldId:'credit',
+							value:(debit != '')?debit:0,
+									line:i
+						}).setSublistValue({
+							sublistId:'line',
+							fieldId:'debit',
+							value:(credit != '')?credit:0,
+									line:i
+						}).setSublistValue({
+							sublistId:'line',
+							fieldId:'entity',
+							value:SetRec.getValue('custbody_itpm_customer'),
+							line:i
+						});
+						if(memo){
+							SettelementRec.setSublistValue({
+								sublistId:'line',
+								fieldId:'memo',
+								value:memo,
 								line:i
-					}).setSublistValue({
-						sublistId:'line',
-						fieldId:'debit',
-						value:(credit != '')?credit:0,
+							});
+						}					
+						if(itpm.departmentsEnabled()){
+							if(department){
+								SettelementRec.setSublistValue({
+									sublistId:'line',
+									fieldId:'department',
+									value:department,
+									line:i
+								});
+							}
+						}
+						if(itpm.classesEnabled()){
+							if(Class){
+								SettelementRec.setSublistValue({
+									sublistId:'line',
+									fieldId:'class',
+									value:Class,
+									line:i
+								});
+							}
+						}
+						if(lumsumType){
+							SettelementRec.setSublistValue({
+								sublistId:'line',
+								fieldId:'custcol_itpm_lsbboi',
+								value:lumsumType,
 								line:i
-					}).setSublistValue({
-						sublistId:'line',
-						fieldId:'memo',
-						value:'Voiding Settlement # '+SetRec.getValue('tranid'),
-						line:i
-					}).setSublistValue({
-						sublistId:'line',
-						fieldId:'entity',
-						value:SetRec.getValue('custbody_itpm_customer'),
-						line:i
+							});
+						}
+						if(itpmItem){
+							SettelementRec.setSublistValue({
+								sublistId:'line',
+								fieldId:'custcol_itpm_set_item',
+								value:itpmItem,
+								line:i
+							});
+						}
+						if(allocationFactor){
+							SettelementRec.setSublistValue({
+								sublistId:'line',
+								fieldId:'custcol_itpm_set_allocationfactor',
+								value:allocationFactor,
+								line:i
+							});
+						}
+						if(itpmAllowance){
+							SettelementRec.setSublistValue({
+								sublistId:'line',
+								fieldId:'custcol_itpm_set_allowance',
+								value:itpmAllowance,
+								line:i
+							});
+						}
+
+					}
+					var SettlementRecId = SettelementRec.setValue({
+						fieldId: 'custpage_itpm_set_contexttype',
+						value : 'Reverasal Settlement'
+					}).save({
+						enableSourcing:false,
+						ignoreMandatoryFields:true
 					});
-					if(itpm.departmentsEnabled()){
-						JERec.setSublistValue({
-							sublistId:'line',
-							fieldId:'department',
-							value:SetRec.getValue('department'),
-							line:i
-						});
-					}
-					if(itpm.classesEnabled()){
-						JERec.setSublistValue({
-							sublistId:'line',
-							fieldId:'class',
-							value:SetRec.getValue('class'),
-							line:i
-						});
-					}
-					if(itpm.locationsEnabled()){
-						JERec.setSublistValue({
-							sublistId:'line',
-							fieldId:'location',
-							value:SetRec.getValue('location'),
-							line:i
-						});
-					}
 
+					log.debug('SettlementRecId',SettlementRecId);
 				}
 
-				var JERecId = JERec.save({
-					enableSourcing:false,
-					ignoreMandatoryFields:true
-				});
-
-				log.debug('JERecId',JERecId);
-
-				if(JERecId){
+				if(SettlementRecId){
 					var transactionId = SetRec.getValue('custbody_itpm_appliedto');
 					var setReq = parseFloat(SetRec.getValue('custbody_itpm_amount'));
 					SetRec.setValue({
 						fieldId:'transtatus',
 						value:'C'
+					}).setValue({
+						fieldId: 'custpage_itpm_set_contexttype',
+						value : 'Voiding'
 					}).save({
 						enableSourcing:false,
 						ignoreMandatoryFields:true
@@ -190,72 +356,70 @@ define(['N/record',
 							}).save({
 								enableSourcing:false,
 								ignoreMandatoryFields:true
-							});
+							});	
 							//getting the Journal Entry record which created when the settlement is created from Deduction
 							var jeser = search.create({
 								type:'journalentry',
 								column:['tranid'],
 								filters:[['custbody_itpm_appliedto','is',SetID]]
 							}).run().getRange(0,1);
-
-							log.debug('jeser ',jeser[0].id );
-
-							var JEcopy = record.copy({
-								type: 'journalentry',
-								id: jeser[0].id,
-								isDynamic: true
-							});
-							var parentJEtranid = search.lookupFields({
-								type: 'journalentry',
-								id: jeser[0].id,
-								columns: ['tranid']
-							}).tranid ;
-							log.debug('parentJEtranid ',parentJEtranid  );
-							var JEcopyMemo = 'Reversing JE '+ parentJEtranid +' for Voiding Settlement # '+SetRec.getValue('tranid');
-							JEcopy.setValue({
-								fieldId:'memo',
-								value:JEcopyMemo
-							});
-							log.debug('JEcopyMemo   ',JEcopyMemo);
-							var JElineCount = JEcopy.getLineCount('line');
-							for(var i = 0;i < JElineCount;i++){
-								var JEcredit = JEcopy.getSublistValue({sublistId:'line',fieldId:'credit',line:i});
-								var JEdebit = JEcopy.getSublistValue({sublistId:'line',fieldId:'debit',line:i});
-								var selectJELine = JEcopy.selectLine({ sublistId: 'line', line: i });
-
-								selectJELine.setCurrentSublistValue({
-									sublistId:'line',
-									fieldId:'debit',
-									value:(JEcredit > 0)?JEcredit:'',
-											line:i
-								}).setCurrentSublistValue({
-									sublistId:'line',
-									fieldId:'credit',
-									value:(JEdebit > 0)?JEdebit:'',
-											line:i
-								}).setCurrentSublistValue({
-									sublistId:'line',
+							log.debug('jeserlenngth',jeser.length);
+							if(jeser.length > 0){
+								var JEcopy = record.copy({
+									type: 'journalentry',
+									id: jeser[0].id,
+									isDynamic: true
+								});
+								var parentJEtranid = search.lookupFields({
+									type: 'journalentry',
+									id: jeser[0].id,
+									columns: ['tranid']
+								}).tranid ;
+								log.debug('parentJEtranid ',parentJEtranid );
+								var JEcopyMemo = 'Reversing JE '+ parentJEtranid +' for Voiding Settlement # '+SetRec.getValue('tranid');
+								JEcopy.setValue({
 									fieldId:'memo',
-									value:JEcopyMemo,
-									line:i
+									value:JEcopyMemo
 								});
-								JEcopy.commitLine({
-									sublistId: 'line'
-								});
-							}
-							var JECopyRecId = JEcopy.save({
-								enableSourcing:false,
-								ignoreMandatoryFields:true
-							});
+								log.debug('JEcopyMemo   ',JEcopyMemo);
+								var JElineCount = JEcopy.getLineCount('line');
+								for(var i = 0;i < JElineCount;i++){
+									var JEcredit = JEcopy.getSublistValue({sublistId:'line',fieldId:'credit',line:i});
+									var JEdebit = JEcopy.getSublistValue({sublistId:'line',fieldId:'debit',line:i});
+									var selectJELine = JEcopy.selectLine({ sublistId: 'line', line: i });
 
-							log.debug('JECopyRecId',JECopyRecId);
-							//if ends
+									selectJELine.setCurrentSublistValue({
+										sublistId:'line',
+										fieldId:'debit',
+										value:(JEcredit > 0)?JEcredit:'',
+												line:i
+									}).setCurrentSublistValue({
+										sublistId:'line',
+										fieldId:'credit',
+										value:(JEdebit > 0)?JEdebit:'',
+												line:i
+									}).setCurrentSublistValue({
+										sublistId:'line',
+										fieldId:'memo',
+										value:JEcopyMemo,
+										line:i
+									});
+									JEcopy.commitLine({
+										sublistId: 'line'
+									});
+								}
+								var JECopyRecId = JEcopy.save({
+									enableSourcing:false,
+									ignoreMandatoryFields:true
+								});
+								log.debug('JECopyRecId',JECopyRecId);
+							}
 						}        				
 					}
 				}
 				redirect.toRecord({
-					type:record.Type.JOURNAL_ENTRY,
-					id:JERecId
+					type:'customtransaction_itpm_settlement',
+					id:SettlementRecId
 				});
 			}
 		}catch(e){
