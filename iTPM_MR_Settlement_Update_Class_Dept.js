@@ -70,7 +70,7 @@ function(record, search, runtime, itpm) {
     	try{
     		var settlementId = context.key;
     		log.debug('settlementId',settlementId);
-    		
+
     		var settlementRecord = record.load({
     			type: 'customtransaction_itpm_settlement', 
     			id: settlementId
@@ -78,42 +78,47 @@ function(record, search, runtime, itpm) {
     		//log.debug('settlementRecord',settlementRecord);
     		var lineCount = settlementRecord.getLineCount('line')
     		log.debug('settlementRecord lineCount',lineCount);
-    		
+
+    		var classesEnabled = itpm.classesEnabled();
+    		var departmentsEnabled = itpm.departmentsEnabled();
+
     		for(var i = 0; i < lineCount; i++){
     			var item_Id = settlementRecord.getSublistValue({
-        		    sublistId: 'line',
-        		    fieldId: 'custcol_itpm_set_item',
-        		    line: i
-        		});
-    			
+    				sublistId: 'line',
+    				fieldId: 'custcol_itpm_set_item',
+    				line: i
+    			});
+
     			if(!item_Id)continue;
+
+    			log.debug('item_Id',item_Id);
+
+    			var item_Class = (classesEnabled)? itemClass(item_Id) : undefined;
+    			var item_Department = (departmentsEnabled)? itemDepartment(item_Id) : undefined;
+
+    			log.debug('item_Class',item_Class + ' lineNumber ' + i);
+    			log.debug('item_Department',item_Department + ' lineNumber ' + i);
+
     			
-        		log.debug('item_Id',item_Id);
-        		
-        		var item_Class = itemClass(item_Id);
-        		var item_Department = itemDepartment(item_Id);
-        		
-        		log.debug('item_Class',item_Class + ' lineNumber ' + i);
-        		log.debug('item_Department',item_Department + ' lineNumber ' + i);
-        		
-        		if(item_Class){
-        			settlementRecord.setSublistValue({
-        			    sublistId: 'line',
-        			    fieldId: 'class',
-        			    line: i,
-        			    value: item_Class
-        			});
-        		}
-        		if(item_Department){
-        			settlementRecord.setSublistValue({
-        			    sublistId: 'line',
-        			    fieldId: 'department',
-        			    line: i,
-        			    value: item_Department
-        			});
-        		}
+    			if(item_Class){
+    				settlementRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId: 'class',
+    					line: i,
+    					value: item_Class
+    				});
+    			}
+    			
+    			if(item_Department){
+    				settlementRecord.setSublistValue({
+    					sublistId: 'line',
+    					fieldId: 'department',
+    					line: i,
+    					value: item_Department
+    				});
+    			}
     		}
-    		
+
     		settlementRecord.setValue({
     			fieldId: 'custpage_itpm_set_contexttype',
     			value : 'One Time Script'
@@ -121,7 +126,7 @@ function(record, search, runtime, itpm) {
     			enableSourcing: true,
     			ignoreMandatoryFields: true
     		});
-    		
+
     	}catch(ex){
     		log.debug(ex.name,ex.message);
     		log.error(ex.name,ex.message);
