@@ -241,6 +241,8 @@ function(record, search, runtime, task, itpm) {
 			
 			//adding the allowance id and calculated amount in keyobject
 			keyObj.calculated_amnt = calculatedAmount;
+			//accrual event type promotion edited 3
+			keyObj.acc_event_type = 3;
 			
 			//creating new accrual log
 			accrualId = (accrualResult.length > 0)? accrualResult[0].getValue('internalid') : undefined;
@@ -310,7 +312,7 @@ function(record, search, runtime, task, itpm) {
         		type:'customrecord_itpm_accruallog'
         	}).setValue({
         		fieldId:'custrecord_itpm_acc_event',
-        		value:3
+        		value:keyObj.acc_event_type
         	}).setValue({
         		fieldId:'custrecord_itpm_acc_promotion',
         		value:keyObj.promo_id
