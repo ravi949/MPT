@@ -7,10 +7,11 @@ define(['N/record',
 	'N/runtime',
 	'N/search',
 	'N/ui/serverWidget',
+	'N/ui/message',
 	'./iTPM_Module.js'
 	],
 
-	function(record, runtime, search, serverWidget, itpm) {
+	function(record, runtime, search, serverWidget, message, itpm) {
 
 	/**
 	 * Function definition to be triggered before record is loaded.
@@ -58,15 +59,14 @@ define(['N/record',
 				});       		
 			}
 			if(scriptContext.type == 'view'){	
-				
+
 				//To show banner on Deduction Split record to prevent error message when user click on Back Button
-					var msgText = "Click on the Deduction to navigate to the iTPM Deduction record, or use the menu bar. Do NOT click on Back"
-						scriptContext.form.addField({
-							id:'custpage_copyinprg_message',
-							type:serverWidget.FieldType.INLINEHTML,
-							label:'script'
-						}).defaultValue = '<script language="javascript">require(["N/ui/message"],function(msg){msg.create({title:"Do NOT Click on Back Button",message:"'+msgText+'",type: msg.Type.INFORMATION}).show()})</script>'
-				
+				var msgText = message.create({
+					title: "Do NOT Click on Back Button", 
+					message: "Click on the Deduction to navigate to the iTPM Deduction record, or use the menu bar. Do NOT click on Back Button", 
+					type: message.Type.INFORMATION
+				});
+				scriptContext.form.addPageInitMessage({message: msgText});
 			}
 		}catch(ex){
 			log.error(ex.name,ex.message);
