@@ -536,17 +536,17 @@ function(record, search, runtime, itpm) {
     				v++;
     			}
     		}
-    		if(setIsApplied){
+//    		if(setIsApplied){
     			settlementRec.setValue({
     				fieldId:'transtatus',
     				value:'B'
     			});
-    		}else{
-    			settlementRec.setValue({
-    				fieldId:'transtatus',
-    				value:'A'
-    			});
-    		}    
+//    		}else{
+//    			settlementRec.setValue({
+//    				fieldId:'transtatus',
+//    				value:'A'
+//    			});
+//    		}    
     		var setStatus = search.lookupFields({
     		    type: 'customtransaction_itpm_settlement',
     		    id: key.setId,
