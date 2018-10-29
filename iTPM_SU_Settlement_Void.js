@@ -219,8 +219,7 @@ define(['N/record',
 						var credit = SetRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i});
 						var debit = SetRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i});
 						var memo = SetRec.getSublistValue({sublistId:'line',fieldId:'memo',line:i});
-						var department = SetRec.getSublistValue({sublistId:'line',fieldId:'department',line:i});
-						var Class = SetRec.getSublistValue({sublistId:'line',fieldId:'class',line:i});
+						var settlement_class = SetRec.getSublistValue({sublistId:'line',fieldId:'class',line:i});
 						var department = SetRec.getSublistValue({sublistId:'line',fieldId:'department',line:i});
 						var lumsumType = SetRec.getSublistValue({sublistId:'line',fieldId:'custcol_itpm_lsbboi',line:i});
 						var itpmItem = SetRec.getSublistValue({sublistId:'line',fieldId:'custcol_itpm_set_item',line:i});
@@ -269,11 +268,11 @@ define(['N/record',
 							}
 						}
 						if(itpm.classesEnabled()){
-							if(Class){
+							if(settlement_class){
 								SettelementRec.setSublistValue({
 									sublistId:'line',
 									fieldId:'class',
-									value:Class,
+									value:settlement_class,
 									line:i
 								});
 							}
