@@ -305,8 +305,12 @@ define(['N/record',
 			var settlementNewRec = scriptContext.newRecord;
 			if(contextType == 'USERINTERFACE' && eventType == 'create'){
 				var ddnId = settlementNewRec.getValue('custbody_itpm_appliedto');
-				if(ddnId)
-					ST_Module.applyToDeduction({sid:settlementNewRec.id,ddn:ddnId},'D');//Here 'D' indicating Deduction.
+				if(ddnId){
+					ST_Module.applyToDeduction({
+						ddn:ddnId, 
+						settlement_amount: parseFloat(settlementNewRec.getValue('custbody_itpm_amount'))
+					});
+				}
 			} 		
 			if(contextType == 'USERINTERFACE' && eventType == 'edit'){
 				var oldStatus = settlementOldRec.getValue('transtatus');
