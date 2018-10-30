@@ -263,7 +263,7 @@ define(['N/config',
 				}				
 			});
 
-			//Creating new settlement and applied to deduction
+			//Creating new settlement and apply to deduction
 			var newSettlementId = newSettlementRecord.save({enableSourcing:false,ignoreMandatoryFields:true});
 			if(createdFromDDN && newSettlementId){
 				applyToDeduction({
@@ -300,7 +300,7 @@ define(['N/config',
 	 */
 	function applyToDeduction(parameters){
 		try{
-
+			log.debug('applyToDeduction parameters',parameters);
 			var deductionRec = record.load({
 				type:'customtransaction_itpm_deduction',
 				id: parameters.ddn,

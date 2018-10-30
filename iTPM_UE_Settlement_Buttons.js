@@ -73,7 +73,21 @@ define(['N/record',
 				}*/
 
 				//-iTPM Settlement Permission = EDIT or FULL and Journal Entry permission = CREATE or FULL
-				if((setStatus == 'B' || setStatus == 'A' || setStatus == 'E') && setPermission >= 3 && JEPermission >= 2){
+				// Based on the itpm applied to field getting transaction type and hiding void button if the type is settlement 
+				var transactionId = settlementRec.getValue('custbody_itpm_appliedto');
+				var transactionType;
+				if(transactionId){
+					var transType = search.lookupFields({
+						type: search.Type.TRANSACTION,
+						id: transactionId,
+						columns: ['type']
+					});
+					transactionType = transType.type[0].text;
+					log.debug('type',transType.type[0].text);
+				}
+				if((setStatus == 'B' || setStatus == 'A' || setStatus == 'E') && 
+					setPermission >= 3 && JEPermission >= 2 && 
+					transactionType != '- iTPM Settlement'){
 					scriptContext.form.addButton({
 						id:'custpage_itpm_settlemevoid',
 						label:'Void',
