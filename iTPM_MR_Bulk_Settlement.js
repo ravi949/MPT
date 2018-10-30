@@ -98,7 +98,7 @@ function(search, record, formatModule, itpm, ST_Module) {
         		if(!promoHasAllBB){
         			throw {
         				name: 'INVALID MOP',
-        				message: 'With the selected MOP, Allowances are not present on the Promotion'
+        				message: 'With the selected MOP, Allowances were not present on the Promotion'
         			}
         		}
         	}else if(mop == 3){ //off-Invoice as per Resolution queue record
@@ -106,7 +106,7 @@ function(search, record, formatModule, itpm, ST_Module) {
         		if(!promoHasAllOI){
         			throw {
         				name: 'INVALID MOP',
-        				message: 'With the selected MOP, Allowances are not present on the Promotion'
+        				message: 'With the selected MOP, Allowances were not present on the Promotion'
         			}
         		}
         	}
