@@ -82,6 +82,34 @@ function(search, record, formatModule, itpm, ST_Module) {
     		var promoShipEndDate = promorecObj.getText('custrecord_itpm_p_shipend');
     		var promoSubsidiary = promorecObj.getValue('custrecord_itpm_p_subsidiary');
     		var promoCurrency = promorecObj.getValue('custrecord_itpm_p_currency');
+    		var promoLumpsum = parseFloat(promorecObj.getValue('custrecord_itpm_p_lumpsum'));
+    		
+    		//If MOP is not valid throw the error update queue with processing notes
+    		if(mop == 1){ //lump-sum as per Resolution queue record
+        		var promoHasAllNB = ST_Module.getAllowanceMOP(promotion_id,2); //here 2 as per MOP list as per promotion Type
+        		if(!(promoLumSum > 0 || promoHasAllNB)){
+        			throw {
+        				name: 'INVALID MOP',
+        				message: 'With the selected MOP, Allowances were not present on the Promotion'
+        			}
+        		}
+        	}else if(mop == 2){ //bill-back as per Resolution queue record
+        		var promoHasAllBB = ST_Module.getAllowanceMOP(promotion_id,1); //here 1 as per MOP list as per promotion Type
+        		if(!promoHasAllBB){
+        			throw {
+        				name: 'INVALID MOP',
+        				message: 'With the selected MOP, Allowances are not present on the Promotion'
+        			}
+        		}
+        	}else if(mop == 3){ //off-Invoice as per Resolution queue record
+        		var promoHasAllOI = ST_Module.getAllowanceMOP(promotion_id,3); //here 3 as per MOP list as per promotion Type
+        		if(!promoHasAllOI){
+        			throw {
+        				name: 'INVALID MOP',
+        				message: 'With the selected MOP, Allowances are not present on the Promotion'
+        			}
+        		}
+        	}
     		
     		//Checking whether the customer is ACTIVE or NOT
     		var isCustomerActive = search.lookupFields({
@@ -167,17 +195,8 @@ function(search, record, formatModule, itpm, ST_Module) {
     						log.audit('settlementId', settlementId);
     						
     						if(settlementId){
-    							var applyParams = {
-    									ddn : deduction_id,
-    									sid : settlementId
-    							}
-    							var appliedSettlementId = ST_Module.applyToDeduction(applyParams, 'Bulk Settlements'); //P means from Promotion
-        						log.audit('appliedSettlementId', appliedSettlementId);
-        						
-        						if(appliedSettlementId){
-        							var updatedQueueId = updateResolutionQueue(queue_id, feedback, 'pass', appliedSettlementId);
-        							log.audit('updatedQueueId', updatedQueueId);
-        						}
+    							var updatedQueueId = updateResolutionQueue(queue_id, feedback, 'pass', settlementId);
+    							log.audit('updatedQueueId', updatedQueueId);
     						}
     					}else{
     						var feedback = 'Promotions status is NOT APPROVED (or) condition is NOT ACTIVE/COMPLETED (or) Settlements are NOT Allowed (or) Allocation Factors and Allocation Contribution calculations are not calculated, hence not processed';
