@@ -272,12 +272,13 @@ define(['N/config',
 				errObj = JSON.parse(e.message.replace(/Error: /g,''));
 			}
 
-			if(e.name == 'SETTLEMENT_NOT_COMPLETED')
+			if(e.name == 'SETTLEMENT_NOT_COMPLETED'){
 				throw {name:'SETTLEMENT_NOT_COMPLETED',message:e.message};
-				else if(errObj && errObj.error == 'custom')
-					throw {name:'CUSTOM',message:errObj.message};
-					else
-						throw Error(e.message);
+			}else if(errObj && errObj.error == 'custom'){
+				throw {name:'CUSTOM',message:errObj.message};
+			}else{
+				throw Error(e.message);
+			}
 			//throw Error('record type='+recordType+', module=iTPM_Module_settlement.js, function name = createSettlement, message='+e.message);
 		}
 	}

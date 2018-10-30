@@ -303,11 +303,11 @@ define(['N/record',
     		var eventType = scriptContext.type;
     		var settlementOldRec = scriptContext.oldRecord;
 			var settlementNewRec = scriptContext.newRecord;
-			if(contextType == 'USERINTERFACE' && eventType == 'create'){
-				var ddnId = settlementNewRec.getValue('custbody_itpm_appliedto');
-				if(ddnId)
-					ST_Module.applyToDeduction({sid:settlementNewRec.id,ddn:ddnId},'D');//Here 'D' indicating Deduction.
-			} 		
+//			if(contextType == 'USERINTERFACE' && eventType == 'create'){
+//				var ddnId = settlementNewRec.getValue('custbody_itpm_appliedto');
+//				if(ddnId)
+//					ST_Module.applyToDeduction({sid:settlementNewRec.id,ddn:ddnId},'D');//Here 'D' indicating Deduction.
+//			} 		
 			if(contextType == 'USERINTERFACE' && eventType == 'edit'){
 				var oldStatus = settlementOldRec.getValue('transtatus');
 				var newStatus = settlementNewRec.getValue('transtatus');
