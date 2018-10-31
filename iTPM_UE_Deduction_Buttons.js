@@ -996,7 +996,7 @@ define(['N/runtime',
 
 				//searching for exists deduction which is not Open,Pending and Resolved
 				var ddnStatus = true;
-				if(itpmAppliedTo != ""){
+				if(itpmAppliedTo){
 					ddnStatus = search.lookupFields({
 						type:'customtransaction_itpm_deduction',
 						id:itpmAppliedTo,
@@ -1004,7 +1004,7 @@ define(['N/runtime',
 					})['status'][0].value;
 					ddnStatus = (ddnStatus != 'statusA' && ddnStatus != 'statusB' && ddnStatus != 'statusC');
 				}
-				log.debug('itpmAppliedTo',itpmAppliedTo == "");
+				log.debug('itpmAppliedTo',itpmAppliedTo);
 				log.debug('ddnStatus',ddnStatus);
 				if(!ddnStatus){
 					throw {

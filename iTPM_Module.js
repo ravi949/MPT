@@ -913,12 +913,13 @@ define(['N/search',
 			if(cmLookup.status[0].text == 'Fully Applied'){
 				//Decrease and set the open balance amount on Deduction
 				var ddnOpenBal = parseFloat(deductionOpenBal)-parseFloat(jeamount);
+				var dedStatus = (ddnOpenBal > 0)?'A':'C';
 				log.debug('ddnOpenBal',ddnOpenBal);
-
+			
 				DedRecId = record.submitFields({
 					type    : 'customtransaction_itpm_deduction',
 					id      : dedid,
-					values  : {'custbody_itpm_ddn_openbal' : ddnOpenBal},
+					values  : {'custbody_itpm_ddn_openbal' : ddnOpenBal, 'transtatus' : dedStatus},
 					options : {enableSourcing: true, ignoreMandatoryFields: true}
 				});
 				log.debug('Decreasing the open balance from deduction after applying the same amount on Credit Memo',DedRecId);
