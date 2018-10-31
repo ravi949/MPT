@@ -144,14 +144,20 @@ define(['N/record',
 			if(scriptContext.type == 'edit' || scriptContext.type == 'create'){ 
 	    		log.debug('type',scriptContext.type);
 	    		//not getting the Thousands in the values of currency fields 
-	    		var settlementRec = scriptContext.newRecord;	    		
+	    		var settlementRec = scriptContext.newRecord;
+				//it is new field on settlement record.
+	        	var offsetTranGLImpact = settlementRec.getValue('custbody_itpm_set_ofset_tran_gl_impact');	    		
 	    		var settlementReq = parseFloat(settlementRec.getValue('custbody_itpm_amount'));
+	    		settlementReq = (offsetTranGLImpact)?Math.abs(settlementReq):settlementReq;	        	
 				var lumsumSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqls'));
 				lumsumSetReq = (lumsumSetReq)?lumsumSetReq:0;
+				lumsumSetReq = (offsetTranGLImpact)?Math.abs(lumsumSetReq):lumsumSetReq;
 				var billbackSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqbb'));
 				billbackSetReq = (billbackSetReq)?billbackSetReq:0;
+				billbackSetReq = (offsetTranGLImpact)?Math.abs(billbackSetReq):billbackSetReq;
 				var offInvSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqoi'));
 				offInvSetReq = (offInvSetReq)?offInvSetReq:0;
+				offInvSetReq = (offsetTranGLImpact)?Math.abs(offInvSetReq):offInvSetReq;
 				var promoId = settlementRec.getValue('custbody_itpm_set_promo');
 				var promoDealRec = search.lookupFields({
 	        		type:'customrecord_itpm_promotiondeal',
@@ -216,12 +222,12 @@ define(['N/record',
 					//"The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."
 					var oldSettlementReq = settlementOldRec.getValue('custbody_itpm_amount');					
 					//Changed the Settlement status when user changed the Settlement Request LS/BB/OI values
-					var oldLS = settlementOldRec.getValue('custbody_itpm_set_reqls');
-					oldLS = (oldLS)?parseFloat(oldLS):0;
-					var oldBB = settlementOldRec.getValue('custbody_itpm_set_reqbb');
-					oldBB = (oldBB)?parseFloat(oldBB):0;
-					var oldOI = settlementOldRec.getValue('custbody_itpm_set_reqoi');
-					oldOI = (oldOI)?parseFloat(oldOI):0;
+//					var oldLS = settlementOldRec.getValue('custbody_itpm_set_reqls');
+//					oldLS = (oldLS)?parseFloat(oldLS):0;
+//					var oldBB = settlementOldRec.getValue('custbody_itpm_set_reqbb');
+//					oldBB = (oldBB)?parseFloat(oldBB):0;
+//					var oldOI = settlementOldRec.getValue('custbody_itpm_set_reqoi');
+//					oldOI = (oldOI)?parseFloat(oldOI):0;
 					if(applyToDeduction !='' && (settlementReq > oldSettlementReq)){
 						throw {error:'custom',message:"The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."}
 					}	
@@ -264,11 +270,7 @@ define(['N/record',
 						sublistId: 'line',
 						line: v
 					});
-				}
-				
-				//it is new field on settlement record.
-	        	var offsetTranGLImpact = settlementRec.getValue('custbody_itpm_set_ofset_tran_gl_impact');
-				
+				}	
 				
 				ST_Module.getSettlementLines(prefObj).forEach(function(e, index){
 					if(e.amount > 0){

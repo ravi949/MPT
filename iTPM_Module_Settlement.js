@@ -227,9 +227,9 @@ define(['N/config',
 			});
 
 			//Adding require values to prefObj for adding lines to the settlement record
-			prefObj.lumsumSetReq = lumsumSetReq;
-			prefObj.billbackSetReq = billbackSetReq;
-			prefObj.offinvoiceSetReq = offinvoiceSetReq;
+			prefObj.lumsumSetReq = Math.abs(lumsumSetReq);
+			prefObj.billbackSetReq = Math.abs(billbackSetReq);
+			prefObj.offinvoiceSetReq = Math.abs(offinvoiceSetReq);
 			prefObj.promoTypeDefaultAccnt = promoTypeDefaultAccnt;
 			prefObj.promoDealLumsumAccnt = promoDealLumsumAccnt;
 			prefObj.promotionId = params['custom_itpm_st_promotion_no'];
@@ -551,9 +551,9 @@ define(['N/config',
 					promoDealLumsumAccnt:promoDealLumsumAccnt,
 					settlementAccnt:loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'account',line: linecount-1}),
 					promoTypeDefaultAccnt:promoTypeDefaultAccnt,
-					lumsumSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqls'),
-					billbackSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqbb'),
-					offinvoiceSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqoi'),
+					lumsumSetReq:Math.abs(loadedSettlementRec.getValue('custbody_itpm_set_reqls')),
+					billbackSetReq:Math.abs(loadedSettlementRec.getValue('custbody_itpm_set_reqbb')),
+					offinvoiceSetReq:Math.abs(loadedSettlementRec.getValue('custbody_itpm_set_reqoi')),
 					promotionId:loadedSettlementRec.getValue('custbody_itpm_set_promo')
 			}
 			for(var i = linecount-1;i >= 0;i--){

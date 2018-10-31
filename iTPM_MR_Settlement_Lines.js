@@ -184,8 +184,11 @@ function(record, search, runtime, itpm) {
     		var linecount = settlementRec.getLineCount({sublistId:'line'});
     		var setCreditMemo = settlementRec.getSublistValue({ sublistId: 'line',fieldId: 'memo',line: linecount-1});
     		var lumsumSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqls'));
+    		lumsumSetReq = Math.abs(lumsumSetReq);
     		var billbackSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqbb'));
+    		billbackSetReq = Math.abs(billbackSetReq);
     		var offinvoiceSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqoi'));
+    		offinvoiceSetReq = Math.abs(offinvoiceSetReq);
     		var setCust = settlementRec.getValue('custbody_itpm_customer');
     		var setIsApplied = settlementRec.getValue('custbody_itpm_appliedto');
     		//it is new field on settlement record.
