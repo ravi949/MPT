@@ -307,13 +307,10 @@ define(['N/config',
 				isDynamic: true,
 			});
 
-			var DeductionId = deductionRec.setValue({
+			return deductionRec.setValue({
 				fieldId:'custbody_itpm_ddn_openbal',
 				value:parseFloat(deductionRec.getValue('custbody_itpm_ddn_openbal')) - parameters.settlement_amount
 			}).save({enableSourcing: false,ignoreMandatoryFields: true});
-
-
-			return  DeductionId;
 
 		}catch(e){
 			log.error('error',e);
