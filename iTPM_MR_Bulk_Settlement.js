@@ -87,7 +87,7 @@ function(search, record, formatModule, itpm, ST_Module) {
     		//If MOP is not valid throw the error update queue with processing notes
     		if(mop == 1){ //lump-sum as per Resolution queue record
         		var promoHasAllNB = ST_Module.getAllowanceMOP(promotion_id,2); //here 2 as per MOP list as per promotion Type
-        		if(!(promoLumSum > 0 || promoHasAllNB)){
+        		if(!(promoLumpsum > 0 || promoHasAllNB)){
         			throw {
         				name: 'INVALID MOP',
         				message: 'With the selected MOP, Allowances were not present on the Promotion'
