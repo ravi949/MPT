@@ -63,6 +63,7 @@ define(['N/search',
 		log.debug('ddnPermission',ddnPermission);
 		var postingPeriodId = scriptContext.newRecord.getValue({fieldId:'postingperiod'});
 		
+		//attach the client script on the forms
 		scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
 		
 		if(invStatus == 'Open' && invoiceDeductionsAreEmpty ){
@@ -95,6 +96,7 @@ define(['N/search',
 		var JEPermission = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
 		var postingPeriodId = scriptContext.newRecord.getValue({fieldId:'postingperiod'});
 		
+		//attach the client script on the forms
 		scriptContext.form.clientScriptModulePath = './iTPM_Attach_CreditMemo_ClientMethods.js';
 		
 		//Credit Memo dont have any ITPM DEDUCTION records which is not Open,Pending and Resolved
