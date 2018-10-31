@@ -265,8 +265,16 @@ define(['N/record',
 						line: v
 					});
 				}
+				
+				//it is new field on settlement record.
+	        	var offsetTranGLImpact = settlementRec.getValue('custbody_itpm_set_ofset_tran_gl_impact');
+				
+				
 				ST_Module.getSettlementLines(prefObj).forEach(function(e, index){
 					if(e.amount > 0){
+						if(offsetTranGLImpact){
+	        				e.account = prefObj.settlementAccnt;
+	        			}
 						settlementRec.setSublistValue({
 							sublistId:'line',
 							fieldId:'account',
@@ -467,9 +475,20 @@ define(['N/record',
         	prefObj.offinvoiceSetReq = 0;//offinvoiceSetReq;
         	prefObj.promoTypeDefaultAccnt = promoTypeDefaultAccnt;
         	prefObj.promoDealLumsumAccnt = promoDealLumsumAccnt;
-
+        	
+        	//it is new field on settlement record.
+        	if(!createdFromDDN){
+        		settlementRec.setValue({
+        			fieldId: 'custbody_itpm_set_ofset_tran_gl_impact',
+        			value: true
+        		});
+        	}
+        	
         	ST_Module.getSettlementLines(prefObj).forEach(function(e, index){
 				//if(e.amount == 0){
+        			if(!createdFromDDN){
+        				e.account = prefObj.settlementAccnt;
+        			}
 					settlementRec.setSublistValue({
 						sublistId:'line',
 						fieldId:'account',
