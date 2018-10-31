@@ -188,7 +188,9 @@ function(record, search, runtime, itpm) {
     		var offinvoiceSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqoi'));
     		var setCust = settlementRec.getValue('custbody_itpm_customer');
     		var setIsApplied = settlementRec.getValue('custbody_itpm_appliedto');
-//    		log.debug('setIsApplied in Reduce',setCreditMemo); 
+    		//it is new field on settlement record.
+           	var offsetTranGLImpact = settlementRec.getValue('custbody_itpm_set_ofset_tran_gl_impact');
+    		log.debug('offset Tran GL Impact is checked',offsetTranGLImpact); 
     		
     		var subsidiaryID = (itpm.subsidiariesEnabled())? settlementRec.getValue('subsidiary') : undefined;
     		var settlementAccnt = itpm.getPrefrenceValues(subsidiaryID).settlementAccnt;
@@ -310,7 +312,7 @@ function(record, search, runtime, itpm) {
     						bbLines.push({ lineType:'bb',
         						id:'2',
         						item:allValues.item,
-        						account:allValues.account,
+        						account:(offsetTranGLImpact)?settlementAccnt:allValues.account,
         						type:'debit',
         						memo:setlmemo,
         						amount:parseFloat(lineAmount),
@@ -335,7 +337,7 @@ function(record, search, runtime, itpm) {
     						oiLines.push({ lineType:'inv',
     							id:'3',
     							item:allValues.item,
-    							account:allValues.account,
+    							account:(offsetTranGLImpact)?settlementAccnt:allValues.account,
     							type:'debit',
     							memo:setlmemo,
     							amount: parseFloat(lineAmount),
@@ -374,7 +376,7 @@ function(record, search, runtime, itpm) {
     						lineType:'ls',
     						id:'1',
     						item:kpisitem,
-    						account:promoLsAcc,
+    						account:(offsetTranGLImpact)?settlementAccnt:promoLsAcc,
     						type:'debit',
     						memo:"LS Settlement for Item : "
     							 +promoLineSearchForKPI[i].getText({join:'custrecord_itpm_kpi_promotiondeal',name:'custrecord_itpm_kpi_item'})
