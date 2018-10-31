@@ -175,7 +175,7 @@ function(record, runtime, search, itpm) {
     		recObj.setValue({fieldId:'custrecord_itpm_acc_event', value:accObj.acctype});
     		recObj.setValue({fieldId:'custrecord_itpm_acc_promotion', value:accObj.promoid}); //Promo id
     		recObj.setValue({fieldId:'custrecord_itpm_acc_dateaccrued', value:accObj.accDate}); //accrued date   
-    			recObj.setValue({fieldId:'custrecord_itpm_acc_reverse', value:finalAmount > 0}); //Reversal/Released
+    			recObj.setValue({fieldId:'custrecord_itpm_acc_reverse', value:finalAmount < 0}); //Reversal/Released
     		recObj.setValue({fieldId:'custrecord_itpm_acc_amount', value:finalAmount}); //Accrued Amount    		
     		return accrualid = recObj.save({
     			enableSourcing: false,
