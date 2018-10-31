@@ -180,6 +180,7 @@ function(record, search, runtime, itpm) {
     		log.debug('settlementRec Status in Reduce',settlementRec.getValue('transtatus'));
     		if(settlementRec.getValue('transtatus') == 'C') return;
     		
+    		var applyToDeduction = settlementRec.getValue('custbody_itpm_appliedto');
     		var linecount = settlementRec.getLineCount({sublistId:'line'});
     		var setCreditMemo = settlementRec.getSublistValue({ sublistId: 'line',fieldId: 'memo',line: linecount-1});
     		var lumsumSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqls'));
@@ -215,6 +216,24 @@ function(record, search, runtime, itpm) {
     						]
     		}).run().getRange(0,1000);
     		var kpilength = promoLineSearchForKPI.length;
+    		
+    		var createdFromDDN = undefined;
+    		var ddnRecord = undefined;
+    		if(applyToDeduction){
+    			createdFromDDN = search.lookupFields({
+    				type:search.Type.TRANSACTION,
+    				id:applyToDeduction,
+    				columns:['recordtype']
+    			})['recordtype'] == 'customtransaction_itpm_deduction';
+    			
+    			if(createdFromDDN){
+        			ddnRecord = record.load({
+        				type:'customtransaction_itpm_deduction',
+        				id:applyToDeduction
+        			});
+    			}
+    		}
+    		
     		
     		//Checking for shipments for promotion 
     		//promoDeal Record Load
@@ -417,7 +436,7 @@ function(record, search, runtime, itpm) {
     				lineType:'ls',
     				id:'1',
     				item:'',
-    				account:settlementAccnt,
+    				account:(createdFromDDN)? ddnRecord.getSublistValue({sublistId:'line',fieldId:'account',line:ddnRecord.getLineCount('line') - 1}) : settlementAccnt,
     				type:'credit',
     				memo:setCreditMemo,
     				amount:lumsumSetReq,
@@ -434,7 +453,7 @@ function(record, search, runtime, itpm) {
     				lineType:'bb',
     				id:'2',
     				item:'',
-    				account:settlementAccnt,
+    				account:(createdFromDDN)? ddnRecord.getSublistValue({sublistId:'line',fieldId:'account',line:ddnRecord.getLineCount('line') - 1}) : settlementAccnt,
     				type:'credit',
     				memo:setCreditMemo,
     				amount:billbackSetReq,
@@ -451,7 +470,7 @@ function(record, search, runtime, itpm) {
     				lineType:'inv',
     				id:'3',
     				item:'',
-    				account:settlementAccnt,
+    				account:(createdFromDDN)? ddnRecord.getSublistValue({sublistId:'line',fieldId:'account',line:ddnRecord.getLineCount('line') - 1}) : settlementAccnt,
     				type:'credit',
     				memo:setCreditMemo,
     				amount:offinvoiceSetReq,

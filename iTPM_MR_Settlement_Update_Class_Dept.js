@@ -119,11 +119,8 @@ function(record, search, runtime, itpm) {
     			}
     		}
 
-    		settlementRecord.setValue({
-    			fieldId: 'custpage_itpm_set_contexttype',
-    			value : 'One Time Script'
-    		}).save({
-    			enableSourcing: true,
+    		settlementRecord.save({
+    			enableSourcing: false,
     			ignoreMandatoryFields: true
     		});
 
