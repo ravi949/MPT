@@ -477,7 +477,7 @@ define(['N/record',
         	prefObj.promoDealLumsumAccnt = promoDealLumsumAccnt;
         	
         	//it is new field on settlement record.
-        	if(!createdFromDDN){
+        	if(scriptParms.custom_from == 'promo'){
         		settlementRec.setValue({
         			fieldId: 'custbody_itpm_set_ofset_tran_gl_impact',
         			value: true
