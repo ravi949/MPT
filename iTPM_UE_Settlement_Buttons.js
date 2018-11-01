@@ -228,7 +228,7 @@ define(['N/record',
 //					oldBB = (oldBB)?parseFloat(oldBB):0;
 //					var oldOI = settlementOldRec.getValue('custbody_itpm_set_reqoi');
 //					oldOI = (oldOI)?parseFloat(oldOI):0;
-					if(applyToDeduction !='' && (settlementReq > oldSettlementReq)){
+					if(applyToDeduction && (settlementReq > oldSettlementReq)){
 						throw {error:'custom',message:"The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."}
 					}	
 					
