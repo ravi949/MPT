@@ -78,7 +78,13 @@ define(['N/ui/serverWidget',
 						var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
 						log.debug('rolePermission',rolePermission);
 						var rolePermissionIs = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
-
+						var promotionTypeRectypeId = runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission');
+						var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);
+						log.debug('promoTypePermission', promoTypePermission);
+						var preferencesRecTypeId = runtime.getCurrentScript().getParameter('custscript_itpm_preferences_permission');
+						var preferencesPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+preferencesRecTypeId);
+						log.debug('preferencesPermission', preferencesPermission);
+						
 						var kpiAlocationCalcIsComplete = search.create({
 							type: "customrecord_itpm_kpi",
 							filters: [
@@ -89,7 +95,7 @@ define(['N/ui/serverWidget',
 						}).run().getRange(0,10).length > 0;
 
 						var showSettlementButton = (rolePermissionIs  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
-						if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn') && !kpiAlocationCalcIsComplete){
+						if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn') && !kpiAlocationCalcIsComplete && (promoTypePermission >= 3 || custscript_itpm_preferences_permission >= 3)){
 							promoForm.addButton({
 								id:'custpage_newsettlementbtn',
 								label:'Adjust Spend',
