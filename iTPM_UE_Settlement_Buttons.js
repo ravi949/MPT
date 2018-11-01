@@ -257,10 +257,15 @@ define(['N/record',
 						log.debug('ddnLookUp ',ddnLookUp.getValue('tranid'));
 						log.audit('ddnLookUp ',ddnLookUp.getValue('custbody_itpm_ddn_openbal'));
 						stMemo = (ddnLookUp.getValue('tranid') != undefined)?'Settlement Created From Deduction #'+ddnLookUp.getValue('tranid'):stMemo;
-						//Validating the Deduction Amount with the Settlement Request Amount
+						
 						if(contextType == 'USERINTERFACE' && scriptContext.type == 'create'){
+							//Validating the Deduction amount should be greater than zero.
+							if(parseFloat(ddnLookUp.getValue('custbody_itpm_ddn_openbal')) <= 0){
+								throw {error:'custom',message:"The Deduction Open Balance should be greater than zero."};
+							}
+							//Validating the Deduction Amount with the Settlement Request Amount
 							if(settlementReq > parseFloat(ddnLookUp.getValue('custbody_itpm_ddn_openbal'))){
-								throw {error:'custom',message:"The settlement amount cannot exceed the deduction Open Balance."}
+								throw {error:'custom',message:"The settlement amount cannot exceed the deduction Open Balance."};
 							}
 						} 
 					}
@@ -307,10 +312,11 @@ define(['N/record',
 				});
 			}
     	}catch(e){
-    		if(e.error == 'custom')
+    		if(e.error == 'custom'){
     			throw e.message;
-    		else
+    		}else{
     			log.error(e.name,'function name = beforesubmit, message = '+e.message);
+    		}
     	}
     }
     
