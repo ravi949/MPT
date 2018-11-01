@@ -63,6 +63,20 @@ function(search, record, formatModule, itpm, ST_Module) {
     		var mop = data['custrecord_itpm_rq_mop'].value;
     		log.debug('Queue ID, Promotion, Deduction, Amount & MOP', queue_id+', '+promotion_id+', '+deduction_id+', '+resolution_amount+'& '+mop);
     		
+    		//Skip the process, if the Deduction Open Balance is ZERO
+    		var ded_current_openbal = search.lookupFields({
+    			type: 'customtransaction_itpm_deduction',
+    			id	: deduction_id,
+    			columns: ['custbody_itpm_ddn_openbal']
+    		});
+    		
+    		if(parseFloat(ded_current_openbal.custbody_itpm_ddn_openbal) == 0){
+    			throw {
+    				name: 'INVALID DEDUCTION',
+    				message: 'Selected Deduction was already RESOLVED'
+    			}
+    		}
+    		
     		//Fetching Promotion Data
     		var promorecObj = record.load({
     			type : 'customrecord_itpm_promotiondeal',
@@ -90,7 +104,7 @@ function(search, record, formatModule, itpm, ST_Module) {
         		if(!(promoLumpsum > 0 || promoHasAllNB)){
         			throw {
         				name: 'INVALID MOP',
-        				message: 'With the selected MOP, Allowances were not present on the Promotion'
+        				message: 'Seems Lump-Sum amount is 0 (AND) With the selected MOP, Allowances were not present on the Promotion'
         			}
         		}
         	}else if(mop == 2){ //bill-back as per Resolution queue record
