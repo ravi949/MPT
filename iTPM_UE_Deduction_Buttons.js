@@ -195,10 +195,13 @@ define(['N/runtime',
 			}
 			
 			//setting the deduction lines with itpm amount and previous old account values
-			if(sc.type == sc.UserEventType.EDIT){
+			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE && 
+			   sc.type == sc.UserEventType.EDIT
+			){
 				setDeductionLines(sc.newRecord,{
 					tranType:'override_lines_onedit',
-					oldRec:sc.oldRecord
+					oldRec:sc.oldRecord,
+					customerId: sc.oldRecord.getValue('custbody_itpm_customer')
 				});
 			}
 		} catch(ex) {
@@ -813,16 +816,17 @@ define(['N/runtime',
 			for(var i = 0; i < oldRecLineCount; i++){
 				var isDebitAmount = obj.oldRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i});
 				receivbaleAccntsList.push({
-					accountId:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'account',line:i}),
-					amount:ddnRec.getValue('custbody_itpm_amount'),
-					fid:(isDebitAmount)?'debit':'credit',
-					memo:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'memo',line:i})
+					accountId: obj.oldRec.getSublistValue({sublistId:'line',fieldId:'account',line:i}),
+					amount: (isDebitAmount)? isDebitAmount : obj.oldRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i}),
+					fid: (isDebitAmount)? 'debit' : 'credit',
+					memo: obj.oldRec.getSublistValue({sublistId:'line',fieldId:'memo',line:i}),
+					removeCustFromSplit: !obj.oldRec.getSublistValue({sublistId:'line',fieldId:'entity',line:i})
 				});
 			}
     		break;
     	}
     	
-    	log.debug('receivbaleAccntsList',receivbaleAccntsList);
+    	log.audit('receivbaleAccntsList',receivbaleAccntsList);
     	var lineCount = ddnRec.getLineCount('line');
     	log.debug('lineCOunt',lineCount);
     	for(var i = lineCount-1; i >= 0 ; i--){
