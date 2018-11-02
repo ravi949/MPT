@@ -90,8 +90,7 @@ define(['N/runtime',
 			if (sc.type == sc.UserEventType.EDIT || sc.type == sc.UserEventType.XEDIT){
 				var exc = runtime.executionContext;
 				log.debug('UserEventType: ' + sc.type + '; ExecutionContext: ' + exc + '; RecordId: ' + sc.newRecord.id);
-				if (exc == runtime.ContextType.USER_INTERFACE || 
-					exc == runtime.ContextType.USEREVENT || 
+				if (exc == runtime.ContextType.USEREVENT || 
 					exc == runtime.ContextType.SUITELET || 
 					exc == runtime.ContextType.MAP_REDUCE
 				){

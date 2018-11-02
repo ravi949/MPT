@@ -303,13 +303,16 @@ define(['N/config',
 			log.debug('applyToDeduction parameters',parameters);
 			var deductionRec = record.load({
 				type:'customtransaction_itpm_deduction',
-				id: parameters.ddn,
-				isDynamic: true,
+				id: parameters.ddn
 			});
+			var remainingOpenBalance = parseFloat(deductionRec.getValue('custbody_itpm_ddn_openbal')) - parameters.settlement_amount;
 
 			return deductionRec.setValue({
 				fieldId:'custbody_itpm_ddn_openbal',
-				value:parseFloat(deductionRec.getValue('custbody_itpm_ddn_openbal')) - parameters.settlement_amount
+				value:remainingOpenBalance
+			}).setValue({
+				fieldId:'transtatus',
+				value: (remainingOpenBalance > 0) ? 'A' : 'C'
 			}).save({enableSourcing: false,ignoreMandatoryFields: true});
 
 		}catch(e){
