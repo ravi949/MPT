@@ -35,10 +35,9 @@ define(['N/runtime',
 				};
 			}
 
-			var status = sc.newRecord.getValue({fieldId:'transtatus'});
-			var contextType = contextType = runtime.executionContext;
-
+			
 			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
+				var status = sc.newRecord.getValue({fieldId:'transtatus'});
 				switch(sc.type){
 				case sc.UserEventType.EDIT:
 					//Restrict the user edit deduction record if status is Processing
@@ -343,11 +342,11 @@ define(['N/runtime',
 		log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
 
 		if(
-				eventType == sc.UserEventType.VIEW && 
-				runtimeContext == runtime.ContextType.USER_INTERFACE &&
-				openBalance != 0 &&
-				status == 'A' && 
-				clientScriptPath 			
+			eventType == sc.UserEventType.VIEW && 
+			runtimeContext == runtime.ContextType.USER_INTERFACE &&
+			openBalance != 0 &&
+			status == 'A' && 
+			clientScriptPath 			
 		){				
 			log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
 			sc.form.clientScriptModulePath = clientScriptPath;
@@ -628,10 +627,11 @@ define(['N/runtime',
 		}).setValue({
 			fieldId:'custbody_itpm_ddn_openbal',
 			value:transObj['itpm_amount']
-		}).setValue({
-			fieldId:'custbody_itpm_ddn_totexp',
-			value:transObj['total_nonpromotional_expense']
 		});
+//		.setValue({
+//			fieldId:'custbody_itpm_ddn_totexp',
+//			value:transObj['total_nonpromotional_expense']
+//		});
 
 
 		//getting the line value for the deduction
