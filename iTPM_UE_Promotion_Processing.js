@@ -78,12 +78,6 @@ define(['N/ui/serverWidget',
 						var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
 						log.debug('rolePermission',rolePermission);
 						var rolePermissionIs = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
-						var promotionTypeRectypeId = runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission');
-						var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);
-						log.debug('promoTypePermission', promoTypePermission);
-						var preferencesRecTypeId = runtime.getCurrentScript().getParameter('custscript_itpm_preferences_permission');
-						var preferencesPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+preferencesRecTypeId);
-						log.debug('preferencesPermission', preferencesPermission);
 						
 						var kpiAlocationCalcIsComplete = search.create({
 							type: "customrecord_itpm_kpi",
@@ -95,23 +89,32 @@ define(['N/ui/serverWidget',
 						}).run().getRange(0,10).length > 0;
 
 						var showSettlementButton = (rolePermissionIs  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
-						if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn') && !kpiAlocationCalcIsComplete && (promoTypePermission >= 3 || custscript_itpm_preferences_permission >= 3)){
-							promoForm.addButton({
-								id:'custpage_newsettlementbtn',
-								label:'Adjust Spend',
-								functionName:'newSettlement('+promoRec.id+')'
-							});
-
+						try{
+							var promotionTypeRectypeId = runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission');
+							var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);
+							var preferencesRecTypeId = runtime.getCurrentScript().getParameter('custscript_itpm_preferences_permission');
+							var preferencesPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+preferencesRecTypeId);
+							log.debug('preferencesPermission', preferencesPermission);
+							log.debug('promoTypePermission', promoTypePermission);
+							if(showSettlementButton  && (promoTypePermission >= 3 || preferencesRecTypeId >= 3)){
+								promoForm.addButton({
+									id:'custpage_newsettlementbtn',
+									label:'Adjust Spend',
+									functionName:'newSettlement('+promoRec.id+')'
+								});
+							}
+						}catch(nex){
+							log.error(nex.name+' For "Adjust Spend" Button',nex.message);
+						}
+						if(showSettlementButton && !promoRec.getValue('custrecord_itpm_promo_allocationcontrbtn') && !kpiAlocationCalcIsComplete){							
 							promoForm.addButton({
 								id:'custpage_bulksettlementbtn',
 								label:'Resolve Deductions',
 								functionName:'bulkSettlements('+promoRec.id+','+customer+')'
 							});
-
-							promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
 						}
 					}catch(nex){
-						log.error(nex.name+' For "Request Settlement" and "Resolve Deductions" Buttons',nex.message);
+						log.error(nex.name+' For "Resolve Deductions" Button',nex.message);
 					}
 
 					//'Refresh KPIs' Button
@@ -133,7 +136,6 @@ define(['N/ui/serverWidget',
 								label:'Refresh KPIs',
 								functionName:'refreshKPIs('+promoRec.id+')'
 							});
-							promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
 						}
 					}catch(nex){
 						log.error(nex.name+' For "Refresh KPIs" button',nex.message);
@@ -225,7 +227,6 @@ define(['N/ui/serverWidget',
 								label:'Process Plan',
 								functionName:'planningComplete('+promoRec.id+','+planning_processed+')'
 							});
-							promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
 						}
 					}catch(nex){
 						log.error(nex.name+' For "Process Plan" button',nex.message);
@@ -287,6 +288,7 @@ define(['N/ui/serverWidget',
 						scriptContext.form.addPageInitMessage({message: msgText});
 
 					}
+					promoForm.clientScriptModulePath = './iTPM_Attach_Promotion_ClientMethods.js';
 				}
 
 				if (scriptContext.type == 'view' || scriptContext.type == 'edit'){
@@ -784,7 +786,7 @@ define(['N/ui/serverWidget',
 			log.debug('end',promoDealSearchId);
 			log.debug('promoDealSearchId',e.getValue('custrecord_itpm_p_shipend'));
 			log.debug('days',overlappedDays.toString());
-			log.debug('s',promoDealStatus);
+			log.debug('promoDealStatus',promoDealStatus);
 
 			var promos = []; 
 			//if estqty have items then only it going to search for the results
