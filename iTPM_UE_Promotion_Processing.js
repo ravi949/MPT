@@ -75,8 +75,8 @@ define(['N/ui/serverWidget',
 
 						//role based permission allow permissions (CREATE,EDIT and FULL)
 						var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_settlementpermissionsrec');						
-						var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
-						log.debug('rolePermission',rolePermission);
+						var settlementRecPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
+						log.debug('settlementRecPermission',settlementRecPermission);
 						
 						var kpiAlocationCalcIsComplete = search.create({
 							type: "customrecord_itpm_kpi",
@@ -87,7 +87,7 @@ define(['N/ui/serverWidget',
 								columns: [ 'custrecord_itpm_kpi_promotiondeal', 'custrecord_itpm_kpi_item', 'custrecord_itpm_kpi_esttotalqty' ]
 						}).run().getRange(0,10).length > 0;
 
-						var showSettlementButton = (rolePermission >= 2  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
+						var showSettlementButton = (settlementRecPermission >= 2  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
 						try{
 							var promotionTypeRectypeId = runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission');
 							var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);
@@ -95,7 +95,7 @@ define(['N/ui/serverWidget',
 							var preferencesPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+preferencesRecTypeId);
 							log.debug('preferencesPermission', preferencesPermission);
 							log.debug('promoTypePermission', promoTypePermission);
-							if(showSettlementButton  && (promoTypePermission >= 3 || preferencesRecTypeId >= 3)){
+							if(showSettlementButton  && (promoTypePermission >= 3 || preferencesPermission >= 3)){
 								promoForm.addButton({
 									id:'custpage_newsettlementbtn',
 									label:'Adjust Spend',
