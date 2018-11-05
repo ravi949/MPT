@@ -73,7 +73,21 @@ define(['N/record',
 				}*/
 
 				//-iTPM Settlement Permission = EDIT or FULL and Journal Entry permission = CREATE or FULL
-				if((setStatus == 'B' || setStatus == 'A' || setStatus == 'E') && setPermission >= 3 && JEPermission >= 2){
+				// Based on the itpm applied to field getting transaction type and hiding void button if the type is settlement 
+				var transactionId = settlementRec.getValue('custbody_itpm_appliedto');
+				var transactionType;
+				if(transactionId){
+					var transType = search.lookupFields({
+						type: search.Type.TRANSACTION,
+						id: transactionId,
+						columns: ['type']
+					});
+					transactionType = transType.type[0].text;
+					log.debug('type',transType.type[0].text);
+				}
+				if((setStatus == 'B' || setStatus == 'A' || setStatus == 'E') && 
+					setPermission >= 3 && JEPermission >= 2 && 
+					transactionType != '- iTPM Settlement'){
 					scriptContext.form.addButton({
 						id:'custpage_itpm_settlemevoid',
 						label:'Void',
@@ -126,23 +140,24 @@ define(['N/record',
     function beforeSubmit(scriptContext) {
     	try{
     		var contextType = runtime.executionContext;
+    		if(contextType != runtime.ContextType.USER_INTERFACE)return;
 			if(scriptContext.type == 'edit' || scriptContext.type == 'create'){ 
 	    		log.debug('type',scriptContext.type);
 	    		//not getting the Thousands in the values of currency fields 
 	    		var settlementRec = scriptContext.newRecord;
-	    		//when user voiding settlement and one time class department update
-	    		var setlContextType = settlementRec.getValue('custpage_itpm_set_contexttype');
-	    		log.debug('setlContextType',setlContextType);
-	    		if(setlContextType)return;
-	    		
-	    		
+				//it is new field on settlement record.
+	        	var offsetTranGLImpact = settlementRec.getValue('custbody_itpm_set_ofset_tran_gl_impact');	    		
 	    		var settlementReq = parseFloat(settlementRec.getValue('custbody_itpm_amount'));
+	    		settlementReq = (offsetTranGLImpact)?Math.abs(settlementReq):settlementReq;	        	
 				var lumsumSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqls'));
 				lumsumSetReq = (lumsumSetReq)?lumsumSetReq:0;
+				lumsumSetReq = (offsetTranGLImpact)?Math.abs(lumsumSetReq):lumsumSetReq;
 				var billbackSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqbb'));
 				billbackSetReq = (billbackSetReq)?billbackSetReq:0;
+				billbackSetReq = (offsetTranGLImpact)?Math.abs(billbackSetReq):billbackSetReq;
 				var offInvSetReq = parseFloat(settlementRec.getValue('custbody_itpm_set_reqoi'));
 				offInvSetReq = (offInvSetReq)?offInvSetReq:0;
+				offInvSetReq = (offsetTranGLImpact)?Math.abs(offInvSetReq):offInvSetReq;
 				var promoId = settlementRec.getValue('custbody_itpm_set_promo');
 				var promoDealRec = search.lookupFields({
 	        		type:'customrecord_itpm_promotiondeal',
@@ -169,9 +184,7 @@ define(['N/record',
 				});
 				var promoTypeDefaultAccnt = promoDealRec['custrecord_itpm_p_type.custrecord_itpm_pt_defaultaccount'][0].value;
 				var promoDealLumsumAccnt = (promoDealRec['custrecord_itpm_p_account'].length >0)?promoDealRec['custrecord_itpm_p_account'][0].value:promoTypeDefaultAccnt;
-				var subsid = undefined;
-	    		if(itpm.subsidiariesEnabled())
-	        		subsid = settlementRec.getValue({fieldId:'subsidiary'});
+				var subsid = (itpm.subsidiariesEnabled())? settlementRec.getValue({fieldId:'subsidiary'}) : undefined;
 				var prefObj = itpm.getPrefrenceValues(subsid);
 	        	prefObj.lumsumSetReq = lumsumSetReq;
 	        	prefObj.billbackSetReq = billbackSetReq;
@@ -209,13 +222,13 @@ define(['N/record',
 					//"The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."
 					var oldSettlementReq = settlementOldRec.getValue('custbody_itpm_amount');					
 					//Changed the Settlement status when user changed the Settlement Request LS/BB/OI values
-					var oldLS = settlementOldRec.getValue('custbody_itpm_set_reqls');
-					oldLS = (oldLS)?parseFloat(oldLS):0;
-					var oldBB = settlementOldRec.getValue('custbody_itpm_set_reqbb');
-					oldBB = (oldBB)?parseFloat(oldBB):0;
-					var oldOI = settlementOldRec.getValue('custbody_itpm_set_reqoi');
-					oldOI = (oldOI)?parseFloat(oldOI):0;
-					if(applyToDeduction !='' && (settlementReq > oldSettlementReq)){
+//					var oldLS = settlementOldRec.getValue('custbody_itpm_set_reqls');
+//					oldLS = (oldLS)?parseFloat(oldLS):0;
+//					var oldBB = settlementOldRec.getValue('custbody_itpm_set_reqbb');
+//					oldBB = (oldBB)?parseFloat(oldBB):0;
+//					var oldOI = settlementOldRec.getValue('custbody_itpm_set_reqoi');
+//					oldOI = (oldOI)?parseFloat(oldOI):0;
+					if(applyToDeduction && (settlementReq > oldSettlementReq)){
 						throw {error:'custom',message:"The settlement amount cannot exceed the amount set at the time of record creation by the deduction Open Balance."}
 					}	
 					
@@ -227,34 +240,52 @@ define(['N/record',
 //					}				
 				}
 				var stMemo = 'Settlement Created From Promotion # '+promoDealRec.name;
+				var createdFromDDN = undefined;
 				if(applyToDeduction){
-					var ddnLookUp = search.lookupFields({
-						type:'customtransaction_itpm_deduction',
-						id: applyToDeduction,
-						columns:['tranid','custbody_itpm_ddn_openbal']
-					});
+					createdFromDDN = search.lookupFields({
+						type:search.Type.TRANSACTION,
+						id:applyToDeduction,
+						columns:['recordtype']
+					})['recordtype'] == 'customtransaction_itpm_deduction';
+					
+					if(createdFromDDN){
+						var ddnLookUp = record.load({
+							type:'customtransaction_itpm_deduction',
+							id:applyToDeduction
+						});
 
-					log.debug('ddnLookUp ',ddnLookUp.tranid );
-					log.audit('ddnLookUp ',ddnLookUp.custbody_itpm_ddn_openbal);
-					stMemo = (ddnLookUp.tranid != undefined)?'Settlement Created From Deduction #'+ddnLookUp.tranid:stMemo;
-					//Validating the Deduction Amount with the Settlement Request Amount
-					if(contextType == 'USERINTERFACE' && scriptContext.type == 'create'){
-						if(settlementReq > parseFloat(ddnLookUp.custbody_itpm_ddn_openbal))
-							throw {error:'custom',message:"The settlement amount cannot exceed the deduction Open Balance."}
-					} 
+						log.debug('ddnLookUp ',ddnLookUp.getValue('tranid'));
+						log.audit('ddnLookUp ',ddnLookUp.getValue('custbody_itpm_ddn_openbal'));
+						stMemo = (ddnLookUp.getValue('tranid') != undefined)?'Settlement Created From Deduction #'+ddnLookUp.getValue('tranid'):stMemo;
+						
+						if(contextType == 'USERINTERFACE' && scriptContext.type == 'create'){
+							//Validating the Deduction amount should be greater than zero.
+							if(parseFloat(ddnLookUp.getValue('custbody_itpm_ddn_openbal')) <= 0){
+								throw {error:'custom',message:"The Deduction Open Balance should be greater than zero."};
+							}
+							//Validating the Deduction Amount with the Settlement Request Amount
+							if(settlementReq > parseFloat(ddnLookUp.getValue('custbody_itpm_ddn_openbal'))){
+								throw {error:'custom',message:"The settlement amount cannot exceed the deduction Open Balance."};
+							}
+						} 
+					}
 				}
 				for(var v = numLines - 1 ; v >= 0; v--){    					
 					settlementRec.removeLine({
 						sublistId: 'line',
 						line: v
 					});
-				}
+				}	
+				
 				ST_Module.getSettlementLines(prefObj).forEach(function(e, index){
 					if(e.amount > 0){
+						if(offsetTranGLImpact){
+	        				e.account = prefObj.settlementAccnt;
+	        			}
 						settlementRec.setSublistValue({
 							sublistId:'line',
 							fieldId:'account',
-							value:e.account,
+							value:(e.type == 'credit' && createdFromDDN)? ddnLookUp.getSublistValue({sublistId:'line',fieldId:'account',line:ddnLookUp.getLineCount('line') - 1}) : e.account,
 							line:index
 						}).setSublistValue({
 							sublistId:'line',
@@ -281,10 +312,11 @@ define(['N/record',
 				});
 			}
     	}catch(e){
-    		if(e.error == 'custom')
+    		if(e.error == 'custom'){
     			throw e.message;
-    		else
+    		}else{
     			log.error(e.name,'function name = beforesubmit, message = '+e.message);
+    		}
     	}
     }
     
@@ -305,8 +337,12 @@ define(['N/record',
 			var settlementNewRec = scriptContext.newRecord;
 			if(contextType == 'USERINTERFACE' && eventType == 'create'){
 				var ddnId = settlementNewRec.getValue('custbody_itpm_appliedto');
-				if(ddnId)
-					ST_Module.applyToDeduction({sid:settlementNewRec.id,ddn:ddnId},'D');//Here 'D' indicating Deduction.
+				if(ddnId){
+					ST_Module.applyToDeduction({
+						ddn:ddnId, 
+						settlement_amount: parseFloat(settlementNewRec.getValue('custbody_itpm_amount'))
+					});
+				}
 			} 		
 			if(contextType == 'USERINTERFACE' && eventType == 'edit'){
 				var oldStatus = settlementOldRec.getValue('transtatus');
@@ -400,32 +436,18 @@ define(['N/record',
             	    fieldId: 'custbody_itpm_appliedto',
             	    value: scriptParms.custom_ddn
             	});
-        		var ddnLookUp = search.lookupFields({
-            		type:'customtransaction_itpm_deduction',
-            		id: scriptParms.custom_ddn,
-            		columns:['tranid','department','class','location','custbody_itpm_ddn_openbal']
-        		});   
+        		var ddnLookUp = record.load({
+        			type:'customtransaction_itpm_deduction',
+        			id:scriptParms.custom_ddn
+        		});
         		log.debug('ddnLookUp ',ddnLookUp);
         		
         		if(locationsExists){
         			settlementRec.setValue({
                 	    fieldId: 'location',
-                	    value: ddnLookUp.location[0].value
+                	    value: ddnLookUp.getValue('location')
                 	});
         		}
-        		/*if(departmentsExists){
-            		settlementRec.setValue({
-                	    fieldId: 'department',
-                	    value: ddnLookUp.department[0].value
-                	});
-        		}
-        		if(classesExists){
-        			var classDdn = settlementRec.getValue('');
-        			settlementRec.setValue({
-                	    fieldId: 'class',
-                	    value: ddnLookUp.class[0].value
-                	});
-        		}*/
         	}
         	settlementRec.setValue({
         	    fieldId: 'custbody_itpm_set_promo',
@@ -461,13 +483,24 @@ define(['N/record',
         	prefObj.offinvoiceSetReq = 0;//offinvoiceSetReq;
         	prefObj.promoTypeDefaultAccnt = promoTypeDefaultAccnt;
         	prefObj.promoDealLumsumAccnt = promoDealLumsumAccnt;
-
+        	
+        	//it is new field on settlement record.
+        	if(scriptParms.custom_from == 'promo'){
+        		settlementRec.setValue({
+        			fieldId: 'custbody_itpm_set_ofset_tran_gl_impact',
+        			value: true
+        		});
+        	}
+        	
         	ST_Module.getSettlementLines(prefObj).forEach(function(e, index){
 				//if(e.amount == 0){
+        			if(!createdFromDDN){
+        				e.account = prefObj.settlementAccnt;
+        			}
 					settlementRec.setSublistValue({
 						sublistId:'line',
 						fieldId:'account',
-						value:e.account,
+						value:(e.type == 'credit' && createdFromDDN)? ddnLookUp.getSublistValue({sublistId:'line',fieldId:'account',line:ddnLookUp.getLineCount('line') - 1}) : e.account,
 						line:index
 					}).setSublistValue({
 						sublistId:'line',
@@ -482,7 +515,7 @@ define(['N/record',
 					}).setSublistValue({
 						sublistId:'line',
 						fieldId:'memo',
-						value:(createdFromDDN)?'Settlement Created From Deduction #'+ddnLookUp.tranid:'Settlement Created From Promotion # '+promoName,
+						value:(createdFromDDN)?'Settlement Created From Deduction #'+ddnLookUp.getValue('tranid'):'Settlement Created From Promotion # '+promoName,
     					line:index
 					}).setSublistValue({
 						sublistId:'line',

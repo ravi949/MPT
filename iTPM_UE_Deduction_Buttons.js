@@ -35,10 +35,9 @@ define(['N/runtime',
 				};
 			}
 
-			var status = sc.newRecord.getValue({fieldId:'transtatus'});
-			var contextType = contextType = runtime.executionContext;
-
+			
 			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE){
+				var status = sc.newRecord.getValue({fieldId:'transtatus'});
 				switch(sc.type){
 				case sc.UserEventType.EDIT:
 					//Restrict the user edit deduction record if status is Processing
@@ -90,7 +89,10 @@ define(['N/runtime',
 			if (sc.type == sc.UserEventType.EDIT || sc.type == sc.UserEventType.XEDIT){
 				var exc = runtime.executionContext;
 				log.debug('UserEventType: ' + sc.type + '; ExecutionContext: ' + exc + '; RecordId: ' + sc.newRecord.id);
-				if (exc == runtime.ContextType.USEREVENT || exc == runtime.ContextType.SUITELET || exc == runtime.ContextType.MAP_REDUCE){
+				if (exc == runtime.ContextType.USEREVENT || 
+					exc == runtime.ContextType.SUITELET || 
+					exc == runtime.ContextType.MAP_REDUCE
+				){
 					var openBalance = sc.newRecord.getValue({fieldId:'custbody_itpm_ddn_openbal'});
 					var status = sc.oldRecord.getValue({fieldId:'transtatus'});
 					log.debug('OpenBal: ' + openBalance + '; Status: ' + status);
@@ -195,10 +197,13 @@ define(['N/runtime',
 			}
 			
 			//setting the deduction lines with itpm amount and previous old account values
-			if(sc.type == sc.UserEventType.EDIT){
+			if(runtime.executionContext == runtime.ContextType.USER_INTERFACE && 
+			   sc.type == sc.UserEventType.EDIT
+			){
 				setDeductionLines(sc.newRecord,{
 					tranType:'override_lines_onedit',
-					oldRec:sc.oldRecord
+					oldRec:sc.oldRecord,
+					customerId: sc.oldRecord.getValue('custbody_itpm_customer')
 				});
 			}
 		} catch(ex) {
@@ -325,11 +330,11 @@ define(['N/runtime',
 		log.debug('UE_DDN_BeforeLoad', 'openBalance: ' + openBalance + '; status: ' + status + '; csPath: ' + clientScriptPath + '; eventType: ' + eventType + '; runtimeContext: ' + runtimeContext);
 
 		if(
-				eventType == sc.UserEventType.VIEW && 
-				runtimeContext == runtime.ContextType.USER_INTERFACE &&
-				openBalance != 0 &&
-				status == 'A' && 
-				clientScriptPath 			
+			eventType == sc.UserEventType.VIEW && 
+			runtimeContext == runtime.ContextType.USER_INTERFACE &&
+			openBalance != 0 &&
+			status == 'A' && 
+			clientScriptPath 			
 		){				
 			log.debug('UE_DDN_BeforeLoad_IF', 'type: ' + sc.type + '; context: ' + runtime.executionContext);
 			sc.form.clientScriptModulePath = clientScriptPath;
@@ -801,16 +806,17 @@ define(['N/runtime',
 			for(var i = 0; i < oldRecLineCount; i++){
 				var isDebitAmount = obj.oldRec.getSublistValue({sublistId:'line',fieldId:'debit',line:i});
 				receivbaleAccntsList.push({
-					accountId:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'account',line:i}),
-					amount:ddnRec.getValue('custbody_itpm_amount'),
-					fid:(isDebitAmount)?'debit':'credit',
-					memo:obj.oldRec.getSublistValue({sublistId:'line',fieldId:'memo',line:i})
+					accountId: obj.oldRec.getSublistValue({sublistId:'line',fieldId:'account',line:i}),
+					amount: (isDebitAmount)? isDebitAmount : obj.oldRec.getSublistValue({sublistId:'line',fieldId:'credit',line:i}),
+					fid: (isDebitAmount)? 'debit' : 'credit',
+					memo: obj.oldRec.getSublistValue({sublistId:'line',fieldId:'memo',line:i}),
+					removeCustFromSplit: !obj.oldRec.getSublistValue({sublistId:'line',fieldId:'entity',line:i})
 				});
 			}
     		break;
     	}
     	
-    	log.debug('receivbaleAccntsList',receivbaleAccntsList);
+    	log.audit('receivbaleAccntsList',receivbaleAccntsList);
     	var lineCount = ddnRec.getLineCount('line');
     	log.debug('lineCOunt',lineCount);
     	for(var i = lineCount-1; i >= 0 ; i--){

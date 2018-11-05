@@ -227,9 +227,9 @@ define(['N/config',
 			});
 
 			//Adding require values to prefObj for adding lines to the settlement record
-			prefObj.lumsumSetReq = lumsumSetReq;
-			prefObj.billbackSetReq = billbackSetReq;
-			prefObj.offinvoiceSetReq = offinvoiceSetReq;
+			prefObj.lumsumSetReq = Math.abs(lumsumSetReq);
+			prefObj.billbackSetReq = Math.abs(billbackSetReq);
+			prefObj.offinvoiceSetReq = Math.abs(offinvoiceSetReq);
 			prefObj.promoTypeDefaultAccnt = promoTypeDefaultAccnt;
 			prefObj.promoDealLumsumAccnt = promoDealLumsumAccnt;
 			prefObj.promotionId = params['custom_itpm_st_promotion_no'];
@@ -240,7 +240,7 @@ define(['N/config',
 					newSettlementRecord.setCurrentSublistValue({
 						sublistId:'line',
 						fieldId:'account',
-						value:e.account
+						value:(e.type == 'credit' && createdFromDDN)?deductionRec.getSublistValue({sublistId:'line',fieldId:'account',line:deductionRec.getLineCount('line') - 1}) : e.account
 					}).setCurrentSublistValue({
 						sublistId:'line',
 						fieldId:e.type,
@@ -263,7 +263,15 @@ define(['N/config',
 				}				
 			});
 
-			return newSettlementRecord.save({enableSourcing:false,ignoreMandatoryFields:true})
+			//Creating new settlement and apply to deduction
+			var newSettlementId = newSettlementRecord.save({enableSourcing:false,ignoreMandatoryFields:true});
+			if(createdFromDDN && newSettlementId){
+				applyToDeduction({
+					ddn: params.custom_itpm_st_appliedtransction,
+					settlement_amount: parseFloat(setReqAmount) 
+				});
+			}
+			return newSettlementId;
 
 		}catch(e){
 			log.error('e error',e);
@@ -272,12 +280,13 @@ define(['N/config',
 				errObj = JSON.parse(e.message.replace(/Error: /g,''));
 			}
 
-			if(e.name == 'SETTLEMENT_NOT_COMPLETED')
+			if(e.name == 'SETTLEMENT_NOT_COMPLETED'){
 				throw {name:'SETTLEMENT_NOT_COMPLETED',message:e.message};
-				else if(errObj && errObj.error == 'custom')
-					throw {name:'CUSTOM',message:errObj.message};
-					else
-						throw Error(e.message);
+			}else if(errObj && errObj.error == 'custom'){
+				throw {name:'CUSTOM',message:errObj.message};
+			}else{
+				throw Error(e.message);
+			}
 			//throw Error('record type='+recordType+', module=iTPM_Module_settlement.js, function name = createSettlement, message='+e.message);
 		}
 	}
@@ -289,93 +298,22 @@ define(['N/config',
 	 * Returns a settlement record id
 	 * @returns {number}
 	 */
-	function applyToDeduction(parameters,isCreatedFrom){
+	function applyToDeduction(parameters){
 		try{
-
+			log.debug('applyToDeduction parameters',parameters);
 			var deductionRec = record.load({
 				type:'customtransaction_itpm_deduction',
-				id: parameters.ddn,
-				isDynamic: true,
+				id: parameters.ddn
 			});
-			var SettlementRec = record.load({
-				type:'customtransaction_itpm_settlement',
-				id: parameters.sid,
-				isDynamic: true
-			});
+			var remainingOpenBalance = parseFloat(deductionRec.getValue('custbody_itpm_ddn_openbal')) - parameters.settlement_amount;
 
-
-			var customer = deductionRec.getValue('custbody_itpm_customer');
-			var DeductionId = deductionRec.getValue('id');
-			var DeductionNum = deductionRec.getValue('tranid');
-
-			var subsidiaryID = (itpm.subsidiariesEnabled())? deductionRec.getValue('subsidiary') : undefined;
-			var prefObj = itpm.getPrefrenceValues(subsidiaryID);
-			var dednExpAccnt = prefObj.dednExpAccnt,
-			settlementAccnt = prefObj.settlementAccnt;
-
-			//if(loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: 0}) == '1')
-			var linecount = SettlementRec.getLineCount({sublistId:'line'});
-			var lumsum = 0, bB = 0, oI = 0;
-			for(var i = 0;i < linecount;i++){
-				var lineIsLSBBOI = SettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'custcol_itpm_lsbboi',line: i});
-				if(lineIsLSBBOI == '1'){
-					lumsum += SettlementRec.getSublistValue({
-						sublistId: 'line',
-						fieldId: 'debit',
-						line: i
-					});
-					log.debug('lumsum',lumsum);
-				} else if(lineIsLSBBOI == '2'){
-					bB += SettlementRec.getSublistValue({
-						sublistId: 'line',
-						fieldId: 'debit',
-						line: i
-					});
-					log.debug('bb',bB);
-				}else if(lineIsLSBBOI == '3'){
-					oI += SettlementRec.getSublistValue({
-						sublistId: 'line',
-						fieldId: 'debit',
-						line: i
-					});
-					log.debug('oI',oI);
-				}
-			}
-
-			var JEAmount = parseFloat(lumsum)+parseFloat(bB)+parseFloat(oI);
-			JEAmount = JEAmount.toFixed(2);
-
-			var memo = 'Applying Settlement #'+SettlementRec.getValue('tranid')+' to Deduction #'+DeductionNum;
-
-			var JELines = [
-				{recid:parameters.sid,account:dednExpAccnt,memo:memo,type:'credit',amount:JEAmount,subid:deductionRec.getValue('subsidiary'),custid:customer,dept: (itpm.departmentsEnabled())? deductionRec.getValue('department') : undefined,loc:(itpm.locationsEnabled())?deductionRec.getValue('location'): undefined,clas:(itpm.classesEnabled())? deductionRec.getValue('class') : undefined},
-				{recid:parameters.sid,account:settlementAccnt,memo:memo,type:'debit',amount:JEAmount,subid:deductionRec.getValue('subsidiary'),custid:customer,dept: (itpm.departmentsEnabled())? deductionRec.getValue('department') : undefined,loc:(itpm.locationsEnabled())?deductionRec.getValue('location'): undefined,clas:(itpm.classesEnabled())? deductionRec.getValue('class') : undefined}
-				];
-
-			var JournalId = setJELines(JELines);
-
-			log.debug('JournalId',JournalId);
-
-			if(JournalId){	
-
-				DeductionId = deductionRec.setValue({
-					fieldId:'custbody_itpm_ddn_openbal',
-					value:parseFloat(deductionRec.getValue('custbody_itpm_ddn_openbal')) - JEAmount
-				}).save({enableSourcing: true,ignoreMandatoryFields: true});
-
-				SettlementRec.setValue({
-					fieldId : 'transtatus',
-					value	: (isCreatedFrom == 'S')?'B':'E' //B - Applied, E - In Processing
-				}).setValue({
-					fieldId : 'custbody_itpm_appliedto',
-					value	: DeductionId
-				}).setValue({
-					fieldId:'custbody_itpm_ddn_openbal',
-					value:deductionRec.getValue('custbody_itpm_ddn_openbal')
-				})
-
-				return  SettlementRec.save({enableSourcing: true,ignoreMandatoryFields: true});
-			}
+			return deductionRec.setValue({
+				fieldId:'custbody_itpm_ddn_openbal',
+				value:remainingOpenBalance
+			}).setValue({
+				fieldId:'transtatus',
+				value: (remainingOpenBalance > 0) ? 'A' : 'C'
+			}).save({enableSourcing: false,ignoreMandatoryFields: true});
 
 		}catch(e){
 			log.error('error',e);
@@ -616,9 +554,9 @@ define(['N/config',
 					promoDealLumsumAccnt:promoDealLumsumAccnt,
 					settlementAccnt:loadedSettlementRec.getSublistValue({ sublistId: 'line',fieldId: 'account',line: linecount-1}),
 					promoTypeDefaultAccnt:promoTypeDefaultAccnt,
-					lumsumSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqls'),
-					billbackSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqbb'),
-					offinvoiceSetReq:loadedSettlementRec.getValue('custbody_itpm_set_reqoi'),
+					lumsumSetReq:Math.abs(loadedSettlementRec.getValue('custbody_itpm_set_reqls')),
+					billbackSetReq:Math.abs(loadedSettlementRec.getValue('custbody_itpm_set_reqbb')),
+					offinvoiceSetReq:Math.abs(loadedSettlementRec.getValue('custbody_itpm_set_reqoi')),
 					promotionId:loadedSettlementRec.getValue('custbody_itpm_set_promo')
 			}
 			for(var i = linecount-1;i >= 0;i--){
