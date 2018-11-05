@@ -308,6 +308,11 @@ function(record, search, runtime, task, itpm) {
         		log.debug('reverseAccrualId promoid'+keyObj.promo_id,reverseAccrualId);
         	}
         	
+        	//if calculated amount is zero than we not creating the new Accrual Log record
+        	if(keyObj.calculated_amnt <= 0){
+        		return;
+        	}
+        	
         	newAccrualId = record.create({
         		type:'customrecord_itpm_accruallog'
         	}).setValue({

@@ -288,18 +288,6 @@ define(['N/runtime',
 					
 					if(tranType == "CustInvc"){
 						createCustomerPayment(sc.newRecord, tranIds, sc.newRecord.getValue('memo') , ddnRec.id);
-					}else if(tranType == "CustCred"){
-						record.submitFields({
-							type:record.Type.CREDIT_MEMO,
-							id:tranIds[0],
-							values:{
-								"custbody_itpm_appliedto":sc.newRecord.id
-							},
-							options:{
-								enableSourcing: false,
-								ignoreMandatoryFields : true
-							}
-						});
 					}
 				}
 			}
@@ -1008,7 +996,7 @@ define(['N/runtime',
 
 				//searching for exists deduction which is not Open,Pending and Resolved
 				var ddnStatus = true;
-				if(itpmAppliedTo != ""){
+				if(itpmAppliedTo){
 					ddnStatus = search.lookupFields({
 						type:'customtransaction_itpm_deduction',
 						id:itpmAppliedTo,
@@ -1016,7 +1004,7 @@ define(['N/runtime',
 					})['status'][0].value;
 					ddnStatus = (ddnStatus != 'statusA' && ddnStatus != 'statusB' && ddnStatus != 'statusC');
 				}
-				log.debug('itpmAppliedTo',itpmAppliedTo == "");
+				log.debug('itpmAppliedTo',itpmAppliedTo);
 				log.debug('ddnStatus',ddnStatus);
 				if(!ddnStatus){
 					throw {

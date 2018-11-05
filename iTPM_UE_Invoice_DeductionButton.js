@@ -63,8 +63,10 @@ define(['N/search',
 		log.debug('ddnPermission',ddnPermission);
 		var postingPeriodId = scriptContext.newRecord.getValue({fieldId:'postingperiod'});
 		
+		//attach the client script on the forms
+		scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
+		
 		if(invStatus == 'Open' && invoiceDeductionsAreEmpty ){
-			scriptContext.form.clientScriptModulePath = './iTPM_Attach_Invoice_ClientMethods.js';
 			//itpm deduction permission should be create or edit or full
 			if(ddnPermission >= 2){
 				scriptContext.form.addButton({
@@ -94,6 +96,9 @@ define(['N/search',
 		var JEPermission = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
 		var postingPeriodId = scriptContext.newRecord.getValue({fieldId:'postingperiod'});
 		
+		//attach the client script on the forms
+		scriptContext.form.clientScriptModulePath = './iTPM_Attach_CreditMemo_ClientMethods.js';
+		
 		//Credit Memo dont have any ITPM DEDUCTION records which is not Open,Pending and Resolved
 		var ddnStatus = true;
 		if(itpmAppliedTo){
@@ -103,13 +108,14 @@ define(['N/search',
 				columns:['internalid','status']
 			})['status'][0].value;
 			ddnStatus = (ddnStatus != 'statusA' && ddnStatus != 'statusB' && ddnStatus != 'statusC');
+		}else{
+			ddnStatus = deductionsAreEmpty(scriptContext.newRecord.id,["Custom"+ddnRecTypeId+":A","Custom"+ddnRecTypeId+":B"]);
 		}
 
-		log.debug('ddnStatus',ddnStatus);
+		log.error('ddnStatus',ddnStatus);
 		
 		//for deduction button credit memo status should be open or full applied
 		if((creditMemoStatus == 'Open' || creditMemoStatus == 'Fully Applied') && ddnStatus){
-			scriptContext.form.clientScriptModulePath = './iTPM_Attach_CreditMemo_ClientMethods.js';
 			//itpm deduction permission should be create or edit or full
 			if(ddnPermission >= 2 && JEPermission >= 2){
 				scriptContext.form.addButton({
@@ -117,13 +123,11 @@ define(['N/search',
 					label:'Deduction',
 					functionName:'iTPMDeduction('+scriptContext.newRecord.id+','+postingPeriodId+')'
 				});
-				var JE_Permssion = runtime.getCurrentUser().getPermission('TRAN_JOURNAL');
-				log.debug('JE_Permssion',JE_Permssion);
 			}
 		}
 		
 		//for match to deduction buttion credit memo status should be open and JE permission >= create
-		if(creditMemoStatus == 'Open' && JE_Permssion >= 2){
+		if(creditMemoStatus == 'Open' && JEPermission >= 2){
 			scriptContext.form.addButton({
 				id:'custpage_itpm_matchtoddn',
 				label:'Match to Deduction',
@@ -142,9 +146,11 @@ define(['N/search',
 		return search.create({
 			type:'customtransaction_itpm_deduction',
 			columns:['internalid'],
-			filters:[['custbody_itpm_ddn_invoice','is',recordId],'and',
-				['status','anyof',statuses]]
-		}).run().getRange(0,5).length == 0;
+			filters:[
+		         ['custbody_itpm_ddn_invoice','anyof',recordId],'and',
+		         ['status','anyof',statuses]
+			]
+		}).run().getRange(0,5).length <= 0;
 	}
 
 	return {
