@@ -74,8 +74,7 @@ define(['N/ui/serverWidget',
 						}).getValue('custrecord_itpm_pt_settlewhenpromoactive');
 
 						//role based permission allow permissions (CREATE,EDIT and FULL)
-						var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_settlementpermissionsrec');						
-						var settlementRecPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
+						var settlementRecPermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscript_itpm_settlementpermissionsrec'));
 						log.debug('settlementRecPermission',settlementRecPermission);
 						
 						var kpiAlocationCalcIsComplete = search.create({
@@ -89,10 +88,8 @@ define(['N/ui/serverWidget',
 
 						var showSettlementButton = (settlementRecPermission >= 2  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
 						try{
-							var promotionTypeRectypeId = runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission');
-							var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);
-							var preferencesRecTypeId = runtime.getCurrentScript().getParameter('custscript_itpm_preferences_permission');
-							var preferencesPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+preferencesRecTypeId);
+							var promoTypePermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission'));
+							var preferencesPermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscript_itpm_preferences_permission'));
 							log.debug('preferencesPermission', preferencesPermission);
 							log.debug('promoTypePermission', promoTypePermission);
 							//Adjust Spend Button is available only for NS Admin and iTPM Admin
@@ -162,12 +159,10 @@ define(['N/ui/serverWidget',
 						log.debug('promoPlanRecCount', promoPlanRecCount);
 
 						//checking promotion permission
-						var promotionRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_promopermissionrec');
-						var promoPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionRectypeId);
+						var promoPermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscript_itpm_promopermissionrec'));
 						log.debug('promoPermission', promoPermission);
 						//checking promotionType permission
-						var promotionTypeRectypeId = runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission');
-						var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);
+						var promoTypePermission = itpm.getUserPermission(runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission'));
 						log.debug('promoTypePermission', promoTypePermission);
 
 						var owner = promoRec.getValue('owner');
