@@ -246,6 +246,11 @@ function(search, record, runtime, format, itpm) {
                 		if(accrualSearch.runPaged().count > 0){
                 			dataObj.old_accrual_amount = accrualSearch.run().getRange(0,1)[0].getValue('custrecord_itpm_acc_amount');
                 			dataObj.old_allowance = accrualSearch.run().getRange(0,1)[0].getValue('custrecord_itpm_acc_allowance');
+                			
+                			if(dataObj.accrual_amount.toFixed(2) == parseFloat(dataObj.old_accrual_amount)){
+                				return;
+                			}
+                			
                 			var reverse_accid = createNewAccrualLog(dataObj, true, true);
                 			log.audit('Shipment: New Reversal Accrual Log ID', reverse_accid);
                 			var accid = createNewAccrualLog(dataObj, false, false);
@@ -286,6 +291,11 @@ function(search, record, runtime, format, itpm) {
             		if(dataObj.transtatus != 'statusC' && accrualSearch.runPaged().count > 0){ //If status Applied AND accrual count exists
                 		dataObj.old_accrual_amount = accrualSearch.run().getRange(0,1)[0].getValue('custrecord_itpm_acc_amount');
             			dataObj.old_allowance = accrualSearch.run().getRange(0,1)[0].getValue('custrecord_itpm_acc_allowance');
+            			
+            			if(-(parseFloat(dataObj.accrual_amount).toFixed(2)) == parseFloat(dataObj.old_accrual_amount)){
+            				return;
+            			}
+            			
             			var reverse_accid = createNewAccrualLog(dataObj, true, true);
             			log.audit('Settlement (Applied, count exists): New Reversal Accrual Log ID', reverse_accid);
             			var accid = createNewAccrualLog(dataObj, true, false);
