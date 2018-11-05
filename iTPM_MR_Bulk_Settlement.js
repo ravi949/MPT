@@ -72,7 +72,7 @@ function(search, record, formatModule, itpm, ST_Module) {
     		
     		if(parseFloat(ded_current_openbal.custbody_itpm_ddn_openbal) == 0){
     			throw {
-    				name: 'INVALID DEDUCTION',
+    				name: 'INVALID_DEDUCTION',
     				message: 'Selected Deduction was already RESOLVED'
     			}
     		}
@@ -103,7 +103,7 @@ function(search, record, formatModule, itpm, ST_Module) {
         		var promoHasAllNB = ST_Module.getAllowanceMOP(promotion_id,2); //here 2 as per MOP list as per promotion Type
         		if(!(promoLumpsum > 0 || promoHasAllNB)){
         			throw {
-        				name: 'INVALID MOP',
+        				name: 'INVALID_MOP',
         				message: 'Seems Lump-Sum amount is 0 (AND) With the selected MOP, Allowances were not present on the Promotion'
         			}
         		}
@@ -111,7 +111,7 @@ function(search, record, formatModule, itpm, ST_Module) {
         		var promoHasAllBB = ST_Module.getAllowanceMOP(promotion_id,1); //here 1 as per MOP list as per promotion Type
         		if(!promoHasAllBB){
         			throw {
-        				name: 'INVALID MOP',
+        				name: 'INVALID_MOP',
         				message: 'With the selected MOP, Allowances were not present on the Promotion'
         			}
         		}
@@ -119,7 +119,7 @@ function(search, record, formatModule, itpm, ST_Module) {
         		var promoHasAllOI = ST_Module.getAllowanceMOP(promotion_id,3); //here 3 as per MOP list as per promotion Type
         		if(!promoHasAllOI){
         			throw {
-        				name: 'INVALID MOP',
+        				name: 'INVALID_MOP',
         				message: 'With the selected MOP, Allowances were not present on the Promotion'
         			}
         		}
