@@ -77,7 +77,6 @@ define(['N/ui/serverWidget',
 						var settlementRectypeId = runtime.getCurrentScript().getParameter('custscript_itpm_settlementpermissionsrec');						
 						var rolePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+settlementRectypeId);
 						log.debug('rolePermission',rolePermission);
-						var rolePermissionIs = (rolePermission == runtime.Permission.CREATE || rolePermission == runtime.Permission.EDIT || rolePermission == runtime.Permission.FULL);
 						
 						var kpiAlocationCalcIsComplete = search.create({
 							type: "customrecord_itpm_kpi",
@@ -88,7 +87,7 @@ define(['N/ui/serverWidget',
 								columns: [ 'custrecord_itpm_kpi_promotiondeal', 'custrecord_itpm_kpi_item', 'custrecord_itpm_kpi_esttotalqty' ]
 						}).run().getRange(0,10).length > 0;
 
-						var showSettlementButton = (rolePermissionIs  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
+						var showSettlementButton = (rolePermission >= 2  && ((status == 3 && condition == 3) || (allowForSettlement && (status == 3 && condition == 2))));
 						try{
 							var promotionTypeRectypeId = runtime.getCurrentScript().getParameter('custscriptitpm_promotypepermission');
 							var promoTypePermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+promotionTypeRectypeId);
