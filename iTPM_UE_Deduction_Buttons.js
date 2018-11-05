@@ -462,7 +462,7 @@ define(['N/runtime',
 		var departmentsEnabled = itpm.departmentsEnabled();
 
 		var tranSearch;
-		var transObj = {'itpm_amount':0,'total_nonpromotional_expense':0};
+		var transObj = {'itpm_amount':0};
 		var tranSearchCol = ['type'];
 		var ddnRec = sc.newRecord;
 
@@ -615,11 +615,7 @@ define(['N/runtime',
 		}).setValue({
 			fieldId:'custbody_itpm_ddn_openbal',
 			value:transObj['itpm_amount']
-		}).setValue({
-			fieldId:'custbody_itpm_ddn_totexp',
-			value:transObj['total_nonpromotional_expense']
 		});
-
 
 		//getting the line value for the deduction
 		var subsidiaryID = (subsidiariesEnabled)? transObj['subsidiary'] : undefined;
