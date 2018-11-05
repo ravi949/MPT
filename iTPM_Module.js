@@ -104,48 +104,6 @@ define(['N/search',
 		}
 	}
 
-//	/**
-//	 * @function hasEstQty()
-//	 * @param {Object} obj
-//	 * @param {String} obj.promotionId
-//	 * @returns {Object}
-//	 */
-//	function hasEstQty(obj){
-//		try{
-//			if(!obj.promotionId) throw {name: 'Missing Promotion Id.', message: 'No promotion Id parameter in object.'};
-//			var pSearch = search.create({
-//				type: 'customrecord_itpm_estquantity',
-//				columns: ['internalid']
-//			});
-//			pSearch.filters.push(search.createFilter({
-//				name: 'custrecord_itpm_estqty_totalqty',
-//				operator: search.Operator.GREATERTHAN,
-//				values: 0
-//			}));
-//			pSearch.filters.push(search.createFilter({
-//				name: 'isinactive',
-//				operator: search.Operator.IS,
-//				values: 'F'
-//			}));
-//			//Added Promotion id filter to search
-//			pSearch.filters.push(search.createFilter({
-//				name: 'custrecord_itpm_estqty_promodeal',
-//				operator: search.Operator.ANYOF,
-//				values: obj.promotionId
-//			}));
-//
-//			var results = [];
-//			results = pSearch.run().getRange(0,1);
-//			if (results.length == 1){
-//				return {error: false, hasEstQty: true}
-//			} else {
-//				return {error: false, hasEstQty: false}
-//			}
-//		} catch(ex) {
-//			log.error ('module_hasEstQty', ex.name +'; ' + ex.message + '; ' + JSON.stringify(obj));
-//			return {error: true, hasEstQty: false}
-//		}
-//	}
 
 	/**
 	 * Check whether Quantity Pricing is enabled
@@ -295,13 +253,6 @@ define(['N/search',
 						operator: search.Operator.ANYOF,
 						values: objParameter.itemId
 					}));
-					/*
-					spendSearch.filters.push(search.createFilter({
-						name: 'status', 
-						operator: search.Operator.NONEOF,
-						values: ['C', 'E']
-					}));
-					 */
 
 					log.debug('spendSearch', spendSearch);
 					var spendLS = spendBB = spendOI = 0;
@@ -716,45 +667,6 @@ define(['N/search',
 			log.error(e.name, 'getJEPreferences: '+e.message);
 		}
 	}
-
-//	/**
-//	 * @param {String} promID
-//	 * @param {Integer} promAllocType
-//	 */
-//	function processAllocationsDraft(promID, promAllocType){
-//		try{
-//			//Updating BB Allocation Factors
-//			var objbb = {
-//					promoId:promID,
-//					promoEstimatedSpend:'custrecord_itpm_estimatedspendbb',
-//					kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendbb',
-//					mop:1, // 1 or 3
-//					kpiValues:{
-//						'custrecord_itpm_kpi_factorestbb' : 1
-//					}
-//			}
-//			calculateEstAllocationsBBOIDraft(objbb);
-//
-//			//Updating OI Allocation Factors
-//			var objoi = {
-//					promoId:promID,
-//					promoEstimatedSpend:'custrecord_itpm_estimatedspendoi',
-//					kpiEstimatedSpend:'custrecord_itpm_kpi_estimatedspendoi',
-//					mop:3, // 1 or 3
-//					kpiValues:{
-//						'custrecord_itpm_kpi_factorestoi' : 1
-//					}
-//			}
-//			calculateEstAllocationsBBOIDraft(objoi);
-//
-//			//Need to maintain the same values for "EST. & ACTUAL" if Allocation Type is "Evenly" OR "By % Revenue"
-//			if(promAllocType == 3 || promAllocType == 1){
-//				updateKPIActualEvenly(promID);
-//			}
-//		}catch(e){
-//			log.error(e.name, 'processAllocationsDraft: '+e.message);
-//		}
-//	}
 
 	/**
 	 * @function getEstAllocationFactor()
@@ -1416,11 +1328,6 @@ define(['N/search',
 			value: discountLogLineValues.sline_allowance,
 			ignoreFieldChange: true
 		});
-//		discountLogLineRecObj.setValue({
-//		fieldId: 'custrecord_itpm_sline_allid',
-//		value: discountLogLineValues.sline_allid,
-//		ignoreFieldChange: true
-//		});
 		discountLogLineRecObj.setValue({
 			fieldId: 'custrecord_itpm_sline_allmop',
 			value: discountLogLineValues.sline_allmop,
@@ -1740,22 +1647,6 @@ define(['N/search',
 		getClassifications					:	getClassifications,
 		getUserPermission					:	getUserPermission,
 		getJEPreferences					:	getJEPreferences,
-//		processAllocationsDraft 			: 	processAllocationsDraft,
-//		calculateEstAllocationsBBOIDraft 	: 	calculateEstAllocationsBBOIDraft,
-//		calculateAllocationsLSforDraft 		: 	calculateAllocationsLSforDraft,
-//		updateKPIActualEvenly 				: 	updateKPIActualEvenly,
-//		approvedAllocationFactorActual 		: 	approvedAllocationFactorActual,
-//		calculateActualBBandOIApproved 		: 	calculateActualBBandOIApproved,
-//		calculateActualLSApproved 			: 	calculateActualLSApproved,
-//		processActualNO 					: 	processActualNO,
-//		promAllowanceSearch 				: 	promAllowanceSearch,
-//		kpiSearch 							: 	kpiSearch,
-//		updateKPI 							: 	updateKPI,
-//		getInvoiceSearch 					: 	getInvoiceSearch,
-//		getOtherItemLiabilitySUM			:	getOtherItemLiabilitySUM,
-//		hasEstQty 							: 	hasEstQty,
-//		getEstAllocationFactorLS 			: 	getEstAllocationFactorLS,
-//		getActAllocationFactorLS 			: 	getActAllocationFactorLS,
 		hasSales 							: 	hasSales,
 		createSplitDeduction				:	createSplitDeduction,
 		validateDeduction					:	validateDeduction,
