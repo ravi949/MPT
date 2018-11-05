@@ -95,6 +95,7 @@ define(['N/ui/serverWidget',
 							var preferencesPermission = runtime.getCurrentUser().getPermission('LIST_CUSTRECORDENTRY'+preferencesRecTypeId);
 							log.debug('preferencesPermission', preferencesPermission);
 							log.debug('promoTypePermission', promoTypePermission);
+							//Adjust Spend Button is available only for NS Admin and iTPM Admin
 							if(showSettlementButton  && (promoTypePermission >= 3 || preferencesPermission >= 3)){
 								promoForm.addButton({
 									id:'custpage_newsettlementbtn',
