@@ -627,11 +627,10 @@ define(['N/runtime',
 		}).setValue({
 			fieldId:'custbody_itpm_ddn_openbal',
 			value:transObj['itpm_amount']
+		}).setValue({
+			fieldId:'custbody_itpm_ddn_totexp',
+			value:transObj['total_nonpromotional_expense']
 		});
-//		.setValue({
-//			fieldId:'custbody_itpm_ddn_totexp',
-//			value:transObj['total_nonpromotional_expense']
-//		});
 
 
 		//getting the line value for the deduction
