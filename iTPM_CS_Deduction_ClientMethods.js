@@ -85,38 +85,10 @@ function(search) {
     	try{
     		var currentRec = scriptContext.currentRecord;
         	var url = new URLSearchParams(window.location.search);
+        	var today = new Date(new Date().toLocaleDateString());
+        	var followupDate = new Date(currentRec.getValue('custbody_itpm_ddn_nextaction'));
         	//console.log(url.get('custom_from'));
-        	if(url.get('custom_from') == 'ddn'){
-        		if(!currentRec.getValue('custbody_itpm_ddn_parentddn')){
-        			alert('Parent Deduction cannot be empty.');
-        			return false;
-        		}else if(!currentRec.getValue('custbody_itpm_ddn_originalddn')){
-        			alert('Original Deduction cannot be empty.');
-        			return false;
-        		}else if(!currentRec.getValue('custbody_itpm_appliedto')){
-        			alert('iTPM Applied To cannot be empty.');
-        			return false;
-        		}
-        		
-        		/*var currentRecOpenBal = parseFloat(currentRec.getValue('custbody_itpm_ddn_openbal'));
-        		var iTPMAmount = parseFloat(currentRec.getValue('custbody_itpm_ddn_amount'));
-        		var parentDDNOpenBal = search.lookupFields({
-        			type:'customtransaction_itpm_deduction',
-        			id:currentRec.getValue('custbody_itpm_ddn_parentddn'),
-        			columns:['custbody_itpm_ddn_openbal']
-        		}).custbody_itpm_ddn_openbal;
-
-        		if(currentRecOpenBal > parseFloat(parentDDNOpenBal)){
-        			alert('Open Balance should be less than or equal to Parent Deduction Open Balance');
-        			return false;
-        		}
-        		
-        		if(iTPMAmount > parseFloat(parentDDNOpenBal)){
-        			alert('Open Balance should be less than or equal to Parent Deduction Open Balance');
-        			return false;
-        		}*/
-        		
-        	}else if(mode == 'create' && url.get('custom_from') == null){
+        	if(mode == 'create' && url.get('custom_from') == null){
         		if(currentRec.getValue('custbody_itpm_ddn_parentddn')){
         			alert('Parent Deduction should be empty.');
         			return false;
@@ -133,6 +105,12 @@ function(search) {
         			alert("TRANSACTION field should contain more than one value.");
         			return false;
         		}
+        	}
+        	
+        	//If follow up date less than today date
+        	if(followupDate < today){
+        		alert("Follow Up Date cannot be before today.");
+    			return false;
         	}
         	
         	return true;
