@@ -584,7 +584,7 @@ define(['N/runtime',
 				value:tranSearch.class[0].value
 			});
 		}
-		if(departmentsEnabled && tranSearch.department.lenth > 0){
+		if(departmentsEnabled && tranSearch.department.length > 0){
 			ddnRec.setValue({
 				fieldId:'department',
 				value: tranSearch.department[0].value
