@@ -795,7 +795,7 @@ function(config, task, search, record, runtime) {
         			setItpmVersion(iTPM_Version);
         		}    		
         	}else{
-        		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined,iTPM_Version) : '';
+        		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined,iTPM_Version) : setItpmVersion(iTPM_Version);
         	}
     	}catch(ex){
     		log.error(ex.name, ex.message);
