@@ -491,6 +491,7 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
     			}
     			
     			pages.forEach(function(value){
+    				if(pagedData.pageRanges.length <= 0)return;
     				pagedData.fetch({index:value.index}).data.forEach(function(result){
         				status = result.getValue({ name:'custrecord_itpm_p_status' });
         				if(status == 1){
