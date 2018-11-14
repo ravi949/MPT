@@ -100,24 +100,16 @@ define(['N/search',
 		scriptContext.form.clientScriptModulePath = './iTPM_Attach_CreditMemo_ClientMethods.js';
 		
 		//Credit Memo dont have any ITPM DEDUCTION records which is not Open,Pending and Resolved
-		var ddnStatus = true;
+		var hasDeductions = true;
 		
 		//Check for credit memo related ddn's with the following statuses Open,Pending and Resolved
-		ddnStatus = deductionsAreEmpty(scriptContext.newRecord.id,["Custom"+ddnRecTypeId+":A","Custom"+ddnRecTypeId+":B","Custom"+ddnRecTypeId+":C"]);
+		hasDeductions = deductionsAreEmpty(scriptContext.newRecord.id,["Custom"+ddnRecTypeId+":A","Custom"+ddnRecTypeId+":B","Custom"+ddnRecTypeId+":C"]);
 		
-		//If existing ddn's which are not in Open,Pending and Resolved statuses, then it will check for iTPM Applied To ddn status.
-		if(!ddnStatus && itpmAppliedTo){
-			ddnStatus = search.lookupFields({
-				type:'customtransaction_itpm_deduction',
-				id:itpmAppliedTo,
-				columns:['internalid','status']
-			})['status'][0].value;
-			ddnStatus = (ddnStatus != 'statusA' && ddnStatus != 'statusB' && ddnStatus != 'statusC');
-		}
-		log.error('ddnStatus',ddnStatus);
+		log.debug('hasDeductions',hasDeductions);
 		
 		//for deduction button credit memo status should be open or full applied
-		if((creditMemoStatus == 'Open' || creditMemoStatus == 'Fully Applied') && ddnStatus){
+		if((creditMemoStatus == 'Open' || creditMemoStatus == 'Fully Applied') && 
+		   !hasDeductions && !itpmAppliedTo){
 			//itpm deduction permission should be create or edit or full
 			if(ddnPermission >= 2 && JEPermission >= 2){
 				scriptContext.form.addButton({
@@ -129,7 +121,7 @@ define(['N/search',
 		}
 		
 		//for match to deduction buttion credit memo status should be open and JE permission >= create
-		if(creditMemoStatus == 'Open' && JEPermission >= 2 && ddnStatus){
+		if(creditMemoStatus == 'Open' && JEPermission >= 2 && hasDeductions){
 			scriptContext.form.addButton({
 				id:'custpage_itpm_matchtoddn',
 				label:'Match to Deduction',
