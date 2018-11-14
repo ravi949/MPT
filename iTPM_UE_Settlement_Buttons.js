@@ -86,13 +86,14 @@ define(['N/record',
 					log.debug('type',transType.type[0].text);
 				}
 				if((setStatus == 'B' || setStatus == 'A' || setStatus == 'E') && 
+					scriptContext.type == scriptContext.UserEventType.VIEW &&
 					setPermission >= 3 && JEPermission >= 2 && 
 					transactionType != '- iTPM Settlement'){
-					scriptContext.form.addButton({
-						id:'custpage_itpm_settlemevoid',
-						label:'Void',
-						functionName:'voidSettlement('+scriptContext.newRecord.id+','+ postingPeriodId+')'
-					});
+						scriptContext.form.addButton({
+							id:'custpage_itpm_settlemevoid',
+							label:'Void',
+							functionName:'voidSettlement('+scriptContext.newRecord.id+','+ postingPeriodId+')'
+						});
 				}
 
 				scriptContext.form.clientScriptModulePath = './iTPM_Attach_Settlement_ClientMethods.js';
