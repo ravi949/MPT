@@ -278,8 +278,8 @@ define(['N/record',
 					});
 				}	
 				
-				ST_Module.getSettlementLines(prefObj).forEach(function(e, index){
-					if(e.amount > 0){
+				ST_Module.getSettlementLines(prefObj).filter(function(rs){return rs.amount > 0}).forEach(function(e, index){
+//					if(e.amount > 0){
 						if(offsetTranGLImpact){
 	        				e.account = prefObj.settlementAccnt;
 	        			}
@@ -309,7 +309,7 @@ define(['N/record',
 							value:settlementRec.getValue('custbody_itpm_customer'),
 							line:index
 						});
-					}				
+//					}				
 				});
 			}
     	}catch(e){
