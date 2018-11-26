@@ -40,19 +40,46 @@ function(record, search) {
             		})['type'][0]['value'];
             		log.debug('createFrom', createFrom);
             		if(createFrom == 'CustCred'){
-            			creditMemos.forEach(function(cid){
-            				record.submitFields({
-            					type:record.Type.CREDIT_MEMO,
-            					id:cid,
-            					values:{
-            						'custbody_itpm_appliedto':' '
-            					},
-            					options:{
-            						enableSourcing:false,
-            						ignoreMandatoryFields:true
-            					}
-            				});
+            			var creditmemoRecObj = record.load({
+            				type:'creditmemo',
+            				id: creditMemos[0]
             			});
+
+            			//This condition only triggers for credit memo's which has iTPM Applied To value
+            			if(creditmemoRecObj.getValue('custbody_itpm_appliedto')){
+            				var accountingPrd = creditmemoRecObj.getValue('postingperiod');
+            				var accountingperiodSearchObj = search.create({
+            					type: "accountingperiod",
+            					filters:
+            						[
+            						 ["alllocked","is","T"], 
+            						 "AND", 
+            						 ["internalid","anyof",accountingPrd],
+            						 "AND",
+            						 ["allownonglchanges","is","F"]
+            						 ],
+            						 columns:['internalid']
+            				});
+            				var isAcntngprdClosed = accountingperiodSearchObj.runPaged().count;            			
+            				if(isAcntngprdClosed == 0){
+            					creditMemos.forEach(function(cid){
+            						record.submitFields({
+            							type:record.Type.CREDIT_MEMO,
+            							id:cid,
+            							values:{
+            								'custbody_itpm_appliedto':' '
+            							},
+            							options:{
+            								enableSourcing:false,
+            								ignoreMandatoryFields:true
+            							}
+            						});
+            					});
+            				}else{
+            					context.response.write(JSON.stringify({success:false,message:'Deduction cant be deleted because Related Creditmemo posting period is closed or locked. Please Contact administrator to enable allow non G/L S for creditmemo posting period'}));
+            					return;
+            				}
+            			}
             		}
 
             		var ddnRecord = record.delete({

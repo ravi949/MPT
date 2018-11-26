@@ -57,7 +57,8 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			return search.create({
 				type:search.Type.ACCOUNT,
 				columns:['internalid','name'],
-				filters:['subsidiary','anyof',subid]
+				filters:[['subsidiary','anyof',subid],'and',
+					     ['isinactive','is',false]]
 			}).run();
 		}catch(ex){
 			throw {
@@ -250,10 +251,11 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		}); 
 		discountItemField.isMandatory = true;
 
-		//Expense account
-		var expenseAccntField = form.addField(getFieldOptions('custpage_itpm_pref_expenseaccount', 'Expense Account', 'account')).updateBreakType({
+		//Default Expense account
+		var expenseAccntField = form.addField(getFieldOptions('custpage_itpm_pref_expenseaccount', 'Default Expense Account', 'account')).updateBreakType({
 			breakType : serverWidget.FieldBreakType.STARTCOL
 		});
+		
 		expenseAccntField.isMandatory = true;
 
        //Deduction account
@@ -261,8 +263,8 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		deductionAccntField.isMandatory = true;
 
 		//Accounts Payable account field
-		var accountPayableField = form.addField(getFieldOptions('custpage_itpm_pref_accountpayable', 'Accounts Payable', 'account'));
-		accountPayableField.isMandatory = true;
+		var settlementAccountField = form.addField(getFieldOptions('custpage_itpm_pref_settlementaccount', 'Settlement Account', 'account'));
+		settlementAccountField.isMandatory = true;
 		
 		//iTpm Version field
 		var iTpmVersionField = form.addField({
@@ -371,7 +373,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 					    text : e.getValue('name'),
 					    isSelected:false
 					});
-					accountPayableField.addSelectOption({
+					settlementAccountField.addSelectOption({
 					    value : e.getValue('internalid'),
 					    text : e.getValue('name'),
 					    isSelected:false
@@ -386,7 +388,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			if(params.type == 'edit' || params.type == 'view'){
 				deductionAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_ddnaccount');
 				expenseAccntField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_expenseaccount');
-				accountPayableField.defaultValue =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount');
+				settlementAccountField.defaultValue =  preferanceRecord.getValue('custrecord_itpm_pref_settlementsaccount');
 				discountItemField.defaultValue = preferanceRecord.getValue('custrecord_itpm_pref_discountitem');
 				
 				if(subsidiariesEnabled){
@@ -436,7 +438,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			expenseAccntField.updateDisplayType({
 			    displayType : serverWidget.FieldDisplayType.INLINE
 			});
-			accountPayableField.updateDisplayType({
+			settlementAccountField.updateDisplayType({
 			    displayType : serverWidget.FieldDisplayType.INLINE
 			});
 			discountItemField.updateDisplayType({
@@ -511,7 +513,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		prefSublist.addField({
 			id : 'custpage_itpm_expaccount',
 			type : serverWidget.FieldType.SELECT,
-			label : 'Expense Account',
+			label : 'Default Expense Account',
 			source:'account'
 		}).updateDisplayType({
 		    displayType : serverWidget.FieldDisplayType.INLINE
@@ -527,9 +529,9 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		});
 		
 		prefSublist.addField({
-			id : 'custpage_itpm_accntpayable',
+			id : 'custpage_itpm_settlementaccount',
 			type : serverWidget.FieldType.SELECT,
-			label : 'Accounts Payable',
+			label : 'Settlement Account',
 			source:'account'
 		}).updateDisplayType({
 		    displayType : serverWidget.FieldDisplayType.INLINE
@@ -606,7 +608,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			
 			if(e.getValue('custrecord_itpm_pref_settlementsaccount')){
 				prefSublist.setSublistValue({
-					id:'custpage_itpm_accntpayable',
+					id:'custpage_itpm_settlementaccount',
 					value:e.getValue('custrecord_itpm_pref_settlementsaccount'),
 					line:i
 				});
@@ -652,7 +654,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 		//reading the values from request parameters
 		var deductionAccount = request.parameters.custpage_itpm_pref_ddnaccount,
 		expenseAccount = request.parameters.custpage_itpm_pref_expenseaccount,
-		accountPayableId = request.parameters.custpage_itpm_pref_accountpayable,
+		settlementAccountId = request.parameters.custpage_itpm_pref_settlementaccount,
 		applyiTPMNetBillDiscount = request.parameters.custpage_itpm_pref_nblistprice,
 		discountItemId = request.parameters.custpage_itpm_pref_discountitem,
 		removeCustomer = request.parameters.custpage_itpm_pref_remvcust_frmsplitddn,
@@ -698,7 +700,7 @@ function(record, redirect, serverWidget, search, runtime, url, itpm) {
 			ignoreFieldChange: true
 		}).setValue({
 			fieldId:'custrecord_itpm_pref_settlementsaccount',
-			value:accountPayableId,
+			value:settlementAccountId,
 			ignoreFieldChange:true
 		}).setValue({
 			fieldId:'custrecord_itpm_pref_nblistprice',

@@ -81,7 +81,7 @@ function(message, url, https, search, dialog, message, record) {
 			} else if (fieldId == 'custrecord_itpm_all_item'){
 				var itemId = rec.getValue({fieldId:'custrecord_itpm_all_item'});
 				if(itemGroupSelected(rec,itemId)){  //setting item group units to the view
-					setItemSourcePrices(rec,itemId); //set effected price values
+					setItemSourcePrices(sc, rec,itemId); //set effected price values
 				}
 			}else if(fieldId == 'custrecord_itpm_all_uom'){
 				var unitId = rec.getValue({fieldId: 'custrecord_itpm_all_uom'});
@@ -118,12 +118,12 @@ function(message, url, https, search, dialog, message, record) {
     }
 	
 	/**
+	 * @param sc
 	 * @param rec
-	 * 
 	 * @param itemId
 	 * @description Sets the price values which is based on item
 	 */
-	function setItemSourcePrices(rec, itemId){
+	function setItemSourcePrices(sc, rec, itemId){
 		var priceLevel = rec.getValue({fieldId:'custrecord_itpm_all_pricelevel'});
 		var promoId = rec.getValue({fieldId:'custrecord_itpm_all_promotiondeal'});
 		var impactBasePrice = rec.getValue({fieldId:'custrecord_itpm_all_itembaseprice'});

@@ -139,7 +139,9 @@ function(record, search, serverWidget,redirect,url,ST_Module) {
 					filters:[
 						 ['mainline','is','T'],'and'
 						,['custbody_itpm_ddn_openbal','greaterthanorequalto',settlementRec.getValue('custbody_itpm_amount')],'and'
-						,['custbody_itpm_customer','anyof',settlementRec.getValue('custbody_itpm_customer')]
+						,['custbody_itpm_customer','anyof',settlementRec.getValue('custbody_itpm_customer')],'and'
+						,["linesequencenumber","equalto","0"],'and'
+						,[[["accountingperiod.alllocked","is","F"]],"OR",[["accountingperiod.alllocked","is","T"],"AND",["accountingperiod.allownonglchanges","is","T"]]]
 						]		    		
 				});
 				var searchLength = DeductionSearch.run().getRange(0,2).length;

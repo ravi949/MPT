@@ -4,12 +4,12 @@
  * @NModuleScope TargetAccount
  */
 define(['N/ui/serverWidget',
-		'N/search',
-		'N/url',
-		'N/redirect',
-		'N/record',
-		'N/runtime',
-		'./iTPM_Module.js'
+	'N/search',
+	'N/url',
+	'N/redirect',
+	'N/record',
+	'N/runtime',
+	'./iTPM_Module.js'
 	],
 
 	function(serverWidget, search, url, redirect, record, runtime, itpm) {
@@ -39,6 +39,7 @@ define(['N/ui/serverWidget',
 				id: parameters.did
 			});
 
+
 			if(request.method == 'GET' && parameters.submit == 'true')
 			{
 				log.debug('GET METHOD(parameters.submit)', parameters.submit);
@@ -48,13 +49,17 @@ define(['N/ui/serverWidget',
 				var departmentExists = itpm.departmentsEnabled();
 				var creditmemoid = parameters.cm;
 
+				var dept = (itpm.departmentsEnabled())? deductionRec.getValue('department') : undefined,
+					loc = (itpm.locationsEnabled())? deductionRec.getValue('location'): undefined,
+					clas = (itpm.classesEnabled())? deductionRec.getValue('class'): undefined;
+					
 				//getting remaining amount from credit memo
 				var cmLookup = search.lookupFields({
 					type    : search.Type.CREDIT_MEMO,
 					id      : creditmemoid,
 					columns : ['amountremaining','tranid']
 				});
-
+	
 				var deductionid = parameters.did;
 				var jememo = 'Match To Credit Memo '+cmLookup.tranid+' on - iTPM Deduction #'+deductionRec.getValue('tranid');
 				var jesubsidiary = deductionRec.getValue('subsidiary');
@@ -63,7 +68,7 @@ define(['N/ui/serverWidget',
 				var jecreditaccount;
 				var jedebitaccount;
 				var recordDedId;
-				
+	
 				//fetching JE credit account from deduction record header
 				ddnAccount = search.create({
 					type    : search.Type.TRANSACTION,
@@ -71,32 +76,32 @@ define(['N/ui/serverWidget',
 						['debitamount', 'greaterthan', '0']],
 						columns : [{name:'account'}]
 				}).run().getRange(0,1);
-
+	
 				if (ddnAccount) jecreditaccount = ddnAccount[0].getValue({name:'account'});
-
+	
 				//fetching JE credit account from credit memo record header
 				cmAccount = search.create({
 					type    : search.Type.CREDIT_MEMO,
 					filters : [['internalid', 'anyof', creditmemoid]],
 					columns : [{name:'account'}]
 				}).run().getRange(0,1);
-
+	
 				if (cmAccount) jedebitaccount = cmAccount[0].getValue({name:'account'});
-
-				var jeDetails = createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid);
-				
+	
+				var jeDetails = createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid,dept,clas,loc);
+	
 				if (jeDetails.jeID){
 					//Set iTPM Applied To field on Credit Memo
 					var cmRecId = record.submitFields({
-		        		type: record.Type.CREDIT_MEMO,
-		        		id: creditmemoid,
-		        		values: {
-		        			'custbody_itpm_appliedto': deductionid
-		        		}, 
-		        		options: {enablesourcing: true, ignoreMandatoryFields: true}
-		        	});
+						type: record.Type.CREDIT_MEMO,
+						id: creditmemoid,
+						values: {
+							'custbody_itpm_appliedto': deductionid
+						}, 
+						options: {enablesourcing: true, ignoreMandatoryFields: true}
+					});
 					log.debug('cmRecId',cmRecId);
-					
+	
 					if(jeDetails.jePreference){
 						//Redirect To Journal Entry
 						redirect.toRecord({
@@ -146,9 +151,10 @@ define(['N/ui/serverWidget',
 	 * 
 	 * @description This function is used to create a Journal Entry record
 	 */
-	function createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid){
+	function createJERecord(subsidiaryExists, jesubsidiary, deductionid, jecreditaccount, jeamount, jememo, jecustomer, jedebitaccount, creditmemoid,dept,clas,loc){
 		try{
 			var jedetails = {};
+
 
 			//creating JE record
 			var journalEntry = record.create({
@@ -168,19 +174,19 @@ define(['N/ui/serverWidget',
 				fieldId : 'custbody_itpm_appliedto',
 				value   : creditmemoid
 			});
-			
+
 			//setting body fields Subsidiary and iTPM Created From
 			journalEntry.setValue({
 				fieldId : 'custbody_itpm_createdfrom',
 				value   : deductionid
 			});
-			
+
 			//setting body fields memo
 			journalEntry.setValue({
 				fieldId : 'memo',
 				value   : jememo
 			});
-			
+
 			//Checking for JE Approval preference from NetSuite "Accounting Preferences" under "General/Approval Routing" tabs.
 			var prefJE = itpm.getJEPreferences();
 			if(prefJE.featureEnabled){
@@ -198,7 +204,7 @@ define(['N/ui/serverWidget',
 					});
 				}
 			}
-			
+
 			//CREDIT LINE
 			journalEntry.selectNewLine({
 				sublistId: 'line'
@@ -219,7 +225,29 @@ define(['N/ui/serverWidget',
 				sublistId : 'line',
 				fieldId   : 'entity',
 				value     : jecustomer
-			}).commitLine({
+			});
+			if(itpm.departmentsEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'department',
+					value     : dept
+				});
+			}
+			if(itpm.classesEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'class',
+					value     : clas
+				});
+			}
+			if(itpm.locationsEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'location',
+					value     : loc
+				});
+			}
+			journalEntry.commitLine({
 				sublistId: 'line'
 			});
 			//DEBIT LINE
@@ -242,7 +270,29 @@ define(['N/ui/serverWidget',
 				sublistId : 'line',
 				fieldId   : 'entity',
 				value     : jecustomer
-			}).commitLine({
+			});
+			if(itpm.departmentsEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'department',
+					value     : dept
+				});
+			}
+			if(itpm.classesEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'class',
+					value     : clas
+				});
+			}
+			if(itpm.locationsEnabled()){
+				journalEntry.setCurrentSublistValue({
+					sublistId : 'line',
+					fieldId   : 'location',
+					value     : loc
+				});
+			}
+			journalEntry.commitLine({
 				sublistId: 'line'
 			});
 
@@ -250,11 +300,11 @@ define(['N/ui/serverWidget',
 				enableSourcing: true,
 				ignoreMandatoryFields: true
 			});
-			
+
 			if(journalId){
 				jedetails = {jeID:journalId, jePreference:prefJE.featureEnabled};
 			}
-			
+
 			return jedetails;
 		}catch(e){
 			log.error(e.name, e.message);
@@ -294,7 +344,7 @@ define(['N/ui/serverWidget',
 			var list = serverWidget.createList({
 				title : 'Credit Memo List'
 			});
-
+			log.debug('id',creditMemoSearchObj)
 			list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'});
 			list.clientScriptModulePath = './iTPM_Attach_Deduction_Buttons.js';
 
@@ -303,6 +353,7 @@ define(['N/ui/serverWidget',
 			var ids = [];
 			//adding column headers dynamically
 			creditMemoSearchObj.columns.forEach(function(result){
+				
 				if(result.name == 'internalid'){
 					listcolumn=list.addColumn({
 						id : 'custpage_'+result.name,
@@ -319,6 +370,7 @@ define(['N/ui/serverWidget',
 
 				listIds.push('custpage_'+result.name);
 				ids.push(result.name);
+				log.debug('ids',ids);
 
 			});
 
@@ -363,11 +415,11 @@ define(['N/ui/serverWidget',
 					for(var i=0; i<listIds.length; i++){
 						//get url for Credit Memo
 						var cmurl = url.resolveRecord({
-						    recordType: 'creditmemo',
-						    recordId: result.id,
-						    isEditMode: false
+							recordType: 'creditmemo',
+							recordId: result.id,
+							isEditMode: false
 						});
-						
+
 						if(listIds[i] == 'custpage_entity'){
 							temp[listIds[i]] = result.getText(''+ids[i]+'');
 							log.debug('temp',temp);
@@ -393,9 +445,9 @@ define(['N/ui/serverWidget',
 					rows : a
 				});
 			}
-			
+
 			return list;
-			
+
 		}catch(e){
 			log.error(e.name, e.message);
 		}

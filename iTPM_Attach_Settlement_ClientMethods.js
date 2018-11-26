@@ -6,13 +6,15 @@
  */
 define(['N/ui/message',
 	    'N/record',
-	    'N/url'
+	    'N/url',
+	    'N/https',
+	    'N/ui/dialog'
 	    ],
   /**
   * @param {record} record
   * @param {url} url
   */
-  function(message, record, url) {
+  function(message, record, url, https, dialog) {
 
 	/**
 	 * Function to be executed when field is changed.
@@ -144,48 +146,96 @@ define(['N/ui/message',
 	}
 
 	//When user clicks on apply to Deduction button then it redirects to Deduction create suitelet.
-	function redirectToDeductionList(settlementId){
+	function redirectToDeductionList(settlementId,postingPeriodId){
 		try{
-			var msg = displayMessage('Deducitons List','Please wait while you are redirected to the deductions list screen.');
-			msg.show();
-			var deductionListURL = url.resolveScript({
-				scriptId:'customscript_itpm_set_applytodeduction',
-				deploymentId:'customdeploy_itpm_set_applytodeduction',
-				params:{sid:settlementId}
-			}); 
-			window.open(deductionListURL,'_self');
+			//checking postingperiod status
+			var postingPeriodURL = url.resolveScript({
+			    scriptId: 'customscript_itpm_getaccntngprd_status',
+			    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+			    params:{popid:postingPeriodId},
+			    returnExternalUrl: false
+			});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
+			console.log(response)
+			if(JSON.parse(response.body).period_closed){ 
+				dialog.create({
+					title:"Warning!",
+					message:"<b>iTPM</b> cannot perform the requested action because the Settlement Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
+				});
+			}else{
+				var msg = displayMessage('Deducitons List','Please wait while you are redirected to the deductions list screen.');
+				msg.show();
+				var deductionListURL = url.resolveScript({
+					scriptId:'customscript_itpm_set_applytodeduction',
+					deploymentId:'customdeploy_itpm_set_applytodeduction',
+					params:{sid:settlementId}
+				}); 
+				window.open(deductionListURL,'_self');
+			}
 		}catch(e){
 			console.log(e.name,'error in redirection to deduction list, function name = redirectToDeductionList,  message='+e.message);
+			}
 		}
-	}
 
 	//When user clicks on apply to Check button then it redirects to Check record.
-	function redirectToCheck(settlementId){
+	function redirectToCheck(settlementId,postingPeriodId){
 		try{
-			var msg = displayMessage('Applying to Check','Please wait while the check is created and applied.');
-			msg.show();
-			var ApplyToCheckURL = url.resolveScript({
-				scriptId:'customscript_itpm_set_applytocheck',
-				deploymentId:'customdeploy_itpm_set_applytocheck',
-				params:{sid:settlementId}
-			}); 
-			window.open(ApplyToCheckURL,'_self');
+			//checking postingperiod status
+			var postingPeriodURL = url.resolveScript({
+			    scriptId: 'customscript_itpm_getaccntngprd_status',
+			    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+			    params:{popid:postingPeriodId},
+			    returnExternalUrl: false
+			});
+			var response = https.get({url:postingPeriodURL+'&popid='+postingPeriodId});
+			console.log(response)
+			if(JSON.parse(response.body).period_closed){ 
+				dialog.create({
+					title:"Warning!",
+					message:"<b>iTPM</b> cannot perform the requested action because the Settlement Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
+				});
+			}else{
+				var msg = displayMessage('Applying to Check','Please wait while the check is created and applied.');
+				msg.show();
+				var ApplyToCheckURL = url.resolveScript({
+					scriptId:'customscript_itpm_set_applytocheck',
+					deploymentId:'customdeploy_itpm_set_applytocheck',
+					params:{sid:settlementId}
+				}); 
+				window.open(ApplyToCheckURL,'_self');
+			}
 		}catch(e){
 			console.log(e.name,'error in apply settlement to check, function name = redirectToCheck, message='+e.message);
 		}
 	}
 
 	//When user clicks on Void button then it redirects to Settlement suitelet to void the Settlement.
-	function voidSettlement(settlementId){
+	function voidSettlement(settlementId, postingPeriodId){
 		try{
-			var msg = displayMessage('Voiding the settlement','Please wait while void the settlement and redirect to JE.');
-			msg.show();
-			var voidSetlmntURL = url.resolveScript({
-				scriptId:'customscript_itpm_set_void',
-				deploymentId:'customdeploy_itpm_set_void',
-				params:{sid:settlementId}
-			}); 
-			window.open(voidSetlmntURL,'_self');
+			//checking postingperiod status
+			var postingPeriodURL = url.resolveScript({
+			    scriptId: 'customscript_itpm_getaccntngprd_status',
+			    deploymentId: 'customdeploy_itpm_getaccntngprd_status',
+			    params:{popid:postingPeriodId},
+			    returnExternalUrl: false
+			});
+			var response = https.get({url:postingPeriodURL});
+			console.log(response)
+			if(JSON.parse(response.body).period_closed){ 
+				dialog.create({
+					title:"Warning!",
+					message:"<b>iTPM</b> cannot perform the requested action because the Settlement Accounting Period is either closed, or locked.<br><br>Contact your administrator to turn on <b>allow non-G/L changes</b> for the locked or closed period."
+				});
+			}else{
+				var msg = displayMessage('Voiding the settlement','Please wait while void the settlement and creating another settlement.');
+				msg.show();
+				var voidSetlmntURL = url.resolveScript({
+					scriptId:'customscript_itpm_set_void',
+					deploymentId:'customdeploy_itpm_set_void',
+					params:{sid:settlementId}
+				}); 
+				window.open(voidSetlmntURL,'_self');
+			}
 		}catch(e){
 			console.log(e.name,'error in void the settlement, function name = voidTheSettlement, message = '+e.message);
 		}
@@ -194,10 +244,10 @@ define(['N/ui/message',
 	return {
 		fieldChanged: fieldChanged,
 		saveRecord: saveRecord,
-		redirectToBack:redirectToBack,
-		redirectToDeductionList:redirectToDeductionList,
-		redirectToCheck:redirectToCheck,
-		voidSettlement:voidSettlement
+		redirectToBack: redirectToBack,
+		redirectToDeductionList: redirectToDeductionList,
+		redirectToCheck: redirectToCheck,
+		voidSettlement: voidSettlement
 	};
 
 });

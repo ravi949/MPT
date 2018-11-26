@@ -488,7 +488,7 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 	  			 isSelected:classSet == e.id
 		    	})
 		    	return true;
-		    })
+		    });
 	    }
 	    
     	//location
@@ -622,6 +622,9 @@ function(serverWidget, search, record, redirect, format, url, ST_Module, itpm) {
 	    	}).updateDisplayType({
 				displayType : serverWidget.FieldDisplayType.DISABLED
 			}).defaultValue = format.parse({value:ddnOpenBal, type: format.Type.CURRENCY}).toFixed(2);
+		    if(departmentsExists){deptField.defaultValue = deductionRec.getValue('department');}
+		    if(locationsExists){locationField.defaultValue = deductionRec.getValue('location');}	    
+		    if(locationsExists){classField.defaultValue = deductionRec.getValue('class');}
 	    }
 	    
 	    //settlement request

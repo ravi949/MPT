@@ -36,6 +36,7 @@ function(message,format) {
 				totalAmount += parseFloat(lineAmount);			
 			}	
 			//getting open balance from deduction record
+			totalAmount = format.parse({value:(totalAmount), type: format.Type.CURRENCY}).toFixed(2);
 			var openBalance = scriptContext.currentRecord.getValue('custrecord_itpm_split_ddnopenbal');
 			scriptContext.currentRecord.setValue('custpage_itpm_ddsplit_totallineamount',totalAmount);
 			var msg = 'Total Line amount: $'+totalAmount;
@@ -45,7 +46,7 @@ function(message,format) {
 			if(showMsg.inValid){
 				msg += (totalAmount > openBalance)? 
 						'\nYou have entered more than the Open Balance i.e. $'+remainingAmount:
-						'\nYou have Reamining $'+maxAmount+' of Open Balance to Split';
+						'\nYou have Remaining $'+maxAmount+' of Open Balance to Split';
 				showMsg.msg = msg;				
 				return false;
 			}				

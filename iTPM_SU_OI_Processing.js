@@ -36,8 +36,8 @@ define(['N/search',
 				var prefData = itpm.getPrefrenceValues(subsidairyId);
 				var prefDatesType = prefData['prefDiscountDate'];
 				var prefDiscountItem = prefData['dicountItem'];
-				log.error('prefDatesType',prefDatesType);
-				log.error('prefDiscountItem',prefDiscountItem);
+				log.debug('prefDatesType',prefDatesType);
+				log.debug('prefDiscountItem',prefDiscountItem);
 				log.debug('Usage: After PrefData', runtime.getCurrentScript().getRemainingUsage());
 				log.debug('Usage: After Loading TranRec 1st', runtime.getCurrentScript().getRemainingUsage());
 //				log.debug('Usage: After Loading TranRec 2nd', runtime.getCurrentScript().getRemainingUsage());
@@ -64,7 +64,7 @@ define(['N/search',
 						columns:['recordtype']
 					}).recordtype;
 					
-					if(itemType == "discountitem"){
+					if(itemType == "discountitem" || itemType == "itemgroup" || !itemType){
 						continue;
 					}
 
@@ -107,6 +107,7 @@ define(['N/search',
 
 					//Fetching allowances related to the each item which is coming from Transaction Line
 					var perItemResults = getAllowanceItems(prefDatesType, lineItem, customer, trandate);
+					log.debug('perItemResults', perItemResults);
 					var j = 0;
 
 					perItemResults.each(function(result){
@@ -260,6 +261,9 @@ define(['N/search',
 	 * @return {Array} searchResults (allowance)
 	 */
 	function getAllowanceItems(prefDatesType, item, customer, trandate){
+		//Create hierarchical customers array		
+		var subCustIds = itpm.getParentCustomers(customer);
+		log.debug('Realted Customers',subCustIds);
 		var tranFilters = [
 			["custrecord_itpm_all_promotiondeal.custrecord_itpm_p_status","anyof","3"], //here 3 means status is Approved
 			"AND", 
@@ -267,7 +271,7 @@ define(['N/search',
 			"AND", 
 			["custrecord_itpm_all_item","anyof",item], //item from transaction line
 			"AND", 
-			["custrecord_itpm_all_promotiondeal.custrecord_itpm_p_customer","anyof",customer] //customer from transaction
+			["custrecord_itpm_all_promotiondeal.custrecord_itpm_p_customer","anyof",subCustIds] //customer from transaction
 			];
 
 		//Adding the filters to the tranFilters array

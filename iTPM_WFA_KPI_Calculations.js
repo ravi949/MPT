@@ -104,22 +104,10 @@ function(search, record, runtime, itpm) {
     			log.audit('EQ: kpiRecUpdate', kpiRecUpdate);
         		
         		//Trigger KPI Queue logic when Est. Qty record on edit
-        		if(eqPromStatus == 3 && (eqPromCondition == 2 || eqPromCondition == 3)){
-        			var searchCount = search.create({
-        				type : 'customrecord_itpm_kpiqueue',
-        				filters : [
-        				           ['custrecord_itpm_kpiq_promotion', 'is', promotionIdEQ],'and',
-                                   ['custrecord_itpm_kpiq_start','isempty',null],'and',
-                                   ['custrecord_itpm_kpiq_end','isempty',null]
-        				]
-        			}).runPaged().count;
-        			log.debug('EQ: searchCount', searchCount);
-        			
-        			if(searchCount == 0){
-        				//Creating New KPI Queue Record
-        				itpm.createKPIQueue(promotionIdEQ, 2); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
-        			}
-        		}
+				if(eqPromStatus == 3 && (eqPromCondition == 2 || eqPromCondition == 3)){
+					//Creating New KPI Queue Record
+					itpm.createKPIQueue(promotionIdEQ, 2); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
+				}
     		}
     		
     		//Trigger only IF Est. Qty. record is created

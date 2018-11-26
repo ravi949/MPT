@@ -74,10 +74,10 @@ function(config, task, search, record, runtime) {
      * @since 2016.1
      */
     function afterInstall(params) {
-    	log.error('version after install',params);
+    	log.debug('version after install',params);
     	
     	//script to modify status filter on all iTPM saved searches
-    	updateSearchFilters();
+    	//updateSearchFilters();
     	//create preference records
     	createPreferenceRecords(params.version);
     }
@@ -105,7 +105,7 @@ function(config, task, search, record, runtime) {
      * @since 2016.1
      */
     function afterUpdate(params) {
-    	log.error('version after update',params);
+    	log.debug('version after update',params);
     	
     	//task for set the promotion default values
     	task.create({
@@ -129,7 +129,7 @@ function(config, task, search, record, runtime) {
     	}).submit();
     	
     	//script to modify status filter on all iTPM saved searches
-    	updateSearchFilters();
+    	//updateSearchFilters();
     	
     	//create and update the preference records
     	createPreferenceRecords(params.toVersion);
@@ -795,7 +795,7 @@ function(config, task, search, record, runtime) {
         			setItpmVersion(iTPM_Version);
         		}    		
         	}else{
-        		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined,iTPM_Version) : '';
+        		(prefResultLength == 0)? createOrEditPreferenceRecord(undefined,eventType,undefined,iTPM_Version) : setItpmVersion(iTPM_Version);
         	}
     	}catch(ex){
     		log.error(ex.name, ex.message);

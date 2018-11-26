@@ -55,21 +55,10 @@ function(search, task, itpm) {
     			data['custrecord_itpm_p_customer'].value,
     			data['custrecord_itpm_p_shipstart'],
     			data['custrecord_itpm_p_shipend']);
-    	
-    	//Looking for Duplicates in KPI Queue Record with the same promotion
-    	var kpiQueueCount = search.create({
-			type : 'customrecord_itpm_kpiqueue',
-			filters : [
-			           ['custrecord_itpm_kpiq_promotion', 'is', promotionID],'and',
-                       ['custrecord_itpm_kpiq_start','isempty',null],'and',
-                       ['custrecord_itpm_kpiq_end','isempty',null]
-			]
-		}).runPaged().count;
-		log.debug('kpiQueueCount '+promotionID, kpiQueueCount);
 		log.debug('salesOrShipmentsCount '+promotionID, salesOrShipmentsCount);
 		
 		//Creating KPI Queue record if no duplicates
-		if(salesOrShipmentsCount > 0 && kpiQueueCount == 0){
+		if(salesOrShipmentsCount > 0){
 			itpm.createKPIQueue(promotionID, 1); //1.Scheduled, 2.Edited, 3.Status Changed, 4.Ad-hoc and 5.Settlement Status Changed
 		}
     }
@@ -96,10 +85,10 @@ function(search, task, itpm) {
     	
     	//Triggering MR KPI Calculations for Scheduled KPI Queue
     	task.create({
-        	   taskType: task.TaskType.MAP_REDUCE,
-        	   scriptId: 'customscript_itpm_mr_kpi_newcalculations',
-        	   deploymentId: 'customdeploy_itpm_mr_kpi_newcalschedule1'
-        	}).submit();
+    		taskType: task.TaskType.MAP_REDUCE,
+    		scriptId: 'customscript_itpm_mr_kpi_newcalculations',
+    		deploymentId: 'customdeploy_itpm_mr_kpi_newcalschedule1'
+    	}).submit();
     }
     
     /**

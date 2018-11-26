@@ -198,11 +198,7 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 
 				var promoRecTypeId = scriptObj.getParameter({name: 'custscript_itpm_promotype_recordtypeid'})
 
-				var dataObj = getPromotionData(calendarRecLookup, promoRecTypeId);    			
-				var promoData = dataObj.finalResults;
-				var arrOfMonths = dataObj.arrOfMonths;
-				var sundaysList = dataObj.sundaysList;
-
+				var dataObj = getPromotionData('GET', calendarRecLookup, promoRecTypeId, params.index);    			
 
 				//Adding the custom data source to the html file content
 				renderer.addCustomDataSource({
@@ -214,19 +210,25 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 				renderer.addCustomDataSource({
 					format: render.DataSource.OBJECT,
 					alias: 'monthObj',
-					data: {name:'months', list:JSON.stringify(arrOfMonths)}
+					data: {name:'months', list:JSON.stringify(dataObj.arrOfMonths)}
 				});
 
 				renderer.addCustomDataSource({
 					format: render.DataSource.OBJECT,
 					alias: 'weeks',
-					data: {name:'list',list:JSON.stringify(sundaysList)}
+					data: {name:'list',list:JSON.stringify(dataObj.sundaysList)}
 				});
 
 				renderer.addCustomDataSource({
 					format: render.DataSource.OBJECT,
 					alias: 'promotionData',
-					data: {name : 'list', list : JSON.stringify(promoData) }
+					data: {name : 'list', list : JSON.stringify(dataObj.finalResults) }
+				});
+				
+				renderer.addCustomDataSource({
+					format: render.DataSource.OBJECT,
+					alias: 'pageRanges',
+					data: {name : 'list', list : JSON.stringify(dataObj.totalPages) }
 				});
 
 				renderer.templateContent = templateFile.getContents();
@@ -247,21 +249,20 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 				context.response.writePage(form);
 				
 			}else if(request.method == "POST"){
+				
 				var cid = params['custpage_itpm_cal_id'];
 				var calendarLookupFields = getCalendarValues(cid);
 //				var promoData = getPromotionData(calendarLookupFields, undefined);
 				log.debug('cid',calendarLookupFields);
 
-				var dataObj = getPromotionData(calendarLookupFields, undefined);
+				var dataObj = getPromotionData('POST', calendarLookupFields, undefined, undefined);
 				var promoData = dataObj.finalResults;
-				var arrOfMonths = dataObj.arrOfMonths;
-				var sundaysList = dataObj.sundaysList;
 				var fileOutput = "Customer,Item,Promotion type,Promotion,Id,Start ship,End ship,UOM,MOP,%,Rate";
 
 				//setting the months with weeks columns csv
-				arrOfMonths.forEach(function(m){
+				dataObj.arrOfMonths.forEach(function(m){
 					if(m.startMonth <= m.id && m.id <= m.endMonth){
-						sundaysList.forEach(function(e){
+						dataObj.sundaysList.forEach(function(e){
 							if(m.year == e.year && m.id == e.month){
 								fileOutput += ","+m.year+"-"+m.name+"-"+e.date
 							}
@@ -272,7 +273,7 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 				//adding the data into csv table columns
 				promoData.forEach(function(promo){
 					fileOutput += "\n\""+promo.entity+"\","+promo.item+",\""+promo.promo_type+"\",\""+promo.promo_desc+"\",\""+promo.promo_id+"\","+promo.ship_startdate+","+promo.ship_enddate+","+promo.uom+","+promo.mop+","+promo.percent_peruom+","+promo.rate_peruom+",";
-					sundaysList.forEach(function(e){
+					dataObj.sundaysList.forEach(function(e){
 						if(e.startMonth <= e.month && e.month <= e.endMonth){
 							if(promo.syear == promo.eyear){
 								if(promo.syear == e.year && promo.sweek <= e.week && e.week <= promo.eweek){
@@ -343,7 +344,7 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
      * @param {Number} promoRecTypeId
      * @return {Object} finalResults
      */
-    function getPromotionData(calendarRecLookup, promoRecTypeId){
+    function getPromotionData(method, calendarRecLookup, promoRecTypeId, index){
     	try{
     		var finalResults = [];
     		var arrOfMonths = [{id:0,name:"Jan"},
@@ -367,11 +368,14 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 			var promoStatus = calendarRecLookup['custrecord_itpm_cal_promotionstatus'].map(function(e){return e.value});
 			var itemGroups = calendarRecLookup['custrecord_itpm_cal_itemgroups'].map(function(e){return e.value});
 			
-			
-			var startDateYear = new Date(calendarRecLookup['custrecord_itpm_cal_startdate']).getFullYear(),
-			endDateYear = new Date(calendarRecLookup['custrecord_itpm_cal_enddate']).getFullYear();
-			var startMonth = new Date(calendarRecLookup["custrecord_itpm_cal_startdate"]).getMonth(),
-			endMonth = new Date(calendarRecLookup["custrecord_itpm_cal_enddate"]).getMonth();
+			var calStartDateObj = new Date(calendarRecLookup['custrecord_itpm_cal_startdate']),
+			calEndDateObj = new Date(calendarRecLookup['custrecord_itpm_cal_enddate']);
+			var startDateYear = calStartDateObj.getFullYear(),
+			endDateYear = calEndDateObj.getFullYear();
+			var startMonth = calStartDateObj.getMonth(),
+			endMonth = calEndDateObj.getMonth();
+			var startWeek = calStartDateObj.getWeek(),
+			endWeek = calEndDateObj.getWeek();
 
 			var sundaysList = getSundays(startDateYear, startMonth, (startDateYear != endDateYear)?11:endMonth);
 			arrOfMonths = arrOfMonths.map(function(e){ e.startMonth = startMonth;e.endMonth = (startDateYear != endDateYear)?11:endMonth;e.year = startDateYear;return e });
@@ -383,13 +387,16 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
 			
 			log.audit('itemgroups',itemGroups);
 			
+			/*promotion filters(to show overlapped and active promotions)*/
 			var promotionFilters = [
-			   ["custrecord_itpm_p_status","anyof",promoStatus], 
-			   "AND", 
-			   ["custrecord_itpm_p_shipstart","onorafter",startdate], 
-			   "AND", 
-			   ["custrecord_itpm_p_shipend","onorbefore",enddate]
+			    ["custrecord_itpm_p_status","anyof",promoStatus], 
+			    "AND", 
+			    [
+			     [["custrecord_itpm_p_shipstart","onorbefore",startdate],"AND",["custrecord_itpm_p_shipend","onorafter",enddate]],"OR",
+			     [["custrecord_itpm_p_shipstart","within",startdate,enddate],"OR",["custrecord_itpm_p_shipend","within",startdate,enddate]]
+			    ]
 			];
+			
 			//If all customers checkbox not checked
 			if(!allCustomersChecked){
 				var customers = calendarRecLookup['custrecord_itpm_cal_customer'].map(function(e){return e.value});
@@ -458,52 +465,82 @@ function(render, search, runtime, file, record, util, serverWidget, itpm) {
     			      "custrecord_itpm_p_shipend"
     			   ]
     			});
-//    			var searchResultCount = promoSearchObj.runPaged().count;
-//    			log.debug("promoSearchObj result count",searchResultCount);
-    			var status;
-    			promoSearchObj.run().each(function(result){
-    				status = result.getValue({ name:'custrecord_itpm_p_status' });
-    				if(status == 1){
-    					status = {text:'Draft',cls:'status-orange'};
-    				}else if(status == 2){
-    					status = {text:'Pending Approval',cls:'status-yellow'};
-    				}else if(status == 3){
-    					status = {text:'Approved',cls:'status-green'};
-    				}else if(status == 4 || status == 5){
-    					status = {text:(status)?'Rejected':'Voided',cls:'status-red'};
-    				}else if(status == 7){
-    					status = {text:'Closed',cls:'status-blue'};
-    				}
-    		        finalResults.push({
-    		        	promo_desc	  : result.getValue({ name: 'name'}),
-    	    		    promo_id	  : result.getValue({ name:'internalid' }),
-    	    		    promo_status  : status,
-    		        	promo_type	  : result.getText({ name: 'custrecord_itpm_p_type'}),
-    		        	promo_rec_type: promoRecTypeId,
-    	    		    ship_startdate: result.getValue({ name: 'custrecord_itpm_p_shipstart' }),
-    	    		    ship_enddate  : result.getValue({ name: 'custrecord_itpm_p_shipend' }),
-    		        	entity 		  : result.getText({ name: 'custrecord_itpm_p_customer' }),
-    	    		    item   		  : result.getText({ name: 'custrecord_itpm_all_item', join:'custrecord_itpm_all_promotiondeal' }),
-    	    		    item_desc	  : result.getText({ name:'custrecord_itpm_all_item', join:'custrecord_itpm_all_promotiondeal' }),
-    	    		    rate_peruom	  : result.getValue({ name:'custrecord_itpm_all_rateperuom', join:'custrecord_itpm_all_promotiondeal' }),
-    	    		    percent_peruom: result.getValue({ name:'custrecord_itpm_all_percentperuom', join:'custrecord_itpm_all_promotiondeal' }),
-    	    		    uom			  : result.getText({ name:'custrecord_itpm_all_uom', join:'custrecord_itpm_all_promotiondeal' }),
-    	    		    mop           : result.getText({ name:'custrecord_itpm_all_mop', join:'custrecord_itpm_all_promotiondeal' }),
-    	    		    sweek 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getWeek(),
-    	    		    eweek 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getWeek(),
-    	    		    smonth 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getMonth(),
-    	    		    emonth 		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getMonth(),
-    	    		    syear		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getFullYear(),
-    	    		    eyear		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getFullYear()
-    		        });
-    			   return true;
-    			});
     		
+//    			var searchResultCount = promoSearchObj.runPaged().count;
+//    			log.error("promoSearchObj result count",searchResultCount);
+    		
+    			var pagedData = promoSearchObj.runPaged({pageSize:30});
+    			var totalResultCount = pagedData.count;
+    			var numberOfPages = pagedData.pageRanges.length;
+    			var status, pages = [], listOfPages = [];
+    			
+    			//creating the new array for pagination list
+    			for(var i = 0;i < numberOfPages;i++){
+					var paginationTextEnd = (totalResultCount >= (i*30)+30)?((i * 30)+30):totalResultCount;
+					listOfPages.push({
+						index: pagedData.pageRanges[i].index,
+						label: ((i*30)+1)+' to '+paginationTextEnd+' of '+totalResultCount
+					});
+				}
+    			
+    			//if method is GET we are setting pages as one array of element otherwise pages will contain full pageRanges
+    			if(method == 'GET'){
+    				pages = [{index:index}];
+    			}else{
+    				pages = pagedData.pageRanges;
+    			}
+    			
+    			pages.forEach(function(value){
+    				if(pagedData.pageRanges.length <= 0)return;
+    				pagedData.fetch({index:value.index}).data.forEach(function(result){
+        				status = result.getValue({ name:'custrecord_itpm_p_status' });
+        				if(status == 1){
+        					status = {text:'Draft',cls:'status-orange'};
+        				}else if(status == 2){
+        					status = {text:'Pending Approval',cls:'status-yellow'};
+        				}else if(status == 3){
+        					status = {text:'Approved',cls:'status-green'};
+        				}else if(status == 4 || status == 5){
+        					status = {text:(status)?'Rejected':'Voided',cls:'status-red'};
+        				}else if(status == 7){
+        					status = {text:'Closed',cls:'status-blue'};
+        				}
+        				
+        				//this condition for to add the statuses in for promotion which are active in between the calendar start and end dates
+        				var isPromoEndDateYearGreaterThanCalEndDate = parseInt(new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getFullYear()) > parseInt(endDateYear);
+        				var isPromoStartDateYearLessThanCalStartDate = parseInt(new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getFullYear()) < parseInt(startDateYear);
+        				
+        		        finalResults.push({
+        		        	promo_desc	  : result.getValue({ name: 'name'}),
+        	    		    promo_id	  : result.getValue({ name:'internalid' }),
+        	    		    promo_status  : status,
+        		        	promo_type	  : result.getText({ name: 'custrecord_itpm_p_type'}),
+        		        	promo_rec_type: promoRecTypeId,
+        	    		    ship_startdate: result.getValue({ name: 'custrecord_itpm_p_shipstart' }),
+        	    		    ship_enddate  : result.getValue({ name: 'custrecord_itpm_p_shipend' }),
+        		        	entity 		  : result.getText({ name: 'custrecord_itpm_p_customer' }),
+        	    		    item   		  : result.getText({ name: 'custrecord_itpm_all_item', join:'custrecord_itpm_all_promotiondeal' }),
+        	    		    item_desc	  : result.getText({ name:'custrecord_itpm_all_item', join:'custrecord_itpm_all_promotiondeal' }),
+        	    		    rate_peruom	  : result.getValue({ name:'custrecord_itpm_all_rateperuom', join:'custrecord_itpm_all_promotiondeal' }),
+        	    		    percent_peruom: result.getValue({ name:'custrecord_itpm_all_percentperuom', join:'custrecord_itpm_all_promotiondeal' }),
+        	    		    uom			  : result.getText({ name:'custrecord_itpm_all_uom', join:'custrecord_itpm_all_promotiondeal' }),
+        	    		    mop           : result.getText({ name:'custrecord_itpm_all_mop', join:'custrecord_itpm_all_promotiondeal' }),
+        	    		    sweek 		  : (isPromoStartDateYearLessThanCalStartDate)? 0 : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getWeek(),
+        	    		    eweek 		  : (isPromoEndDateYearGreaterThanCalEndDate)? 55 : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getWeek(),
+        	    		    smonth 		  : (isPromoStartDateYearLessThanCalStartDate)? startMonth : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getMonth(),
+        	    		    emonth 		  : (isPromoEndDateYearGreaterThanCalEndDate)? endMonth : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getMonth(),
+        	    		    syear		  : new Date(result.getValue({ name: 'custrecord_itpm_p_shipstart' })).getFullYear(),
+        	    		    eyear		  : (isPromoEndDateYearGreaterThanCalEndDate)? endDateYear : new Date(result.getValue({ name: 'custrecord_itpm_p_shipend' })).getFullYear()
+        		        });
+        			});
+    			});
+    			
     		return {
-    				finalResults: finalResults, 
-    				arrOfMonths: arrOfMonths,
-    				sundaysList: sundaysList
-    				};
+    			finalResults: finalResults, 
+    			arrOfMonths: arrOfMonths,
+    			sundaysList: sundaysList,
+    			totalPages: listOfPages
+    		};
     	}catch(e){
     		log.debug(e.name, e.message);
     		throw e;

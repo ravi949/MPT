@@ -60,6 +60,12 @@ function(runtime, serverWidget, search, record, itpm) {
         	    type : serverWidget.FieldType.TEXT,
         	    label : 'Promotion #'
         	});
+        	sublistPromotions.addField({		
+        		id : 'custpage_psl_customer',		
+        		type : serverWidget.FieldType.SELECT,		
+        		label : 'Customer',		
+        		source:'customer'		
+        	});
         	
         	sublistPromotions.addField({
         	    id : 'custpage_psl_title',
@@ -113,6 +119,11 @@ function(runtime, serverWidget, search, record, itpm) {
         				id : 'custpage_psl_title',
         				line : i,
         				value : result.getValue({name:'internalid'})
+        			});
+        			sublistPromotions.setSublistValue({		
+        				id : 'custpage_psl_customer',		
+        				line : i,		
+        				value : result.getValue({name:'custrecord_itpm_p_customer'})		
         			});
 
         			if(showShipDates){
@@ -491,12 +502,15 @@ function(runtime, serverWidget, search, record, itpm) {
      */
     function getSearchResults(customerId,type,prefDatesType,trandate,transhipdate){
     	try{
+    		var subCustIds = itpm.getParentCustomers(customerId);
+    		log.debug('Realted Customers',subCustIds);
     		var tranColumns = [  
- 				"internalid"
+ 				"internalid",
+ 				"custrecord_itpm_p_customer"
  			 ];
     		
     		var tranFilters = [  
- 				["custrecord_itpm_p_customer","anyof",customerId],
+ 				["custrecord_itpm_p_customer","anyof",subCustIds],
 				 "AND",
 				["custrecord_itpm_p_status","anyof","3"]   //Approved - 3
 			 ];

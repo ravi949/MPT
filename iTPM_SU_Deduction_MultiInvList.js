@@ -3,9 +3,14 @@
  * @NScriptType Suitelet
  * @NModuleScope TargetAccount
  */
-define(['N/ui/serverWidget', 'N/search', 'N/url', 'N/record'],
+define(['N/ui/serverWidget', 
+        'N/search', 
+        'N/url', 
+        'N/record',
+        './iTPM_Module.js'
+        ],
 
-function(ui, search, url, record) {
+function(ui, search, url, record, itpm) {
    
     /**
      * Definition of the Suitelet script trigger point.
@@ -27,8 +32,10 @@ function(ui, search, url, record) {
     			var invoiceFieldsLookUp = search.lookupFields({
     			    type: search.Type.INVOICE,
     			    id: params.fid,
-    			    columns: ['entity', 'trandate', 'amount', 'amountremaining']
+    			    columns: ['entity', 'trandate', 'amount', 'amountremaining','postingperiod']
     			});
+    			
+    			var postingPeriod = invoiceFieldsLookUp['postingperiod'][0].value;
     			
     			log.debug('invoiceFieldsLookUp', invoiceFieldsLookUp);
     			log.debug('entity', invoiceFieldsLookUp.entity[0].value);
@@ -164,20 +171,20 @@ function(ui, search, url, record) {
             	});
     			
     			//Adding values to the sublist
-    			var results = multiInvoicesList(params.fid);
+    			var results = itpm.getMultiInvoiceList(params.fid);    			
     			var i = 0;
-    			
+    						
 //    			var domain = url.resolveDomain({
 //				    hostType: url.HostType.APPLICATION
 //				});
 				
-    			results.each(function(result){
-    				totalamount = totalamount + parseFloat(result.getValue({name: "amountremaining", join: "appliedToTransaction"}));
-    				if(result.getValue({name: "internalid", join: "appliedToTransaction"}) != params.fid){
+    			results.forEach(function(result){
+    				totalamount = totalamount + parseFloat(result.inv_remaining_amount);
+    				if(result.inv_id != params.fid){
     					invlist.setSublistValue({
                 			id : 'custpage_date',
                     	    line : i,
-                    	    value : result.getValue({name: "trandate", join: "appliedToTransaction"})
+                    	    value : result.inv_date
                     	});
         				
 //        				var recURL = url.resolveRecord({
@@ -194,26 +201,23 @@ function(ui, search, url, record) {
         				invlist.setSublistValue({
                 			id : 'custpage_invnum',
                     	    line : i,
-                    	    value : result.getValue({name: "internalid", join: "appliedToTransaction"})
+                    	    value : result.inv_id
                     	});
         				
         				invlist.setSublistValue({
                 			id : 'custpage_amounttotal',
                     	    line : i,
-                    	    value : result.getValue({name: "amount", join: "appliedToTransaction"})
+                    	    value : result.inv_total
                     	});
         				
         				invlist.setSublistValue({
                 			id : 'custpage_amountremaining',
                     	    line : i,
-                    	    value : result.getValue({name: "amountremaining", join: "appliedToTransaction"})
+                    	    value : result.inv_remaining_amount
                     	});
-        				
-        				
         				
         				i++;
     				}
-    				return true;
     			});
     			
     			totalMultiInvDedAmount.defaultValue = totalamount;
@@ -223,13 +227,13 @@ function(ui, search, url, record) {
     			form.addButton({
     			    id : 'custpage_button_yes',
     			    label : 'Yes',
-    			    functionName : 'iTPMDeduction('+params.fid+', "yes")'
+    			    functionName : 'iTPMDeduction("'+postingPeriod+'",'+params.fid+', "yes")'
     			});
     			
     			form.addButton({
     			    id : 'custpage_button_no',
     			    label : 'No',
-    			    functionName : 'iTPMDeduction('+params.fid+', "no")'
+    			    functionName : 'iTPMDeduction("'+postingPeriod+'",'+params.fid+', "no")'
     			});
     			
     			form.addButton({
@@ -242,96 +246,6 @@ function(ui, search, url, record) {
     		}
     	}catch(ex){
     		log.error(ex.name, ex.message);
-    	}
-    }
-    
-    /**
-     * @param {String} invId
-     * 
-     * @return {Integer} count
-     */
-    function multiInvoicesList(invId){
-    	try{
-    		var custPayId;
-        	log.debug('invId', invId);
-        	var invoiceSearchObj = search.create({
-        		type: search.Type.INVOICE,
-        		filters: [
-        			["internalid","anyof",invId], 
-        			"AND", 
-        			["applyingtransaction","noneof","@NONE@"], 
-        			"AND", 
-        			["applyingtransaction.type","anyof","CustPymt"], 
-        			"AND", 
-        			["mainline","is","T"], 
-        			"AND", 
-        			["status","noneof","CustInvc:B"]
-        			],
-        		columns: [
-        			search.createColumn({
-        				name: "type",
-        				join: "applyingTransaction"
-        			}),
-        			search.createColumn({
-        				name: "trandate",
-        				join: "applyingTransaction",
-        				sort: search.Sort.DESC
-        			}),
-        			search.createColumn({
-        				name: "internalid",
-        				join: "applyingTransaction",
-        				sort: search.Sort.DESC
-        			})
-        		]
-        	});
-
-        	invoiceSearchObj.run().each(function(result){
-        		custPayId = result.getValue({name:'internalid', join:'applyingTransaction'});
-        	});
-        	log.debug('custPayId', custPayId);
-        	
-        	var customerpaymentSearchObj = search.create({
-        		type: "customerpayment",
-        		filters: [
-        			["type","anyof","CustPymt"], 
-        			"AND", 
-        			["internalid","anyof",custPayId], 
-        			"AND", 
-        			["mainline","is","F"],
-        			"AND", 
-        			["appliedtotransaction.status","anyof","CustInvc:A"]
-        			],
-        		columns: [
-        			search.createColumn({
-        				name: "internalid",
-        				sort: search.Sort.ASC
-        			}),
-        			search.createColumn({
-        				name: "type",
-        				join: "appliedToTransaction"
-        			}),
-        			search.createColumn({
-        				name: "trandate",
-       					join: "appliedToTransaction"
-       				}),
-       				search.createColumn({
-       					name: "internalid",
-       					join: "appliedToTransaction"
-       				}),
-       				search.createColumn({
-       					name: "amount",
-       					join: "appliedToTransaction"
-       				}),
-       				search.createColumn({
-       					name: "amountremaining",
-       					join: "appliedToTransaction"
-       				})
-       			]
-        	});
-
-        	return customerpaymentSearchObj.run();
-    	}catch(e){
-    		log.error(e.name, e.message);
     	}
     }
     

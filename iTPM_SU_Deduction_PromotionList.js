@@ -9,10 +9,11 @@ define(['N/ui/serverWidget',
 		'N/search',
 		'N/record',
 		'N/url',
-		'N/ui/message'
+		'N/ui/message',
+		'./iTPM_Module.js'
 	],
 
-	function(serverWidget,redirect,search,record,url,message) {
+	function(serverWidget, redirect, search, record, url, message, itpm) {
 
 	/**
 	 * Definition of the Suitelet script trigger point.
@@ -38,6 +39,11 @@ define(['N/ui/serverWidget',
 					label : 'Apply To'
 				});
 				list.addColumn({
+					id : 'custpage_itpm_prmid',
+					type : serverWidget.FieldType.INTEGER,
+					label : 'Promotion Id'
+				});
+				list.addColumn({
 					id : 'custpage_itpm_prmtitle',
 					type : serverWidget.FieldType.TEXT,
 					label : 'Promotion Title'
@@ -59,48 +65,13 @@ define(['N/ui/serverWidget',
 				});
 				list.addColumn({
 					id : 'custpage_itpm_prmshipstdt',
-					type : serverWidget.FieldType.TEXT,
+					type : serverWidget.FieldType.DATE,
 					label : 'Ship Start Date'
 				});
 				list.addColumn({
 					id : 'custpage_itpm_prmshipenddt',
-					type : serverWidget.FieldType.TEXT,
+					type : serverWidget.FieldType.DATE,
 					label : 'Ship End Date'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_netlaiblity',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Net Liability'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_overpay',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Overpay'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_promoestspnd',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Est.Spend'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_lespend',
-					type : serverWidget.FieldType.TEXT,
-					label : 'LE Spend'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_maxliablity',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Max Liability'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_expliablity',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Expected Liability'
-				});
-				list.addColumn({
-					id : 'custpage_itpm_actspend',
-					type : serverWidget.FieldType.TEXT,
-					label : 'Actual Spend'
 				});
 
 				list.addButton({id:'custom_cancelbtn',label:'Cancel',functionName:'redirectToBack'});
@@ -113,102 +84,88 @@ define(['N/ui/serverWidget',
 					columns:['custbody_itpm_customer']
 				});
 				//Create hierarchical promotions
-				var iteratorVal = false;
-				var custRange = 4;//Variable to limit the customer relations to a maximum of 4. 
-				var CustId = deductionRec.custbody_itpm_customer[0].value;
-				var custrecIds = [];
-				custrecIds.push(CustId); 
-				do{
-					//loading the customer record to get the parent customer
-					var customerRecord = record.load({
-						type: record.Type.CUSTOMER,
-						id: CustId
-					});
-					CustId = customerRecord.getValue('parent');
-					if(CustId){ 
-						iteratorVal = true;
-						custrecIds.push(CustId);
-					}
-					else{
-						iteratorVal = false;
-					}
-					custRange--;
-				}while(iteratorVal && custRange > 0);
+				var custrecIds = itpm.getParentCustomers(deductionRec.custbody_itpm_customer[0].value);
+				log.debug('Realted Customers',custrecIds);
 				var promoDealRecordSearch = search.create({
 					type:'customrecord_itpm_promotiondeal',
-					columns:['internalid',
+					columns:[
 						'name',
 						'custrecord_itpm_p_status',
 						'custrecord_itpm_p_condition',
 						'custrecord_itpm_p_customer',
 						'custrecord_itpm_p_netpromotionalle',
 						'custrecord_itpm_p_type.custrecord_itpm_pt_validmop',
-						'custrecord_itpm_p_otherrefcode'
+						'custrecord_itpm_p_otherrefcode',
+						'custrecord_itpm_p_type',
+						'custrecord_itpm_p_shipstart',
+						'custrecord_itpm_p_shipend',
+						search.createColumn({
+							name: 'internalid',
+							sort: search.Sort.ASC
+						})
 						],
 						filters:[
 							['custrecord_itpm_p_status','anyof', 3],'and', //approved
 							['custrecord_itpm_promo_allocationcontrbtn','is',false],'and',
 							[
 								[['custrecord_itpm_p_type.custrecord_itpm_pt_settlewhenpromoactive','is','T'],'and',
-									['custrecord_itpm_p_condition','anyof',2]],'or', //active if promotion type allow for settlemen in active
+									['custrecord_itpm_p_condition','anyof',2]],'or', //active if promotion type allow for settlement in active
 									['custrecord_itpm_p_condition','anyof', 3]  //completed
 								],'and',
 								['custrecord_itpm_p_customer','anyof', custrecIds],'and',
 								['custrecord_itpm_p_type.custrecord_itpm_pt_validmop','is',1],'and',  //mop is bill-back
 								['isinactive','is',false]]	    		
 				});
-				var promoDealRecordSearchLength = promoDealRecordSearch.runPaged().count;
-				var promos = [];
-				var suiteltUrl = url.resolveScript({
-					scriptId: 'customscript_itpm_set_createeditsuitelet',
-					deploymentId: 'customdeploy_itpm_set_createeditsuitelet',
-					returnExternalUrl: false
-				});
-				if(promoDealRecordSearchLength > 0){
+
+				if(promoDealRecordSearch.runPaged().count > 0){
+					/*var setUrl = url.resolveRecord({
+					    recordType: 'customtransaction_itpm_settlement',
+					    recordId: 0,
+					    isEditMode: true
+					});*/
+					/*listcolumn.setURL({
+						url : url.resolveScript({
+							scriptId: 'customscript_itpm_set_createeditsuitelet',
+							deploymentId: 'customdeploy_itpm_set_createeditsuitelet',
+							returnExternalUrl: false
+						})
+					});*/
 					listcolumn.setURL({
-						url : suiteltUrl
+						url :url.resolveRecord({
+						    recordType: 'customtransaction_itpm_settlement',
+						    recordId: 0,
+						    isEditMode: true
+						})
 					});
 					listcolumn.addParamToURL({
-						param : 'pid',
+						param : 'custom_promoid',//'pid',
 						value : 'custpage_itpm_id',
 						dynamic:true
 					});
-					listcolumn.addParamToURL({
-						param : 'type',
+					/*listcolumn.addParamToURL({
+						param : 'custom_type',
 						value : 'create'
-					});
+					});*/
 					listcolumn.addParamToURL({
-						param : 'ddn',
+						param : 'custom_ddn',
 						value : params.ddn
 					});
 					listcolumn.addParamToURL({
-						param : 'from',
+						param : 'custom_from',
 						value : 'ddn'
 					});
 					promoDealRecordSearch.run().each(function(e){
-						var promoRecId = e.getValue('internalid');
-						var promoRecord = record.load({
-							type:'customrecord_itpm_promotiondeal',
-							id:promoRecId
-						});	
-						promoObj = {	
-								'custpage_itpm_id':promoRecId,
+						list.addRow({
+							row :{	
+								'custpage_itpm_prmid':e.getValue('internalid'),
+								'custpage_itpm_id':e.getValue('internalid'),
 								'custpage_itpm_prmtitle':e.getValue('name'),
 								'custpage_itpm_otherrefcode':e.getValue('custrecord_itpm_p_otherrefcode'),
-								'custpage_itpm_prmtype':e.getValue('custrecord_itpm_p_otherrefcode'),
-								'custpage_itpm_prmcondn':promoRecord.getText('custrecord_itpm_p_type'),
-								'custpage_itpm_prmshipstdt':promoRecord.getText('custrecord_itpm_p_shipstart'),
-								'custpage_itpm_prmshipenddt':promoRecord.getText('custrecord_itpm_p_shipend'),
-								'custpage_itpm_netlaiblity':promoRecord.getText('custrecord_itpm_p_netpromotionalle'),
-								'custpage_itpm_overpay':promoRecord.getText('custrecord_itpm_p_promotionaloverpayamt'),
-								'custpage_itpm_promoestspnd':promoRecord.getText('custrecord_itpm_estimatedspend'),
-								'custpage_itpm_lespend':promoRecord.getText('custrecord_itpm_lespend'),
-								'custpage_itpm_maxliablity':promoRecord.getText('custrecord_itepm_p_incurredpromotionalle'),
-								'custpage_itpm_expliablity':promoRecord.getText('custrecord_itpm_p_expliabilitypromo'),
-								'custpage_itpm_actspend':promoRecord.getText('custrecord_itpm_p_promotionalactualspend')
-						};
-						list.addRow({
-							row :promoObj
+								'custpage_itpm_prmtype':e.getText('custrecord_itpm_p_type'),
+								'custpage_itpm_prmcondn':e.getText('custrecord_itpm_p_condition'),
+								'custpage_itpm_prmshipstdt':e.getValue('custrecord_itpm_p_shipstart'),
+								'custpage_itpm_prmshipenddt':e.getValue('custrecord_itpm_p_shipend')
+							}
 						});
 						return true;
 					});

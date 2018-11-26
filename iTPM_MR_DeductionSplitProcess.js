@@ -89,27 +89,41 @@ function(record, search, itpm) {
         	
         	log.debug('removeCustFromSplit', itpm.getPrefrenceValues());
         	log.debug('ddnSplitLineRecAmount',ddnSplitLineRecAmount);
-        	log.debug('sadf',{
+        	log.debug('split deduction values',{
         		amount : parseFloat(ddnSplitLineRecAmount),
         		ddnExpenseId : ddnExpenseId,
         		removeCustomer : removeCustFromSplit,
         		memo : ddnSplitLineMemo,
         		refCode : ddnSplitLineRefCode,
-        		ddnDisputed : ddnDisputed == 'T'
+        		ddnDisputed : (ddnDisputed == 'T'),
+        		automaticSplit : false
         	});
         	//It will create the auto split deduction
-        	var splitRecordCreated = itpm.createSplitDeduction(parentRec,{
+        	var splitRecordCreatedId = itpm.createSplitDeduction(parentRec,{
         		amount : parseFloat(ddnSplitLineRecAmount),
         		ddnExpenseId : ddnExpenseId,
         		removeCustomer : removeCustFromSplit,
         		memo : ddnSplitLineMemo,
         		refCode : ddnSplitLineRefCode,
-        		ddnDisputed : ddnDisputed == 'T'
+        		ddnDisputed : (ddnDisputed == 'T'),
+        		automaticSplit : false
         	});
         	
-        	log.debug('splitRecordCreated',splitRecordCreated);
+        	log.debug('splitRecordCreated',splitRecordCreatedId);
         	log.debug('(ddnOpenBalance - ddnSplitLineRecAmount)',(ddnOpenBalance - ddnSplitLineRecAmount))
-        	if(splitRecordCreated){
+        	if(splitRecordCreatedId){
+        		//setting the created deduction record id as value in split line record field.
+        		record.submitFields({
+        			type:'customrecord_itpm_deductionsplitline',
+    				id:ddnSplitLineRecId,
+    				values:{
+    					'custrecord_split_deduction':splitRecordCreatedId
+    				},
+    				options:{
+    					enableSourcing:false,
+    					ignoreMandatoryFields:true
+    				}
+        		});
         		//loading the parent record again why because parentDeductionRec already save 
         		//thats why we are loading the record newly
         		var remainingAmount = (ddnOpenBalance - ddnSplitLineRecAmount).toFixed(2);
@@ -136,7 +150,7 @@ function(record, search, itpm) {
         				},
         				options:{
         					enableSourcing:false,
-        					ignoreMandatoryFields:false
+        					ignoreMandatoryFields:true
         				}
         			});
         		}
